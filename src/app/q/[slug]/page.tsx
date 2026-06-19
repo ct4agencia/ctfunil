@@ -22,10 +22,14 @@ export async function generateMetadata({
 
 export default async function QuizPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
   const { slug } = await params;
+  const { preview } = await searchParams;
+  const isPreview = preview === "1";
   const funnel = await resolveFunnel(slug);
   if (!funnel) notFound();
 
@@ -46,12 +50,14 @@ export default async function QuizPage({
         } as React.CSSProperties
       }
     >
-      <PixelScripts
-        settings={funnel.settings ?? {}}
-        utmifyPixelId={funnel.utmifyPixelId ?? null}
-        hotmartAccountId={funnel.hotmartAccountId ?? null}
-      />
-      <QuizRunner funnel={funnel} />
+      {isPreview ? null : (
+        <PixelScripts
+          settings={funnel.settings ?? {}}
+          utmifyPixelId={funnel.utmifyPixelId ?? null}
+          hotmartAccountId={funnel.hotmartAccountId ?? null}
+        />
+      )}
+      <QuizRunner funnel={funnel} preview={isPreview} />
     </div>
   );
 }

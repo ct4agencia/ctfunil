@@ -19,6 +19,13 @@ export interface StepCtx {
   funnelSlug: string;
   vslId?: string;
   palette: Palette;
+  /** preview do construtor: desliga tracking, leads/webhook e sons */
+  preview?: boolean;
+}
+
+/** Grava resposta do quiz — no-op no preview do construtor. */
+function logAnswer(ctx: StepCtx, stepId: string, question: string, ans: string) {
+  if (!ctx.preview) trackAnswer(ctx.funnelSlug, stepId, question, ans);
 }
 
 /**
@@ -324,7 +331,7 @@ export function MeasureStepView({ step, ctx }: { step: MeasureStep; ctx: StepCtx
   const [unit, setUnit] = useState(0);
   const units = step.units ?? [];
   const go = () => {
-    trackAnswer(ctx.funnelSlug, step.id, step.question, `${v} ${units[unit] ?? step.suffix ?? ""}`.trim());
+    logAnswer(ctx, step.id, step.question, `${v} ${units[unit] ?? step.suffix ?? ""}`.trim());
     ctx.advance();
   };
   return (
@@ -357,7 +364,7 @@ export function SliderStepView({ step, ctx }: { step: SliderStep; ctx: StepCtx }
   const [v, setV] = useState(step.defaultValue ?? Math.round((min + max) / 2));
   const scale = max - min <= 12;
   const go = () => {
-    trackAnswer(ctx.funnelSlug, step.id, step.question, `${v}${step.suffix ?? ""}`);
+    logAnswer(ctx, step.id, step.question, `${v}${step.suffix ?? ""}`);
     ctx.advance();
   };
   return (
@@ -454,7 +461,7 @@ export function HeroStepView({ step, ctx }: { step: HeroStep; ctx: StepCtx }) {
 export function NameStepView({ step, ctx }: { step: NameStep; ctx: StepCtx }) {
   const [v, setV] = useState(ctx.name);
   const ok = v.trim().length >= 2;
-  const go = () => { if (!ok) return; ctx.setName(v.trim()); fireMetaEvent("Lead", { content_name: "name_capture" }); ctx.advance(); };
+  const go = () => { if (!ok) return; ctx.setName(v.trim()); if (!ctx.preview) fireMetaEvent("Lead", { content_name: "name_capture" }); ctx.advance(); };
   return (
     <>
       <StepShell center>
@@ -507,7 +514,7 @@ export function QuestionStepView({ step, ctx }: { step: QuestionStep; ctx: StepC
     }
     setSel([i]);
     const opt = step.options[i];
-    trackAnswer(ctx.funnelSlug, step.id, step.question, opt.label);
+    logAnswer(ctx, step.id, step.question, opt.label);
     if (step.insight || step.loadingText) {
       setPhase("loading");
       setTimeout(() => setPhase("insight"), 1400);
@@ -517,7 +524,7 @@ export function QuestionStepView({ step, ctx }: { step: QuestionStep; ctx: StepC
   };
 
   const confirmMulti = () => {
-    sel.forEach((i) => trackAnswer(ctx.funnelSlug, step.id, step.question, step.options[i].label));
+    sel.forEach((i) => logAnswer(ctx, step.id, step.question, step.options[i].label));
     if (step.insight || step.loadingText) { setPhase("loading"); setTimeout(() => setPhase("insight"), 1400); }
     else ctx.advance();
   };
@@ -668,7 +675,7 @@ function LoadingChecklist({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
 
   const answer = (cpIdx: number, opt: string) => {
     const cp = checkpoints[cpIdx];
-    trackAnswer(ctx.funnelSlug, `${step.id}:cp${cpIdx}`, cp.question, opt);
+    logAnswer(ctx, `${step.id}:cp${cpIdx}`, cp.question, opt);
     answered.current.add(cpIdx);
     setPaused(null);
   };
@@ -886,9 +893,11 @@ export function CaptureStepView({ step, ctx }: { step: CaptureStep; ctx: StepCtx
     if (!ok || sending) return;
     setSending(true);
     ctx.setName(nm.trim());
-    fireMetaEvent("Lead", { content_name: "lead_capture" });
-    if (ctx.vslId) await submitLead({ vslId: ctx.vslId, name: nm.trim(), phone: ph, componentId: step.componentId });
-    else await submitFunnelLead({ funnelSlug: ctx.funnelSlug, name: nm.trim(), phone: ph, componentId: step.componentId });
+    if (!ctx.preview) {
+      fireMetaEvent("Lead", { content_name: "lead_capture" });
+      if (ctx.vslId) await submitLead({ vslId: ctx.vslId, name: nm.trim(), phone: ph, componentId: step.componentId });
+      else await submitFunnelLead({ funnelSlug: ctx.funnelSlug, name: nm.trim(), phone: ph, componentId: step.componentId });
+    }
     ctx.advance();
   };
 
@@ -958,7 +967,7 @@ export function VslStepView({ step, ctx }: { step: VslStep; ctx: StepCtx }) {
   }, [reveal, step.pitchRevealAt]);
 
   const openCheckout = () => {
-    fireMetaEvent("InitiateCheckout");
+    if (!ctx.preview) fireMetaEvent("InitiateCheckout");
     if (step.checkoutUrl) window.open(step.checkoutUrl, "_blank");
   };
 

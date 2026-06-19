@@ -23,7 +23,7 @@ const DARK: Record<Step["type"], boolean> = {
   result: false, offer: false, capture: false, post_capture: false, bridge: false, vsl: true,
 };
 
-export default function QuizRunner({ funnel, vslId, startIndex = 0 }: { funnel: Funnel; vslId?: string; startIndex?: number }) {
+export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = false }: { funnel: Funnel; vslId?: string; startIndex?: number; preview?: boolean }) {
   const palette = getPalette(funnel.paletteId);
   const [index, setIndex] = useState(startIndex);
   const [name, setName] = useState("");
@@ -41,9 +41,9 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0 }: { funnel: 
 
   const musicStarted = useRef(false);
 
-  // tracking do avanço de etapa (funnel_sessions + step_events)
+  // tracking do avanço de etapa (funnel_sessions + step_events) — NUNCA no preview do construtor
   useEffect(() => {
-    trackStep(funnel.slug, index, step.id, step.type);
+    if (!preview) trackStep(funnel.slug, index, step.id, step.type);
     window.scrollTo({ top: 0 });
   }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -51,15 +51,15 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0 }: { funnel: 
   useEffect(() => () => stopMusic(), []);
 
   const advance = () => {
-    if (funnel.clickSound) playClick();
-    if (funnel.music && !musicStarted.current) {
+    if (!preview && funnel.clickSound) playClick();
+    if (!preview && funnel.music && !musicStarted.current) {
       startMusic(funnel.music);
       musicStarted.current = true;
     }
     setIndex((i) => Math.min(steps.length - 1, i + 1));
   };
   const back = () => setIndex((i) => Math.max(0, i - 1));
-  const ctx: StepCtx = { name, setName, advance, funnelSlug: funnel.slug, vslId, palette };
+  const ctx: StepCtx = { name, setName, advance, funnelSlug: funnel.slug, vslId, palette, preview };
 
   const render = (s: Step) => {
     switch (s.type) {

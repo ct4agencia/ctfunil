@@ -240,7 +240,7 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
               fontFamily: (funnel.font === "poppins" || funnel.paletteId === "ambar-velas") ? "'Poppins', system-ui, sans-serif" : undefined,
             }}>
             <div className="h-full overflow-y-auto">
-              <QuizRunner key={`${selectedId}-${funnel.paletteId}-${nonce}`} funnel={funnel} startIndex={selIdx} />
+              <QuizRunner key={`${selectedId}-${funnel.paletteId}-${nonce}`} funnel={funnel} startIndex={selIdx} preview />
             </div>
           </div>
         </div>

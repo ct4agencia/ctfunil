@@ -121,7 +121,7 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
     <div className="flex min-h-screen bg-[#f4f6f9] font-[var(--font-admin)] text-neutral-900" onClick={() => setMenu(null)}>
       <Sidebar onCreate={() => setCreating(true)} />
 
-      <div className="flex-1 overflow-x-hidden">
+      <div className="flex-1 overflow-x-clip">
         <div className="mx-auto max-w-[1180px] px-7 py-6">
           {/* header */}
           <div className="flex flex-wrap items-end justify-between gap-3">
@@ -170,8 +170,8 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
               {paged.map((f) => {
                 const pal = getPalette(f.palette_id);
                 return (
-                  <div key={f.slug} className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md">
-                    <div className="h-1" style={{ background: pal.primary }} />
+                  <div key={f.slug} className={`relative rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md ${menu === f.slug ? "z-30" : ""}`}>
+                    <div className="h-1 rounded-t-2xl" style={{ background: pal.primary }} />
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-2">
                         <button onClick={() => router.push(`/dashboard/${f.slug}`)} className="min-w-0 flex-1 text-left">
@@ -181,7 +181,7 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
                         <div className="relative">
                           <button onClick={(e) => { e.stopPropagation(); setMenu(menu === f.slug ? null : f.slug); }} className="rounded-md px-1.5 text-lg text-neutral-400 hover:bg-neutral-100">⋮</button>
                           {menu === f.slug ? (
-                            <div onClick={(e) => e.stopPropagation()} className="absolute right-0 z-10 mt-1 w-40 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 text-sm shadow-lg">
+                            <div onClick={(e) => e.stopPropagation()} className="absolute right-0 z-40 mt-1 w-40 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 text-sm shadow-xl">
                               <button onClick={() => router.push(`/builder/${f.slug}`)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">✏️ Editar</button>
                               <button onClick={() => router.push(`/dashboard/${f.slug}`)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">📊 Métricas</button>
                               <a href={`/q/${f.slug}`} target="_blank" rel="noreferrer" className="block px-3 py-1.5 hover:bg-neutral-50">👁 Visualizar</a>
@@ -211,7 +211,7 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
 
       {creating ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setCreating(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+          <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
             <h3 className="text-lg font-bold">Criar funil</h3>
             <p className="mt-1 text-sm text-neutral-500">Escolha um modelo e dê um nome.</p>
             <label className="mt-4 block text-xs font-semibold text-neutral-500">Nome do funil</label>

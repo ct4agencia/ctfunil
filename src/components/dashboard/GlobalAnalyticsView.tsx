@@ -93,7 +93,7 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
   return (
     <div className="flex min-h-screen bg-[#f4f6f9] font-[var(--font-admin)] text-neutral-900">
       <Sidebar onHome={() => router.push("/dashboard")} />
-      <div className="flex-1 overflow-x-hidden">
+      <div className="flex-1 overflow-x-clip">
         <div className="mx-auto max-w-[1180px] px-7 py-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -124,7 +124,7 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                       <p className="mt-1 text-sm text-neutral-500">{data.operacao[0].visitantes} sessões · {data.operacao[0].taxaConclusao}% conclusão</p>
                     </div>
                   }>
-                    <iframe src={`/q/${topFunnel}`} title="preview" className="h-full w-full" />
+                    <iframe src={`/q/${topFunnel}?preview=1`} title="preview" className="h-full w-full" />
                   </ContainerScroll>
                 ) : null}
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
