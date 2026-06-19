@@ -11,6 +11,17 @@ const PROTECTED = ["/dashboard", "/builder", "/analytics", "/admin"];
  * Allowlist por email (ADMIN_EMAIL) garante 1 só dono.
  */
 export async function updateSession(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isLoginRoute = pathname === "/admin/login";
+  const isProtected = PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"));
+
+  // PÁGINAS PÚBLICAS (funil da lead /q, APIs, home): nada de auth/getUser.
+  // Isso tira ~200–400ms (1 ida ao Supabase) de TODA requisição pública —
+  // principalmente da página que a LEAD vê. Só rotas protegidas pagam o custo.
+  if (!isProtected && !isLoginRoute) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -41,10 +52,6 @@ export async function updateSession(request: NextRequest) {
 
   // Allowlist: só o dono (ADMIN_EMAIL) conta como logado, se a env existir.
   const allowed = !!user && (!process.env.ADMIN_EMAIL || user.email === process.env.ADMIN_EMAIL);
-
-  const { pathname } = request.nextUrl;
-  const isLoginRoute = pathname === "/admin/login";
-  const isProtected = PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   // 1) Sem login tentando acessar o painel (menos o login) → vai pro login
   if (isProtected && !isLoginRoute && !allowed) {

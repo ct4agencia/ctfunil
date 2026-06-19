@@ -124,7 +124,7 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                       <p className="mt-1 text-sm text-neutral-500">{data.operacao[0].visitantes} sessões · {data.operacao[0].taxaConclusao}% conclusão</p>
                     </div>
                   }>
-                    <iframe src={`/q/${topFunnel}?preview=1`} title="preview" className="h-full w-full" />
+                    <iframe src={`/q/${topFunnel}?preview=1`} title="preview" loading="lazy" className="h-full w-full" />
                   </ContainerScroll>
                 ) : null}
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

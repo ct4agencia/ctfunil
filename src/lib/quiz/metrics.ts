@@ -21,12 +21,13 @@ export async function dashboardMetrics(): Promise<DashboardMetrics> {
   const funis = await listFunnelsDb();
   let totalSessoes = 0, totalRespostas = 0, totalLeads = 0, totalConclusoes = 0;
   const porFunil: DashboardMetrics["porFunil"] = [];
-  for (let i = 0; i < funis.length; i++) {
-    const f = funis[i];
-    const m = await funnelMetrics(f.slug);
+  // paralelo: todos os funnelMetrics ao mesmo tempo (antes era 1 por vez)
+  const metricasPorFunil = await Promise.all(funis.map((f) => funnelMetrics(f.slug)));
+  funis.forEach((f, i) => {
+    const m = metricasPorFunil[i];
     totalSessoes += m.visitantes; totalRespostas += m.respostas; totalLeads += m.leads; totalConclusoes += m.conclusoes;
     porFunil.push({ slug: f.slug, name: f.name, sessoes: m.visitantes, pct: 0, color: DONUT_COLORS[i % DONUT_COLORS.length] });
-  }
+  });
   porFunil.forEach((p) => { p.pct = totalSessoes ? Math.round((p.sessoes / totalSessoes) * 1000) / 10 : 0; });
   porFunil.sort((a, b) => b.sessoes - a.sessoes);
 
@@ -92,15 +93,15 @@ export async function globalAnalytics(): Promise<GlobalAnalytics> {
   const overview = await dashboardMetrics();
   const funis = await listFunnelsDb();
 
-  // operação: KPIs por funil
-  const operacao: GlobalAnalytics["operacao"] = [];
-  for (const f of funis) {
-    const m = await funnelMetrics(f.slug);
-    operacao.push({
+  // operação: KPIs por funil (paralelo)
+  const ms = await Promise.all(funis.map((f) => funnelMetrics(f.slug)));
+  const operacao: GlobalAnalytics["operacao"] = funis.map((f, i) => {
+    const m = ms[i];
+    return {
       slug: f.slug, name: f.name, visitantes: m.visitantes, respostas: m.respostas,
       leads: m.leads, conclusoes: m.conclusoes, taxaConclusao: m.taxaConclusao, score: m.score,
-    });
-  }
+    };
+  });
   operacao.sort((a, b) => b.visitantes - a.visitantes);
 
   // quiz: distribuição de respostas (quiz_answers)
