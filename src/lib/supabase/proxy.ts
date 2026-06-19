@@ -1,10 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+/** Rotas do painel que exigem login (CTFUNNEL + admin VSL herdado). */
+const PROTECTED = ["/dashboard", "/builder", "/analytics", "/admin"];
+
 /**
  * Atualiza a sessão Supabase a cada request (refresh de token via cookies)
- * e protege as rotas /admin: se não houver usuário logado, redireciona
- * pro login. O gate por email (allowlist) é feito no layout do /admin.
+ * e protege o painel inteiro (/dashboard, /builder, /analytics, /admin).
+ * Aposenta o painel VSL antigo: /admin* → /dashboard. Login em /admin/login.
+ * Allowlist por email (ADMIN_EMAIL) garante 1 só dono.
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -35,21 +39,31 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-  const isAdminRoute = pathname.startsWith("/admin");
-  const isLoginRoute = pathname === "/admin/login";
+  // Allowlist: só o dono (ADMIN_EMAIL) conta como logado, se a env existir.
+  const allowed = !!user && (!process.env.ADMIN_EMAIL || user.email === process.env.ADMIN_EMAIL);
 
-  // Sem usuário tentando acessar área protegida → manda pro login
-  if (isAdminRoute && !isLoginRoute && !user) {
+  const { pathname } = request.nextUrl;
+  const isLoginRoute = pathname === "/admin/login";
+  const isProtected = PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"));
+
+  // 1) Sem login tentando acessar o painel (menos o login) → vai pro login
+  if (isProtected && !isLoginRoute && !allowed) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     return NextResponse.redirect(url);
   }
 
-  // Já logado tentando ver o login → manda pro painel
-  if (isLoginRoute && user) {
+  // 2) Já logado abrindo o login → vai pro dashboard
+  if (isLoginRoute && allowed) {
     const url = request.nextUrl.clone();
-    url.pathname = "/admin";
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  // 3) Aposenta o painel VSL antigo: qualquer /admin (logado) → /dashboard
+  if (allowed && (pathname === "/admin" || pathname.startsWith("/admin/")) && !isLoginRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 

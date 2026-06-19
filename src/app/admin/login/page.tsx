@@ -28,14 +28,14 @@ export default function LoginPage() {
       return;
     }
 
-    router.replace("/admin");
+    router.replace("/dashboard");
     router.refresh();
   }
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-slate-950 px-4">
       <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-2xl font-bold text-white">VSL Plataforma</h1>
+        <h1 className="mb-1 text-2xl font-bold text-white">CTFUNNEL</h1>
         <p className="mb-8 text-sm text-slate-400">Acesso ao painel</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">

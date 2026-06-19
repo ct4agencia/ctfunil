@@ -7,6 +7,7 @@ import type { DashboardMetrics } from "@/lib/quiz/metrics";
 import { PRESETS } from "@/lib/quiz/presets";
 import { getPalette } from "@/lib/quiz/theme";
 import { createFunnel, duplicateFunnel, deleteFunnel } from "@/app/dashboard/actions";
+import { signOut } from "@/app/auth/actions";
 import Pagination from "@/components/ui/Pagination";
 
 const PER_PAGE = 6;
@@ -28,8 +29,7 @@ function Sidebar({ onCreate }: { onCreate: () => void }) {
       <Icon title="Funis">⛢</Icon>
       <button onClick={(e) => { e.stopPropagation(); onCreate(); }}><Icon title="Criar funil">＋</Icon></button>
       <a href="/analytics"><Icon title="Analytics (9 abas)">📊</Icon></a>
-      <Icon title="Mensagens">💬</Icon>
-      <div className="mt-auto"><Icon title="Configurações">⚙</Icon></div>
+      <button onClick={() => signOut()} className="mt-auto" title="Sair"><Icon title="Sair">⎋</Icon></button>
     </aside>
   );
 }
