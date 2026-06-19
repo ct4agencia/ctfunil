@@ -3,14 +3,17 @@
 import React from "react";
 import { motion } from "motion/react";
 
+/** Regex de marcação rica: `==pílula==`, `**negrito**` e `*negrito*` (simples). */
+export const RICH_RE = /(==[^=]+==|\*\*[^*]+\*\*|\*[^*\n]+\*)/g;
+
 /**
  * Texto rico estilo vivadevelas: `==destaque==` vira pílula gradiente âmbar
- * (texto branco), `**negrito**` vira realce em negrito na cor primária.
+ * (texto branco); `**negrito**` E `*negrito*` viram realce na cor primária.
  * Mantém quebras de linha. Tudo theme-driven (usa --q-primary).
  */
 export function RichText({ text, className }: { text: string; className?: string }) {
   if (!text) return null;
-  const parts = text.split(/(==[^=]+==|\*\*[^*]+\*\*)/g).filter(Boolean);
+  const parts = text.split(RICH_RE).filter(Boolean);
   return (
     <span className={className}>
       {parts.map((p, i) => {
@@ -24,6 +27,9 @@ export function RichText({ text, className }: { text: string; className?: string
         }
         if (p.startsWith("**") && p.endsWith("**")) {
           return <b key={i} className="font-extrabold text-[var(--q-primary)]">{p.slice(2, -2)}</b>;
+        }
+        if (p.startsWith("*") && p.endsWith("*")) {
+          return <b key={i} className="font-extrabold text-[var(--q-primary)]">{p.slice(1, -1)}</b>;
         }
         return <React.Fragment key={i}>{p}</React.Fragment>;
       })}

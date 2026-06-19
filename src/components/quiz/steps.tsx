@@ -6,7 +6,7 @@ import type {
   RouletteStep, RouletteStyle, ScratchStep, MeasureStep, SliderStep, Palette, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep, ResultStep,
   OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, QuizOption,
 } from "@/lib/quiz/types";
-import { CtaButton, OptionButton, StepShell, StickyCta, RichText } from "./ui";
+import { CtaButton, OptionButton, StepShell, StickyCta, RichText, RICH_RE } from "./ui";
 import { submitLead, submitFunnelLead, fireMetaEvent } from "@/lib/tracking";
 import { trackAnswer } from "@/lib/quiz/track";
 import { playSpinTicks, playWin, playUrl } from "@/lib/quiz/sound";
@@ -81,9 +81,10 @@ function Title({ children }: { children: React.ReactNode }) {
 function AnimatedTitle({ text }: { text: string }) {
   // tokens: pílulas/negritos atômicos + palavras soltas
   const tokens: { t: string; kind: "pill" | "bold" | "word" }[] = [];
-  text.split(/(==[^=]+==|\*\*[^*]+\*\*)/g).filter(Boolean).forEach((seg) => {
+  text.split(RICH_RE).filter(Boolean).forEach((seg) => {
     if (seg.startsWith("==") && seg.endsWith("==")) tokens.push({ t: seg.slice(2, -2), kind: "pill" });
     else if (seg.startsWith("**") && seg.endsWith("**")) tokens.push({ t: seg.slice(2, -2), kind: "bold" });
+    else if (seg.startsWith("*") && seg.endsWith("*")) tokens.push({ t: seg.slice(1, -1), kind: "bold" });
     else seg.split(" ").filter(Boolean).forEach((w) => tokens.push({ t: w, kind: "word" }));
   });
   return (
@@ -843,12 +844,22 @@ export function ResultStepView({ step, ctx }: { step: ResultStep; ctx: StepCtx }
     <>
       <StepShell center>
         <div className="text-center">
-          {/* UAU! com pop */}
-          <motion.div initial={{ scale: 0.4, rotate: -8, opacity: 0 }} animate={{ scale: 1, rotate: -3, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 12 }}
-            className="mb-3 inline-block font-[var(--q-display)] text-5xl font-black"
-            style={{ color: "var(--q-primary)", textShadow: "2px 3px 0 color-mix(in srgb, var(--q-primary) 35%, #fff), 4px 6px 14px color-mix(in srgb, var(--q-primary) 30%, transparent)" }}>
-            {interp(step.title, ctx.name).replace(/[^\wÀ-ÿ! ]/g, "") || "UAU!"}
+          {/* UAU! — gráfico 3D animado (gradiente + contorno + extrude), estilo vivadevelas */}
+          <motion.div initial={{ scale: 0.3, rotate: -14, opacity: 0 }} animate={{ scale: 1, rotate: -5, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 11 }} className="mb-2 flex justify-center">
+            <motion.span
+              animate={{ rotate: [-5, 2, -5], y: [0, -4, 0] }}
+              transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+              className="inline-block text-6xl font-black italic leading-none tracking-tight"
+              style={{
+                background: "linear-gradient(180deg, #ffdf6b 0%, var(--q-primary) 75%)",
+                WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
+                WebkitTextStroke: "2.5px #ffffff",
+                paintOrder: "stroke fill",
+                filter: "drop-shadow(3px 4px 0 color-mix(in srgb, var(--q-primary) 78%, #000)) drop-shadow(0 12px 18px color-mix(in srgb, var(--q-primary) 45%, transparent))",
+              } as React.CSSProperties}>
+              {(interp(step.title, ctx.name).replace(/[^\wÀ-ÿ! ]/g, "").trim() || "UAU").toUpperCase()}
+            </motion.span>
           </motion.div>
 
           {step.body ? (
@@ -903,12 +914,13 @@ export function ResultStepView({ step, ctx }: { step: ResultStep; ctx: StepCtx }
 /** RichText com realce VERDE (lâmina de aprovação/compatibilidade do vivadevelas). */
 function RichTextGreen({ text }: { text: string }) {
   if (!text) return null;
-  const parts = text.split(/(==[^=]+==|\*\*[^*]+\*\*)/g).filter(Boolean);
+  const parts = text.split(RICH_RE).filter(Boolean);
   return (
     <>
       {parts.map((p, i) => {
         if (p.startsWith("==") && p.endsWith("==")) return <span key={i} className="rounded-md bg-[#dcfce7] px-1.5 font-bold text-[#15803d]">{p.slice(2, -2)}</span>;
         if (p.startsWith("**") && p.endsWith("**")) return <b key={i} className="font-bold text-[#15803d]">{p.slice(2, -2)}</b>;
+        if (p.startsWith("*") && p.endsWith("*")) return <b key={i} className="font-bold text-[#15803d]">{p.slice(1, -1)}</b>;
         return <span key={i}>{p}</span>;
       })}
     </>

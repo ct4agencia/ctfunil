@@ -8,10 +8,18 @@ import { ROULETTE_STYLES } from "@/lib/quiz/types";
 import { Field, Text, Area, Num, Toggle, Select, StringList, OptionsList } from "./fields";
 import { playSpinTicks, playWin } from "@/lib/quiz/sound";
 
+/**
+ * Grade de 2 colunas. DEFINIDA NO MÓDULO (fora do componente) de propósito:
+ * se ficasse dentro do render, viraria um tipo novo a cada tecla e o React
+ * remontaria os inputs → o campo perderia o foco a cada caractere digitado.
+ */
+function Grid({ children }: { children: React.ReactNode }) {
+  return <div className="grid gap-3 sm:grid-cols-2">{children}</div>;
+}
+
 /** Editor de campos da lâmina selecionada — varia por tipo (estilo inlead). */
 export default function StepEditor({ step, onChange }: { step: Step; onChange: (patch: Partial<Step>) => void }) {
   const p = (patch: Partial<Step>) => onChange(patch);
-  const Grid = ({ children }: { children: React.ReactNode }) => <div className="grid gap-3 sm:grid-cols-2">{children}</div>;
 
   switch (step.type) {
     case "roulette": {
