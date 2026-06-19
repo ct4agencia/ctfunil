@@ -262,6 +262,11 @@ export interface ResultStep extends BaseStep {
   title: string;
   subtitle?: string;
   body?: string;
+  /** rótulo dentro do anel (ex: "COMPATÍVEL") */
+  ringLabel?: string;
+  /** card verde de aprovação (estilo vivadevelas) */
+  approvedTitle?: string;
+  approvedBody?: string;
   cta: string;
 }
 
@@ -269,8 +274,15 @@ export interface OfferStep extends BaseStep {
   type: "offer";
   image?: string;
   badge?: string;
+  /** selo verificado (azul) sobre a foto redonda */
+  verified?: boolean;
   title: string;
   body?: string;
+  /** caixas de prova social (ex: 5+ anos / 800+ alunas / 100k seguidoras) */
+  stats?: { value: string; label: string }[];
+  /** card escuro de "presente de boas-vindas" */
+  giftTitle?: string;
+  giftBody?: string;
   cta: string;
 }
 
@@ -284,6 +296,12 @@ export interface CaptureStep extends BaseStep {
   phoneLabel: string;
   phonePlaceholder: string;
   cta: string;
+  /** selo "GRÁTIS" sobre a imagem (ebook) */
+  freeBadge?: string;
+  /** nota destacada (ex: aviso do WhatsApp) acima do form */
+  note?: string;
+  /** linha de segurança abaixo do botão (ex: "🔒 Seus dados...") */
+  secure?: string;
   /** casa com o webhook "Click em componente" (igual inlead) */
   componentId?: string;
 }
@@ -292,6 +310,10 @@ export interface PostStep extends BaseStep {
   type: "post_capture";
   title: string;
   body?: string;
+  /** card de aviso amarelo (ex: "🚨 Lembrando...") */
+  warn?: string;
+  /** card secundário (ex: "Ahhh, quase ia esquecendo...") */
+  note?: string;
   cta: string;
 }
 

@@ -836,30 +836,81 @@ export function ResultStepView({ step, ctx }: { step: ResultStep; ctx: StepCtx }
     return () => cancelAnimationFrame(raf);
   }, [target]);
 
+  // anel SVG (verde sucesso, independente da paleta)
+  const R = 78, C = 2 * Math.PI * R;
+  const GREEN = "#16a34a";
   return (
     <>
       <StepShell center>
         <div className="text-center">
-          <span className="text-xs font-bold uppercase tracking-widest text-[var(--q-primary)]">Análise concluída</span>
-          <div className="mt-3"><Title>{interp(step.title, ctx.name)}</Title></div>
-          <motion.div initial={{ scale: 0.7 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 120 }}
-            className="my-6 mx-auto flex h-40 w-40 items-center justify-center rounded-full"
-            style={{ background: "conic-gradient(var(--q-primary) " + n + "%, var(--q-bg-soft) 0)" }}>
-            <div className="flex h-32 w-32 flex-col items-center justify-center rounded-full bg-[var(--q-surface)] shadow-inner">
-              <span className="text-5xl font-black text-[var(--q-primary)]">{n}%</span>
-              <span className="text-[11px] font-semibold uppercase text-[var(--q-text-muted)]">compatibilidade</span>
-            </div>
+          {/* UAU! com pop */}
+          <motion.div initial={{ scale: 0.4, rotate: -8, opacity: 0 }} animate={{ scale: 1, rotate: -3, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 12 }}
+            className="mb-3 inline-block font-[var(--q-display)] text-5xl font-black"
+            style={{ color: "var(--q-primary)", textShadow: "2px 3px 0 color-mix(in srgb, var(--q-primary) 35%, #fff), 4px 6px 14px color-mix(in srgb, var(--q-primary) 30%, transparent)" }}>
+            {interp(step.title, ctx.name).replace(/[^\wÀ-ÿ! ]/g, "") || "UAU!"}
           </motion.div>
-          {step.subtitle ? <p className="text-lg font-bold text-[var(--q-text)]">{interp(step.subtitle, ctx.name)}</p> : null}
-          {step.minShown ? (
-            <p className="mt-2 text-sm text-[var(--q-text-muted)]">
-              O mínimo necessário era <b className="text-[var(--q-primary)]">{step.minShown}%</b>, e você foi muito além.
+
+          {step.body ? (
+            <p className="mx-auto max-w-xs text-[15px] leading-relaxed text-[var(--q-text-muted)]">
+              <RichTextGreen text={interp(step.body, ctx.name)} />
             </p>
           ) : null}
-          {step.body ? <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]">{interp(step.body, ctx.name)}</p> : null}
+
+          {/* anel de compatibilidade */}
+          <div className="relative mx-auto my-6 h-44 w-44">
+            <svg viewBox="0 0 180 180" className="h-full w-full -rotate-90">
+              <circle cx="90" cy="90" r={R} fill="none" stroke="#e8f5ee" strokeWidth="13" />
+              <motion.circle cx="90" cy="90" r={R} fill="none" stroke={GREEN} strokeWidth="13" strokeLinecap="round"
+                strokeDasharray={C} initial={{ strokeDashoffset: C }} animate={{ strokeDashoffset: C * (1 - n / 100) }}
+                transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }} />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-5xl font-black text-[#15803d]">{n}<span className="text-2xl">%</span></span>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-[#15803d]/70">{step.ringLabel ?? "Compatível"}</span>
+            </div>
+          </div>
+
+          {step.subtitle ? (
+            <p className="text-lg font-extrabold text-[var(--q-text)]">
+              Sim, <span className="rounded-md bg-[#dcfce7] px-1.5 text-[#15803d]">{n}%</span>! <RichTextGreen text={interp(step.subtitle, ctx.name)} />
+            </p>
+          ) : null}
+          {step.minShown ? (
+            <p className="mt-2 text-sm text-[var(--q-text-muted)]">
+              O mínimo necessário era <b className="text-[#15803d]">{step.minShown}%</b>, e você foi <b className="text-[#15803d]">muito além</b>!!!
+            </p>
+          ) : null}
+
+          {/* card verde de aprovação */}
+          {(step.approvedTitle || step.approvedBody) ? (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+              className="mt-5 flex items-start gap-3 rounded-2xl border-2 border-[#bbf7d0] bg-[#f0fdf4] p-4 text-left">
+              <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#16a34a] text-sm text-white">✓</span>
+              <div>
+                {step.approvedTitle ? <p className="font-bold text-[#15803d]">{interp(step.approvedTitle, ctx.name)}</p> : null}
+                {step.approvedBody ? <p className="mt-0.5 text-sm leading-relaxed text-[var(--q-text-muted)]">{interp(step.approvedBody, ctx.name)}</p> : null}
+              </div>
+            </motion.div>
+          ) : null}
         </div>
       </StepShell>
       <StickyCta><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
+    </>
+  );
+}
+
+/** RichText com realce VERDE (lâmina de aprovação/compatibilidade do vivadevelas). */
+function RichTextGreen({ text }: { text: string }) {
+  if (!text) return null;
+  const parts = text.split(/(==[^=]+==|\*\*[^*]+\*\*)/g).filter(Boolean);
+  return (
+    <>
+      {parts.map((p, i) => {
+        if (p.startsWith("==") && p.endsWith("==")) return <span key={i} className="rounded-md bg-[#dcfce7] px-1.5 font-bold text-[#15803d]">{p.slice(2, -2)}</span>;
+        if (p.startsWith("**") && p.endsWith("**")) return <b key={i} className="font-bold text-[#15803d]">{p.slice(2, -2)}</b>;
+        return <span key={i}>{p}</span>;
+      })}
     </>
   );
 }
@@ -869,13 +920,50 @@ export function OfferStepView({ step, ctx }: { step: OfferStep; ctx: StepCtx }) 
   return (
     <>
       <StepShell>
-        {step.badge ? <span className="mx-auto mb-3 rounded-full bg-[var(--q-bg-soft)] px-3 py-1 text-xs font-bold uppercase text-[var(--q-primary)]">{step.badge}</span> : null}
-        {step.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={step.image} alt="" className="mx-auto mb-5 max-h-60 w-auto rounded-2xl object-contain" />
+        {step.badge ? (
+          <span className="mx-auto mb-4 inline-flex items-center gap-1.5 rounded-full border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#15803d]">
+            <span className="grid h-4 w-4 place-items-center rounded-full bg-[#16a34a] text-[9px] text-white">✓</span>{step.badge}
+          </span>
         ) : null}
-        <Title>{interp(step.title, ctx.name)}</Title>
-        {step.body ? <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
+        <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
+
+        {step.image ? (
+          <div className="relative mx-auto my-5 h-36 w-36">
+            <motion.img initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 160 }}
+              // eslint-disable-next-line @next/next/no-img-element
+              src={step.image} alt="" className="h-36 w-36 rounded-full border-4 border-white object-cover shadow-[0_16px_30px_-12px_rgba(0,0,0,.3)]" />
+            {step.verified ? (
+              <span className="absolute bottom-1 right-1 grid h-9 w-9 place-items-center rounded-full border-2 border-white bg-[#1d9bf0] text-sm text-white shadow">✓</span>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* card da apresentação + stats */}
+        <div className="rounded-2xl border-2 border-[color-mix(in_srgb,var(--q-primary)_22%,transparent)] bg-[var(--q-surface)] p-4">
+          {step.body ? <p className="whitespace-pre-line text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
+          {step.stats?.length ? (
+            <div className="mt-4 grid gap-2" style={{ gridTemplateColumns: `repeat(${step.stats.length}, minmax(0,1fr))` }}>
+              {step.stats.map((s, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.1 }}
+                  className="rounded-xl bg-[var(--q-bg-soft)] px-2 py-3 text-center">
+                  <div className="text-lg font-black text-[var(--q-primary)]">{s.value}</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--q-text-muted)]">{s.label}</div>
+                </motion.div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        {/* card escuro do presente */}
+        {(step.giftTitle || step.giftBody) ? (
+          <div className="mt-4 rounded-2xl bg-[#3a241a] p-5 text-center text-white shadow-lg">
+            {step.giftTitle ? (
+              <span className="mb-3 inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide text-white"
+                style={{ background: "linear-gradient(95deg, var(--q-primary), color-mix(in srgb, var(--q-primary) 60%, #ffd9a8))" }}>{interp(step.giftTitle, ctx.name)}</span>
+            ) : null}
+            {step.giftBody ? <p className="whitespace-pre-line text-[15px] leading-relaxed text-white/90"><RichText text={interp(step.giftBody, ctx.name)} /></p> : null}
+          </div>
+        ) : null}
       </StepShell>
       <StickyCta><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
     </>
@@ -904,20 +992,50 @@ export function CaptureStepView({ step, ctx }: { step: CaptureStep; ctx: StepCtx
   return (
     <>
       <StepShell>
-        <Title>{interp(step.title, ctx.name)}</Title>
-        {step.body ? <p className="mt-2 text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
+        <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
+        {step.body ? <p className="mt-2 text-center text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
+
         {step.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={step.image} alt="" className="mx-auto my-4 max-h-44 w-auto rounded-xl object-contain" />
+          <div className="relative mx-auto my-5 w-fit">
+            {/* estrelinhas */}
+            {[{ t: "-6%", l: "-4%", d: 0 }, { t: "8%", l: "98%", d: 0.6 }, { t: "78%", l: "-8%", d: 1.1 }, { t: "92%", l: "92%", d: 0.3 }].map((s, i) => (
+              <motion.span key={i} className="absolute text-lg" style={{ top: s.t, left: s.l }}
+                animate={{ scale: [0.6, 1, 0.6], opacity: [0.3, 1, 0.3], rotate: [0, 20, 0] }}
+                transition={{ duration: 2.2, repeat: Infinity, delay: s.d }}>✨</motion.span>
+            ))}
+            {/* ebook com wave (flutua + balança) */}
+            <motion.img
+              animate={{ y: [0, -10, 0], rotate: [-1.5, 1.5, -1.5] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              // eslint-disable-next-line @next/next/no-img-element
+              src={step.image} alt="" className="max-h-52 w-auto rounded-xl object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,.22)]" />
+            {/* selo GRÁTIS */}
+            {step.freeBadge ? (
+              <motion.span className="absolute -right-2 top-2 rounded-full bg-[#16a34a] px-3 py-1 text-xs font-black uppercase tracking-wide text-white shadow-lg"
+                animate={{ rotate: [8, 14, 8], scale: [1, 1.06, 1] }} transition={{ duration: 2, repeat: Infinity }}>{step.freeBadge}</motion.span>
+            ) : null}
+          </div>
         ) : null}
-        <label className="mt-4 block text-sm font-semibold text-[var(--q-text)]">{step.nameLabel}</label>
-        <input value={nm} onChange={(e) => setNm(e.target.value)} placeholder={step.namePlaceholder}
-          className="mt-1 w-full rounded-xl border-2 border-black/10 bg-[var(--q-surface)] px-4 py-3 text-[var(--q-text)] outline-none focus:border-[var(--q-primary)]" />
-        <label className="mt-4 block text-sm font-semibold text-[var(--q-text)]">{step.phoneLabel}</label>
-        <input value={ph} onChange={(e) => setPh(e.target.value)} inputMode="tel" placeholder={step.phonePlaceholder}
-          className="mt-1 w-full rounded-xl border-2 border-black/10 bg-[var(--q-surface)] px-4 py-3 text-[var(--q-text)] outline-none focus:border-[var(--q-primary)]" />
+
+        {step.note ? (
+          <div className="mb-4 flex items-start gap-2 rounded-2xl border border-[#bbf7d0] bg-[#f0fdf4] p-3 text-sm leading-relaxed text-[var(--q-text-muted)]">
+            <span className="mt-0.5 text-base">🟢</span><span><RichText text={interp(step.note, ctx.name)} /></span>
+          </div>
+        ) : null}
+
+        <div className="rounded-2xl border-2 border-[color-mix(in_srgb,var(--q-primary)_18%,transparent)] bg-[var(--q-surface)] p-4">
+          <label className="block text-xs font-bold uppercase tracking-wide text-[var(--q-text-muted)]">{step.nameLabel}</label>
+          <input value={nm} onChange={(e) => setNm(e.target.value)} placeholder={step.namePlaceholder}
+            className="mt-1 w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 text-[var(--q-text)] outline-none focus:border-[var(--q-primary)]" />
+          <label className="mt-4 block text-xs font-bold uppercase tracking-wide text-[var(--q-text-muted)]">{step.phoneLabel}</label>
+          <input value={ph} onChange={(e) => setPh(e.target.value)} inputMode="tel" placeholder={step.phonePlaceholder}
+            className="mt-1 w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 text-[var(--q-text)] outline-none focus:border-[var(--q-primary)]" />
+        </div>
       </StepShell>
-      <StickyCta><CtaButton onClick={submit} disabled={!ok || sending}>{sending ? "Enviando..." : step.cta}</CtaButton></StickyCta>
+      <StickyCta>
+        <CtaButton onClick={submit} disabled={!ok || sending}>{sending ? "Enviando..." : step.cta}</CtaButton>
+        {step.secure ? <p className="mt-2 text-center text-[11px] text-[var(--q-text-muted)]">{interp(step.secure, ctx.name)}</p> : null}
+      </StickyCta>
     </>
   );
 }
@@ -928,10 +1046,27 @@ export function PostStepView({ step, ctx }: { step: PostStep; ctx: StepCtx }) {
     <>
       <StepShell center>
         <div className="text-center">
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--q-primary)] text-3xl text-white">✓</motion.div>
+          {/* check verde que PULSA */}
+          <div className="relative mx-auto mb-4 h-20 w-20">
+            <motion.span className="absolute inset-0 rounded-full bg-[#16a34a]"
+              animate={{ scale: [1, 1.35], opacity: [0.35, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }} />
+            <motion.div initial={{ scale: 0 }} animate={{ scale: [1, 1.08, 1] }}
+              transition={{ scale: { duration: 1.6, repeat: Infinity } }}
+              className="relative grid h-20 w-20 place-items-center rounded-full bg-[#16a34a] text-4xl text-white shadow-[0_12px_28px_-8px_#16a34a]">✓</motion.div>
+          </div>
           <Title>{interp(step.title, ctx.name)}</Title>
-          {step.body ? <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-[var(--q-text-muted)]">{interp(step.body, ctx.name)}</p> : null}
+          {step.body ? <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
+
+          {step.warn ? (
+            <div className="mt-4 rounded-2xl border border-[#fde68a] bg-[#fffbeb] p-3 text-left text-sm font-medium leading-relaxed text-[#92400e]">
+              🚨 <RichText text={interp(step.warn, ctx.name)} />
+            </div>
+          ) : null}
+          {step.note ? (
+            <div className="mt-3 rounded-2xl border-2 border-[color-mix(in_srgb,var(--q-primary)_20%,transparent)] bg-[var(--q-surface)] p-4 text-left text-sm leading-relaxed text-[var(--q-text-muted)]">
+              <RichText text={interp(step.note, ctx.name)} />
+            </div>
+          ) : null}
         </div>
       </StepShell>
       <StickyCta><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>

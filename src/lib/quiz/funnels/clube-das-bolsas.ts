@@ -88,6 +88,9 @@ export const clubeDasBolsas: Funnel = {
       title: "Uau! 😱",
       subtitle: "Você tem ==tudo que a gente procura==!",
       body: "Que orgulho dizer isso: você atingiu a compatibilidade com o perfil ideal para receber a ==Bolsa de Estudos de 6 meses== no Clube das Bolsas! 🎉",
+      ringLabel: "Compatível",
+      approvedTitle: "Você foi aprovada!",
+      approvedBody: "Você tem tudo que a gente procura. Estamos muito felizes por ver você chegar até aqui. 🎉",
       cta: "Quero ativar minha Bolsa de Estudos",
     },
 
@@ -95,31 +98,44 @@ export const clubeDasBolsas: Funnel = {
     {
       id: "offer", type: "offer",
       image: `${CDN}/2025-10-01/md-FWlAd-logo-55.png`,
-      badge: "Bolsa garantida ✅",
+      badge: "Bolsa garantida",
+      verified: true,
       title: "Prazer, eu me chamo ==Sônia== 🧡",
-      body: "A sua Bolsa de Estudos de 6 meses está garantida! E agora que você é oficialmente minha aluna, deixa eu me apresentar:\n\nSou professora de Bolsas na tela há mais de 5 anos. Já formei +800 alunas e hoje compartilho minha rotina e trabalho para +100 mil seguidoras no meu Instagram.\n\nE pra gente começar nossa relação de aluna e professora do jeito certo, eu resolvi te dar um presente de boas-vindas que você vai AMAR!",
+      body: "A sua Bolsa de Estudos de 6 meses está garantida! E agora que você é oficialmente minha aluna, deixa eu me apresentar:\n\nSou professora de Bolsas na tela há mais de **5 anos**. Já formei **+800 alunas** e hoje compartilho minha rotina e trabalho para **+100 mil seguidoras** no meu Instagram.",
+      stats: [
+        { value: "5+", label: "anos" },
+        { value: "+800", label: "alunas" },
+        { value: "+100 mil", label: "seguidoras" },
+      ],
+      giftTitle: "🎁 Presente de boas-vindas",
+      giftBody: "E pra gente começar nossa relação de aluna e professora do jeito certo, eu resolvi te dar um ==presente de boas-vindas== que você vai AMAR!",
       cta: "QUERO O PRESENTE",
     },
 
     // 17 — CAPTURA
     {
       id: "captura", type: "capture",
-      title: "Deixe aqui seu número de ==Whatsapp== para receber a apostila 👇",
-      body: "Como forma de reconhecimento por ter chegado até aqui, vou te mandar no seu Whatsapp uma Apostila SUPER COMPLETA de como fazer Bolsas de celular em Crochê. Confere certinho o número para não ficar errado, tá bom? 🙏",
+      title: "Como forma de ==reconhecimento== por ter chegado até aqui…",
+      body: "Eu vou te mandar no seu **Whatsapp** uma **Apostila SUPER COMPLETA** de como fazer Bolsas de celular em Crochê.",
       image: `${CDN}/2026-03-19/md-Vw2vD-1d8ebb39-c0ea-4334-a40b-8600e8750876.png`,
+      freeBadge: "GRÁTIS",
+      note: "Essa apostila eu vou te mandar **direto no seu Whatsapp**, por isso preciso que você me diga qual seu número com DDD. Confere certinho o número pra não ficar errado, tá bom?",
       nameLabel: "Como você gostaria que eu te chamasse?",
       namePlaceholder: "Digite seu nome...",
-      phoneLabel: "Digite seu whatsapp para eu te enviar a apostila totalmente de graça:",
-      phonePlaceholder: "Digite seu Whatsapp com DDD",
+      phoneLabel: "Seu Whatsapp (com DDD)",
+      phonePlaceholder: "(00) 00000-0000",
       cta: "Quero receber o presente no meu Whatsapp",
+      secure: "🔒 Seus dados estão protegidos e nunca serão compartilhados",
       componentId: "captura",
     },
 
     // 18 — PÓS CAPTURA
     {
       id: "pos-captura", type: "post_capture",
-      title: "Pronto!",
-      body: "Já vou anotar seu contato aqui no meu celular… E daqui a alguns minutos vou te mandar uma mensagem no Whatsapp, combinado?\n\n🚨 Lembrando: eu só consigo te mandar a apostila se você responder a mensagem.\n\nAgora, vamos ativar a sua bolsa de estudos! ⬇️",
+      title: "Pronto, {nome}!",
+      body: "Já vou anotar seu contato aqui no meu celular e daqui a alguns minutos vou te mandar uma mensagem no Whatsapp, combinado?",
+      warn: "Lembrando: eu só consigo te mandar a apostila se você **responder a mensagem**.",
+      note: "Ahhh, quase ia esquecendo… Além de te mandar a apostila, se você quiser, vou adorar conversar com você, tirar suas dúvidas e te ajudar no que precisar. ❤️ Fica atenta às notificações pra não deixar sua professora sem resposta, viu?",
       cta: "Quero ativar a Bolsa de Estudos",
     },
 
