@@ -29,7 +29,9 @@ export default async function QuizPage({
   const funnel = await resolveFunnel(slug);
   if (!funnel) notFound();
 
-  const usePoppins = funnel.font === "poppins";
+  // Poppins quando o funil pede explicitamente OU usa a paleta âmbar (vivadevelas).
+  // O 2º caso garante o visual mesmo se o campo `font` ainda não persistir (migração 0010).
+  const usePoppins = funnel.font === "poppins" || funnel.paletteId === "ambar-velas";
   return (
     <div
       className={`${display.variable} ${sans.variable} ${poppins.variable}`}

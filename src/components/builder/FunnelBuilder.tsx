@@ -236,8 +236,8 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
           </div>
           <div className="mx-auto h-[680px] w-[340px] max-w-full overflow-hidden rounded-[2rem] border-[10px] border-neutral-900 bg-white shadow-xl"
             style={{
-              ["--q-display" as string]: funnel.font === "poppins" ? "'Poppins', system-ui, sans-serif" : "Georgia, serif",
-              fontFamily: funnel.font === "poppins" ? "'Poppins', system-ui, sans-serif" : undefined,
+              ["--q-display" as string]: (funnel.font === "poppins" || funnel.paletteId === "ambar-velas") ? "'Poppins', system-ui, sans-serif" : "Georgia, serif",
+              fontFamily: (funnel.font === "poppins" || funnel.paletteId === "ambar-velas") ? "'Poppins', system-ui, sans-serif" : undefined,
             }}>
             <div className="h-full overflow-y-auto">
               <QuizRunner key={`${selectedId}-${funnel.paletteId}-${nonce}`} funnel={funnel} startIndex={selIdx} />
