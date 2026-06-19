@@ -16,6 +16,8 @@ export const clubeDasBolsas: Funnel = {
   niche: "Bolsas artesanais / renda extra",
   logo: LOGO,
   paletteId: "laranja-cdb",
+  font: "poppins",
+  clickSound: true,
   steps: [
     // 1 — ROLETA (nova primeira lâmina)
     {
@@ -34,7 +36,7 @@ export const clubeDasBolsas: Funnel = {
       winningIndex: 0,
       mode: "always",
       cta: "Girar",
-      winTitle: "🎉 Você ganhou ACESSO GRÁTIS!",
+      winTitle: "🎉 Você ganhou ==ACESSO GRÁTIS==!",
       winBody: "Sua condição especial foi liberada. Continue para garantir a sua bolsa de estudos.",
       winCta: "Quero garantir agora →",
       sound: { enabled: true },
@@ -45,7 +47,7 @@ export const clubeDasBolsas: Funnel = {
       id: "hero",
       type: "hero",
       badge: "🎁 BOLSA DE ESTUDOS DE 6 MESES",
-      title: "O melhor treinamento do Brasil para ganhar R$5 mil por mês com bolsas artesanais",
+      title: "O melhor treinamento do Brasil para ganhar ==R$5 mil por mês== com bolsas artesanais",
       subtitle:
         "Para receber o acesso gratuito do curso através de uma Bolsa de Estudos de 6 meses, você precisa apenas passar por uma pequena seleção respondendo algumas perguntas rápidas. Elas vão mostrar se o seu perfil se encaixa no ideal pra receber o acesso gratuito no Clube das Bolsas.",
       gallery: [
@@ -71,8 +73,12 @@ export const clubeDasBolsas: Funnel = {
 
     // 14 — CARREGANDO RESPOSTAS
     {
-      id: "loading", type: "loading", variant: "light", logo: LOGO,
-      slides: ["Carregando suas respostas… ⏳", "Cruzando o seu perfil com as vagas disponíveis...", "Espere só um instante"],
+      id: "loading", type: "loading", variant: "light", style: "checklist", logo: LOGO,
+      title: "Carregando suas respostas…",
+      bars: ["Conferindo suas respostas", "Cruzando seu perfil com as vagas", "Preparando seu resultado"],
+      slides: ["Espere só um instante"],
+      durationMs: 4500,
+      checkpoints: [{ at: 60, question: "Você quer começar ainda este mês?", options: ["Sim, com tudo! 🔥", "Quero entender melhor"] }],
     },
 
     // 15 — 94% COMPATÍVEL
@@ -80,8 +86,8 @@ export const clubeDasBolsas: Funnel = {
       id: "result", type: "result",
       range: [94, 94], minShown: 87,
       title: "Uau! 😱",
-      subtitle: "Você tem tudo que a gente procura!",
-      body: "Que orgulho dizer isso: você atingiu a compatibilidade com o perfil ideal para receber a Bolsa de Estudos de 6 meses no Clube das Bolsas! 🎉",
+      subtitle: "Você tem ==tudo que a gente procura==!",
+      body: "Que orgulho dizer isso: você atingiu a compatibilidade com o perfil ideal para receber a ==Bolsa de Estudos de 6 meses== no Clube das Bolsas! 🎉",
       cta: "Quero ativar minha Bolsa de Estudos",
     },
 
@@ -90,7 +96,7 @@ export const clubeDasBolsas: Funnel = {
       id: "offer", type: "offer",
       image: `${CDN}/2025-10-01/md-FWlAd-logo-55.png`,
       badge: "Bolsa garantida ✅",
-      title: "Prazer, eu me chamo Sônia 🧡",
+      title: "Prazer, eu me chamo ==Sônia== 🧡",
       body: "A sua Bolsa de Estudos de 6 meses está garantida! E agora que você é oficialmente minha aluna, deixa eu me apresentar:\n\nSou professora de Bolsas na tela há mais de 5 anos. Já formei +800 alunas e hoje compartilho minha rotina e trabalho para +100 mil seguidoras no meu Instagram.\n\nE pra gente começar nossa relação de aluna e professora do jeito certo, eu resolvi te dar um presente de boas-vindas que você vai AMAR!",
       cta: "QUERO O PRESENTE",
     },
@@ -98,7 +104,7 @@ export const clubeDasBolsas: Funnel = {
     // 17 — CAPTURA
     {
       id: "captura", type: "capture",
-      title: "Deixe aqui seu número de Whatsapp para receber a apostila 👇",
+      title: "Deixe aqui seu número de ==Whatsapp== para receber a apostila 👇",
       body: "Como forma de reconhecimento por ter chegado até aqui, vou te mandar no seu Whatsapp uma Apostila SUPER COMPLETA de como fazer Bolsas de celular em Crochê. Confere certinho o número para não ficar errado, tá bom? 🙏",
       image: `${CDN}/2026-03-19/md-Vw2vD-1d8ebb39-c0ea-4334-a40b-8600e8750876.png`,
       nameLabel: "Como você gostaria que eu te chamasse?",
