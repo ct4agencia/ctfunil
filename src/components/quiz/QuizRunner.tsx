@@ -23,6 +23,17 @@ const DARK: Record<Step["type"], boolean> = {
   result: false, offer: false, capture: false, post_capture: false, bridge: false, vsl: true,
 };
 
+/** Estima se um fundo CSS (gradiente/cor) é escuro, pela luminância média dos #hex. */
+function bgIsDark(css: string): boolean {
+  const hexes = css.match(/#[0-9a-fA-F]{6}/g);
+  if (!hexes || !hexes.length) return false;
+  const avg = hexes.reduce((sum, h) => {
+    const r = parseInt(h.slice(1, 3), 16), g = parseInt(h.slice(3, 5), 16), b = parseInt(h.slice(5, 7), 16);
+    return sum + (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }, 0) / hexes.length;
+  return avg < 0.5;
+}
+
 export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = false }: { funnel: Funnel; vslId?: string; startIndex?: number; preview?: boolean }) {
   const palette = getPalette(funnel.paletteId);
   const [index, setIndex] = useState(startIndex);
@@ -42,6 +53,8 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
       : dark
         ? "radial-gradient(120% 80% at 50% 35%, #2a1d4d 0%, #150f29 55%, #0a0a1a 100%)"
         : "var(--q-bg)";
+  // texto adapta ao fundo: se o fundo aplicado for escuro, texto claro
+  const effectiveDark = dark || bgIsDark(rootBg);
 
   const musicStarted = useRef(false);
 
@@ -91,7 +104,7 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
       className="flex min-h-[100dvh] flex-col"
       style={{
         ...paletteVars(palette),
-        ...(dark ? { ["--q-bg"]: "#160a22" } : {}),
+        ...(effectiveDark ? { ["--q-bg"]: "#160a22", ["--q-text"]: "#ffffff", ["--q-text-muted"]: "rgba(255,255,255,.72)" } : {}),
         background: rootBg,
         color: "var(--q-text)",
       } as React.CSSProperties}
