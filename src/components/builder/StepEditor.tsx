@@ -393,7 +393,6 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             <Field label="Link do checkout" full><Text value={s.checkoutUrl} onChange={(v) => p({ checkoutUrl: v } as Partial<Step>)} /></Field>
             <Field label="Texto do botão"><Text value={s.ctaText} onChange={(v) => p({ ctaText: v } as Partial<Step>)} /></Field>
             <Field label="Liberar CTA após (seg)"><Num value={s.pitchRevealAt ?? 0} onChange={(v) => p({ pitchRevealAt: v } as Partial<Step>)} /></Field>
-            <Field label="VTurb Player ID (legado)"><Text value={s.vturbPlayerId} onChange={(v) => p({ vturbPlayerId: v } as Partial<Step>)} /></Field>
           </Grid>
           <Field label="Fundo da lâmina (full-screen)"><BgField value={s.background} onChange={(v) => p({ background: v } as Partial<Step>)} /></Field>
           <div className="rounded-xl bg-neutral-50 p-3">

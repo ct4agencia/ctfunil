@@ -104,6 +104,9 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
           <div key={index} className="flex flex-1 flex-col">{render(step)}</div>
         </AnimatePresence>
       </main>
+      {funnel.settings?.footer && step.type === "vsl" ? (
+        <footer className="px-5 pb-6 pt-2 text-center text-xs text-white/55">{funnel.settings.footer}</footer>
+      ) : null}
     </div>
   );
 }

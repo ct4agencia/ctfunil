@@ -392,6 +392,8 @@ export interface FunnelSettings {
     favicon?: string;
     ogImage?: string;
   };
+  /** rodapé/copyright exibido na lâmina final (VSL) */
+  footer?: string;
 }
 
 /** Webhook do funil (inlead-compatível) — guardado em funnels.webhooks (jsonb). */

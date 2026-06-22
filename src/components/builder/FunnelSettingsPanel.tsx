@@ -150,6 +150,11 @@ export default function FunnelSettingsPanel({
                 <input className={inputCls} value={funnel.hotmartProductId ?? ""} onChange={(e) => onPatch({ hotmartProductId: e.target.value || undefined })} />
                 <span className="mt-1 block text-[11px] text-neutral-400">Vazio = extraído do link de checkout. Vai no payload do webhook (campo <b>produto</b>).</span>
               </label>
+              <label className="block">
+                <span className={labelCls}>Rodapé / Copyright (aparece na lâmina final)</span>
+                <input className={inputCls} placeholder="Copyright Clube das Bolsas® — Todos os direitos reservados."
+                  value={funnel.settings?.footer ?? ""} onChange={(e) => onPatch({ settings: { ...funnel.settings, footer: e.target.value || undefined } })} />
+              </label>
             </div>
           )}
 
