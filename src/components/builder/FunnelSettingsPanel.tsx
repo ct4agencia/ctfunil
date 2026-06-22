@@ -132,6 +132,10 @@ export default function FunnelSettingsPanel({
           {tab === "geral" && (
             <div className="max-w-lg space-y-4">
               <label className="block">
+                <span className={labelCls}>Nome do funil (interno / aparece no painel e no webhook)</span>
+                <input className={inputCls} placeholder="CDB 👛 [Bolsas] — SRC 01" value={funnel.name} onChange={(e) => onPatch({ name: e.target.value })} />
+              </label>
+              <label className="block">
                 <span className={labelCls}>Slug (endereço do funil)</span>
                 <input className={inputCls} placeholder="cdb-h" value={funnel.slug}
                   onChange={(e) => onPatch({ slug: slugSoft(e.target.value) })}
