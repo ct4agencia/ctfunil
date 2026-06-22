@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type {
   Step, RouletteStep, ScratchStep, MeasureStep, SliderStep, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep,
   ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint, ScarcityBar,
@@ -15,6 +16,35 @@ import { playSpinTicks, playWin } from "@/lib/quiz/sound";
  */
 function Grid({ children }: { children: React.ReactNode }) {
   return <div className="grid gap-3 sm:grid-cols-2">{children}</div>;
+}
+
+/** Editor de fundo full-screen: 2 cores → gradiente + campo CSS livre + presets. */
+function BgField({ value, onChange }: { value?: string; onChange: (v: string | undefined) => void }) {
+  const [c1, setC1] = useState("#1a1340");
+  const [c2, setC2] = useState("#0a0a1a");
+  const PRESETS = [
+    { name: "Roxo escuro", css: "radial-gradient(120% 80% at 50% 35%, #2a1d4d 0%, #150f29 55%, #0a0a1a 100%)" },
+    { name: "Âmbar quente", css: "linear-gradient(180deg, #fbe7c6 0%, #f3c969 100%)" },
+    { name: "Preto premium", css: "radial-gradient(120% 80% at 50% 30%, #1c1c22 0%, #0a0a0a 100%)" },
+    { name: "Azul noite", css: "linear-gradient(180deg, #1e3a5f 0%, #0a1a2e 100%)" },
+  ];
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <input type="color" value={c1} onChange={(e) => setC1(e.target.value)} className="h-9 w-10 rounded border border-neutral-300" title="Cor do topo" />
+        <input type="color" value={c2} onChange={(e) => setC2(e.target.value)} className="h-9 w-10 rounded border border-neutral-300" title="Cor da base" />
+        <button type="button" onClick={() => onChange(`linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`)} className="rounded-md bg-neutral-900 px-2.5 py-1.5 text-xs font-semibold text-white">Aplicar gradiente</button>
+        {value ? <button type="button" onClick={() => onChange(undefined)} className="text-xs font-semibold text-red-500">limpar (usa o padrão do estilo)</button> : null}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {PRESETS.map((p) => (
+          <button key={p.name} type="button" onClick={() => onChange(p.css)} className="rounded-md border border-neutral-200 px-2 py-1 text-[11px] hover:border-neutral-400" style={{ background: p.css, color: "#fff", textShadow: "0 1px 2px #000" }}>{p.name}</button>
+        ))}
+      </div>
+      <input className="w-full rounded-lg border border-neutral-300 px-3 py-2 font-mono text-xs" value={value ?? ""} onChange={(e) => onChange(e.target.value || undefined)} placeholder="linear-gradient(180deg, #f3c969, #e89b3a) ou uma cor" />
+      {value ? <div className="h-10 w-full rounded-lg border border-neutral-200" style={{ background: value }} /> : null}
+    </div>
+  );
 }
 
 /** Editor de campos da lâmina selecionada — varia por tipo (estilo inlead). */
@@ -44,6 +74,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                 options={ROULETTE_STYLES.map((st) => ({ value: st.id, label: st.name }))} />
             </Field>
           </Grid>
+          <Field label="Fundo da lâmina (full-screen)"><BgField value={s.background} onChange={(v) => p({ background: v } as Partial<Step>)} /></Field>
           <div>
             <span className="mb-1 block text-xs font-semibold text-neutral-500">Segmentos (marque o vencedor)</span>
             <div className="space-y-2">
@@ -364,6 +395,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             <Field label="Liberar CTA após (seg)"><Num value={s.pitchRevealAt ?? 0} onChange={(v) => p({ pitchRevealAt: v } as Partial<Step>)} /></Field>
             <Field label="VTurb Player ID (legado)"><Text value={s.vturbPlayerId} onChange={(v) => p({ vturbPlayerId: v } as Partial<Step>)} /></Field>
           </Grid>
+          <Field label="Fundo da lâmina (full-screen)"><BgField value={s.background} onChange={(v) => p({ background: v } as Partial<Step>)} /></Field>
           <div className="rounded-xl bg-neutral-50 p-3">
             <Toggle label="📢 Barra de escassez/cabeçalho" value={bar.enabled} onChange={(v) => patchBar({ enabled: v })} />
             {bar.enabled ? (

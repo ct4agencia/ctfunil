@@ -104,6 +104,13 @@ function AnimatedTitle({ text }: { text: string }) {
   );
 }
 
+/** Texto escuro ou branco conforme a luminância da cor de fundo da fatia. */
+function contrastText(hex?: string): string {
+  if (!hex || !/^#[0-9a-fA-F]{6}$/.test(hex)) return "#3a2410";
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62 ? "#3a2410" : "#ffffff";
+}
+
 // ── Roleta ────────────────────────────────────────────────────────
 export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepCtx }) {
   const [spinning, setSpinning] = useState(false);
@@ -183,13 +190,13 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                     fill={ch.pegColor} style={ch.peg === "bulb" ? { filter: `drop-shadow(0 0 3px ${ch.pegColor})` } : undefined} />
                 ))}
                 {step.segments.map((s, i) => (
-                  <path key={i} d={slicePath(i)} fill={ch.alt ? ch.alt[i % 2] : s.color}
+                  <path key={i} d={slicePath(i)} fill={s.color}
                     stroke={ch.dark ? "rgba(0,0,0,.28)" : "#fffaf2"} strokeWidth="2" />
                 ))}
                 {step.segments.map((s, i) => {
                   const [tx, ty] = polar(56, i * seg);
                   const ls = labelLines(s.label);
-                  const fill = ch.alt ? (i % 2 === 0 ? "#ffffff" : "#3a2410") : "#5b4632";
+                  const fill = contrastText(s.color);
                   return (
                     <text key={`t${i}`} x={tx} y={ty} textAnchor="middle" dominantBaseline="middle"
                       fontSize={11} fontWeight={800} fill={fill} style={{ letterSpacing: ".2px" }}>

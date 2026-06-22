@@ -33,11 +33,15 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
   const rChrome = step.type === "roulette" ? wheelChrome((step as RouletteStep).style, palette) : null;
   const percent = steps.length > 1 ? (index / (steps.length - 1)) * 100 : 0;
   const dark = DARK[step.type] || (step.type === "loading" && step.variant === "dark") || (rChrome?.dark ?? false);
-  const rootBg = rChrome?.bg
-    ? rChrome.bg
-    : dark
-      ? "radial-gradient(120% 80% at 50% 35%, #2a1d4d 0%, #150f29 55%, #0a0a1a 100%)"
-      : "var(--q-bg)";
+  // fundo personalizado por lâmina (roleta/vsl) tem prioridade
+  const customBg = (step as { background?: string }).background;
+  const rootBg = customBg
+    ? customBg
+    : rChrome?.bg
+      ? rChrome.bg
+      : dark
+        ? "radial-gradient(120% 80% at 50% 35%, #2a1d4d 0%, #150f29 55%, #0a0a1a 100%)"
+        : "var(--q-bg)";
 
   const musicStarted = useRef(false);
 

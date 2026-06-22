@@ -117,6 +117,8 @@ export interface RouletteStep extends BaseStep {
   winCta?: string;
   sound?: RouletteSound;
   style?: RouletteStyle;
+  /** fundo full-screen personalizado (CSS, ex: linear-gradient(...)) */
+  background?: string;
 }
 
 /** Raspadinha (scratch-card) — variante da roleta p/ revelar o prêmio. */
@@ -349,6 +351,8 @@ export interface VslStep extends BaseStep {
   pitchRevealAt?: number;
   /** barra de escassez/cabeçalho no topo */
   headerBar?: ScarcityBar;
+  /** fundo full-screen personalizado (CSS, ex: linear-gradient(...)) */
+  background?: string;
 }
 
 export type Step =
