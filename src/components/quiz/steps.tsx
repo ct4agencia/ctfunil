@@ -228,9 +228,9 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
         <AnimatePresence>
           {done ? (
             <motion.div key="win" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="mt-6 rounded-2xl bg-[var(--q-bg-soft)] p-5 text-center">
-              <p className="text-lg font-bold text-[var(--q-primary)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx.name)} /></p>
-              {step.winBody ? <p className="mt-1 text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.winBody, ctx.name)} /></p> : null}
+              className="mt-6 rounded-2xl bg-white p-5 text-center shadow-xl">
+              <p className="text-lg font-bold text-[var(--q-primary-dark)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx.name)} /></p>
+              {step.winBody ? <p className="mt-1 text-sm text-neutral-600"><RichText text={interp(step.winBody, ctx.name)} /></p> : null}
             </motion.div>
           ) : null}
         </AnimatePresence>
