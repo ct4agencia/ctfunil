@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Funnel, FunnelPixels, FunnelWebhook } from "@/lib/quiz/types";
+import type { Funnel, FunnelPixels, FunnelSettings, FunnelWebhook } from "@/lib/quiz/types";
 
 /* ── Smart Install: detecta scripts colados e mapeia pros campos ── */
 type DetTarget = "utmify_fb" | "utmify_google" | "hotmart" | "ga" | "gtm" | "fb_pixel" | "site_verify" | "head_raw" | "info";
@@ -29,7 +29,7 @@ const inputCls = "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2
 const labelCls = "mb-1 block text-xs font-semibold text-neutral-600";
 const taCls = inputCls + " font-mono text-xs";
 
-type Tab = "geral" | "pixels" | "webhooks";
+type Tab = "geral" | "pixels" | "seo" | "webhooks";
 
 export default function FunnelSettingsPanel({
   funnel, onPatch, onClose,
@@ -38,6 +38,11 @@ export default function FunnelSettingsPanel({
   const pixels = funnel.settings?.pixels ?? {};
   const setPixel = (k: keyof FunnelPixels, v: string) =>
     onPatch({ settings: { ...funnel.settings, pixels: { ...pixels, [k]: v || undefined } } });
+  const seo = funnel.settings?.seo ?? {};
+  const setSeo = (k: keyof NonNullable<FunnelSettings["seo"]>, v: string) =>
+    onPatch({ settings: { ...funnel.settings, seo: { ...seo, [k]: v || undefined } } });
+  const slugify = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
   // Smart Install
   const [pasteText, setPasteText] = useState("");
@@ -101,6 +106,7 @@ export default function FunnelSettingsPanel({
   const tabs: { key: Tab; label: string }[] = [
     { key: "geral", label: "Geral" },
     { key: "pixels", label: "⚡ Pixel / Scripts" },
+    { key: "seo", label: "SEO & Favicon" },
     { key: "webhooks", label: "Webhooks" },
   ];
 
@@ -122,9 +128,18 @@ export default function FunnelSettingsPanel({
           {tab === "geral" && (
             <div className="max-w-lg space-y-4">
               <label className="block">
+                <span className={labelCls}>Slug (endereço do funil)</span>
+                <input className={inputCls} placeholder="clube-das-bolsas" value={funnel.slug}
+                  onChange={(e) => onPatch({ slug: slugify(e.target.value) })}
+                  onBlur={(e) => onPatch({ slug: slugify(e.target.value) || "funil" })} />
+                <span className="mt-1 block text-[11px] text-neutral-400">URL: <b>/q/{funnel.slug || "slug"}</b>. Ao salvar com slug novo, o funil é <b>renomeado</b> (as métricas migram junto).</span>
+              </label>
+              <label className="block">
                 <span className={labelCls}>Domínio próprio</span>
-                <input className={inputCls} placeholder="meudominio.com.br" value={funnel.domain ?? ""} onChange={(e) => onPatch({ domain: e.target.value || undefined })} />
-                <span className="mt-1 block text-[11px] text-neutral-400">A página fica em <b>{funnel.domain || "seudominio.com.br"}/q/{funnel.slug}</b>. No deploy, aponte o DNS pro Vercel.</span>
+                <input className={inputCls} placeholder="meudominio.com.br" value={funnel.domain ?? ""}
+                  onChange={(e) => onPatch({ domain: e.target.value || undefined })}
+                  onBlur={(e) => onPatch({ domain: e.target.value ? e.target.value.toLowerCase().trim().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "") || undefined : undefined })} />
+                <span className="mt-1 block text-[11px] text-neutral-400">Com domínio próprio, o funil abre na <b>RAIZ</b> do domínio (ex: <b>{funnel.domain || "viverdebolsas.com.br"}</b>). Cadastre o domínio na Vercel + aponte o DNS. Sem domínio, fica em <b>/q/{funnel.slug}</b>.</span>
               </label>
               <label className="block">
                 <span className={labelCls}>Link de checkout (Hotmart/Kiwify…)</span>
@@ -193,6 +208,31 @@ export default function FunnelSettingsPanel({
                   <label className="block"><span className={labelCls}>Script — Body</span><textarea className={taCls} rows={3} value={pixels.body_script ?? ""} onChange={(e) => setPixel("body_script", e.target.value)} /></label>
                 </div>
               )}
+            </div>
+          )}
+
+          {tab === "seo" && (
+            <div className="max-w-lg space-y-4">
+              <label className="block">
+                <span className={labelCls}>Título do site (aba do navegador / Google)</span>
+                <input className={inputCls} placeholder={funnel.name} value={seo.title ?? ""} onChange={(e) => setSeo("title", e.target.value)} />
+              </label>
+              <label className="block">
+                <span className={labelCls}>Descrição (meta description)</span>
+                <textarea className={inputCls} rows={2} value={seo.description ?? ""} onChange={(e) => setSeo("description", e.target.value)} />
+              </label>
+              <label className="block">
+                <span className={labelCls}>Favicon (URL — ícone da aba)</span>
+                <input className={inputCls} placeholder="https://…/favicon.png" value={seo.favicon ?? ""} onChange={(e) => setSeo("favicon", e.target.value)} />
+                {seo.favicon ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={seo.favicon} alt="" className="mt-2 h-8 w-8 rounded border border-neutral-200 object-contain" />
+                ) : null}
+              </label>
+              <label className="block">
+                <span className={labelCls}>Imagem de compartilhamento (OG — preview no WhatsApp/links)</span>
+                <input className={inputCls} placeholder="https://…/og.jpg" value={seo.ogImage ?? ""} onChange={(e) => setSeo("ogImage", e.target.value)} />
+              </label>
             </div>
           )}
 

@@ -184,10 +184,14 @@ export function StepShell({
   );
 }
 
-/** Rodapé fixo com o CTA (não rola junto). */
-export function StickyCta({ children }: { children: React.ReactNode }) {
+/**
+ * Rodapé fixo com o CTA (não rola junto). `bare` = sem o gradiente de fundo
+ * (usado nas lâminas com fundo full-screen, ex: roleta — senão aparece um
+ * "fade" cor-creme atrás do botão que destoa do fundo).
+ */
+export function StickyCta({ children, bare }: { children: React.ReactNode; bare?: boolean }) {
   return (
-    <div className="sticky bottom-0 z-10 mx-auto w-full max-w-md bg-gradient-to-t from-[var(--q-bg)] via-[var(--q-bg)] to-transparent px-5 pb-5 pt-3">
+    <div className={`sticky bottom-0 z-10 mx-auto w-full max-w-md px-5 pb-5 pt-3 ${bare ? "" : "bg-gradient-to-t from-[var(--q-bg)] via-[var(--q-bg)] to-transparent"}`}>
       {children}
     </div>
   );

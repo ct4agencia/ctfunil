@@ -72,9 +72,15 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
 
   const save = async () => {
     setSaving(true); setSavedMsg(null);
-    const r = await saveFunnelAction(funnel);
+    const renamed = funnel.slug !== initial.slug;
+    const r = await saveFunnelAction(funnel, renamed ? initial.slug : undefined);
     setSaving(false);
     setSavedMsg(r.ok ? "✓ Salvo no Supabase" : `Erro: ${r.error ?? "falhou"}`);
+    if (r.ok && renamed) {
+      // o slug mudou → a URL do construtor também muda
+      window.location.href = `/builder/${funnel.slug}`;
+      return;
+    }
     setTimeout(() => setSavedMsg(null), 4000);
   };
 

@@ -98,11 +98,37 @@ export async function resolveFunnel(slug: string): Promise<Funnel | null> {
   return getSeedFunnel(slug) ?? null;
 }
 
-/** Salva (upsert) o funil no banco. */
-export async function saveFunnelDb(funnel: Funnel): Promise<{ ok: boolean; error?: string }> {
+/** Carrega o funil cujo DOMÍNIO próprio bate com o host (multi-domínio). */
+export async function resolveFunnelByDomain(host: string): Promise<Funnel | null> {
+  if (!configured() || !host) return null;
+  const clean = host.toLowerCase().split(":")[0].replace(/^www\./, "");
+  try {
+    const sb = createAdminClient();
+    let { data, error } = await sb
+      .from("funnels")
+      .select(FUNNEL_COLS)
+      .eq("domain", clean)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (isMissingColumn(error)) return null; // sem coluna domain → migração 0010 não rodou
+    if (data) return rowToFunnel(data as unknown as FunnelRow);
+  } catch {
+    /* sem dados */
+  }
+  return null;
+}
+
+/** Salva (upsert) o funil no banco. `renameFrom` = slug antigo (apaga ao renomear). */
+export async function saveFunnelDb(funnel: Funnel, renameFrom?: string): Promise<{ ok: boolean; error?: string }> {
   if (!configured()) return { ok: false, error: "Supabase não configurado (.env.local)" };
   try {
     const sb = createAdminClient();
+    // renomeação: garante que o novo slug não colide com OUTRO funil
+    if (renameFrom && renameFrom !== funnel.slug) {
+      const { data: clash } = await sb.from("funnels").select("slug").eq("slug", funnel.slug).maybeSingle();
+      if (clash) return { ok: false, error: `Já existe um funil com o slug "${funnel.slug}".` };
+    }
     const base = {
       slug: funnel.slug,
       name: funnel.name,
@@ -132,6 +158,16 @@ export async function saveFunnelDb(funnel: Funnel): Promise<{ ok: boolean; error
       ({ error } = await sb.from("funnels").upsert(base, { onConflict: "slug" }));
     }
     if (error) return { ok: false, error: error.message };
+    // renomeou: apaga a linha antiga (e migra as sessões/eventos pro novo slug)
+    if (renameFrom && renameFrom !== funnel.slug) {
+      await sb.from("funnels").delete().eq("slug", renameFrom);
+      await Promise.allSettled([
+        sb.from("funnel_sessions").update({ funnel_slug: funnel.slug }).eq("funnel_slug", renameFrom),
+        sb.from("step_events").update({ funnel_slug: funnel.slug }).eq("funnel_slug", renameFrom),
+        sb.from("quiz_answers").update({ funnel_slug: funnel.slug }).eq("funnel_slug", renameFrom),
+        sb.from("funnel_leads").update({ funnel_slug: funnel.slug }).eq("funnel_slug", renameFrom),
+      ]);
+    }
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };

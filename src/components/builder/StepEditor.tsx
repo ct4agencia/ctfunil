@@ -2,7 +2,7 @@
 
 import type {
   Step, RouletteStep, ScratchStep, MeasureStep, SliderStep, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep,
-  ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint,
+  ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint, ScarcityBar,
 } from "@/lib/quiz/types";
 import { ROULETTE_STYLES } from "@/lib/quiz/types";
 import { Field, Text, Area, Num, Toggle, Select, StringList, OptionsList } from "./fields";
@@ -349,15 +349,39 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
     }
     case "vsl": {
       const s = step as VslStep;
+      const bar = s.headerBar ?? { enabled: false, text: "" };
+      const patchBar = (patch: Partial<ScarcityBar>) => p({ headerBar: { ...bar, ...patch } } as Partial<Step>);
       return (
-        <Grid>
-          <Field label="Título" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-          <Field label="VTurb Player ID"><Text value={s.vturbPlayerId} onChange={(v) => p({ vturbPlayerId: v } as Partial<Step>)} /></Field>
-          <Field label="VTurb Account ID"><Text value={s.vturbAccountId} onChange={(v) => p({ vturbAccountId: v } as Partial<Step>)} /></Field>
-          <Field label="Link do checkout" full><Text value={s.checkoutUrl} onChange={(v) => p({ checkoutUrl: v } as Partial<Step>)} /></Field>
-          <Field label="Texto do botão"><Text value={s.ctaText} onChange={(v) => p({ ctaText: v } as Partial<Step>)} /></Field>
-          <Field label="Liberar CTA após (seg)"><Num value={s.pitchRevealAt ?? 0} onChange={(v) => p({ pitchRevealAt: v } as Partial<Step>)} /></Field>
-        </Grid>
+        <div className="space-y-4">
+          <Field label="Embed do player (cole o <script>+<iframe> do VTurb/converteai)" full>
+            <Area value={s.embedHtml} onChange={(v) => p({ embedHtml: v } as Partial<Step>)} rows={5} />
+          </Field>
+          <p className="-mt-2 text-[11px] text-neutral-400">Cole o código completo que o VTurb gera (botão &quot;Embed&quot;). Se preencher, ele substitui o Player ID antigo.</p>
+          <Grid>
+            <Field label="Título (acima do vídeo)" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+            <Field label="Link do checkout" full><Text value={s.checkoutUrl} onChange={(v) => p({ checkoutUrl: v } as Partial<Step>)} /></Field>
+            <Field label="Texto do botão"><Text value={s.ctaText} onChange={(v) => p({ ctaText: v } as Partial<Step>)} /></Field>
+            <Field label="Liberar CTA após (seg)"><Num value={s.pitchRevealAt ?? 0} onChange={(v) => p({ pitchRevealAt: v } as Partial<Step>)} /></Field>
+            <Field label="VTurb Player ID (legado)"><Text value={s.vturbPlayerId} onChange={(v) => p({ vturbPlayerId: v } as Partial<Step>)} /></Field>
+          </Grid>
+          <div className="rounded-xl bg-neutral-50 p-3">
+            <Toggle label="📢 Barra de escassez/cabeçalho" value={bar.enabled} onChange={(v) => patchBar({ enabled: v })} />
+            {bar.enabled ? (
+              <div className="mt-3 space-y-3">
+                <Field label="Texto da barra"><Text value={bar.text} onChange={(v) => patchBar({ text: v })} placeholder="⚠️ ATENÇÃO: ESTE VÍDEO SAI DO AR EM BREVE" /></Field>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Field label="Cor de fundo">
+                    <input type="color" value={bar.bg || "#b86b00"} onChange={(e) => patchBar({ bg: e.target.value })} className="h-9 w-full rounded-lg border border-neutral-300" />
+                  </Field>
+                  <Field label="Cor do texto">
+                    <input type="color" value={bar.color || "#ffffff"} onChange={(e) => patchBar({ color: e.target.value })} className="h-9 w-full rounded-lg border border-neutral-300" />
+                  </Field>
+                  <Field label="Revelar após (seg)"><Num value={bar.revealAt ?? 0} onChange={(v) => patchBar({ revealAt: v })} /></Field>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
       );
     }
   }

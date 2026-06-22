@@ -325,16 +325,30 @@ export interface BridgeStep extends BaseStep {
   cta: string;
 }
 
+/** Barra de escassez/cabeçalho no topo da lâmina (estilo vsl-platform). */
+export interface ScarcityBar {
+  enabled?: boolean;
+  text: string;
+  bg?: string;
+  color?: string;
+  /** segundos do vídeo até aparecer (0 = sempre) */
+  revealAt?: number;
+}
+
 export interface VslStep extends BaseStep {
   type: "vsl";
   title?: string;
-  /** player VTurb (igual vsl-platform) */
+  /** EMBED COMPLETO do player (cole o <script>+<iframe> do VTurb/converteai) */
+  embedHtml?: string;
+  /** player VTurb por ID (legado) */
   vturbPlayerId?: string;
   vturbAccountId?: string;
   checkoutUrl?: string;
   ctaText?: string;
   /** segundos até liberar o CTA (pitch) */
   pitchRevealAt?: number;
+  /** barra de escassez/cabeçalho no topo */
+  headerBar?: ScarcityBar;
 }
 
 export type Step =
@@ -368,6 +382,12 @@ export interface FunnelPixels {
 }
 export interface FunnelSettings {
   pixels?: FunnelPixels;
+  seo?: {
+    title?: string;
+    description?: string;
+    favicon?: string;
+    ogImage?: string;
+  };
 }
 
 /** Webhook do funil (inlead-compatível) — guardado em funnels.webhooks (jsonb). */

@@ -222,13 +222,13 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
           {done ? (
             <motion.div key="win" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               className="mt-6 rounded-2xl bg-[var(--q-bg-soft)] p-5 text-center">
-              <p className="text-lg font-bold text-[var(--q-primary)]">{step.winTitle ?? "🎉 Você ganhou!"}</p>
-              {step.winBody ? <p className="mt-1 text-sm text-[var(--q-text-muted)]">{step.winBody}</p> : null}
+              <p className="text-lg font-bold text-[var(--q-primary)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx.name)} /></p>
+              {step.winBody ? <p className="mt-1 text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.winBody, ctx.name)} /></p> : null}
             </motion.div>
           ) : null}
         </AnimatePresence>
       </StepShell>
-      <StickyCta>
+      <StickyCta bare>
         {done ? (
           <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
         ) : (
@@ -310,12 +310,12 @@ export function ScratchStepView({ step, ctx }: { step: ScratchStep; ctx: StepCtx
         </div>
         {revealed ? (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-5 text-center">
-            <p className="text-lg font-bold text-[var(--q-primary)]">{interp(step.winTitle ?? "🎉 Você ganhou!", ctx.name)}</p>
-            {step.winBody ? <p className="mt-1 text-sm text-[var(--q-text-muted)]">{interp(step.winBody, ctx.name)}</p> : null}
+            <p className="text-lg font-bold text-[var(--q-primary)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx.name)} /></p>
+            {step.winBody ? <p className="mt-1 text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.winBody, ctx.name)} /></p> : null}
           </motion.div>
         ) : null}
       </StepShell>
-      <StickyCta>
+      <StickyCta bare>
         {revealed ? (
           <CtaButton onClick={ctx.advance}>{step.winCta}</CtaButton>
         ) : (
@@ -785,7 +785,7 @@ export function GaugeStepView({ step, ctx }: { step: GaugeStep; ctx: StepCtx }) 
     <>
       <StepShell center>
         <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
-        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]">{interp(step.subtitle, ctx.name)}</p> : null}
+        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx.name)} /></p> : null}
 
         <div className="mx-auto mt-8 w-full max-w-xs">
           <svg viewBox="0 0 200 118" className="w-full">
@@ -1092,10 +1092,10 @@ export function BridgeStepView({ step, ctx }: { step: BridgeStep; ctx: StepCtx }
     <>
       <StepShell center>
         <Title>{interp(step.title, ctx.name)}</Title>
-        {step.body ? <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]">{interp(step.body, ctx.name)}</p> : null}
+        {step.body ? <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
         {step.warn ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-            🚨 {step.warn}
+            🚨 <RichText text={interp(step.warn, ctx.name)} />
           </div>
         ) : null}
       </StepShell>
@@ -1118,20 +1118,27 @@ export function VslStepView({ step, ctx }: { step: VslStep; ctx: StepCtx }) {
     if (step.checkoutUrl) window.open(step.checkoutUrl, "_blank");
   };
 
+  const bar = step.headerBar;
   return (
-    <div className="flex w-full flex-1 flex-col items-center px-5 py-6">
-      <div className="mx-auto w-full max-w-md">
+    <div className="flex w-full flex-1 flex-col items-center">
+      {bar?.enabled && bar.text ? (
+        <div className="w-full px-4 py-2.5 text-center text-sm font-bold"
+          style={{ background: bar.bg || "var(--q-primary)", color: bar.color || "#ffffff" }}>
+          {interp(bar.text, ctx.name)}
+        </div>
+      ) : null}
+      <div className="mx-auto w-full max-w-md px-5 py-6">
         {step.title ? <h2 className="mb-4 text-center text-xl font-bold text-white">{interp(step.title, ctx.name)}</h2> : null}
-        <div className="aspect-[9/16] w-full overflow-hidden rounded-2xl bg-black/60 shadow-2xl">
-          {step.vturbPlayerId ? (
-            <div id={`vid-${step.vturbPlayerId}`} className="h-full w-full" />
-          ) : (
+        {step.embedHtml ? (
+          <VturbEmbed html={step.embedHtml} />
+        ) : (
+          <div className="aspect-[9/16] w-full overflow-hidden rounded-2xl bg-black/60 shadow-2xl">
             <div className="flex h-full w-full flex-col items-center justify-center text-center text-white/70">
               <span className="text-4xl">▶</span>
-              <p className="mt-3 px-6 text-sm">Player da VSL (VTurb) entra aqui — configure no admin.</p>
+              <p className="mt-3 px-6 text-sm">Cole o embed do VTurb no campo &quot;Embed do player&quot; (no editor da lâmina).</p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
         <AnimatePresence>
           {reveal ? (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
@@ -1144,4 +1151,28 @@ export function VslStepView({ step, ctx }: { step: VslStep; ctx: StepCtx }) {
       </div>
     </div>
   );
+}
+
+/**
+ * Injeta o EMBED do player (VTurb/converteai): seta o HTML (o iframe com
+ * onload inline dispara sozinho) e RE-EXECUTA os <script> (innerHTML não roda
+ * script). Funciona com o embed v4 do smartplayer.
+ */
+function VturbEmbed({ html }: { html: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.innerHTML = html;
+    el.querySelectorAll("script").forEach((old) => {
+      const s = document.createElement("script");
+      for (const a of Array.from(old.attributes)) s.setAttribute(a.name, a.value);
+      if (!old.src) s.textContent = old.textContent;
+      s.async = true;
+      document.head.appendChild(s);
+      old.remove();
+    });
+    return () => { el.innerHTML = ""; };
+  }, [html]);
+  return <div ref={ref} className="vturb-embed mx-auto w-full overflow-hidden rounded-2xl shadow-2xl" />;
 }

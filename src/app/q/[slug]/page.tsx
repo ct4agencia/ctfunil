@@ -17,7 +17,18 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const funnel = await resolveFunnel(slug);
-  return { title: funnel ? funnel.name : "Quiz" };
+  if (!funnel) return { title: "Quiz" };
+  const seo = funnel.settings?.seo ?? {};
+  return {
+    title: seo.title || funnel.name,
+    description: seo.description,
+    icons: seo.favicon ? { icon: seo.favicon } : undefined,
+    openGraph: {
+      title: seo.title || funnel.name,
+      description: seo.description,
+      images: seo.ogImage ? [seo.ogImage] : undefined,
+    },
+  };
 }
 
 export default async function QuizPage({
