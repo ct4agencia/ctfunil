@@ -131,7 +131,7 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
           {savedMsg ? <span className={`text-xs font-semibold ${savedMsg.startsWith("✓") ? "text-green-600" : "text-red-600"}`}>{savedMsg}</span> : null}
           <button onClick={() => setShowSettings(true)} className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⚙ Configurações</button>
           <button onClick={save} disabled={saving} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{saving ? "Salvando..." : "💾 Salvar"}</button>
-          <a href={funnel.domain ? `https://${funnel.domain}` : `/q/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white" title={funnel.domain ? `https://${funnel.domain}` : `/q/${funnel.slug}`}>Ver ao vivo ↗</a>
+          <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/q/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white" title={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/q/${funnel.slug}`}>Ver ao vivo ↗</a>
         </div>
       </header>
 

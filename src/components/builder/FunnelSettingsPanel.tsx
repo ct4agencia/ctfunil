@@ -41,8 +41,12 @@ export default function FunnelSettingsPanel({
   const seo = funnel.settings?.seo ?? {};
   const setSeo = (k: keyof NonNullable<FunnelSettings["seo"]>, v: string) =>
     onPatch({ settings: { ...funnel.settings, seo: { ...seo, [k]: v || undefined } } });
+  // suave (ao digitar): permite traço inclusive no fim, pra dar pra escrever "cdb-h"
+  const slugSoft = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9-]+/g, "-");
+  // completo (ao sair do campo): colapsa traços e tira do início/fim
   const slugify = (s: string) =>
-    s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    slugSoft(s).replace(/-+/g, "-").replace(/^-+|-+$/g, "");
 
   // Smart Install
   const [pasteText, setPasteText] = useState("");
@@ -129,17 +133,19 @@ export default function FunnelSettingsPanel({
             <div className="max-w-lg space-y-4">
               <label className="block">
                 <span className={labelCls}>Slug (endereço do funil)</span>
-                <input className={inputCls} placeholder="clube-das-bolsas" value={funnel.slug}
-                  onChange={(e) => onPatch({ slug: slugify(e.target.value) })}
+                <input className={inputCls} placeholder="cdb-h" value={funnel.slug}
+                  onChange={(e) => onPatch({ slug: slugSoft(e.target.value) })}
                   onBlur={(e) => onPatch({ slug: slugify(e.target.value) || "funil" })} />
-                <span className="mt-1 block text-[11px] text-neutral-400">URL: <b>/q/{funnel.slug || "slug"}</b>. Ao salvar com slug novo, o funil é <b>renomeado</b> (as métricas migram junto).</span>
+                <span className="mt-1 block text-[11px] text-neutral-400">
+                  URL: <b>{funnel.domain ? `${funnel.domain}/${funnel.slug || "slug"}` : `/q/${funnel.slug || "slug"}`}</b>. Pode usar traço (ex: <b>cdb-h</b>). Ao salvar com slug novo, o funil é <b>renomeado</b> (métricas migram junto).
+                </span>
               </label>
               <label className="block">
                 <span className={labelCls}>Domínio próprio</span>
                 <input className={inputCls} placeholder="meudominio.com.br" value={funnel.domain ?? ""}
                   onChange={(e) => onPatch({ domain: e.target.value || undefined })}
                   onBlur={(e) => onPatch({ domain: e.target.value ? e.target.value.toLowerCase().trim().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "") || undefined : undefined })} />
-                <span className="mt-1 block text-[11px] text-neutral-400">Com domínio próprio, o funil abre na <b>RAIZ</b> do domínio (ex: <b>{funnel.domain || "viverdebolsas.com.br"}</b>). Cadastre o domínio na Vercel + aponte o DNS. Sem domínio, fica em <b>/q/{funnel.slug}</b>.</span>
+                <span className="mt-1 block text-[11px] text-neutral-400">Com domínio próprio, o funil abre em <b>{funnel.domain || "viverdebolsas.com.br"}/{funnel.slug}</b> (e também na raiz <b>{funnel.domain || "viverdebolsas.com.br"}</b>). Cadastre o domínio na Vercel + aponte o DNS.</span>
               </label>
               <label className="block">
                 <span className={labelCls}>Link de checkout (Hotmart/Kiwify…)</span>
