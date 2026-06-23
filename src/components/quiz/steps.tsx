@@ -179,9 +179,8 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   return (
     <>
       <StepShell center>
-        <h2 className="text-center font-[var(--q-display)] text-[26px] font-bold leading-tight tracking-tight"
-          style={{ color: ch.dark ? "#ffffff" : "var(--q-text)" }}>{step.title}</h2>
-        {step.subtitle ? <p className="mt-2 text-center text-sm" style={{ color: ch.dark ? "rgba(255,255,255,.82)" : "var(--q-text-muted)" }}>{step.subtitle}</p> : null}
+        <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
+        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx.name)} /></p> : null}
 
         <div className="relative mx-auto mt-7 h-[300px] w-[300px] max-w-full">
             {/* ponteiro por estilo */}
@@ -315,7 +314,7 @@ export function ScratchStepView({ step, ctx }: { step: ScratchStep; ctx: StepCtx
     <>
       <StepShell center>
         <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
-        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]">{step.subtitle}</p> : null}
+        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx.name)} /></p> : null}
         <div className="relative mx-auto mt-7" style={{ width: W, height: H, maxWidth: "100%" }}>
           <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl text-center"
             style={{ background: "var(--q-bg-soft)", border: "2px dashed var(--q-primary)" }}>
@@ -491,7 +490,7 @@ export function NameStepView({ step, ctx }: { step: NameStep; ctx: StepCtx }) {
       <StepShell center>
         {step.emoji ? <div className="mb-3 text-center text-4xl">{step.emoji}</div> : null}
         <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
-        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]">{step.subtitle}</p> : null}
+        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx.name)} /></p> : null}
         <input
           autoFocus value={v} onChange={(e) => setV(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && go()}
@@ -717,7 +716,7 @@ function LoadingChecklist({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
       ) : null}
       {step.title ? (
         <h2 className="mb-7 text-center font-[var(--q-display)] text-[22px] font-bold leading-tight text-[var(--q-text)]">
-          {interp(step.title, ctx.name)}
+          <RichText text={interp(step.title, ctx.name)} />
         </h2>
       ) : null}
 
@@ -1164,7 +1163,7 @@ export function VslStepView({ step, ctx }: { step: VslStep; ctx: StepCtx }) {
         </div>
       ) : null}
       <div className="mx-auto w-full max-w-md px-5 py-6">
-        {step.title ? <h2 className="mb-4 text-center text-xl font-bold text-white">{interp(step.title, ctx.name)}</h2> : null}
+        {step.title ? <h2 className="mb-4 text-center text-xl font-bold text-white"><RichText text={interp(step.title, ctx.name)} /></h2> : null}
         {step.embedHtml ? (
           <VturbEmbed html={step.embedHtml} />
         ) : (
