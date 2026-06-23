@@ -330,22 +330,48 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           <Field label="% máximo (faixa)"><Num value={s.range[1]} onChange={(v) => p({ range: [s.range[0], v] } as Partial<Step>)} /></Field>
           <Field label="'Mínimo necessário' exibido"><Num value={s.minShown ?? 0} onChange={(v) => p({ minShown: v } as Partial<Step>)} /></Field>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
+          <Field label="Rótulo do anel"><Text value={s.ringLabel} onChange={(v) => p({ ringLabel: v } as Partial<Step>)} placeholder="Compatível" /></Field>
           <Field label="Título (use {nome})" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-          <Field label="Subtítulo" full><Text value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
+          <Field label="Subtítulo" full><RichField value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
           <Field label="Corpo" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={3} /></Field>
+          <Field label="Card verde — título"><Text value={s.approvedTitle} onChange={(v) => p({ approvedTitle: v } as Partial<Step>)} placeholder="Você foi aprovada!" /></Field>
+          <Field label="Card verde — texto" full><RichField value={s.approvedBody} onChange={(v) => p({ approvedBody: v } as Partial<Step>)} /></Field>
         </Grid>
       );
     }
     case "offer": {
       const s = step as OfferStep;
+      const stats = s.stats ?? [];
+      const patchStat = (i: number, patch: Partial<{ value: string; label: string }>) =>
+        p({ stats: stats.map((x, k) => (k === i ? { ...x, ...patch } : x)) } as Partial<Step>);
       return (
-        <Grid>
-          <Field label="Selo"><Text value={s.badge} onChange={(v) => p({ badge: v } as Partial<Step>)} /></Field>
-          <Field label="Imagem (URL)"><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
-          <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-          <Field label="Corpo" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={5} /></Field>
+        <div className="space-y-4">
+          <Grid>
+            <Field label="Selo"><Text value={s.badge} onChange={(v) => p({ badge: v } as Partial<Step>)} /></Field>
+            <Field label="Imagem (URL — foto redonda)"><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
+            <div className="flex items-end"><Toggle label="Selo verificado (azul) na foto" value={s.verified} onChange={(v) => p({ verified: v } as Partial<Step>)} /></div>
+            <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+            <Field label="Corpo (apresentação)" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={5} /></Field>
+          </Grid>
+          <div>
+            <span className="mb-1 block text-xs font-semibold text-neutral-500">Caixas de prova social (ex: 5+ anos)</span>
+            <div className="space-y-2">
+              {stats.map((st, i) => (
+                <div key={i} className="flex items-center gap-2 rounded-lg border border-neutral-200 p-2">
+                  <input className="w-24 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm font-bold" value={st.value} onChange={(e) => patchStat(i, { value: e.target.value })} placeholder="5+" />
+                  <input className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm" value={st.label} onChange={(e) => patchStat(i, { label: e.target.value })} placeholder="anos" />
+                  <button type="button" onClick={() => p({ stats: stats.filter((_, k) => k !== i) } as Partial<Step>)} className="shrink-0 text-sm text-red-500">✕</button>
+                </div>
+              ))}
+              <button type="button" onClick={() => p({ stats: [...stats, { value: "", label: "" }] } as Partial<Step>)} className="rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">+ Caixa</button>
+            </div>
+          </div>
+          <div className="rounded-xl bg-[#3a241a]/5 p-3">
+            <Field label="Card escuro do presente — título"><Text value={s.giftTitle} onChange={(v) => p({ giftTitle: v } as Partial<Step>)} placeholder="🎁 Presente de boas-vindas" /></Field>
+            <div className="mt-3"><Field label="Card do presente — texto"><RichField value={s.giftBody} onChange={(v) => p({ giftBody: v } as Partial<Step>)} rows={3} /></Field></div>
+          </div>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
-        </Grid>
+        </div>
       );
     }
     case "capture": {
@@ -354,7 +380,10 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
         <Grid>
           <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
           <Field label="Corpo" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={3} /></Field>
-          <Field label="Imagem (URL)" full><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
+          <Field label="Imagem (URL — ebook)"><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
+          <Field label="Selo na imagem (ex: GRÁTIS)"><Text value={s.freeBadge} onChange={(v) => p({ freeBadge: v } as Partial<Step>)} placeholder="GRÁTIS" /></Field>
+          <Field label="Nota verde (WhatsApp) acima do form" full><RichField value={s.note} onChange={(v) => p({ note: v } as Partial<Step>)} rows={2} /></Field>
+          <Field label="Linha de segurança (abaixo do botão)" full><Text value={s.secure} onChange={(v) => p({ secure: v } as Partial<Step>)} placeholder="🔒 Seus dados estão protegidos..." /></Field>
           <Field label="Label do nome"><Text value={s.nameLabel} onChange={(v) => p({ nameLabel: v } as Partial<Step>)} /></Field>
           <Field label="Placeholder do nome"><Text value={s.namePlaceholder} onChange={(v) => p({ namePlaceholder: v } as Partial<Step>)} /></Field>
           <Field label="Label do telefone"><Text value={s.phoneLabel} onChange={(v) => p({ phoneLabel: v } as Partial<Step>)} /></Field>
@@ -382,7 +411,9 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
       return (
         <Grid>
           <Field label="Título (use {nome})" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-          <Field label="Corpo" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={5} /></Field>
+          <Field label="Corpo" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={3} /></Field>
+          <Field label="Card de aviso amarelo (🚨)" full><RichField value={s.warn} onChange={(v) => p({ warn: v } as Partial<Step>)} rows={2} /></Field>
+          <Field label="Card secundário (Ahhh, quase ia esquecendo…)" full><RichField value={s.note} onChange={(v) => p({ note: v } as Partial<Step>)} rows={3} /></Field>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
         </Grid>
       );
