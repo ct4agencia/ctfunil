@@ -442,10 +442,11 @@ export function HeroStepView({ step, ctx }: { step: HeroStep; ctx: StepCtx }) {
         ) : null}
         {step.gallery?.length ? (
           <div className="mt-4 overflow-hidden">
-            <div className="q-marquee flex w-max gap-2">
+            <div className="q-marquee flex w-max gap-2.5" style={{ animationDuration: `${step.gallerySpeed ?? 20}s` }}>
               {[...step.gallery, ...step.gallery].map((g, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={i} src={g} alt="" className="h-24 w-24 shrink-0 rounded-xl object-cover" />
+                <img key={i} src={g} alt="" className="shrink-0 rounded-2xl object-cover"
+                  style={{ width: step.gallerySize ?? 96, height: step.gallerySize ?? 96 }} />
               ))}
             </div>
           </div>

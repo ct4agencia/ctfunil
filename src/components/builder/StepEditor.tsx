@@ -181,6 +181,12 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             <Field label="Tempo"><Text value={s.time} onChange={(v) => p({ time: v } as Partial<Step>)} /></Field>
           </Grid>
           <Field label="Galeria (URLs)"><StringList items={s.gallery ?? []} onChange={(v) => p({ gallery: v } as Partial<Step>)} placeholder="https://..." addLabel="Imagem" /></Field>
+          {s.gallery?.length ? (
+            <Grid>
+              <Field label="Tamanho das fotos (px)"><Num value={s.gallerySize ?? 96} onChange={(v) => p({ gallerySize: v } as Partial<Step>)} /></Field>
+              <Field label="Velocidade do carrossel (seg/volta — menor = + rápido)"><Num value={s.gallerySpeed ?? 20} onChange={(v) => p({ gallerySpeed: v } as Partial<Step>)} /></Field>
+            </Grid>
+          ) : null}
         </div>
       );
     }

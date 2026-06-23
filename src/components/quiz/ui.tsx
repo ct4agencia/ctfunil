@@ -1,7 +1,40 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
+
+/**
+ * Seta pulsante "role para baixo": aparece quando há conteúdo abaixo da dobra,
+ * some ao chegar perto do fim. Clicável (rola a página). Reavalia quando `dep`
+ * muda (troca de lâmina). Fica logo acima do botão fixo.
+ */
+export function ScrollHint({ dep }: { dep?: unknown }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setShow(max > 60 && window.scrollY < max - 90);
+    };
+    const t = setTimeout(check, 350);
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => { clearTimeout(t); window.removeEventListener("scroll", check); window.removeEventListener("resize", check); };
+  }, [dep]);
+  if (!show) return null;
+  return (
+    <motion.button
+      type="button"
+      onClick={() => window.scrollBy({ top: window.innerHeight * 0.7, behavior: "smooth" })}
+      initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1, y: [0, 7, 0] }}
+      transition={{ y: { duration: 1.2, repeat: Infinity, ease: "easeInOut" }, opacity: { duration: 0.3 }, scale: { duration: 0.3 } }}
+      className="fixed bottom-[98px] left-1/2 z-30 grid h-11 w-11 -translate-x-1/2 place-items-center rounded-full text-white"
+      style={{ background: "var(--q-primary)", boxShadow: "0 8px 22px -6px var(--q-primary)" }}
+      aria-label="Rolar para baixo"
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+    </motion.button>
+  );
+}
 
 /** Regex de marcação rica: `==pílula==`, `**negrito**` e `*negrito*` (simples). */
 export const RICH_RE = /(==[^=]+==|\*\*[^*]+\*\*|\*[^*\n]+\*)/g;
@@ -177,7 +210,7 @@ export function StepShell({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-      className={`mx-auto flex w-full max-w-md flex-1 flex-col px-5 pb-6 ${center ? "justify-center" : "justify-start pt-4"}`}
+      className={`mx-auto flex w-full max-w-md flex-1 flex-col px-5 pb-28 ${center ? "justify-center" : "justify-start pt-4"}`}
     >
       {children}
     </motion.div>

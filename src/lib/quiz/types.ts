@@ -144,6 +144,10 @@ export interface HeroStep extends BaseStep {
   subtitle?: string;
   image?: string;
   gallery?: string[];
+  /** tamanho das fotos do carrossel em px (padrão 96) */
+  gallerySize?: number;
+  /** duração do loop do carrossel em segundos (menor = mais rápido; padrão 20) */
+  gallerySpeed?: number;
   cta: string;
   social?: string;
   time?: string;
