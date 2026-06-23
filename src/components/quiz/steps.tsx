@@ -6,7 +6,7 @@ import type {
   RouletteStep, RouletteStyle, ScratchStep, MeasureStep, SliderStep, Palette, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep, ResultStep,
   OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, QuizOption,
 } from "@/lib/quiz/types";
-import { CtaButton, OptionButton, StepShell, StickyCta, RichText, RICH_RE } from "./ui";
+import { CtaButton, OptionButton, StepShell, StickyCta, RichText, RICH_RE, useEdit } from "./ui";
 import { submitLead, submitFunnelLead, fireMetaEvent } from "@/lib/tracking";
 import { trackAnswer } from "@/lib/quiz/track";
 import { playSpinTicks, playWin, playUrl } from "@/lib/quiz/sound";
@@ -66,8 +66,11 @@ export function interp(s: string | undefined, name: string): string {
 }
 
 function Title({ children }: { children: React.ReactNode }) {
+  const { editing, onEdit } = useEdit();
   return (
-    <h2 className="font-[var(--q-display)] leading-tight tracking-tight"
+    <h2 className={`font-[var(--q-display)] leading-tight tracking-tight ${editing ? "cursor-pointer rounded-md ring-2 ring-transparent transition hover:bg-blue-50/40 hover:ring-blue-400/60" : ""}`}
+      onClick={editing ? (e) => { e.stopPropagation(); onEdit?.("title"); } : undefined}
+      title={editing ? "Clique para editar no painel" : undefined}
       style={{
         fontSize: "var(--q-title-size, 26px)",
         fontWeight: "var(--q-title-weight, 700)" as React.CSSProperties["fontWeight"],

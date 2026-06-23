@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
 } from "@dnd-kit/core";
@@ -67,8 +67,16 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const editorRef = useRef<HTMLElement>(null);
+  const [flashEditor, setFlashEditor] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const patchFunnel = (patch: Partial<Funnel>) => setFunnel((f) => ({ ...f, ...patch }));
+  // clicar num bloco do preview → rola/destaca o editor (WYSIWYG fase 3a)
+  const handleEditFromPreview = () => {
+    editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setFlashEditor(true);
+    setTimeout(() => setFlashEditor(false), 1200);
+  };
 
   const save = async () => {
     setSaving(true); setSavedMsg(null);
@@ -221,7 +229,7 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
         </aside>
 
         {/* EDITOR da lâmina selecionada */}
-        <main className="rounded-xl border border-neutral-200 bg-white p-5">
+        <main ref={editorRef} className={`rounded-xl border bg-white p-5 transition ${flashEditor ? "border-blue-400 ring-2 ring-blue-300" : "border-neutral-200"}`}>
           {selected ? (
             <>
               <div className="mb-4 flex items-center gap-2 border-b border-neutral-100 pb-3">
@@ -248,7 +256,7 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
             {/* transform-gpu: faz este "celular" virar o container do position:fixed
                 interno (ScrollHint), pra a seta aparecer DENTRO do preview. */}
             <div className="h-full overflow-y-auto transform-gpu">
-              <QuizRunner key={`${selectedId}-${funnel.paletteId}-${nonce}`} funnel={funnel} startIndex={selIdx} preview />
+              <QuizRunner key={`${selectedId}-${funnel.paletteId}-${nonce}`} funnel={funnel} startIndex={selIdx} preview onEdit={handleEditFromPreview} />
             </div>
           </div>
         </div>

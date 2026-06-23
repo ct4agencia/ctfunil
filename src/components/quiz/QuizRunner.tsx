@@ -6,7 +6,7 @@ import type { Funnel, Step, RouletteStep } from "@/lib/quiz/types";
 import { getPalette, paletteVars } from "@/lib/quiz/theme";
 import { trackStep } from "@/lib/quiz/track";
 import { playClick, startMusic, stopMusic } from "@/lib/quiz/sound";
-import { TopBar, ScrollHint } from "./ui";
+import { TopBar, ScrollHint, EditContext } from "./ui";
 import {
   wheelChrome,
   RouletteStepView, ScratchStepView, MeasureStepView, SliderStepView, HeroStepView, NameStepView, ConfirmStepView, QuestionStepView, LoadingStepView, GaugeStepView,
@@ -34,7 +34,7 @@ function bgIsDark(css: string): boolean {
   return avg < 0.5;
 }
 
-export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = false }: { funnel: Funnel; vslId?: string; startIndex?: number; preview?: boolean }) {
+export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = false, onEdit }: { funnel: Funnel; vslId?: string; startIndex?: number; preview?: boolean; onEdit?: (field?: string) => void }) {
   const palette = getPalette(funnel.paletteId);
   const [index, setIndex] = useState(startIndex);
   const [name, setName] = useState("");
@@ -101,6 +101,7 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
   };
 
   return (
+    <EditContext.Provider value={{ editing: preview && !!onEdit, onEdit }}>
     <div
       className="flex min-h-[100dvh] flex-col"
       style={{
@@ -127,5 +128,6 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
       ) : null}
       <ScrollHint dep={index} />
     </div>
+    </EditContext.Provider>
   );
 }

@@ -1,7 +1,15 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
+
+/**
+ * Contexto de edição (WYSIWYG fase 3a): no preview do construtor, blocos de
+ * texto ficam clicáveis e chamam `onEdit(field)` pra levar/destacar o campo
+ * no editor. No funil ao vivo, `editing` é false (sem efeito).
+ */
+export const EditContext = createContext<{ editing: boolean; onEdit?: (field?: string) => void }>({ editing: false });
+export function useEdit() { return useContext(EditContext); }
 
 /** Acha o ancestral rolável (preview = div do "celular"; live = a própria janela). */
 function scrollParent(el: HTMLElement | null): HTMLElement | null {
