@@ -45,7 +45,16 @@ export function VisualRichField({ value, onChange, rows = 2, vars = ["nome"] }: 
     if (el.innerHTML !== html) el.innerHTML = html;
   }, [value]);
 
-  const emit = () => { const el = ref.current; if (el) onChange(domToMd(el)); };
+  // serializa + LIMPA artefatos (marcadores vazios/duplicados que corrompiam o texto)
+  const emit = () => {
+    const el = ref.current; if (!el) return;
+    let md = domToMd(el);
+    md = md
+      .replace(/\*\*\*\*/g, "").replace(/====/g, "")       // marcadores colados (ex: **a****b**)
+      .replace(/\*\*\s*\*\*/g, " ").replace(/==\s*==/g, " ") // marcadores vazios
+      .replace(/ {2,}/g, " ");
+    onChange(md);
+  };
 
   const apply = (kind: "bold" | "pill") => {
     const el = ref.current; if (!el) return;
@@ -53,14 +62,25 @@ export function VisualRichField({ value, onChange, rows = 2, vars = ["nome"] }: 
     if (!sel || sel.rangeCount === 0) return;
     const range = sel.getRangeAt(0);
     if (!el.contains(range.commonAncestorContainer) || range.collapsed) return;
-    const text = range.toString();
+    if (!range.toString().trim()) return;
+    // ANTI-ANINHAMENTO: se a seleção já está dentro de um nó do mesmo tipo, não envolve de novo
+    let anc: Node | null = range.commonAncestorContainer;
+    while (anc && anc !== el) {
+      if (anc.nodeType === 1) {
+        const e = anc as HTMLElement;
+        if (kind === "bold" && (e.dataset?.bold || e.nodeName === "B" || e.nodeName === "STRONG")) return;
+        if (kind === "pill" && e.dataset?.pill) return;
+      }
+      anc = anc.parentNode;
+    }
     const node = document.createElement(kind === "pill" ? "span" : "b");
     node.setAttribute(kind === "pill" ? "data-pill" : "data-bold", "1");
     node.setAttribute("style", kind === "pill" ? PILL_CSS : BOLD_CSS);
-    node.textContent = text;
+    node.textContent = range.toString();
     range.deleteContents();
     range.insertNode(node);
     sel.removeAllRanges();
+    el.normalize();
     emit();
   };
 
