@@ -439,25 +439,42 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
   return null;
   })();
 
+  return <EditorShell step={step} onChange={onChange} fields={fields} />;
+}
+
+/** Casca do editor com abas Conteúdo | Aparência (estrutura UX do inlead). */
+function EditorShell({ step, onChange, fields }: { step: Step; onChange: (patch: Partial<Step>) => void; fields: React.ReactNode }) {
+  const [tab, setTab] = useState<"conteudo" | "aparencia">("conteudo");
+  const tabs: { key: "conteudo" | "aparencia"; label: string }[] = [
+    { key: "conteudo", label: "Conteúdo" },
+    { key: "aparencia", label: "Aparência" },
+  ];
   return (
-    <div className="space-y-4">
-      <AppearancePanel step={step} onChange={onChange} />
-      {fields}
+    <div>
+      <div className="mb-4 flex gap-1 border-b border-neutral-200">
+        {tabs.map((t) => (
+          <button key={t.key} type="button" onClick={() => setTab(t.key)}
+            className={`-mb-px border-b-2 px-3 py-2 text-sm font-semibold transition ${tab === t.key ? "border-neutral-900 text-neutral-900" : "border-transparent text-neutral-400 hover:text-neutral-700"}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab === "conteudo" ? fields : <AppearanceFields step={step} onChange={onChange} />}
     </div>
   );
 }
 
 /** Aparência do título da lâmina (alinhamento/tamanho/peso/cor) — WYSIWYG fase 2. */
-function AppearancePanel({ step, onChange }: { step: Step; onChange: (patch: Partial<Step>) => void }) {
+function AppearanceFields({ step, onChange }: { step: Step; onChange: (patch: Partial<Step>) => void }) {
   const a = step.appearance ?? {};
   const set = (patch: Partial<StepAppearance>) => onChange({ appearance: { ...a, ...patch } } as Partial<Step>);
   const ALIGNS: { v: NonNullable<StepAppearance["align"]>; ic: string }[] = [
     { v: "left", ic: "⟝" }, { v: "center", ic: "≡" }, { v: "right", ic: "⟞" },
   ];
   return (
-    <details className="rounded-xl border border-neutral-200 bg-neutral-50 p-3" open>
-      <summary className="cursor-pointer text-xs font-bold text-neutral-600">🎨 Aparência do título</summary>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+    <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+      <p className="mb-3 text-xs font-bold text-neutral-600">🎨 Título da lâmina</p>
+      <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <span className="mb-1 block text-xs font-semibold text-neutral-500">Alinhamento</span>
           <div className="inline-flex overflow-hidden rounded-lg border border-neutral-300">
@@ -489,6 +506,6 @@ function AppearancePanel({ step, onChange }: { step: Step; onChange: (patch: Par
           </select>
         </label>
       </div>
-    </details>
+    </div>
   );
 }
