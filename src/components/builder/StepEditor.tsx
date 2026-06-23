@@ -358,6 +358,19 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           <Field label="Placeholder do nome"><Text value={s.namePlaceholder} onChange={(v) => p({ namePlaceholder: v } as Partial<Step>)} /></Field>
           <Field label="Label do telefone"><Text value={s.phoneLabel} onChange={(v) => p({ phoneLabel: v } as Partial<Step>)} /></Field>
           <Field label="Placeholder do telefone"><Text value={s.phonePlaceholder} onChange={(v) => p({ phonePlaceholder: v } as Partial<Step>)} /></Field>
+          <Field label="Máscara do telefone (9 = dígito)">
+            <Select value={s.phoneMask ?? ""} onChange={(v) => p({ phoneMask: v || undefined } as Partial<Step>)}
+              options={[
+                { value: "", label: "Sem máscara" },
+                { value: "(99) 99999-9999", label: "(99) 99999-9999 — Brasil" },
+                { value: "+55 (99) 99999-9999", label: "+55 (99) 99999-9999 — Brasil c/ país" },
+                { value: "+1 (999) 999-9999", label: "+1 (999) 999-9999 — EUA" },
+                { value: "+999 999 999 999", label: "+999 999 999 999 — Europa" },
+              ]} />
+          </Field>
+          <Field label="Máscara personalizada (sobrescreve)"><Text value={s.phoneMask} onChange={(v) => p({ phoneMask: v || undefined } as Partial<Step>)} placeholder="(99) 99999-9999" /></Field>
+          <Field label="id/name do telefone"><Text value={s.phoneId} onChange={(v) => p({ phoneId: v } as Partial<Step>)} placeholder="telefone" /></Field>
+          <Field label="id/name do nome"><Text value={s.nameId} onChange={(v) => p({ nameId: v } as Partial<Step>)} placeholder="nome" /></Field>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
           <Field label="component_id (webhook)"><Text value={s.componentId} onChange={(v) => p({ componentId: v } as Partial<Step>)} /></Field>
         </Grid>

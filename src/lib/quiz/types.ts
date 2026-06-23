@@ -301,6 +301,12 @@ export interface CaptureStep extends BaseStep {
   namePlaceholder: string;
   phoneLabel: string;
   phonePlaceholder: string;
+  /** máscara do telefone (9 = dígito), ex: "+55 (99) 99999-9999" */
+  phoneMask?: string;
+  /** id/name do campo telefone (mapeamento no webhook); padrão "telefone" */
+  phoneId?: string;
+  /** id/name do campo nome; padrão "nome" */
+  nameId?: string;
   cta: string;
   /** selo "GRÁTIS" sobre a imagem (ebook) */
   freeBadge?: string;

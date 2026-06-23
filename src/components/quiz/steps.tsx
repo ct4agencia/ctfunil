@@ -990,6 +990,19 @@ export function OfferStepView({ step, ctx }: { step: OfferStep; ctx: StepCtx }) 
   );
 }
 
+/** Aplica uma máscara (9 = dígito) sobre os dígitos digitados. Ex: "(99) 99999-9999". */
+function applyMask(value: string, mask?: string): string {
+  if (!mask) return value;
+  const digits = value.replace(/\D/g, "");
+  let out = "", di = 0;
+  for (const ch of mask) {
+    if (di >= digits.length) break;
+    if (ch === "9") out += digits[di++];
+    else out += ch;
+  }
+  return out;
+}
+
 // ── Captura (lead) ────────────────────────────────────────────────
 export function CaptureStepView({ step, ctx }: { step: CaptureStep; ctx: StepCtx }) {
   const [nm, setNm] = useState(ctx.name);
@@ -1048,7 +1061,7 @@ export function CaptureStepView({ step, ctx }: { step: CaptureStep; ctx: StepCtx
           <input value={nm} onChange={(e) => setNm(e.target.value)} placeholder={step.namePlaceholder}
             className="mt-1 w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 text-[var(--q-text)] outline-none focus:border-[var(--q-primary)]" />
           <label className="mt-4 block text-xs font-bold uppercase tracking-wide text-[var(--q-text-muted)]">{step.phoneLabel}</label>
-          <input value={ph} onChange={(e) => setPh(e.target.value)} inputMode="tel" placeholder={step.phonePlaceholder}
+          <input value={ph} onChange={(e) => setPh(applyMask(e.target.value, step.phoneMask))} inputMode="tel" placeholder={step.phonePlaceholder}
             className="mt-1 w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 text-[var(--q-text)] outline-none focus:border-[var(--q-primary)]" />
         </div>
       </StepShell>
