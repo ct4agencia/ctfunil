@@ -15,42 +15,51 @@ function scrollParent(el: HTMLElement | null): HTMLElement | null {
 }
 
 /**
- * Seta pulsante "role para baixo": aparece quando há conteúdo abaixo da dobra,
- * some ao chegar perto do fim. Clicável. Funciona tanto no funil ao vivo (rola
- * a janela) quanto no preview do construtor (rola o "celular"). Reavalia em `dep`.
+ * Estado de rolagem do container (janela no live, "celular" no preview):
+ * { ref, overflow (tem conteúdo abaixo da dobra), atBottom (rolou até o fim) }.
+ * Anexe `ref` a um elemento dentro do conteúdo.
  */
-export function ScrollHint({ dep }: { dep?: unknown }) {
+function useScrollState(dep?: unknown) {
   const ref = useRef<HTMLDivElement>(null);
-  const [show, setShow] = useState(false);
+  const [st, setSt] = useState<{ overflow: boolean; atBottom: boolean }>({ overflow: false, atBottom: true });
   useEffect(() => {
     const sc = scrollParent(ref.current);
     const target: HTMLElement | Window = sc ?? window;
     const check = () => {
       if (sc) {
-        setShow(sc.scrollHeight - sc.clientHeight > 60 && sc.scrollTop < sc.scrollHeight - sc.clientHeight - 80);
+        const max = sc.scrollHeight - sc.clientHeight;
+        setSt({ overflow: max > 60, atBottom: sc.scrollTop >= max - 80 });
       } else {
         const max = document.documentElement.scrollHeight - window.innerHeight;
-        setShow(max > 60 && window.scrollY < max - 80);
+        setSt({ overflow: max > 60, atBottom: window.scrollY >= max - 80 });
       }
     };
-    const t = setTimeout(check, 350);
+    const t = setTimeout(check, 300);
     target.addEventListener("scroll", check, { passive: true } as AddEventListenerOptions);
     window.addEventListener("resize", check);
     return () => { clearTimeout(t); target.removeEventListener("scroll", check); window.removeEventListener("resize", check); };
   }, [dep]);
-
-  const go = () => {
+  const scrollDown = () => {
     const sc = scrollParent(ref.current);
     if (sc) sc.scrollBy({ top: sc.clientHeight * 0.7, behavior: "smooth" });
     else window.scrollBy({ top: window.innerHeight * 0.7, behavior: "smooth" });
   };
+  return { ref, ...st, scrollDown };
+}
 
+/**
+ * Seta pulsante "role para baixo": aparece quando há conteúdo abaixo da dobra,
+ * some ao chegar perto do fim. Clicável. Funciona no funil ao vivo e no preview.
+ */
+export function ScrollHint({ dep }: { dep?: unknown }) {
+  const { ref, overflow, atBottom, scrollDown } = useScrollState(dep);
+  const show = overflow && !atBottom;
   return (
     <>
       <div ref={ref} className="hidden" aria-hidden />
       {show ? (
         <motion.button
-          type="button" onClick={go}
+          type="button" onClick={scrollDown}
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1, y: [0, 7, 0] }}
           transition={{ y: { duration: 1.2, repeat: Infinity, ease: "easeInOut" }, opacity: { duration: 0.3 }, scale: { duration: 0.3 } }}
           className="fixed bottom-[98px] left-1/2 z-30 grid h-11 w-11 -translate-x-1/2 place-items-center rounded-full text-white"
@@ -250,10 +259,16 @@ export function StepShell({
  * (usado nas lâminas com fundo full-screen, ex: roleta — senão aparece um
  * "fade" cor-creme atrás do botão que destoa do fundo).
  */
-export function StickyCta({ children, bare }: { children: React.ReactNode; bare?: boolean }) {
+export function StickyCta({ children, bare, revealOnScroll }: { children: React.ReactNode; bare?: boolean; revealOnScroll?: boolean }) {
+  const { ref, overflow, atBottom } = useScrollState();
+  // revelar: se não precisa rolar (cabe) OU já rolou até o fim, mostra o botão.
+  const ready = !revealOnScroll || !overflow || atBottom;
   return (
     <div className={`sticky bottom-0 z-10 mx-auto w-full max-w-md px-5 pb-5 pt-3 ${bare ? "" : "bg-gradient-to-t from-[var(--q-bg)] via-[var(--q-bg)] to-transparent"}`}>
-      {children}
+      <div ref={ref} className="h-0" aria-hidden />
+      <div className={`transition-all duration-300 ${ready ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-[130%] opacity-0"}`}>
+        {children}
+      </div>
     </div>
   );
 }

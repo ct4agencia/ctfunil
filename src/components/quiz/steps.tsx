@@ -914,7 +914,7 @@ export function ResultStepView({ step, ctx }: { step: ResultStep; ctx: StepCtx }
           ) : null}
         </div>
       </StepShell>
-      <StickyCta><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
+      <StickyCta revealOnScroll><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
     </>
   );
 }
@@ -985,7 +985,7 @@ export function OfferStepView({ step, ctx }: { step: OfferStep; ctx: StepCtx }) 
           </div>
         ) : null}
       </StepShell>
-      <StickyCta><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
+      <StickyCta revealOnScroll><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
     </>
   );
 }
@@ -1052,7 +1052,7 @@ export function CaptureStepView({ step, ctx }: { step: CaptureStep; ctx: StepCtx
             className="mt-1 w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 text-[var(--q-text)] outline-none focus:border-[var(--q-primary)]" />
         </div>
       </StepShell>
-      <StickyCta>
+      <StickyCta revealOnScroll>
         <CtaButton onClick={submit} disabled={!ok || sending}>{sending ? "Enviando..." : step.cta}</CtaButton>
         {step.secure ? <p className="mt-2 text-center text-[11px] text-[var(--q-text-muted)]">{interp(step.secure, ctx.name)}</p> : null}
       </StickyCta>
@@ -1089,7 +1089,7 @@ export function PostStepView({ step, ctx }: { step: PostStep; ctx: StepCtx }) {
           ) : null}
         </div>
       </StepShell>
-      <StickyCta><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
+      <StickyCta revealOnScroll><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
     </>
   );
 }
@@ -1107,7 +1107,7 @@ export function BridgeStepView({ step, ctx }: { step: BridgeStep; ctx: StepCtx }
           </div>
         ) : null}
       </StepShell>
-      <StickyCta><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
+      <StickyCta revealOnScroll><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
     </>
   );
 }
