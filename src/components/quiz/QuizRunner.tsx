@@ -55,6 +55,7 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
         : "var(--q-bg)";
   // texto adapta ao fundo: se o fundo aplicado for escuro, texto claro
   const effectiveDark = dark || bgIsDark(rootBg);
+  const ap = step.appearance;
 
   const musicStarted = useRef(false);
 
@@ -105,6 +106,10 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
       style={{
         ...paletteVars(palette),
         ...(effectiveDark ? { ["--q-bg"]: "#160a22", ["--q-text"]: "#ffffff", ["--q-text-muted"]: "rgba(255,255,255,.72)" } : {}),
+        ...(ap?.align ? { ["--q-title-align"]: ap.align } : {}),
+        ...(ap?.titleSize ? { ["--q-title-size"]: `${ap.titleSize}px` } : {}),
+        ...(ap?.titleWeight ? { ["--q-title-weight"]: String(ap.titleWeight) } : {}),
+        ...(ap?.titleColor ? { ["--q-title-color"]: ap.titleColor } : {}),
         background: rootBg,
         color: "var(--q-text)",
       } as React.CSSProperties}

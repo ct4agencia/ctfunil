@@ -72,10 +72,23 @@ export interface QuizOption {
   value?: string;
 }
 
+/** Aparência do TÍTULO da lâmina (WYSIWYG fase 2, estilo inlead "Aparência"). */
+export interface StepAppearance {
+  align?: "left" | "center" | "right";
+  /** tamanho do título em px (padrão ~26) */
+  titleSize?: number;
+  /** peso do título (400–900) */
+  titleWeight?: number;
+  /** cor do título (override) */
+  titleColor?: string;
+}
+
 interface BaseStep {
   /** identificador estável p/ tracking (step_events.step_id) */
   id: string;
   type: StepType;
+  /** aparência do título da lâmina */
+  appearance?: StepAppearance;
 }
 
 export interface RouletteSegment {

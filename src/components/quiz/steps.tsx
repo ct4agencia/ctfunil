@@ -67,7 +67,13 @@ export function interp(s: string | undefined, name: string): string {
 
 function Title({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-[var(--q-display)] text-[26px] font-bold leading-tight tracking-tight text-[var(--q-text)]">
+    <h2 className="font-[var(--q-display)] leading-tight tracking-tight"
+      style={{
+        fontSize: "var(--q-title-size, 26px)",
+        fontWeight: "var(--q-title-weight, 700)" as React.CSSProperties["fontWeight"],
+        color: "var(--q-title-color, var(--q-text))",
+        textAlign: "var(--q-title-align)" as React.CSSProperties["textAlign"],
+      }}>
       {typeof children === "string" ? <RichText text={children} /> : children}
     </h2>
   );
@@ -88,7 +94,13 @@ function AnimatedTitle({ text }: { text: string }) {
     else seg.split(" ").filter(Boolean).forEach((w) => tokens.push({ t: w, kind: "word" }));
   });
   return (
-    <h2 className="font-[var(--q-display)] text-[26px] font-bold leading-tight tracking-tight text-[var(--q-text)]">
+    <h2 className="font-[var(--q-display)] leading-tight tracking-tight"
+      style={{
+        fontSize: "var(--q-title-size, 26px)",
+        fontWeight: "var(--q-title-weight, 700)" as React.CSSProperties["fontWeight"],
+        color: "var(--q-title-color, var(--q-text))",
+        textAlign: "var(--q-title-align)" as React.CSSProperties["textAlign"],
+      }}>
       {tokens.map((tk, i) => (
         <motion.span key={i} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }} className="mr-[0.25em] inline-block">

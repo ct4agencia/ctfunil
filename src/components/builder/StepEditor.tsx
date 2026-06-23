@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type {
   Step, RouletteStep, ScratchStep, MeasureStep, SliderStep, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep,
-  ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint, ScarcityBar,
+  ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint, ScarcityBar, StepAppearance,
 } from "@/lib/quiz/types";
 import { ROULETTE_STYLES } from "@/lib/quiz/types";
 import { Field, Text, Area, RichField, Num, Toggle, Select, StringList, OptionsList } from "./fields";
@@ -51,6 +51,7 @@ function BgField({ value, onChange }: { value?: string; onChange: (v: string | u
 export default function StepEditor({ step, onChange }: { step: Step; onChange: (patch: Partial<Step>) => void }) {
   const p = (patch: Partial<Step>) => onChange(patch);
 
+  const fields = ((): React.ReactNode => {
   switch (step.type) {
     case "roulette": {
       const s = step as RouletteStep;
@@ -435,4 +436,59 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
       );
     }
   }
+  return null;
+  })();
+
+  return (
+    <div className="space-y-4">
+      <AppearancePanel step={step} onChange={onChange} />
+      {fields}
+    </div>
+  );
+}
+
+/** Aparência do título da lâmina (alinhamento/tamanho/peso/cor) — WYSIWYG fase 2. */
+function AppearancePanel({ step, onChange }: { step: Step; onChange: (patch: Partial<Step>) => void }) {
+  const a = step.appearance ?? {};
+  const set = (patch: Partial<StepAppearance>) => onChange({ appearance: { ...a, ...patch } } as Partial<Step>);
+  const ALIGNS: { v: NonNullable<StepAppearance["align"]>; ic: string }[] = [
+    { v: "left", ic: "⟝" }, { v: "center", ic: "≡" }, { v: "right", ic: "⟞" },
+  ];
+  return (
+    <details className="rounded-xl border border-neutral-200 bg-neutral-50 p-3" open>
+      <summary className="cursor-pointer text-xs font-bold text-neutral-600">🎨 Aparência do título</summary>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div>
+          <span className="mb-1 block text-xs font-semibold text-neutral-500">Alinhamento</span>
+          <div className="inline-flex overflow-hidden rounded-lg border border-neutral-300">
+            {ALIGNS.map((al) => (
+              <button key={al.v} type="button" onClick={() => set({ align: al.v })}
+                className={`px-3 py-1.5 text-sm ${(a.align ?? "left") === al.v ? "bg-neutral-900 text-white" : "bg-white text-neutral-600 hover:bg-neutral-100"}`}>{al.ic}</button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <span className="mb-1 block text-xs font-semibold text-neutral-500">Cor do título</span>
+          <div className="flex items-center gap-2">
+            <input type="color" value={a.titleColor ?? "#171717"} onChange={(e) => set({ titleColor: e.target.value })} className="h-9 w-12 rounded border border-neutral-300" />
+            {a.titleColor ? <button type="button" onClick={() => set({ titleColor: undefined })} className="text-xs text-red-500">limpar</button> : <span className="text-[11px] text-neutral-400">padrão do tema</span>}
+          </div>
+        </div>
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold text-neutral-500">Tamanho do título: <b>{a.titleSize ?? 26}px</b></span>
+          <input type="range" min={16} max={56} value={a.titleSize ?? 26} onChange={(e) => set({ titleSize: Number(e.target.value) })} className="w-full accent-neutral-900" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold text-neutral-500">Peso do título</span>
+          <select className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm" value={String(a.titleWeight ?? 700)} onChange={(e) => set({ titleWeight: Number(e.target.value) })}>
+            <option value="400">Normal</option>
+            <option value="600">Semi-bold</option>
+            <option value="700">Bold</option>
+            <option value="800">Extra-bold</option>
+            <option value="900">Black</option>
+          </select>
+        </label>
+      </div>
+    </details>
+  );
 }
