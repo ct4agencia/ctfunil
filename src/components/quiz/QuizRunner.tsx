@@ -120,7 +120,7 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
       {funnel.settings?.footer && step.type === "vsl" ? (
         <footer className="px-5 pb-6 pt-2 text-center text-xs text-white/55">{funnel.settings.footer}</footer>
       ) : null}
-      {preview ? null : <ScrollHint dep={index} />}
+      <ScrollHint dep={index} />
     </div>
   );
 }

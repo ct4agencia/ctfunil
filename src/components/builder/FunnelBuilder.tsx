@@ -245,7 +245,9 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
               ["--q-display" as string]: (funnel.font === "poppins" || funnel.paletteId === "ambar-velas") ? "'Poppins', system-ui, sans-serif" : "Georgia, serif",
               fontFamily: (funnel.font === "poppins" || funnel.paletteId === "ambar-velas") ? "'Poppins', system-ui, sans-serif" : undefined,
             }}>
-            <div className="h-full overflow-y-auto">
+            {/* transform-gpu: faz este "celular" virar o container do position:fixed
+                interno (ScrollHint), pra a seta aparecer DENTRO do preview. */}
+            <div className="h-full overflow-y-auto transform-gpu">
               <QuizRunner key={`${selectedId}-${funnel.paletteId}-${nonce}`} funnel={funnel} startIndex={selIdx} preview />
             </div>
           </div>
