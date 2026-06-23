@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import type { QuizOption } from "@/lib/quiz/types";
 
 const base =
@@ -20,6 +21,33 @@ export function Text({ value, onChange, placeholder }: { value?: string; onChang
 
 export function Area({ value, onChange, rows = 3 }: { value?: string; onChange: (v: string) => void; rows?: number }) {
   return <textarea className={base} rows={rows} value={value ?? ""} onChange={(e) => onChange(e.target.value)} />;
+}
+
+/**
+ * Campo de texto com TOOLBAR de formatação (estilo inlead, Fase 1 do WYSIWYG).
+ * Negrito (**…**) e Destaque/pílula (==…==) envolvem o texto selecionado.
+ * A renderização desses marcadores já existe no funil (RichText).
+ */
+export function RichField({ value, onChange, rows = 2, placeholder }: { value?: string; onChange: (v: string) => void; rows?: number; placeholder?: string }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const wrap = (mark: string) => {
+    const el = ref.current; if (!el) return;
+    const v = value ?? "";
+    const s = el.selectionStart ?? v.length, e = el.selectionEnd ?? v.length;
+    const sel = v.slice(s, e) || "texto";
+    onChange(v.slice(0, s) + mark + sel + mark + v.slice(e));
+    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(s + mark.length, s + mark.length + sel.length); });
+  };
+  return (
+    <div className="overflow-hidden rounded-lg border border-neutral-300 bg-white focus-within:border-neutral-900">
+      <div className="flex items-center gap-1 border-b border-neutral-200 bg-neutral-50 px-2 py-1">
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => wrap("**")} className="grid h-6 w-6 place-items-center rounded font-bold hover:bg-neutral-200" title="Negrito (realce na cor do tema)">B</button>
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => wrap("==")} className="rounded px-2 py-0.5 text-xs font-bold text-white" style={{ background: "linear-gradient(95deg,#e8842a,#f4b85c)" }} title="Destaque (pílula gradiente)">Destaque</button>
+        <span className="ml-auto text-[10px] text-neutral-400">selecione o texto e clique</span>
+      </div>
+      <textarea ref={ref} className="w-full resize-y px-3 py-2 text-sm text-neutral-900 outline-none" rows={rows} value={value ?? ""} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
 }
 
 export function Num({ value, onChange }: { value?: number; onChange: (v: number) => void }) {

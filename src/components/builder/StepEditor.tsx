@@ -6,7 +6,7 @@ import type {
   ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint, ScarcityBar,
 } from "@/lib/quiz/types";
 import { ROULETTE_STYLES } from "@/lib/quiz/types";
-import { Field, Text, Area, Num, Toggle, Select, StringList, OptionsList } from "./fields";
+import { Field, Text, Area, RichField, Num, Toggle, Select, StringList, OptionsList } from "./fields";
 import { playSpinTicks, playWin } from "@/lib/quiz/sound";
 
 /**
@@ -62,7 +62,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
       return (
         <div className="space-y-4">
           <Grid>
-            <Field label="Título"><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+            <Field label="Título"><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
             <Field label="Subtítulo"><Text value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
             <Field label="Imagem do miolo (URL)"><Text value={s.centerImage} onChange={(v) => p({ centerImage: v } as Partial<Step>)} /></Field>
             <Field label="Modo">
@@ -119,7 +119,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
       return (
         <div className="space-y-4">
           <Grid>
-            <Field label="Título" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+            <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
             <Field label="Subtítulo" full><Text value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
             <Field label="Prêmio (revelado)"><Text value={s.prize} onChange={(v) => p({ prize: v } as Partial<Step>)} /></Field>
             <Field label="Emoji do prêmio"><Text value={s.prizeEmoji} onChange={(v) => p({ prizeEmoji: v } as Partial<Step>)} /></Field>
@@ -174,8 +174,8 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           <Grid>
             <Field label="Selo (badge)"><Text value={s.badge} onChange={(v) => p({ badge: v } as Partial<Step>)} /></Field>
             <Field label="Imagem (URL)"><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
-            <Field label="Título" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-            <Field label="Subtítulo" full><Area value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
+            <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+            <Field label="Subtítulo" full><RichField value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
             <Field label="Botão (CTA)"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
             <Field label="Prova social"><Text value={s.social} onChange={(v) => p({ social: v } as Partial<Step>)} /></Field>
             <Field label="Tempo"><Text value={s.time} onChange={(v) => p({ time: v } as Partial<Step>)} /></Field>
@@ -196,7 +196,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
         <Grid>
           <Field label="Emoji"><Text value={s.emoji} onChange={(v) => p({ emoji: v } as Partial<Step>)} /></Field>
           <Field label="Placeholder"><Text value={s.placeholder} onChange={(v) => p({ placeholder: v } as Partial<Step>)} /></Field>
-          <Field label="Título" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+          <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
           <Field label="Subtítulo" full><Text value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
         </Grid>
@@ -208,8 +208,8 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
         <Grid>
           <Field label="Emoji"><Text value={s.emoji} onChange={(v) => p({ emoji: v } as Partial<Step>)} /></Field>
           <Field label="Selo"><Text value={s.seal} onChange={(v) => p({ seal: v } as Partial<Step>)} /></Field>
-          <Field label="Título" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-          <Field label="Corpo (use {nome})" full><Area value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} /></Field>
+          <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+          <Field label="Corpo (use {nome})" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={3} /></Field>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
         </Grid>
       );
@@ -258,7 +258,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           </Grid>
           {checklist ? (
             <>
-              <Field label="Título do topo"><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+              <Field label="Título do topo"><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
               <Field label="Barras (rótulos sequenciais)"><StringList items={s.bars ?? []} onChange={(v) => p({ bars: v } as Partial<Step>)} addLabel="Barra" placeholder="Analisando suas respostas" /></Field>
               <Field label="Legenda (use {nome})"><StringList items={s.slides} onChange={(v) => p({ slides: v } as Partial<Step>)} addLabel="Linha" /></Field>
               <div>
@@ -294,7 +294,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
       return (
         <div className="space-y-3">
           <Grid>
-            <Field label="Título" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+            <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
             <Field label="Subtítulo" full><Text value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
             <Field label="Ponteiro mín. (faixa)"><Num value={s.range?.[0] ?? 70} onChange={(v) => p({ range: [v, s.range?.[1] ?? 90] } as Partial<Step>)} /></Field>
             <Field label="Ponteiro máx. (faixa)"><Num value={s.range?.[1] ?? 90} onChange={(v) => p({ range: [s.range?.[0] ?? 70, v] } as Partial<Step>)} /></Field>
@@ -316,7 +316,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               <button type="button" onClick={() => p({ zones: [...zones, { label: "Nova", color: "#43b97f" }] } as Partial<Step>)} className="rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">+ Zona</button>
             </div>
           </div>
-          <Field label="Legenda (use {valor}/{nome})"><Area value={s.caption} onChange={(v) => p({ caption: v } as Partial<Step>)} /></Field>
+          <Field label="Legenda (use {valor}/{nome})"><RichField value={s.caption} onChange={(v) => p({ caption: v } as Partial<Step>)} /></Field>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
         </div>
       );
@@ -329,9 +329,9 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           <Field label="% máximo (faixa)"><Num value={s.range[1]} onChange={(v) => p({ range: [s.range[0], v] } as Partial<Step>)} /></Field>
           <Field label="'Mínimo necessário' exibido"><Num value={s.minShown ?? 0} onChange={(v) => p({ minShown: v } as Partial<Step>)} /></Field>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
-          <Field label="Título (use {nome})" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+          <Field label="Título (use {nome})" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
           <Field label="Subtítulo" full><Text value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
-          <Field label="Corpo" full><Area value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} /></Field>
+          <Field label="Corpo" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={3} /></Field>
         </Grid>
       );
     }
@@ -341,8 +341,8 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
         <Grid>
           <Field label="Selo"><Text value={s.badge} onChange={(v) => p({ badge: v } as Partial<Step>)} /></Field>
           <Field label="Imagem (URL)"><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
-          <Field label="Título" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-          <Field label="Corpo" full><Area value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={5} /></Field>
+          <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+          <Field label="Corpo" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={5} /></Field>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
         </Grid>
       );
@@ -351,8 +351,8 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
       const s = step as CaptureStep;
       return (
         <Grid>
-          <Field label="Título" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-          <Field label="Corpo" full><Area value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} /></Field>
+          <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+          <Field label="Corpo" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={3} /></Field>
           <Field label="Imagem (URL)" full><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
           <Field label="Label do nome"><Text value={s.nameLabel} onChange={(v) => p({ nameLabel: v } as Partial<Step>)} /></Field>
           <Field label="Placeholder do nome"><Text value={s.namePlaceholder} onChange={(v) => p({ namePlaceholder: v } as Partial<Step>)} /></Field>
@@ -380,8 +380,8 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
       const s = step as PostStep;
       return (
         <Grid>
-          <Field label="Título (use {nome})" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-          <Field label="Corpo" full><Area value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={5} /></Field>
+          <Field label="Título (use {nome})" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+          <Field label="Corpo" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={5} /></Field>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
         </Grid>
       );
@@ -390,8 +390,8 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
       const s = step as BridgeStep;
       return (
         <Grid>
-          <Field label="Título" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-          <Field label="Corpo" full><Area value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} /></Field>
+          <Field label="Título" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+          <Field label="Corpo" full><RichField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={3} /></Field>
           <Field label="Aviso (vermelho)" full><Text value={s.warn} onChange={(v) => p({ warn: v } as Partial<Step>)} /></Field>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
         </Grid>
@@ -408,7 +408,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           </Field>
           <p className="-mt-2 text-[11px] text-neutral-400">Cole o código completo que o VTurb gera (botão &quot;Embed&quot;). Se preencher, ele substitui o Player ID antigo.</p>
           <Grid>
-            <Field label="Título (acima do vídeo)" full><Text value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+            <Field label="Título (acima do vídeo)" full><RichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
             <Field label="Link do checkout" full><Text value={s.checkoutUrl} onChange={(v) => p({ checkoutUrl: v } as Partial<Step>)} /></Field>
             <Field label="Texto do botão"><Text value={s.ctaText} onChange={(v) => p({ ctaText: v } as Partial<Step>)} /></Field>
             <Field label="Liberar CTA após (seg)"><Num value={s.pitchRevealAt ?? 0} onChange={(v) => p({ pitchRevealAt: v } as Partial<Step>)} /></Field>
