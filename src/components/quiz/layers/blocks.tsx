@@ -29,6 +29,9 @@ const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 export function interpHtml(html: string | undefined, ctx: LayersCtx): string {
   if (!html) return "";
   return html
+    // &nbsp; (espaço inquebrável do Quill) → espaço normal, senão a frase vira
+    // uma "palavra" gigante e estoura a largura (igual o render do inlead faz).
+    .replace(/&nbsp;/g, " ")
     .replace(/\{nome\}/gi, cap(ctx.name) || "você")
     .replace(/\{estado\}/gi, ctx.estado || "sua região")
     .replace(/\{cidade\}/gi, ctx.cidade || "sua cidade");
@@ -210,13 +213,23 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   const multiple = !!c.multiple;
   const [sel, setSel] = useState<string[]>([]);
 
+  // pergunta/introdução do próprio bloco (alguns steps guardam o texto aqui)
+  const intro = c.introduction && plain(c.introduction) ? c.introduction : "";
+  const q = intro ? plain(intro) : plain(question);
+
   const pick = (o: InleadOption) => {
     if (multiple) { setSel((s) => (s.includes(o.id) ? s.filter((x) => x !== o.id) : [...s, o.id])); return; }
-    ctx.trackAnswer(ctx.stepId, plain(question), plain(o.label));
+    ctx.trackAnswer(ctx.stepId, q, plain(o.label));
     ctx.navigate(o.destination || "next");
   };
 
   return (
+    <>
+    {intro ? (
+      <div className="mx-auto mb-3 w-full">
+        <Html html={interpHtml(intro, ctx)} style={{ fontSize: `${remContent(ctx)}px`, color: ctx.design.contentColor || "#000" }} />
+      </div>
+    ) : null}
     <div className="mx-auto grid w-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: ".55rem" }}>
       {opts.map((o) => {
         const img = o.image?.type === "image" ? o.image?.src : null;
@@ -250,6 +263,7 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
         </button>
       ) : null}
     </div>
+    </>
   );
 }
 
