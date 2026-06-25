@@ -6,6 +6,7 @@ import VslView from "@/components/vsl/VslView";
 import BlockRenderer from "@/components/vsl/BlockRenderer";
 import PixelScripts from "@/components/vsl/PixelScripts";
 import QuizRunner from "@/components/quiz/QuizRunner";
+import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import { resolveFunnel } from "@/lib/quiz/funnels-db";
 import { leadGeo } from "@/lib/quiz/geo";
 import type { Vsl } from "@/lib/types";
@@ -57,7 +58,9 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
         } as React.CSSProperties}
       >
         <PixelScripts settings={funnel.settings ?? {}} utmifyPixelId={funnel.utmifyPixelId ?? null} hotmartAccountId={funnel.hotmartAccountId ?? null} />
-        <QuizRunner funnel={funnel} geo={geo} />
+        {funnel.settings?.engine === "layers"
+          ? <LayersRunner funnel={funnel} geo={geo} />
+          : <QuizRunner funnel={funnel} geo={geo} />}
       </div>
     );
   }

@@ -419,6 +419,11 @@ export interface FunnelSettings {
   };
   /** rodapé/copyright exibido na lâmina final (VSL) */
   footer?: string;
+  /** motor de renderização: "layers" = clone fiel do page-builder do inlead */
+  engine?: "layers";
+  /** tokens globais de design (motor layers) — InleadDesign */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  design?: any;
 }
 
 /** Webhook do funil (inlead-compatível) — guardado em funnels.webhooks (jsonb). */

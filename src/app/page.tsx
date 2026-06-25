@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { Fraunces, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import QuizRunner from "@/components/quiz/QuizRunner";
+import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import PixelScripts from "@/components/vsl/PixelScripts";
 import { resolveFunnelByDomain } from "@/lib/quiz/funnels-db";
 import { leadGeo } from "@/lib/quiz/geo";
@@ -58,7 +59,9 @@ export default async function Home() {
             utmifyPixelId={funnel.utmifyPixelId ?? null}
             hotmartAccountId={funnel.hotmartAccountId ?? null}
           />
-          <QuizRunner funnel={funnel} geo={geo} />
+          {funnel.settings?.engine === "layers"
+            ? <LayersRunner funnel={funnel} geo={geo} />
+            : <QuizRunner funnel={funnel} geo={geo} />}
         </div>
       );
     }
