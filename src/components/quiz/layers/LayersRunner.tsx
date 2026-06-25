@@ -114,12 +114,23 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
   return (
     <div className="relative flex min-h-[100dvh] flex-col overflow-x-hidden" style={{ background: pageBg, color: design.contentColor || "#000" }}>
       <style>{`
+        .lyr-html{line-height:1.45}
         .lyr-html p{margin:0}
-        .lyr-html h1,.lyr-html h2,.lyr-html h3{margin:0;line-height:1.2}
+        .lyr-html p+p,.lyr-html p+ul,.lyr-html p+ol,.lyr-html ul+p,.lyr-html h1+p,.lyr-html h2+p,.lyr-html h3+p{margin-top:.75rem}
+        .lyr-html h1{font-size:2em}
+        .lyr-html h2{font-size:1.5em}
+        .lyr-html h3{font-size:1.17em}
+        .lyr-html h1,.lyr-html h2,.lyr-html h3{margin:0;line-height:1.15;font-weight:700}
+        .lyr-html .ql-size-huge{font-size:2.5em;line-height:1}
+        .lyr-html .ql-size-large{font-size:1.5em}
+        .lyr-html .ql-size-small{font-size:.75em}
         .lyr-html .ql-align-center{text-align:center}
         .lyr-html .ql-align-right{text-align:right}
         .lyr-html .ql-align-justify{text-align:justify}
         .lyr-html strong{font-weight:700}
+        .lyr-html em{font-style:italic}
+        .lyr-html u{text-decoration:underline}
+        .lyr-html p br{display:block;content:"";height:0;padding-bottom:.5rem;margin-bottom:.5rem}
         .lyr-html a{color:${design.themeColor || "#ea580c"};text-decoration:underline}
       `}</style>
 
