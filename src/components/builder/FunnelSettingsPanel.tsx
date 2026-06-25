@@ -145,13 +145,13 @@ export default function FunnelSettingsPanel({
                 </span>
               </label>
               <label className="block">
-                <span className={labelCls}>Domínio próprio — toma a RAIZ ⚠️</span>
-                <input className={inputCls} placeholder="(vazio = servir só por slug)" value={funnel.domain ?? ""}
+                <span className={labelCls}>Domínio público do funil</span>
+                <input className={inputCls} placeholder="viverdebolsas.com.br" value={funnel.domain ?? ""}
                   onChange={(e) => onPatch({ domain: e.target.value || undefined })}
                   onBlur={(e) => onPatch({ domain: e.target.value ? e.target.value.toLowerCase().trim().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "") || undefined : undefined })} />
                 <span className="mt-1 block text-[11px] text-neutral-400">
-                  <b>Deixe VAZIO</b> para servir o funil só pelo slug (ex: <b>viverdebolsas.com.br/{funnel.slug || "slug"}</b>) — o domínio é cadastrado na Vercel e a raiz não aponta pra ninguém.
-                  {" "}Preencha <b>só</b> se quiser que ESTE funil tome a <b>raiz</b> do domínio (<b>{funnel.domain || "ex: viverdebolsas.com.br"}</b>) — aí o pixel dele dispara também na raiz, e só 1 funil pode tomá-la.
+                  O funil abre em <b>{funnel.domain || "seudominio.com.br"}/{funnel.slug || "slug"}</b> (usado também no botão <b>Ver ao vivo</b>).
+                  {" "}A <b>raiz</b> ({funnel.domain || "seudominio.com.br"}) <b>não aponta pra nenhum funil</b> — cada funil é um slug. Cadastre o domínio na Vercel + DNS.
                 </span>
               </label>
               <label className="block">

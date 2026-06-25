@@ -1,37 +1,17 @@
 import { redirect, notFound } from "next/navigation";
 import { headers } from "next/headers";
-import { Fraunces, Plus_Jakarta_Sans, Poppins } from "next/font/google";
-import QuizRunner from "@/components/quiz/QuizRunner";
-import LayersRunner from "@/components/quiz/layers/LayersRunner";
-import PixelScripts from "@/components/vsl/PixelScripts";
-import { resolveFunnelByDomain } from "@/lib/quiz/funnels-db";
-import { leadGeo } from "@/lib/quiz/geo";
-
-const display = Fraunces({ subsets: ["latin"], weight: ["600", "700", "900"], variable: "--font-display" });
-const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans-q" });
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700", "800", "900"], variable: "--font-poppins" });
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  const h = await headers();
-  const host = (h.get("host") || "").toLowerCase().split(":")[0].replace(/^www\./, "");
-  if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".vercel.app") || !host) return {};
-  const funnel = await resolveFunnelByDomain(host);
-  if (!funnel) return {};
-  const seo = funnel.settings?.seo ?? {};
-  return {
-    title: seo.title || funnel.name,
-    description: seo.description,
-    icons: seo.favicon ? { icon: seo.favicon } : undefined,
-    openGraph: { title: seo.title || funnel.name, description: seo.description, images: seo.ogImage ? [seo.ogImage] : undefined },
-  };
+  return {};
 }
 
 /**
  * Raiz multi-domínio do CTFUNNEL.
- *  - host = domínio próprio cadastrado num funil → renderiza esse funil
- *    (o quiz "mora" no domínio comprado, ex: viverdebolsas.com.br).
+ *  - host = domínio próprio (ex: viverdebolsas.com.br) → a RAIZ NÃO serve
+ *    funil nenhum (404). Cada funil vive num slug: {domínio}/{slug}. Assim a
+ *    raiz nua não dispara pixel/lead de funil nenhum (decisão do Luca).
  *  - domínio da plataforma / *.vercel.app / localhost → vai pro painel.
  */
 export default async function Home() {
@@ -39,37 +19,11 @@ export default async function Home() {
   const host = (h.get("host") || "").toLowerCase().split(":")[0].replace(/^www\./, "");
 
   const isPlatform =
-    host === "localhost" || host === "127.0.0.1" || host.endsWith(".vercel.app");
+    host === "localhost" || host === "127.0.0.1" || host.endsWith(".vercel.app") || !host;
 
-  if (!isPlatform && host) {
-    const funnel = await resolveFunnelByDomain(host);
-    if (funnel) {
-      const geo = await leadGeo();
-      const usePoppins = funnel.font === "poppins" || funnel.paletteId === "ambar-velas";
-      return (
-        <div
-          className={`${display.variable} ${sans.variable} ${poppins.variable}`}
-          style={{
-            fontFamily: usePoppins ? "var(--font-poppins), system-ui, sans-serif" : "var(--font-sans-q), system-ui, sans-serif",
-            ["--q-display" as string]: usePoppins ? "var(--font-poppins), system-ui, sans-serif" : "var(--font-display), Georgia, serif",
-          } as React.CSSProperties}
-        >
-          <PixelScripts
-            settings={funnel.settings ?? {}}
-            utmifyPixelId={funnel.utmifyPixelId ?? null}
-            hotmartAccountId={funnel.hotmartAccountId ?? null}
-          />
-          {funnel.settings?.engine === "layers"
-            ? <LayersRunner funnel={funnel} geo={geo} />
-            : <QuizRunner funnel={funnel} geo={geo} />}
-        </div>
-      );
-    }
-    // Domínio próprio acessado na RAIZ (sem slug) e SEM funil reivindicando o
-    // domínio → aponta pra ninguém (404). Os funis vivem nos slugs (/cdb-r,
-    // /cdb-estado…); a raiz não dispara pixel de funil nenhum.
-    notFound();
-  }
+  // Domínio próprio na raiz → aponta pra ninguém.
+  if (!isPlatform) notFound();
 
+  // Plataforma → painel.
   redirect("/dashboard");
 }
