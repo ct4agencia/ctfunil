@@ -7,6 +7,7 @@ import BlockRenderer from "@/components/vsl/BlockRenderer";
 import PixelScripts from "@/components/vsl/PixelScripts";
 import QuizRunner from "@/components/quiz/QuizRunner";
 import { resolveFunnel } from "@/lib/quiz/funnels-db";
+import { leadGeo } from "@/lib/quiz/geo";
 import type { Vsl } from "@/lib/types";
 
 const display = Fraunces({ subsets: ["latin"], weight: ["600", "700", "900"], variable: "--font-display" });
@@ -45,6 +46,7 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
   // 1) FUNIL de quiz (CTFUNNEL) — prioridade
   const funnel = await resolveFunnel(slug);
   if (funnel) {
+    const geo = await leadGeo();
     const usePoppins = funnel.font === "poppins" || funnel.paletteId === "ambar-velas";
     return (
       <div
@@ -55,7 +57,7 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
         } as React.CSSProperties}
       >
         <PixelScripts settings={funnel.settings ?? {}} utmifyPixelId={funnel.utmifyPixelId ?? null} hotmartAccountId={funnel.hotmartAccountId ?? null} />
-        <QuizRunner funnel={funnel} />
+        <QuizRunner funnel={funnel} geo={geo} />
       </div>
     );
   }

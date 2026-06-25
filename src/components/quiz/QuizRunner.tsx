@@ -34,10 +34,12 @@ function bgIsDark(css: string): boolean {
   return avg < 0.5;
 }
 
-export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = false, onEdit }: { funnel: Funnel; vslId?: string; startIndex?: number; preview?: boolean; onEdit?: (field?: string) => void }) {
+export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = false, onEdit, geo }: { funnel: Funnel; vslId?: string; startIndex?: number; preview?: boolean; onEdit?: (field?: string) => void; geo?: { estado?: string; cidade?: string } }) {
   const palette = getPalette(funnel.paletteId);
   const [index, setIndex] = useState(startIndex);
   const [name, setName] = useState("");
+  // estado/cidade confirmados pelo lead (override do IP — seguro no 4G)
+  const [geoVars, setGeoVars] = useState<{ estado?: string; cidade?: string }>({});
 
   const steps = funnel.steps;
   const step = steps[index];
@@ -77,7 +79,12 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
     setIndex((i) => Math.min(steps.length - 1, i + 1));
   };
   const back = () => setIndex((i) => Math.max(0, i - 1));
-  const ctx: StepCtx = { name, setName, advance, funnelSlug: funnel.slug, vslId, palette, preview };
+  const ctx: StepCtx = {
+    name, setName, advance, funnelSlug: funnel.slug, vslId, palette, preview,
+    estado: geoVars.estado ?? geo?.estado,
+    cidade: geoVars.cidade ?? geo?.cidade,
+    setVar: (k, v) => setGeoVars((p) => ({ ...p, [k]: v })),
+  };
 
   const render = (s: Step) => {
     switch (s.type) {

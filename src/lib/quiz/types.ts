@@ -198,6 +198,8 @@ export interface QuestionStep extends BaseStep {
   /** micro-loading + insight pós-resposta (estilo Zenlya) */
   loadingText?: string;
   insight?: string;
+  /** a resposta vira a variável {estado}/{cidade} (override do IP — seguro no 4G) */
+  captures?: "estado" | "cidade";
 }
 
 /** Medida — input numérico + toggle de unidade (estilo altura/peso lip.formula). */

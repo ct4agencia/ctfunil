@@ -227,6 +227,10 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                 options={[{ value: "list", label: "Lista" }, { value: "cards", label: "Cards com imagem" }]} />
             </Field>
             <div className="flex items-end"><Toggle label="Múltipla escolha" value={s.multi} onChange={(v) => p({ multi: v } as Partial<Step>)} /></div>
+            <Field label="Resposta define a variável (override do IP)">
+              <Select value={s.captures ?? ""} onChange={(v) => p({ captures: (v || undefined) as QuestionStep["captures"] } as Partial<Step>)}
+                options={[{ value: "", label: "Não (pergunta normal)" }, { value: "estado", label: "{estado} — confirma o estado" }, { value: "cidade", label: "{cidade} — confirma a cidade" }]} />
+            </Field>
           </Grid>
           <Field label="Opções"><OptionsList items={s.options} onChange={(v) => p({ options: v } as Partial<Step>)} /></Field>
           <Grid>

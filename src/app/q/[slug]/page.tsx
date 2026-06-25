@@ -4,6 +4,7 @@ import { Fraunces, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import QuizRunner from "@/components/quiz/QuizRunner";
 import PixelScripts from "@/components/vsl/PixelScripts";
 import { resolveFunnel } from "@/lib/quiz/funnels-db";
+import { leadGeo } from "@/lib/quiz/geo";
 
 const display = Fraunces({ subsets: ["latin"], weight: ["600", "700", "900"], variable: "--font-display" });
 const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans-q" });
@@ -43,6 +44,7 @@ export default async function QuizPage({
   const isPreview = preview === "1";
   const funnel = await resolveFunnel(slug);
   if (!funnel) notFound();
+  const geo = isPreview ? {} : await leadGeo();
 
   // Poppins quando o funil pede explicitamente OU usa a paleta âmbar (vivadevelas).
   // O 2º caso garante o visual mesmo se o campo `font` ainda não persistir (migração 0010).
@@ -68,7 +70,7 @@ export default async function QuizPage({
           hotmartAccountId={funnel.hotmartAccountId ?? null}
         />
       )}
-      <QuizRunner funnel={funnel} preview={isPreview} />
+      <QuizRunner funnel={funnel} preview={isPreview} geo={geo} />
     </div>
   );
 }

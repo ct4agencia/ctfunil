@@ -4,6 +4,7 @@ import { Fraunces, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import QuizRunner from "@/components/quiz/QuizRunner";
 import PixelScripts from "@/components/vsl/PixelScripts";
 import { resolveFunnelByDomain } from "@/lib/quiz/funnels-db";
+import { leadGeo } from "@/lib/quiz/geo";
 
 const display = Fraunces({ subsets: ["latin"], weight: ["600", "700", "900"], variable: "--font-display" });
 const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans-q" });
@@ -42,6 +43,7 @@ export default async function Home() {
   if (!isPlatform && host) {
     const funnel = await resolveFunnelByDomain(host);
     if (funnel) {
+      const geo = await leadGeo();
       const usePoppins = funnel.font === "poppins" || funnel.paletteId === "ambar-velas";
       return (
         <div
@@ -56,7 +58,7 @@ export default async function Home() {
             utmifyPixelId={funnel.utmifyPixelId ?? null}
             hotmartAccountId={funnel.hotmartAccountId ?? null}
           />
-          <QuizRunner funnel={funnel} />
+          <QuizRunner funnel={funnel} geo={geo} />
         </div>
       );
     }

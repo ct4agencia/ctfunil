@@ -35,7 +35,7 @@ function domToMd(el: Node): string {
   return out;
 }
 
-export function VisualRichField({ value, onChange, rows = 2, vars = ["nome"] }: { value?: string; onChange: (v: string) => void; rows?: number; vars?: string[] }) {
+export function VisualRichField({ value, onChange, rows = 2, vars = ["nome", "estado", "cidade"] }: { value?: string; onChange: (v: string) => void; rows?: number; vars?: string[] }) {
   const ref = useRef<HTMLDivElement>(null);
   // marcação → HTML quando o valor muda DE FORA (e o campo não está focado)
   useEffect(() => {

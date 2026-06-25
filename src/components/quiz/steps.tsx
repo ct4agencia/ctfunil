@@ -19,6 +19,11 @@ export interface StepCtx {
   funnelSlug: string;
   vslId?: string;
   palette: Palette;
+  /** geolocalização do lead (Vercel) — {estado}/{cidade} no interp */
+  estado?: string;
+  cidade?: string;
+  /** override de {estado}/{cidade} pela resposta do lead (seguro no 4G) */
+  setVar?: (key: "estado" | "cidade", value: string) => void;
   /** preview do construtor: desliga tracking, leads/webhook e sons */
   preview?: boolean;
 }
@@ -59,10 +64,15 @@ export function wheelChrome(style: RouletteStyle | undefined, p: Palette) {
 }
 
 /** Interpola {nome} (e cap. inicial) nas strings. */
-export function interp(s: string | undefined, name: string): string {
+type InterpVars = { name?: string; estado?: string; cidade?: string };
+export function interp(s: string | undefined, vars: string | InterpVars): string {
   if (!s) return "";
-  const n = name ? name.charAt(0).toUpperCase() + name.slice(1) : "";
-  return s.replace(/\{nome\}/g, n || "você");
+  const v: InterpVars = typeof vars === "string" ? { name: vars } : (vars ?? {});
+  const cap = (x?: string) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : "");
+  return s
+    .replace(/\{nome\}/g, cap(v.name) || "você")
+    .replace(/\{estado\}/g, v.estado || "sua região")
+    .replace(/\{cidade\}/g, v.cidade || "sua cidade");
 }
 
 function Title({ children }: { children: React.ReactNode }) {
@@ -179,8 +189,8 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   return (
     <>
       <StepShell center>
-        <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
-        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx.name)} /></p> : null}
+        <div className="text-center"><Title>{interp(step.title, ctx)}</Title></div>
+        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx)} /></p> : null}
 
         <div className="relative mx-auto mt-7 h-[300px] w-[300px] max-w-full">
             {/* ponteiro por estilo */}
@@ -243,8 +253,8 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
           {done ? (
             <motion.div key="win" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               className="mt-6 rounded-2xl bg-white p-5 text-center shadow-xl">
-              <p className="text-lg font-bold text-[var(--q-primary-dark)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx.name)} /></p>
-              {step.winBody ? <p className="mt-1 text-sm text-neutral-600"><RichText text={interp(step.winBody, ctx.name)} /></p> : null}
+              <p className="text-lg font-bold text-[var(--q-primary-dark)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx)} /></p>
+              {step.winBody ? <p className="mt-1 text-sm text-neutral-600"><RichText text={interp(step.winBody, ctx)} /></p> : null}
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -313,8 +323,8 @@ export function ScratchStepView({ step, ctx }: { step: ScratchStep; ctx: StepCtx
   return (
     <>
       <StepShell center>
-        <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
-        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx.name)} /></p> : null}
+        <div className="text-center"><Title>{interp(step.title, ctx)}</Title></div>
+        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx)} /></p> : null}
         <div className="relative mx-auto mt-7" style={{ width: W, height: H, maxWidth: "100%" }}>
           <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl text-center"
             style={{ background: "var(--q-bg-soft)", border: "2px dashed var(--q-primary)" }}>
@@ -331,8 +341,8 @@ export function ScratchStepView({ step, ctx }: { step: ScratchStep; ctx: StepCtx
         </div>
         {revealed ? (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-5 text-center">
-            <p className="text-lg font-bold text-[var(--q-primary)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx.name)} /></p>
-            {step.winBody ? <p className="mt-1 text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.winBody, ctx.name)} /></p> : null}
+            <p className="text-lg font-bold text-[var(--q-primary)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx)} /></p>
+            {step.winBody ? <p className="mt-1 text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.winBody, ctx)} /></p> : null}
           </motion.div>
         ) : null}
       </StepShell>
@@ -359,7 +369,7 @@ export function MeasureStepView({ step, ctx }: { step: MeasureStep; ctx: StepCtx
   return (
     <>
       <StepShell center>
-        <div className="text-center"><Title>{interp(step.question, ctx.name)}</Title></div>
+        <div className="text-center"><Title>{interp(step.question, ctx)}</Title></div>
         {step.help ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]">{step.help}</p> : null}
         {units.length > 1 ? (
           <div className="mx-auto mt-5 inline-flex rounded-full bg-[var(--q-bg-soft)] p-1">
@@ -392,7 +402,7 @@ export function SliderStepView({ step, ctx }: { step: SliderStep; ctx: StepCtx }
   return (
     <>
       <StepShell center>
-        <div className="text-center"><Title>{interp(step.question, ctx.name)}</Title></div>
+        <div className="text-center"><Title>{interp(step.question, ctx)}</Title></div>
         {step.help ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]">{step.help}</p> : null}
         <div className="mt-8">
           <div className="mb-2 text-center text-2xl font-black text-[var(--q-primary)]">{v}{step.suffix ?? ""}</div>
@@ -448,10 +458,10 @@ export function HeroStepView({ step, ctx }: { step: HeroStep; ctx: StepCtx }) {
             src={step.image} alt="" className="mx-auto mb-5 max-h-72 w-auto rounded-2xl object-contain"
           />
         ) : null}
-        <AnimatedTitle text={interp(step.title, ctx.name)} />
+        <AnimatedTitle text={interp(step.title, ctx)} />
         {step.subtitle ? (
           <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]">
-            <RichText text={interp(step.subtitle, ctx.name)} />
+            <RichText text={interp(step.subtitle, ctx)} />
           </p>
         ) : null}
         {step.gallery?.length ? (
@@ -489,8 +499,8 @@ export function NameStepView({ step, ctx }: { step: NameStep; ctx: StepCtx }) {
     <>
       <StepShell center>
         {step.emoji ? <div className="mb-3 text-center text-4xl">{step.emoji}</div> : null}
-        <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
-        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx.name)} /></p> : null}
+        <div className="text-center"><Title>{interp(step.title, ctx)}</Title></div>
+        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx)} /></p> : null}
         <input
           autoFocus value={v} onChange={(e) => setV(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && go()}
@@ -511,8 +521,8 @@ export function ConfirmStepView({ step, ctx }: { step: ConfirmStep; ctx: StepCtx
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
           className="mx-auto w-full rounded-3xl bg-[var(--q-surface)] p-7 text-center shadow-xl">
           {step.emoji ? <div className="mb-2 text-4xl">{step.emoji}</div> : null}
-          <Title>{interp(step.title, ctx.name)}</Title>
-          {step.body ? <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
+          <Title>{interp(step.title, ctx)}</Title>
+          {step.body ? <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx)} /></p> : null}
           {step.seal ? (
             <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--q-bg-soft)] px-4 py-2 text-xs font-semibold text-[var(--q-primary)]">
               🔒 {step.seal}
@@ -538,6 +548,7 @@ export function QuestionStepView({ step, ctx }: { step: QuestionStep; ctx: StepC
     setSel([i]);
     const opt = step.options[i];
     logAnswer(ctx, step.id, step.question, opt.label);
+    if (step.captures) ctx.setVar?.(step.captures, opt.value || opt.label); // resposta vira {estado}/{cidade}
     if (step.insight || step.loadingText) {
       setPhase("loading");
       setTimeout(() => setPhase("insight"), 1400);
@@ -555,7 +566,7 @@ export function QuestionStepView({ step, ctx }: { step: QuestionStep; ctx: StepC
   return (
     <>
       <StepShell>
-        <Title>{interp(step.question, ctx.name)}</Title>
+        <Title>{interp(step.question, ctx)}</Title>
         {step.help ? <p className="mt-2 text-sm text-[var(--q-text-muted)]">{step.help}</p> : null}
         {step.image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -590,12 +601,12 @@ export function QuestionStepView({ step, ctx }: { step: QuestionStep; ctx: StepC
             <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="mt-6 rounded-2xl bg-[var(--q-bg-soft)] p-6 text-center">
               <div className="mx-auto mb-3 h-7 w-7 animate-spin rounded-full border-2 border-[var(--q-primary)] border-t-transparent" />
-              <p className="font-semibold text-[var(--q-primary)]">{interp(step.loadingText, ctx.name) || "Analisando..."}</p>
+              <p className="font-semibold text-[var(--q-primary)]">{interp(step.loadingText, ctx) || "Analisando..."}</p>
             </motion.div>
           ) : (
             <motion.div key="insight" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               className="mt-6 rounded-2xl border-l-4 border-[var(--q-primary)] bg-[var(--q-bg-soft)] p-5">
-              <p className="text-[15px] font-medium leading-relaxed text-[var(--q-text)]">{interp(step.insight, ctx.name)}</p>
+              <p className="text-[15px] font-medium leading-relaxed text-[var(--q-text)]">{interp(step.insight, ctx)}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -640,7 +651,7 @@ function LoadingSimple({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
       <AnimatePresence mode="wait">
         <motion.p key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
           className={`max-w-xs text-center text-lg font-semibold ${dark ? "text-white" : "text-[var(--q-text)]"}`}>
-          {interp(step.slides[i], ctx.name)}
+          {interp(step.slides[i], ctx)}
         </motion.p>
       </AnimatePresence>
       <div className="mt-6 flex gap-2">
@@ -716,7 +727,7 @@ function LoadingChecklist({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
       ) : null}
       {step.title ? (
         <h2 className="mb-7 text-center font-[var(--q-display)] text-[22px] font-bold leading-tight text-[var(--q-text)]">
-          <RichText text={interp(step.title, ctx.name)} />
+          <RichText text={interp(step.title, ctx)} />
         </h2>
       ) : null}
 
@@ -728,7 +739,7 @@ function LoadingChecklist({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
           return (
             <div key={idx}>
               <div className="mb-1.5 flex items-center justify-between text-[13px] font-semibold">
-                <span className={done || active ? "text-[var(--q-text)]" : "text-[var(--q-text-muted)] opacity-60"}>{interp(label, ctx.name)}</span>
+                <span className={done || active ? "text-[var(--q-text)]" : "text-[var(--q-text-muted)] opacity-60"}>{interp(label, ctx)}</span>
                 <span className="tabular-nums text-[var(--q-text-muted)]">
                   {done ? <span className="text-[var(--q-primary)]">✓</span> : active ? `${Math.round(fill)}%` : ""}
                 </span>
@@ -743,7 +754,7 @@ function LoadingChecklist({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
       </div>
 
       {step.slides?.[0] ? (
-        <p className="mt-7 text-center text-sm text-[var(--q-text-muted)]">{interp(step.slides[0], ctx.name)}</p>
+        <p className="mt-7 text-center text-sm text-[var(--q-text-muted)]">{interp(step.slides[0], ctx)}</p>
       ) : null}
 
       {/* modal de micro-pergunta */}
@@ -754,7 +765,7 @@ function LoadingChecklist({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
             <motion.div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl"
               initial={{ scale: 0.9, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 26 }}>
-              <p className="mb-4 text-center text-[17px] font-bold leading-snug text-neutral-900">{interp(cp.question, ctx.name)}</p>
+              <p className="mb-4 text-center text-[17px] font-bold leading-snug text-neutral-900">{interp(cp.question, ctx)}</p>
               <div className="space-y-2">
                 {cp.options.map((o, k) => (
                   <button key={k} onClick={() => answer(paused!, o)}
@@ -806,8 +817,8 @@ export function GaugeStepView({ step, ctx }: { step: GaugeStep; ctx: StepCtx }) 
   return (
     <>
       <StepShell center>
-        <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
-        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx.name)} /></p> : null}
+        <div className="text-center"><Title>{interp(step.title, ctx)}</Title></div>
+        {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx)} /></p> : null}
 
         <div className="mx-auto mt-8 w-full max-w-xs">
           <svg viewBox="0 0 200 118" className="w-full">
@@ -822,13 +833,13 @@ export function GaugeStepView({ step, ctx }: { step: GaugeStep; ctx: StepCtx }) 
           </svg>
           <div className="-mt-2 text-center">
             <div className="text-4xl font-black text-[var(--q-primary)]">
-              {interp(step.verdict ?? `{valor}${step.suffix ?? ""}`, ctx.name).replace("{valor}", String(value))}
+              {interp(step.verdict ?? `{valor}${step.suffix ?? ""}`, ctx).replace("{valor}", String(value))}
             </div>
             {zoneLabel ? <div className="mt-1 text-sm font-bold uppercase tracking-wide text-[var(--q-text-muted)]">{zoneLabel}</div> : null}
           </div>
         </div>
 
-        {step.caption ? <p className="mx-auto mt-5 max-w-xs text-center text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.caption, ctx.name)} /></p> : null}
+        {step.caption ? <p className="mx-auto mt-5 max-w-xs text-center text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.caption, ctx)} /></p> : null}
       </StepShell>
       <StickyCta><CtaButton onClick={ctx.advance}>{step.cta}</CtaButton></StickyCta>
     </>
@@ -880,13 +891,13 @@ export function ResultStepView({ step, ctx }: { step: ResultStep; ctx: StepCtx }
                 paintOrder: "stroke fill",
                 filter: "drop-shadow(3px 4px 0 color-mix(in srgb, var(--q-primary) 78%, #000)) drop-shadow(0 12px 18px color-mix(in srgb, var(--q-primary) 45%, transparent))",
               } as React.CSSProperties}>
-              {(interp(step.title, ctx.name).replace(/[^\wÀ-ÿ! ]/g, "").trim() || "UAU").toUpperCase()}
+              {(interp(step.title, ctx).replace(/[^\wÀ-ÿ! ]/g, "").trim() || "UAU").toUpperCase()}
             </motion.span>
           </motion.div>
 
           {step.body ? (
             <p className="mx-auto max-w-xs text-[15px] leading-relaxed text-[var(--q-text-muted)]">
-              <RichTextGreen text={interp(step.body, ctx.name)} />
+              <RichTextGreen text={interp(step.body, ctx)} />
             </p>
           ) : null}
 
@@ -906,7 +917,7 @@ export function ResultStepView({ step, ctx }: { step: ResultStep; ctx: StepCtx }
 
           {step.subtitle ? (
             <p className="text-lg font-extrabold text-[var(--q-text)]">
-              Sim, <span className="rounded-md bg-[#dcfce7] px-1.5 text-[#15803d]">{n}%</span>! <RichTextGreen text={interp(step.subtitle, ctx.name)} />
+              Sim, <span className="rounded-md bg-[#dcfce7] px-1.5 text-[#15803d]">{n}%</span>! <RichTextGreen text={interp(step.subtitle, ctx)} />
             </p>
           ) : null}
           {step.minShown ? (
@@ -921,8 +932,8 @@ export function ResultStepView({ step, ctx }: { step: ResultStep; ctx: StepCtx }
               className="mt-5 flex items-start gap-3 rounded-2xl border-2 border-[#bbf7d0] bg-[#f0fdf4] p-4 text-left">
               <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#16a34a] text-sm text-white">✓</span>
               <div>
-                {step.approvedTitle ? <p className="font-bold text-[#15803d]">{interp(step.approvedTitle, ctx.name)}</p> : null}
-                {step.approvedBody ? <p className="mt-0.5 text-sm leading-relaxed text-[var(--q-text-muted)]">{interp(step.approvedBody, ctx.name)}</p> : null}
+                {step.approvedTitle ? <p className="font-bold text-[#15803d]">{interp(step.approvedTitle, ctx)}</p> : null}
+                {step.approvedBody ? <p className="mt-0.5 text-sm leading-relaxed text-[var(--q-text-muted)]">{interp(step.approvedBody, ctx)}</p> : null}
               </div>
             </motion.div>
           ) : null}
@@ -959,7 +970,7 @@ export function OfferStepView({ step, ctx }: { step: OfferStep; ctx: StepCtx }) 
             <span className="grid h-4 w-4 place-items-center rounded-full bg-[#16a34a] text-[9px] text-white">✓</span>{step.badge}
           </span>
         ) : null}
-        <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
+        <div className="text-center"><Title>{interp(step.title, ctx)}</Title></div>
 
         {step.image ? (
           <div className="relative mx-auto my-5 h-36 w-36">
@@ -974,7 +985,7 @@ export function OfferStepView({ step, ctx }: { step: OfferStep; ctx: StepCtx }) 
 
         {/* card da apresentação + stats */}
         <div className="rounded-2xl border-2 border-[color-mix(in_srgb,var(--q-primary)_22%,transparent)] bg-[var(--q-surface)] p-4">
-          {step.body ? <p className="whitespace-pre-line text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
+          {step.body ? <p className="whitespace-pre-line text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx)} /></p> : null}
           {step.stats?.length ? (
             <div className="mt-4 grid gap-2" style={{ gridTemplateColumns: `repeat(${step.stats.length}, minmax(0,1fr))` }}>
               {step.stats.map((s, i) => (
@@ -993,9 +1004,9 @@ export function OfferStepView({ step, ctx }: { step: OfferStep; ctx: StepCtx }) 
           <div className="mt-4 rounded-2xl bg-[#3a241a] p-5 text-center text-white shadow-lg">
             {step.giftTitle ? (
               <span className="mb-3 inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide text-white"
-                style={{ background: "linear-gradient(95deg, var(--q-primary), color-mix(in srgb, var(--q-primary) 60%, #ffd9a8))" }}>{interp(step.giftTitle, ctx.name)}</span>
+                style={{ background: "linear-gradient(95deg, var(--q-primary), color-mix(in srgb, var(--q-primary) 60%, #ffd9a8))" }}>{interp(step.giftTitle, ctx)}</span>
             ) : null}
-            {step.giftBody ? <p className="whitespace-pre-line text-[15px] leading-relaxed text-white/90"><RichText text={interp(step.giftBody, ctx.name)} /></p> : null}
+            {step.giftBody ? <p className="whitespace-pre-line text-[15px] leading-relaxed text-white/90"><RichText text={interp(step.giftBody, ctx)} /></p> : null}
           </div>
         ) : null}
       </StepShell>
@@ -1039,8 +1050,8 @@ export function CaptureStepView({ step, ctx }: { step: CaptureStep; ctx: StepCtx
   return (
     <>
       <StepShell>
-        <div className="text-center"><Title>{interp(step.title, ctx.name)}</Title></div>
-        {step.body ? <p className="mt-2 text-center text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
+        <div className="text-center"><Title>{interp(step.title, ctx)}</Title></div>
+        {step.body ? <p className="mt-2 text-center text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx)} /></p> : null}
 
         {step.image ? (
           <div className="relative mx-auto my-5 w-fit">
@@ -1066,7 +1077,7 @@ export function CaptureStepView({ step, ctx }: { step: CaptureStep; ctx: StepCtx
 
         {step.note ? (
           <div className="mb-4 flex items-start gap-2 rounded-2xl border border-[#bbf7d0] bg-[#f0fdf4] p-3 text-sm leading-relaxed text-[var(--q-text-muted)]">
-            <span className="mt-0.5 text-base">🟢</span><span><RichText text={interp(step.note, ctx.name)} /></span>
+            <span className="mt-0.5 text-base">🟢</span><span><RichText text={interp(step.note, ctx)} /></span>
           </div>
         ) : null}
 
@@ -1081,7 +1092,7 @@ export function CaptureStepView({ step, ctx }: { step: CaptureStep; ctx: StepCtx
       </StepShell>
       <StickyCta revealOnScroll>
         <CtaButton onClick={submit} disabled={!ok || sending}>{sending ? "Enviando..." : step.cta}</CtaButton>
-        {step.secure ? <p className="mt-2 text-center text-[11px] text-[var(--q-text-muted)]">{interp(step.secure, ctx.name)}</p> : null}
+        {step.secure ? <p className="mt-2 text-center text-[11px] text-[var(--q-text-muted)]">{interp(step.secure, ctx)}</p> : null}
       </StickyCta>
     </>
   );
@@ -1101,17 +1112,17 @@ export function PostStepView({ step, ctx }: { step: PostStep; ctx: StepCtx }) {
               transition={{ scale: { duration: 1.6, repeat: Infinity } }}
               className="relative grid h-20 w-20 place-items-center rounded-full bg-[#16a34a] text-4xl text-white shadow-[0_12px_28px_-8px_#16a34a]">✓</motion.div>
           </div>
-          <Title>{interp(step.title, ctx.name)}</Title>
-          {step.body ? <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
+          <Title>{interp(step.title, ctx)}</Title>
+          {step.body ? <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx)} /></p> : null}
 
           {step.warn ? (
             <div className="mt-4 rounded-2xl border border-[#fde68a] bg-[#fffbeb] p-3 text-left text-sm font-medium leading-relaxed text-[#92400e]">
-              🚨 <RichText text={interp(step.warn, ctx.name)} />
+              🚨 <RichText text={interp(step.warn, ctx)} />
             </div>
           ) : null}
           {step.note ? (
             <div className="mt-3 rounded-2xl border-2 border-[color-mix(in_srgb,var(--q-primary)_20%,transparent)] bg-[var(--q-surface)] p-4 text-left text-sm leading-relaxed text-[var(--q-text-muted)]">
-              <RichText text={interp(step.note, ctx.name)} />
+              <RichText text={interp(step.note, ctx)} />
             </div>
           ) : null}
         </div>
@@ -1126,11 +1137,11 @@ export function BridgeStepView({ step, ctx }: { step: BridgeStep; ctx: StepCtx }
   return (
     <>
       <StepShell center>
-        <Title>{interp(step.title, ctx.name)}</Title>
-        {step.body ? <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx.name)} /></p> : null}
+        <Title>{interp(step.title, ctx)}</Title>
+        {step.body ? <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx)} /></p> : null}
         {step.warn ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-            🚨 <RichText text={interp(step.warn, ctx.name)} />
+            🚨 <RichText text={interp(step.warn, ctx)} />
           </div>
         ) : null}
       </StepShell>
@@ -1159,11 +1170,11 @@ export function VslStepView({ step, ctx }: { step: VslStep; ctx: StepCtx }) {
       {bar?.enabled && bar.text ? (
         <div className="w-full px-4 py-2.5 text-center text-sm font-bold"
           style={{ background: bar.bg || "var(--q-primary)", color: bar.color || "#ffffff" }}>
-          {interp(bar.text, ctx.name)}
+          {interp(bar.text, ctx)}
         </div>
       ) : null}
       <div className="mx-auto w-full max-w-md px-5 py-6">
-        {step.title ? <h2 className="mb-4 text-center text-xl font-bold text-white"><RichText text={interp(step.title, ctx.name)} /></h2> : null}
+        {step.title ? <h2 className="mb-4 text-center text-xl font-bold text-white"><RichText text={interp(step.title, ctx)} /></h2> : null}
         {step.embedHtml ? (
           <VturbEmbed html={step.embedHtml} />
         ) : (
