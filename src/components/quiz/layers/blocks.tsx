@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
+import { fireMetaEvent } from "@/lib/tracking";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
 
 /** Contexto passado a cada bloco. */
@@ -117,17 +118,33 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const d = layer.design || {};
   const basis = Number(d.basis) || 100;
   const bg = d.backgroundColor || ctx.design.themeColor || "#ea580c";
+  const dest = c.destination || (c.type === "next" ? "next" : c.destination);
+  const isExternal = typeof dest === "string" && /^https?:\/\//i.test(dest);
+
+  // revealAt: botão de checkout só aparece após N segundos (pitch da VSL)
+  const revealAt = Number(c.revealAt) || 0;
+  const [reveal, setReveal] = useState(revealAt <= 0);
+  useEffect(() => {
+    if (reveal) return;
+    const t = setTimeout(() => setReveal(true), revealAt * 1000);
+    return () => clearTimeout(t);
+  }, [reveal, revealAt]);
+
   const onClick = () => {
     if (ctx.hasFields) { ctx.submitFields(); return; }
-    ctx.navigate(c.destination || (c.type === "next" ? "next" : c.destination));
+    if (isExternal) fireMetaEvent("InitiateCheckout");
+    ctx.navigate(dest);
   };
+
+  if (!reveal) {
+    return <p className="mx-auto w-full text-center text-sm opacity-60">{c.waitText || "⏳ Assista o vídeo para liberar o acesso…"}</p>;
+  }
   return (
     <div className="mx-auto w-full" style={{ maxWidth: `${basis}%` }}>
       <motion.button
         onClick={onClick} disabled={ctx.submitting}
+        initial={revealAt > 0 ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }}
         whileTap={{ scale: 0.97 }}
-        animate={d.pulse ? { scale: [1, 1.035, 1] } : undefined}
-        transition={d.pulse ? { duration: 1.4, repeat: Infinity } : undefined}
         className="w-full font-bold disabled:opacity-60"
         style={{
           background: bg, color: d.color || "#fff",
@@ -140,6 +157,28 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
       </motion.button>
     </div>
   );
+}
+
+// ─────────────────────── EMBED / VÍDEO (VTurb) ──────────────────────
+/** Injeta o embed do player (seta innerHTML + RE-EXECUTA os <script>). */
+function EmbedBlock({ layer }: { layer: Layer }) {
+  const html = layer.content.embedHtml || layer.content.html || layer.content.text || "";
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !html) return;
+    el.innerHTML = html;
+    el.querySelectorAll("script").forEach((old) => {
+      const s = document.createElement("script");
+      for (const a of Array.from(old.attributes)) s.setAttribute(a.name, a.value);
+      if (!old.src) s.textContent = old.textContent;
+      s.async = true;
+      document.head.appendChild(s);
+      old.remove();
+    });
+    return () => { el.innerHTML = ""; };
+  }, [html]);
+  return <div ref={ref} className="mx-auto w-full overflow-hidden rounded-2xl shadow-2xl" />;
 }
 
 // ─────────────────────────────── OPTIONS ────────────────────────────
@@ -362,6 +401,7 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
     case "timer": return <TimerBlock layer={layer} ctx={ctx} />;
     case "notification": return <NotificationBlock layer={layer} ctx={ctx} />;
     case "graphics": return <GraphicsBlock layer={layer} ctx={ctx} />;
+    case "embed": case "video": return <EmbedBlock layer={layer} />;
     default: return null;
   }
 }
