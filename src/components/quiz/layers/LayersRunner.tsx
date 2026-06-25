@@ -7,6 +7,9 @@ import type { InleadStep, InleadDesign } from "@/lib/quiz/layers/types";
 import { trackStep, trackAnswer } from "@/lib/quiz/track";
 import { getSessionId, collectTrackingParams } from "@/lib/tracking";
 import { ScrollHint } from "../ui";
+import { RouletteStepView, type StepCtx } from "../steps";
+import { getPalette, paletteVars } from "@/lib/quiz/theme";
+import type { RouletteStep } from "@/lib/quiz/types";
 import { Block, Reveal, type LayersCtx } from "./blocks";
 
 /** rem da string container "max-w-[34rem]". */
@@ -110,6 +113,35 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
   const bgOpacity = Number(step.design?.backgroundOpacity ?? 100) / 100;
   const pageBg = step.design?.backgroundColor || design.backgroundColor || "#ffffff";
   const question = step.title || "";
+
+  // ── Lâmina de ROLETA (reaproveita o RouletteStepView do /cdb-r) ──
+  // Renderiza em tela cheia com as CSS-vars de paleta + fundo escuro próprio.
+  const roulette = (step.layers || []).find((l) => l.type === "roulette");
+  if (roulette) {
+    const palette = getPalette(funnel.paletteId);
+    const rbg = (roulette.content.background as string) ||
+      "radial-gradient(120% 80% at 50% 35%, #2a1d4d 0%, #150f29 55%, #0a0a1a 100%)";
+    const stepCtx: StepCtx = {
+      name, setName, advance: () => navigate("next"),
+      funnelSlug: funnel.slug, palette, preview: false,
+      estado: geo?.estado, cidade: geo?.cidade,
+    };
+    return (
+      <div
+        className="relative flex min-h-[100dvh] flex-col overflow-x-hidden"
+        style={{
+          ...paletteVars(palette),
+          ["--q-bg"]: "#160a22", ["--q-text"]: "#ffffff", ["--q-text-muted"]: "rgba(255,255,255,.72)",
+          background: rbg, color: "var(--q-text)",
+        } as React.CSSProperties}
+      >
+        <main className="flex flex-1 flex-col">
+          <RouletteStepView step={roulette.content as unknown as RouletteStep} ctx={stepCtx} />
+        </main>
+        <ScrollHint dep={idx} />
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-[100dvh] flex-col overflow-x-hidden" style={{ background: pageBg, color: design.contentColor || "#000" }}>
