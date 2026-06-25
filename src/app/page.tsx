@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { Fraunces, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import QuizRunner from "@/components/quiz/QuizRunner";
@@ -65,6 +65,10 @@ export default async function Home() {
         </div>
       );
     }
+    // Domínio próprio acessado na RAIZ (sem slug) e SEM funil reivindicando o
+    // domínio → aponta pra ninguém (404). Os funis vivem nos slugs (/cdb-r,
+    // /cdb-estado…); a raiz não dispara pixel de funil nenhum.
+    notFound();
   }
 
   redirect("/dashboard");
