@@ -7,7 +7,7 @@ import type { InleadStep, InleadDesign } from "@/lib/quiz/layers/types";
 import { trackStep, trackAnswer } from "@/lib/quiz/track";
 import { getSessionId, collectTrackingParams } from "@/lib/tracking";
 import { ScrollHint } from "../ui";
-import { Block, type LayersCtx } from "./blocks";
+import { Block, Reveal, type LayersCtx } from "./blocks";
 
 /** rem da string container "max-w-[34rem]". */
 function containerMax(c?: string): string {
@@ -180,8 +180,12 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
                   out.push(
                     <div key={l.id} className="flex w-full items-start justify-center gap-2">
                       {grp.map((g) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img key={g.id} src={g.content.image?.src || ""} alt="" className="h-auto min-w-0 flex-1 rounded-2xl object-contain" />
+                        <div key={g.id} className="min-w-0 flex-1">
+                          <Reveal delay={g.effects?.starts}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={g.content.image?.src || ""} alt="" className="h-auto w-full rounded-2xl object-contain" />
+                          </Reveal>
+                        </div>
                       ))}
                     </div>,
                   );

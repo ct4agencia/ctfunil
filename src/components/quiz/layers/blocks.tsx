@@ -25,6 +25,20 @@ export interface LayersCtx {
 
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
+/** Revela o filho após `delay` segundos (effects.starts do inlead). */
+export function Reveal({ delay, children }: { delay?: number; children: React.ReactNode }) {
+  const d = Number(delay) || 0;
+  const [show, setShow] = useState(d <= 0);
+  useEffect(() => {
+    if (d <= 0) return;
+    const t = setTimeout(() => setShow(true), d * 1000);
+    return () => clearTimeout(t);
+  }, [d]);
+  if (d <= 0) return <>{children}</>;
+  if (!show) return null;
+  return <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>{children}</motion.div>;
+}
+
 /** Interpola {estado}/{nome}/{cidade} dentro do HTML do Quill. */
 export function interpHtml(html: string | undefined, ctx: LayersCtx): string {
   if (!html) return "";
@@ -77,14 +91,6 @@ function ClearBlock({ layer }: { layer: Layer }) {
 
 // ─────────────────────────────── ALERT ──────────────────────────────
 function AlertBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
-  const delay = layer.effects?.starts ?? layer.content?.starts ?? 0;
-  const [show, setShow] = useState(!delay);
-  useEffect(() => {
-    if (!delay) return;
-    const t = setTimeout(() => setShow(true), delay * 1000);
-    return () => clearTimeout(t);
-  }, [delay]);
-  if (!show) return null;
   const style = layer.design?.style || "default";
   const pad = Number(layer.design?.padding) || 16;
   const theme = ctx.design.themeColor || "#ea580c";
@@ -201,8 +207,9 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   const opts = c.options || [];
   const obasis = Number(d.basis) || 100;
   const theme = ctx.design.themeColor || "#ea580c";
-  // colunas: design.grid ("grid-cols-2") tem prioridade sobre content.cols
-  const cols = Math.max(1, parseInt(String(d.grid || c.cols || "grid-cols-1").replace(/\D/g, "")) || 1);
+  // colunas: o inlead usa content.cols (quase sempre grid-cols-1 = empilhado);
+  // design.grid é resíduo e NÃO deve ser usado (gerava 2/3 colunas espremidas).
+  const cols = Math.max(1, parseInt(String(c.cols || "grid-cols-1").replace(/\D/g, "")) || 1);
   // espessura da borda: "border-[4px]" → 4px | "border" → 1px
   const bw = (() => { const m = String(d.border || "border").match(/\[(\d+)px\]/); return m ? parseInt(m[1]) : 1; })();
   // fundo "contrast" = leve tom do tema (pêssego); senão branco
@@ -311,7 +318,8 @@ function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
       const p = Math.min(100, start + ((now - t0) / (secs * 1000)) * (100 - start));
       setPct(p);
       if (p < 100) raf = requestAnimationFrame(tick);
-      else if (!done.current) { done.current = true; setTimeout(() => ctx.navigate(c.destination || "next"), 300); }
+      // type "none" = loading só anima e revela o resto da lâmina (não auto-avança).
+      else if (!done.current && c.type !== "none") { done.current = true; setTimeout(() => ctx.navigate(c.destination || "next"), 300); }
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
@@ -404,19 +412,23 @@ function GraphicsBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 
 // ─────────────────────────── DISPATCHER ─────────────────────────────
 export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; question: string }) {
-  switch (layer.type) {
-    case "text": return <TextBlock layer={layer} ctx={ctx} />;
-    case "clear": return <ClearBlock layer={layer} />;
-    case "alert": return <AlertBlock layer={layer} ctx={ctx} />;
-    case "image": return <ImageBlock layer={layer} ctx={ctx} />;
-    case "button": return <ButtonBlock layer={layer} ctx={ctx} />;
-    case "options": return <OptionsBlock layer={layer} ctx={ctx} question={question} />;
-    case "field": return <FieldBlock layer={layer} ctx={ctx} />;
-    case "loading": return <LoadingBlock layer={layer} ctx={ctx} />;
-    case "timer": return <TimerBlock layer={layer} ctx={ctx} />;
-    case "notification": return <NotificationBlock layer={layer} ctx={ctx} />;
-    case "graphics": return <GraphicsBlock layer={layer} ctx={ctx} />;
-    case "embed": case "video": return <EmbedBlock layer={layer} />;
-    default: return null;
-  }
+  const inner = ((): React.ReactNode => {
+    switch (layer.type) {
+      case "text": return <TextBlock layer={layer} ctx={ctx} />;
+      case "clear": return <ClearBlock layer={layer} />;
+      case "alert": return <AlertBlock layer={layer} ctx={ctx} />;
+      case "image": return <ImageBlock layer={layer} ctx={ctx} />;
+      case "button": return <ButtonBlock layer={layer} ctx={ctx} />;
+      case "options": return <OptionsBlock layer={layer} ctx={ctx} question={question} />;
+      case "field": return <FieldBlock layer={layer} ctx={ctx} />;
+      case "loading": return <LoadingBlock layer={layer} ctx={ctx} />;
+      case "timer": return <TimerBlock layer={layer} ctx={ctx} />;
+      case "notification": return <NotificationBlock layer={layer} ctx={ctx} />;
+      case "graphics": return <GraphicsBlock layer={layer} ctx={ctx} />;
+      case "embed": case "video": return <EmbedBlock layer={layer} />;
+      default: return null;
+    }
+  })();
+  // revelação progressiva (effects.starts) — ex: botão Continuar da VAGAS só após o loading.
+  return <Reveal delay={layer.effects?.starts}>{inner}</Reveal>;
 }
