@@ -168,9 +168,29 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
             className="mx-auto flex w-full flex-col"
             style={{ maxWidth: containerMax(design.container), gap: `${Number(design.gap) || 0.6}rem` }}
           >
-            {(step.layers || []).map((layer) => (
-              <Block key={layer.id} layer={layer} ctx={ctx} question={question} />
-            ))}
+            {(() => {
+              // agrupa IMAGENS consecutivas numa linha (igual inlead: 3 fotos 33% lado a lado)
+              const ls = step.layers || [];
+              const out: React.ReactNode[] = [];
+              for (let k = 0; k < ls.length; k++) {
+                const l = ls[k];
+                if (l.type === "image" && ls[k + 1]?.type === "image") {
+                  const grp = [l];
+                  while (ls[k + 1]?.type === "image") grp.push(ls[++k]);
+                  out.push(
+                    <div key={l.id} className="flex w-full items-start justify-center gap-2">
+                      {grp.map((g) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img key={g.id} src={g.content.image?.src || ""} alt="" className="h-auto min-w-0 flex-1 rounded-2xl object-contain" />
+                      ))}
+                    </div>,
+                  );
+                } else {
+                  out.push(<Block key={l.id} layer={l} ctx={ctx} question={question} />);
+                }
+              }
+              return out;
+            })()}
           </motion.div>
         </AnimatePresence>
       </main>

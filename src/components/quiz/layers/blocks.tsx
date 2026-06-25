@@ -199,6 +199,7 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   const c = layer.content;
   const d = layer.design || {};
   const opts = c.options || [];
+  const obasis = Number(d.basis) || 100;
   const theme = ctx.design.themeColor || "#ea580c";
   // colunas: design.grid ("grid-cols-2") tem prioridade sobre content.cols
   const cols = Math.max(1, parseInt(String(d.grid || c.cols || "grid-cols-1").replace(/\D/g, "")) || 1);
@@ -224,13 +225,13 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   };
 
   return (
-    <>
+    <div className="mx-auto w-full" style={{ maxWidth: `${obasis}%` }}>
     {intro ? (
-      <div className="mx-auto mb-3 w-full">
+      <div className="mb-3 w-full">
         <Html html={interpHtml(intro, ctx)} style={{ fontSize: `${remContent(ctx)}px`, color: ctx.design.contentColor || "#000" }} />
       </div>
     ) : null}
-    <div className="mx-auto grid w-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: ".55rem" }}>
+    <div className="grid w-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: ".55rem" }}>
       {opts.map((o) => {
         const img = o.image?.type === "image" ? o.image?.src : null;
         const emoji = o.image?.type === "emoji" ? o.image?.src : o.emoji;
@@ -263,7 +264,7 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
         </button>
       ) : null}
     </div>
-    </>
+    </div>
   );
 }
 
