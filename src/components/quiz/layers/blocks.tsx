@@ -143,49 +143,70 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 }
 
 // ─────────────────────────────── OPTIONS ────────────────────────────
+/** chevron ">" para o ícone das opções (icon "select"/"right"). */
+function Chevron({ color }: { color: string }) {
+  return (
+    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full" style={{ border: `2px solid ${color}` }}>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </span>
+  );
+}
 function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; question: string }) {
   const c = layer.content;
+  const d = layer.design || {};
   const opts = c.options || [];
-  const cols = Math.max(1, parseInt(String(c.cols || "grid-cols-1").replace(/\D/g, "")) || 1);
+  const theme = ctx.design.themeColor || "#ea580c";
+  // colunas: design.grid ("grid-cols-2") tem prioridade sobre content.cols
+  const cols = Math.max(1, parseInt(String(d.grid || c.cols || "grid-cols-1").replace(/\D/g, "")) || 1);
+  // espessura da borda: "border-[4px]" → 4px | "border" → 1px
+  const bw = (() => { const m = String(d.border || "border").match(/\[(\d+)px\]/); return m ? parseInt(m[1]) : 1; })();
+  // fundo "contrast" = leve tom do tema (pêssego); senão branco
+  const contrast = d.background === "contrast";
+  const cardBg = contrast ? `color-mix(in srgb, ${theme} 9%, #ffffff)` : "#ffffff";
+  const shadow = /lg/.test(d.shadow || "") ? "0 12px 24px -12px rgba(0,0,0,.25)" : /md/.test(d.shadow || "") ? "0 8px 16px -12px rgba(0,0,0,.2)" : "0 6px 16px -12px rgba(0,0,0,.18)";
+  const showIcon = d.icon && d.icon !== "none";
+  const iconStart = d.iconPosition === "start";
   const multiple = !!c.multiple;
   const [sel, setSel] = useState<string[]>([]);
 
   const pick = (o: InleadOption) => {
-    if (multiple) {
-      setSel((s) => (s.includes(o.id) ? s.filter((x) => x !== o.id) : [...s, o.id]));
-      return;
-    }
+    if (multiple) { setSel((s) => (s.includes(o.id) ? s.filter((x) => x !== o.id) : [...s, o.id])); return; }
     ctx.trackAnswer(ctx.stepId, plain(question), plain(o.label));
     ctx.navigate(o.destination || "next");
   };
 
   return (
-    <div className="mx-auto grid w-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: ".6rem" }}>
+    <div className="mx-auto grid w-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: ".55rem" }}>
       {opts.map((o) => {
         const img = o.image?.type === "image" ? o.image?.src : null;
         const emoji = o.image?.type === "emoji" ? o.image?.src : o.emoji;
         const active = sel.includes(o.id);
         return (
           <motion.button key={o.id} onClick={() => pick(o)} whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-3 border bg-white px-4 text-left transition"
+            className="flex items-center gap-3 text-left transition"
             style={{
               borderRadius: radius(ctx.design), minHeight: ctx.design.elementSize || "64px",
-              borderColor: active ? ctx.design.themeColor : "#e5e7eb",
-              boxShadow: active ? `0 0 0 2px ${ctx.design.themeColor}` : "0 6px 16px -10px rgba(0,0,0,.25)",
-              padding: ".75rem 1rem",
+              background: cardBg,
+              border: `${bw}px solid ${active ? theme : contrast ? `color-mix(in srgb, ${theme} 55%, #ffffff)` : "#e5e7eb"}`,
+              boxShadow: active ? `0 0 0 2px ${theme}` : shadow,
+              padding: ".75rem 1rem", justifyContent: cols > 1 ? "center" : "flex-start",
             }}>
+            {showIcon && iconStart ? <Chevron color={theme} /> : null}
             {img ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={img} alt="" className="h-10 w-10 rounded-lg object-cover" />
             ) : emoji ? <span className="text-2xl">{emoji}</span> : null}
-            <Html html={interpHtml(o.label, ctx)} className="flex-1" style={{ fontSize: `${remContent(ctx)}px`, color: ctx.design.contentColor || "#000" }} />
+            <Html html={interpHtml(o.label, ctx)} className={cols > 1 ? "" : "flex-1"} style={{ fontSize: `${remContent(ctx)}px`, fontWeight: 500, color: ctx.design.contentColor || "#000" }} />
+            {showIcon && !iconStart ? <Chevron color={theme} /> : null}
           </motion.button>
         );
       })}
       {multiple ? (
         <button onClick={() => { ctx.trackAnswer(ctx.stepId, plain(question), sel.map((id) => plain(opts.find((o) => o.id === id)?.label)).join(", ")); ctx.navigate("next"); }}
           className="mt-1 w-full font-bold text-white"
-          style={{ background: ctx.design.themeColor, borderRadius: radius(ctx.design), minHeight: "56px" }}>
+          style={{ background: theme, borderRadius: radius(ctx.design), minHeight: "56px", gridColumn: `1 / -1` }}>
           Continuar
         </button>
       ) : null}

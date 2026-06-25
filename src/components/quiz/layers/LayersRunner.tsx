@@ -6,6 +6,7 @@ import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, InleadDesign } from "@/lib/quiz/layers/types";
 import { trackStep, trackAnswer } from "@/lib/quiz/track";
 import { getSessionId, collectTrackingParams } from "@/lib/tracking";
+import { ScrollHint } from "../ui";
 import { Block, type LayersCtx } from "./blocks";
 
 /** rem da string container "max-w-[34rem]". */
@@ -111,7 +112,7 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
   const question = step.title || "";
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col" style={{ background: pageBg, color: design.contentColor || "#000" }}>
+    <div className="relative flex min-h-[100dvh] flex-col overflow-x-hidden" style={{ background: pageBg, color: design.contentColor || "#000" }}>
       <style>{`
         .lyr-html p{margin:0}
         .lyr-html h1,.lyr-html h2,.lyr-html h3{margin:0;line-height:1.2}
@@ -166,6 +167,9 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
       {funnel.settings?.footer ? (
         <footer className="relative z-10 px-5 pb-6 pt-2 text-center text-xs opacity-50">{funnel.settings.footer}</footer>
       ) : null}
+
+      {/* setinha pulsante "role pra baixo" (pedido do Luca) */}
+      <ScrollHint dep={idx} />
     </div>
   );
 }
