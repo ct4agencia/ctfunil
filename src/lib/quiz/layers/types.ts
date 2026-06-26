@@ -11,7 +11,7 @@
 export type LayerType =
   | "text" | "clear" | "options" | "image" | "button" | "alert"
   | "loading" | "field" | "timer" | "notification" | "graphics"
-  | "embed" | "video" | "roulette";
+  | "embed" | "video" | "roulette" | "slider";
 
 /** Imagem/emoji de uma opção ou bloco. */
 export interface InleadMedia {
