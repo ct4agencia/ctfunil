@@ -21,12 +21,12 @@ const ALIGN: Record<string, string> = {
   "justify-start": "flex-start", "justify-center": "center", "justify-end": "flex-end",
 };
 
-export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { estado?: string; cidade?: string } }) {
+export default function LayersRunner({ funnel, geo, startIndex = 0, preview = false }: { funnel: Funnel; geo?: { estado?: string; cidade?: string }; startIndex?: number; preview?: boolean }) {
   const steps = funnel.steps as unknown as InleadStep[];
   const design = (funnel.settings?.design as InleadDesign) || {};
   const total = steps.length;
 
-  const [idx, setIdx] = useState(0);
+  const [idx, setIdx] = useState(startIndex);
   const history = useRef<number[]>([]);
   const [name, setName] = useState("");
   const [fields, setFields] = useState<Record<string, string>>({});
@@ -40,7 +40,7 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
   }, [steps]);
 
   useEffect(() => {
-    trackStep(funnel.slug, idx, step.id, "layers");
+    if (!preview) trackStep(funnel.slug, idx, step.id, "layers");
     window.scrollTo({ top: 0 });
   }, [idx]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -64,6 +64,7 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
 
   // A3: reenvia leads que falharam num envio anterior (ao montar o funil)
   useEffect(() => {
+    if (preview) return;
     let pend: unknown[] = [];
     try { pend = JSON.parse(localStorage.getItem("ctf_pending_leads") || "[]"); } catch { pend = []; }
     if (!Array.isArray(pend) || !pend.length) return;
@@ -77,6 +78,7 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
 
   const submitFields = async () => {
     if (submitting) return;
+    if (preview) { const btn = (step.layers || []).find((l) => l.type === "button"); navigate(btn?.content.destination || "next"); return; }
     const fls = (step.layers || []).filter((l) => l.type === "field");
     const keyOf = (l?: typeof fls[number]) => (l ? (l.content.name || l.content.id || "") : "");
     const PHONE_RE = /tel|whats|phone|celular|wpp|fone/i;
