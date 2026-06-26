@@ -190,7 +190,10 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
 
             {tab === "leads" && (
               <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
-                <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3"><h2 className="text-sm font-semibold text-neutral-700">Leads recentes</h2><span className="text-xs text-neutral-400">{data.leads.total} no total</span></div>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3">
+                  <h2 className="text-sm font-semibold text-neutral-700">Leads recentes <span className="ml-1 text-xs font-normal text-neutral-400">({data.leads.total} no total)</span></h2>
+                  <a href="/api/export-leads" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-700">⬇ Exportar CSV (todos)</a>
+                </div>
                 {data.leads.recent.length ? (
                   <table className="w-full text-sm">
                     <thead className="bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-neutral-400"><tr><th className="px-4 py-3">Nome</th><th className="px-3 py-3">WhatsApp</th><th className="px-3 py-3">Funil</th><th className="px-3 py-3">Quando</th></tr></thead>
