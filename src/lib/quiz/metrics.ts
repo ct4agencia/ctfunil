@@ -128,23 +128,24 @@ export async function globalAnalytics(): Promise<GlobalAnalytics> {
       });
     }
 
-    // tráfego global (funnel_sessions)
-    const { data: sess } = await sb.from("funnel_sessions").select("utm_source,utm_campaign").limit(20000);
+    // tráfego global (funnel_sessions) — M9: src como fallback de origem (CTWA)
+    const { data: sess } = await sb.from("funnel_sessions").select("utm_source,utm_campaign,src").limit(20000);
     for (const s of sess ?? []) {
-      const src = ((s.utm_source as string) || "").trim();
-      const camp = ((s.utm_campaign as string) || "").trim();
+      const src = (((s.utm_source as string) || (s.src as string)) || "").trim();
+      const camp = (((s.utm_campaign as string) || (s.utm_source as string) || (s.src as string)) || "").trim();
       if (src) sources.set(src, (sources.get(src) ?? 0) + 1);
       if (camp) campaigns.set(camp, (campaigns.get(camp) ?? 0) + 1);
     }
 
-    // leads (funnel_leads — pode não existir até a migração 0010)
+    // A6: total de leads = contagem EXATA (não o tamanho da página de 50)
+    const { count: leadTotal } = await sb.from("funnel_leads").select("*", { count: "exact", head: true });
     const { data: leadRows, error: leadErr } = await sb
       .from("funnel_leads")
       .select("name,phone,funnel_slug,created_at")
       .order("created_at", { ascending: false })
       .limit(50);
     if (!leadErr && leadRows) {
-      leadsOut.total = leadRows.length;
+      leadsOut.total = leadTotal ?? leadRows.length;
       leadsOut.recent = leadRows.slice(0, 12).map((l) => ({
         name: (l.name as string) || "—",
         phone: (l.phone as string) || "—",
@@ -191,8 +192,25 @@ export interface FunnelMetrics {
 }
 
 const QUESTION_TYPES = ["question", "measure", "slider"];
+const LAYER_Q = ["options", "slider", "roulette", "measure"];
 
+/** Índices das etapas-chave. Funciona nos DOIS motores:
+ *  - tipado: pelo step.type (question/capture)
+ *  - layers: pela presença de blocos (options/slider/roulette = pergunta; field = captura) */
 function stageIndices(steps: Step[]) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isLayers = steps.some((s: any) => Array.isArray(s?.layers));
+  if (isLayers) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hasLayer = (s: any, types: string[]) => Array.isArray(s?.layers) && s.layers.some((l: any) => types.includes(l?.type));
+    const firstQ = steps.findIndex((s) => hasLayer(s, LAYER_Q));
+    const captureI = steps.findIndex((s) => hasLayer(s, ["field"]));
+    return {
+      firstQ: firstQ < 0 ? 1 : firstQ,
+      captureI: captureI < 0 ? steps.length - 2 : captureI,
+      lastI: steps.length - 1,
+    };
+  }
   const firstQ = steps.findIndex((s) => QUESTION_TYPES.includes(s.type));
   const captureI = steps.findIndex((s) => s.type === "capture");
   return {
@@ -200,6 +218,17 @@ function stageIndices(steps: Step[]) {
     captureI: captureI < 0 ? steps.length - 2 : captureI,
     lastI: steps.length - 1,
   };
+}
+
+/** Conta leads REAIS (tabela funnel_leads) de um funil — fonte de verdade. */
+async function realLeadCount(slug: string): Promise<number> {
+  try {
+    const sb = createAdminClient();
+    const { count } = await sb.from("funnel_leads").select("*", { count: "exact", head: true }).eq("funnel_slug", slug);
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
 }
 
 export async function funnelMetrics(slug: string): Promise<FunnelMetrics> {
@@ -213,12 +242,12 @@ export async function funnelMetrics(slug: string): Promise<FunnelMetrics> {
   const steps = funnel.steps;
   const { firstQ, captureI, lastI } = stageIndices(steps);
 
-  let sessions: { max_step_reached: number; created_at: string; last_seen_at: string; utm_source: string | null; utm_campaign: string | null }[] = [];
+  let sessions: { max_step_reached: number; created_at: string; last_seen_at: string; utm_source: string | null; utm_campaign: string | null; src: string | null }[] = [];
   try {
     const sb = createAdminClient();
     const { data } = await sb
       .from("funnel_sessions")
-      .select("max_step_reached,created_at,last_seen_at,utm_source,utm_campaign")
+      .select("max_step_reached,created_at,last_seen_at,utm_source,utm_campaign,src")
       .eq("funnel_slug", slug)
       .order("created_at", { ascending: false })
       .limit(5000);
@@ -229,7 +258,8 @@ export async function funnelMetrics(slug: string): Promise<FunnelMetrics> {
 
   const visitantes = sessions.length;
   const respostas = sessions.filter((s) => s.max_step_reached >= firstQ).length;
-  const leads = sessions.filter((s) => s.max_step_reached >= captureI).length;
+  // C2: "leads" = leads REAIS (funnel_leads), não "quem chegou na lâmina de captura".
+  const leads = await realLeadCount(slug);
   const conclusoes = sessions.filter((s) => s.max_step_reached >= lastI).length;
   const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
   const taxaConclusao = pct(conclusoes, visitantes);
@@ -272,9 +302,10 @@ export async function funnelMetrics(slug: string): Promise<FunnelMetrics> {
   let rastreado = 0;
   const origMap = new Map<string, number>();
   for (const s of sessions) {
-    const camp = (s.utm_campaign || s.utm_source || "").trim();
+    // M9: tráfego de WhatsApp/CTWA chega por `src` (sem utm) — usa como fallback.
+    const camp = (s.utm_campaign || s.utm_source || s.src || "").trim();
     if (camp) { campMap.set(camp, (campMap.get(camp) ?? 0) + 1); rastreado++; }
-    const orig = (s.utm_source || "").trim();
+    const orig = (s.utm_source || s.src || "").trim();
     if (orig) origMap.set(orig, (origMap.get(orig) ?? 0) + 1);
   }
   const campanhas = Array.from(campMap.entries())
