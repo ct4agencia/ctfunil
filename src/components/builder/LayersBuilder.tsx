@@ -386,52 +386,120 @@ function FluxoTab({ steps, setSteps }: { steps: InleadStep[]; setSteps: (s: Inle
 }
 
 // ───────────────────────── D — LEADS ─────────────────────────
-interface LeadRow { name: string | null; phone: string | null; funnel_slug: string | null; utm_source: string | null; src: string | null; created_at: string }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface Analytics { performance: any; resultados: { question: string; total: number; options: { label: string; value: number; pct: number }[] }[]; questions: string[]; respostas: { session: string; name: string | null; phone: string | null; when: string | null; answers: Record<string, string> }[] }
+
+function Bar({ pct, color = "#3b82f6" }: { pct: number; color?: string }) {
+  return <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100"><div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} /></div>;
+}
+
+/** Aba Leads = sub-abas Respostas / Resultados / Performance (estilo inlead). */
 function LeadsTab({ slug }: { slug: string }) {
-  const [rows, setRows] = useState<LeadRow[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
-  const [per, setPer] = useState(50);
+  const [d, setD] = useState<Analytics | null>(null);
+  const [sub, setSub] = useState<"respostas" | "resultados" | "performance">("respostas");
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/funnel-leads-list?slug=${encodeURIComponent(slug)}&page=${page}&per=${per}`)
-      .then((r) => r.json()).then((j) => { setRows(j.leads || []); setTotal(j.total || 0); }).catch(() => { }).finally(() => setLoading(false));
-  }, [slug, page, per]);
-  const pages = Math.max(1, Math.ceil(total / per));
+  const [resetting, setResetting] = useState(false);
+  const load = () => { setLoading(true); fetch(`/api/funnel-analytics?slug=${encodeURIComponent(slug)}`).then((r) => r.json()).then(setD).catch(() => { }).finally(() => setLoading(false)); };
+  useEffect(load, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
+  const reset = async () => {
+    if (!window.confirm("Tem certeza? Isso apaga TODOS os dados (respostas, sessões e leads) DESTE funil. Extraia o CSV antes!")) return;
+    setResetting(true);
+    try { await fetch(`/api/reset-funnel-data`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug }) }); } catch { /* noop */ }
+    setResetting(false); load();
+  };
+  const p = d?.performance;
+  const fmtT = (s: number) => `${String(Math.floor(s / 3600)).padStart(2, "0")}h ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}m ${String(s % 60).padStart(2, "0")}s`;
+
   return (
-    <div className="mx-auto max-w-3xl rounded-xl border border-neutral-200 bg-white">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3">
-        <h2 className="text-sm font-semibold text-neutral-700">Leads <span className="ml-1 text-xs font-normal text-neutral-400">({total} no total)</span></h2>
-        <div className="flex items-center gap-2">
-          <select value={per} onChange={(e) => { setPer(Number(e.target.value)); setPage(0); }} className="rounded border border-neutral-300 px-2 py-1 text-xs">
-            {[50, 100, 200].map((n) => <option key={n} value={n}>{n}/página</option>)}
-          </select>
-          <a href={`/api/export-leads?slug=${encodeURIComponent(slug)}`} className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white">⬇ CSV</a>
+    <div className="mx-auto max-w-5xl">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200">
+        <nav className="flex gap-1">
+          {([["respostas", "📋 Respostas"], ["resultados", "📊 Resultados"], ["performance", "📈 Performance"]] as const).map(([k, l]) => (
+            <button key={k} onClick={() => setSub(k)} className={`px-3 py-2.5 text-sm font-semibold ${sub === k ? "border-b-2 border-neutral-900 text-neutral-900" : "text-neutral-400 hover:text-neutral-700"}`}>{l}</button>
+          ))}
+        </nav>
+        <div className="flex items-center gap-4 pb-2">
+          <a href={`/api/export-leads?slug=${encodeURIComponent(slug)}`} className="text-xs font-semibold text-neutral-600 hover:text-neutral-900">⬇ Exportar leads</a>
+          <button onClick={reset} disabled={resetting} className="text-xs font-semibold text-red-500 hover:text-red-700">{resetting ? "Limpando…" : "♻ Resetar dados"}</button>
         </div>
       </div>
-      {loading ? <p className="p-6 text-center text-xs text-neutral-400">Carregando…</p> : rows.length ? (
+
+      {loading ? <p className="p-8 text-center text-sm text-neutral-400">Carregando…</p> : !d ? <p className="p-8 text-center text-sm text-neutral-400">Sem dados.</p> : (
         <>
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-neutral-400"><tr><th className="px-4 py-2.5">Data</th><th className="px-3 py-2.5">Nome</th><th className="px-3 py-2.5">Telefone</th><th className="px-3 py-2.5">Origem</th></tr></thead>
-            <tbody>
-              {rows.map((l, i) => (
-                <tr key={i} className="border-t border-neutral-100">
-                  <td className="px-4 py-2.5 text-neutral-400">{l.created_at ? new Date(l.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}</td>
-                  <td className="px-3 py-2.5 font-semibold text-neutral-800">{l.name || "—"}</td>
-                  <td className="px-3 py-2.5 text-neutral-600">{l.phone || "—"}</td>
-                  <td className="px-3 py-2.5 text-neutral-500">{l.utm_source || l.src || "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="flex items-center justify-between px-4 py-3 text-xs text-neutral-500">
-            <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} className="rounded border border-neutral-300 px-2 py-1 disabled:opacity-40">← anterior</button>
-            <span>página {page + 1} de {pages}</span>
-            <button onClick={() => setPage((p) => Math.min(pages - 1, p + 1))} disabled={page >= pages - 1} className="rounded border border-neutral-300 px-2 py-1 disabled:opacity-40">próxima →</button>
-          </div>
+          {/* RESPOSTAS — tabela por lead (colunas = perguntas) */}
+          {sub === "respostas" ? (
+            d.respostas.length ? (
+              <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+                <table className="w-full text-xs">
+                  <thead className="bg-neutral-50 text-left font-semibold uppercase tracking-wide text-neutral-400">
+                    <tr><th className="whitespace-nowrap px-3 py-2.5">Lead</th><th className="whitespace-nowrap px-3 py-2.5">Telefone</th><th className="whitespace-nowrap px-3 py-2.5">Data</th>
+                      {d.questions.map((q) => <th key={q} className="whitespace-nowrap px-3 py-2.5">{q.slice(0, 28)}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {d.respostas.map((r, i) => (
+                      <tr key={i} className="border-t border-neutral-100">
+                        <td className="whitespace-nowrap px-3 py-2 font-semibold text-neutral-800">{r.name || `#${r.session}`}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-neutral-600">{r.phone || "—"}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-neutral-400">{r.when ? new Date(r.when).toLocaleDateString("pt-BR") : "—"}</td>
+                        {d.questions.map((q) => <td key={q} className="whitespace-nowrap px-3 py-2 text-neutral-600">{r.answers[q] || "—"}</td>)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : <p className="p-8 text-center text-sm text-neutral-400">Nenhuma resposta ainda. Passe um lead pelo funil.</p>
+          ) : null}
+
+          {/* RESULTADOS — por pergunta, opções com % */}
+          {sub === "resultados" ? (
+            d.resultados.length ? (
+              <div className="space-y-4">
+                {d.resultados.map((r) => (
+                  <div key={r.question} className="rounded-xl border border-neutral-200 bg-white p-4">
+                    <p className="mb-2 text-sm font-bold text-neutral-800">{r.question} <span className="ml-1 text-xs font-normal text-neutral-400">({r.total} respostas)</span></p>
+                    <div className="space-y-2">
+                      {r.options.map((o, i) => (
+                        <div key={i}>
+                          <div className="mb-0.5 flex items-center justify-between text-xs"><span className="text-neutral-700">{o.label}</span><span className="font-semibold text-neutral-500">{o.value} · {o.pct}%</span></div>
+                          <Bar pct={o.pct} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : <p className="p-8 text-center text-sm text-neutral-400">Sem respostas de quiz ainda.</p>
+          ) : null}
+
+          {/* PERFORMANCE — cards + funil + campanhas */}
+          {sub === "performance" && p ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                {[["Score", `${p.score}`], ["Visitantes", `${p.visitantes}`], ["Respostas", `${p.respostas}`], ["Leads", `${p.leads}`], ["Tempo médio", fmtT(p.tempoMedioSeg)]].map(([l, v]) => (
+                  <div key={l} className="rounded-xl border border-neutral-200 bg-white p-3"><p className="text-[11px] text-neutral-400">{l}</p><p className="text-lg font-bold text-neutral-800">{v}</p></div>
+                ))}
+              </div>
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-xl border border-neutral-200 bg-white p-4">
+                  <p className="mb-1 text-sm font-bold text-neutral-700">Funil · conversão {p.taxaConclusao}%</p>
+                  {p.funil.map((f: { label: string; value: number; pct: number }) => (
+                    <div key={f.label} className="mb-2">
+                      <div className="mb-0.5 flex items-center justify-between text-xs"><span className="text-neutral-700">{f.label}</span><span className="font-semibold text-neutral-500">{f.value} · {f.pct}%</span></div>
+                      <Bar pct={f.pct} color="#ea580c" />
+                    </div>
+                  ))}
+                </div>
+                <div className="rounded-xl border border-neutral-200 bg-white p-4">
+                  <p className="mb-2 text-sm font-bold text-neutral-700">Campanhas <span className="text-xs font-normal text-neutral-400">· melhor origem: {p.melhorOrigem}</span></p>
+                  {p.campanhas.length ? p.campanhas.map((c: { name: string; value: number; pct: number }) => (
+                    <div key={c.name} className="mb-2"><div className="mb-0.5 flex items-center justify-between text-xs"><span className="min-w-0 flex-1 truncate text-neutral-700">{c.name}</span><span className="font-semibold text-neutral-500">{c.value} · {c.pct}%</span></div><Bar pct={c.pct} color="#8b5cf6" /></div>
+                  )) : <p className="text-xs text-neutral-400">Sem dados de campanha (UTM/src) ainda.</p>}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </>
-      ) : <p className="p-6 text-center text-xs text-neutral-400">Nenhum lead ainda neste funil.</p>}
+      )}
     </div>
   );
 }
