@@ -214,23 +214,28 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
         <img src={bgImg} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" style={{ opacity: bgOpacity }} />
       ) : null}
 
-      {/* header: logo + progresso */}
-      {(step.options?.show_logo && design.logo?.src) || step.options?.show_progress ? (
-        <header className="relative z-10 mx-auto flex w-full flex-col items-center gap-2 px-5 pt-5" style={{ maxWidth: containerMax(design.container) }}>
-          {step.options?.show_back && history.current.length ? (
-            <button onClick={back} className="self-start text-sm opacity-60">← Voltar</button>
-          ) : null}
-          {step.options?.show_logo && design.logo?.src ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={design.logo.src} alt="" decoding="async" className="h-10 w-auto object-contain" />
-          ) : null}
-          {step.options?.show_progress ? (
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
-              <div className="h-full rounded-full transition-[width]" style={{ width: `${((idx + 1) / total) * 100}%`, background: design.themeColor || "#ea580c" }} />
-            </div>
-          ) : null}
-        </header>
-      ) : null}
+      {/* header GLOBAL (settings.header): logo + progresso + voltar.
+          Aparece em TODAS as lâminas exceto o HERO (idx 0) e a VSL (lâmina com vídeo). */}
+      {(() => {
+        const hdr = (funnel.settings as { header?: { show_logo?: boolean; show_progress?: boolean; show_back?: boolean } })?.header || {};
+        const isVslStep = (step.layers || []).some((l) => l.type === "embed" || l.type === "video");
+        if (idx === 0 || isVslStep) return null;
+        if (!hdr.show_logo && !hdr.show_progress && !hdr.show_back) return null;
+        return (
+          <header className="relative z-10 mx-auto flex w-full flex-col items-center gap-2 px-5 pt-5" style={{ maxWidth: containerMax(design.container) }}>
+            {hdr.show_back && history.current.length ? <button onClick={back} className="self-start text-sm opacity-60">← Voltar</button> : null}
+            {hdr.show_logo && design.logo?.src ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={design.logo.src} alt="" decoding="async" className="h-9 w-auto object-contain" />
+            ) : null}
+            {hdr.show_progress ? (
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
+                <div className="h-full rounded-full transition-[width]" style={{ width: `${((idx + 1) / total) * 100}%`, background: design.themeColor || "#ea580c" }} />
+              </div>
+            ) : null}
+          </header>
+        );
+      })()}
 
       {/* conteúdo */}
       <main className="relative z-10 flex flex-1 flex-col px-5 py-6" style={{ justifyContent: ALIGN[design.verticalAlign || "justify-start"] || "flex-start" }}>

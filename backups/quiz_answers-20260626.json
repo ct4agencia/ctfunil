@@ -1,0 +1,1955 @@
+[
+ {
+  "id": "169e0829-6bbd-4092-92d9-3d97b3a5cf16",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "UQpD4O",
+  "question": "Idade",
+  "answer": "+65 anos",
+  "created_at": "2026-06-26T00:18:21.283296+00:00"
+ },
+ {
+  "id": "1f473904-5150-4771-8096-9b7f59db47fb",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "mEREuO",
+  "question": "Acompanha",
+  "answer": "Sim, acompanho muito",
+  "created_at": "2026-06-26T00:18:28.848733+00:00"
+ },
+ {
+  "id": "6972e91f-fa63-4439-890d-2136e6134bff",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "slider",
+  "question": "De 0 a 10, o quanto você quer conquistar uma renda extra fazendo bolsas artesanais?",
+  "answer": "7",
+  "created_at": "2026-06-26T00:41:26.127866+00:00"
+ },
+ {
+  "id": "25346085-450f-4256-ae70-c68ab9ab43a2",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "zepiwy",
+  "question": "Fase da vida",
+  "answer": "Quero ter uma renda própria",
+  "created_at": "2026-06-26T00:41:51.410807+00:00"
+ },
+ {
+  "id": "5844e462-ecba-4cad-8a8d-e32f96c748bc",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "slider",
+  "question": "De 0 a 10, quanto você queria ter uma renda só sua fazendo bolsas em casa?",
+  "answer": "8",
+  "created_at": "2026-06-26T03:28:11.553908+00:00"
+ },
+ {
+  "id": "28d4c9e2-9e6e-4155-b04f-8835e5c05e01",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "EVRM9C",
+  "question": "Filhos",
+  "answer": "Não",
+  "created_at": "2026-06-26T03:28:34.276677+00:00"
+ },
+ {
+  "id": "e34a8025-b898-4f66-b825-6de99ae6ada4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "nOlNBr",
+  "question": "Ocupação",
+  "answer": "Apenas estudo",
+  "created_at": "2026-06-26T03:28:36.764868+00:00"
+ },
+ {
+  "id": "02f8d40c-e7f3-48d7-8ae8-a2133e578330",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "ViHTWP",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Sem uma profissão definida",
+  "created_at": "2026-06-26T03:28:38.392667+00:00"
+ },
+ {
+  "id": "5b36aeee-e1ec-449c-a576-ce0c895ab82b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "EVRM9C",
+  "question": "Filhos",
+  "answer": "Não",
+  "created_at": "2026-06-26T00:18:22.331066+00:00"
+ },
+ {
+  "id": "722a0080-d1cf-490e-b004-5839d0b8cc29",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "nOlNBr",
+  "question": "Ocupação",
+  "answer": "Apenas estudo",
+  "created_at": "2026-06-26T00:18:24.114099+00:00"
+ },
+ {
+  "id": "c66107f5-ec50-4c68-856f-0b0a97f82cc5",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "usulKR",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-26T00:18:26.914192+00:00"
+ },
+ {
+  "id": "85f38883-c58b-43f3-9627-8409f4e75e66",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "UQpD4O",
+  "question": "Idade",
+  "answer": "54 a 64 anos",
+  "created_at": "2026-06-26T00:41:37.423674+00:00"
+ },
+ {
+  "id": "e8facf5f-4e0c-4a74-bc7c-0d4470cbe798",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "nOlNBr",
+  "question": "Ocupação",
+  "answer": "Apenas estudo",
+  "created_at": "2026-06-26T00:41:47.445551+00:00"
+ },
+ {
+  "id": "23991f70-baaa-4cfc-b1ff-c7ccd535251c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "impiSl",
+  "question": "Qual o seu nível de experiência com crochê?",
+  "answer": "Sou iniciante",
+  "created_at": "2026-06-26T00:41:49.373862+00:00"
+ },
+ {
+  "id": "00c2d9a4-10ef-4e38-a20b-e80d74c3f4e7",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "mEREuO",
+  "question": "Acompanha",
+  "answer": "Vejo às vezes",
+  "created_at": "2026-06-26T00:41:52.984734+00:00"
+ },
+ {
+  "id": "052e7764-7128-40d0-a8e8-b721bdab1a79",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "HlkPWs",
+  "question": "Apoio",
+  "answer": "Sim, com certeza",
+  "created_at": "2026-06-26T00:41:56.950299+00:00"
+ },
+ {
+  "id": "e9c16824-7420-4729-9747-f7e1fcd3dae0",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "UQpD4O",
+  "question": "Idade",
+  "answer": "+65 anos",
+  "created_at": "2026-06-26T03:28:33.082707+00:00"
+ },
+ {
+  "id": "07804d0c-2205-42f3-a92a-5606756c6193",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "lxxXex",
+  "question": "Região",
+  "answer": "Norte",
+  "created_at": "2026-06-26T03:28:35.434241+00:00"
+ },
+ {
+  "id": "c9140997-2e6b-4926-938a-b5c500611adb",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "impiSl",
+  "question": "Qual o seu nível de experiência com crochê?",
+  "answer": "Sou iniciante",
+  "created_at": "2026-06-26T03:28:39.686629+00:00"
+ },
+ {
+  "id": "11f7f775-8e04-443a-a4ee-92c54470c53a",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Não",
+  "created_at": "2026-06-22T03:37:11.256755+00:00"
+ },
+ {
+  "id": "9f5368e1-fe8f-4095-90be-a57db1ad7438",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "lxxXex",
+  "question": "Região",
+  "answer": "Norte",
+  "created_at": "2026-06-26T00:18:23.178291+00:00"
+ },
+ {
+  "id": "33f07088-8f65-42ce-b93b-af13d399f44e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "4INrVe",
+  "question": "Ja fez algum curso?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-26T00:18:29.805468+00:00"
+ },
+ {
+  "id": "f334533e-b724-4664-8987-7f010a94783e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "EVRM9C",
+  "question": "Filhos",
+  "answer": "Não",
+  "created_at": "2026-06-26T00:41:44.335877+00:00"
+ },
+ {
+  "id": "6c2e638f-f7ba-4a88-ae28-290e2090e1ef",
+  "session_id": "s-jiih1ih813mqvb7g5d",
+  "funnel_slug": "cdb-slide",
+  "step_id": "slider",
+  "question": "De 0 a 10, quanto você queria ter uma renda só sua fazendo bolsas em casa?",
+  "answer": "8",
+  "created_at": "2026-06-26T19:16:33.267625+00:00"
+ },
+ {
+  "id": "642969b4-28bf-4c10-bd3b-e185bbfbeb33",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "+65 anos",
+  "created_at": "2026-06-25T20:37:18.025606+00:00"
+ },
+ {
+  "id": "a3a596c9-d03f-4d3a-8d00-4c3c105fefbf",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Não",
+  "created_at": "2026-06-25T20:37:19.172112+00:00"
+ },
+ {
+  "id": "69e2cb6d-b981-449b-ba57-09a0de7343d9",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Centro-Oeste",
+  "created_at": "2026-06-25T20:37:20.49216+00:00"
+ },
+ {
+  "id": "d3cb7ffe-0fe1-499f-88f3-c3c4dda7e4bb",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Sou dona de casa",
+  "created_at": "2026-06-25T20:37:21.655352+00:00"
+ },
+ {
+  "id": "583ed0c9-52eb-4fe8-a089-5287b107cd6b",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Trabalhando muito e ganhando pouco",
+  "created_at": "2026-06-25T20:37:22.445832+00:00"
+ },
+ {
+  "id": "c9f9abcc-a7ff-4591-902b-78cd3a480a58",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Sem uma profissão definida",
+  "created_at": "2026-06-25T20:37:22.898222+00:00"
+ },
+ {
+  "id": "2d8ef29e-3414-48b8-b73f-c4afb1ab144f",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Abrir meu próprio ateliê",
+  "created_at": "2026-06-25T20:37:23.959102+00:00"
+ },
+ {
+  "id": "3ac6a308-b7fe-4247-9d0f-2410149a687e",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Quero mais liberdade financeira",
+  "created_at": "2026-06-25T20:37:24.680495+00:00"
+ },
+ {
+  "id": "82cfeeed-0ff4-4c45-a83e-50b875fe67c4",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Quero mais liberdade financeira",
+  "created_at": "2026-06-25T20:37:24.949558+00:00"
+ },
+ {
+  "id": "2d03ef89-e93e-479b-9371-eaddd93c08ee",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Quero mais liberdade financeira",
+  "created_at": "2026-06-25T20:37:25.169303+00:00"
+ },
+ {
+  "id": "d8f2919b-117e-4e45-bf0a-bf498854ad65",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_id": "q-apoio",
+  "question": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+  "answer": "Não",
+  "created_at": "2026-06-25T20:37:27.823442+00:00"
+ },
+ {
+  "id": "20e45ccc-604b-48ad-9cb4-e999a325c868",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "UQpD4O",
+  "question": "Idade",
+  "answer": "+65 anos",
+  "created_at": "2026-06-25T22:02:29.719417+00:00"
+ },
+ {
+  "id": "b41952eb-ca10-4a65-8680-0ff18834f977",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "EVRM9C",
+  "question": "Filhos",
+  "answer": "Não",
+  "created_at": "2026-06-25T22:02:30.92545+00:00"
+ },
+ {
+  "id": "a2487190-bdd5-415e-b3fc-c805f7c5f475",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "lxxXex",
+  "question": "Região",
+  "answer": "Norte",
+  "created_at": "2026-06-25T22:02:31.984516+00:00"
+ },
+ {
+  "id": "bd8c552a-6c71-4841-80f7-a84a04868483",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "nOlNBr",
+  "question": "Ocupação",
+  "answer": "Apenas estudo",
+  "created_at": "2026-06-25T22:02:33.026068+00:00"
+ },
+ {
+  "id": "e2195f85-e34b-4c96-ad64-3e395e78f4a9",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "ViHTWP",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Sem uma profissão definida",
+  "created_at": "2026-06-25T22:02:34.256037+00:00"
+ },
+ {
+  "id": "43740e43-0387-4d1b-87c7-feb39dddd1e5",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "impiSl",
+  "question": "Qual o seu nível de experiência com crochê?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-25T22:02:35.739133+00:00"
+ },
+ {
+  "id": "acc054d2-a241-4673-bfa9-674618e97c68",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "usulKR",
+  "question": "O que te motiva",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-25T22:02:37.138871+00:00"
+ },
+ {
+  "id": "be038708-f916-4a3e-a637-51a543fcea20",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "zepiwy",
+  "question": "Fase da vida",
+  "answer": "Quero recomeçar minha vida",
+  "created_at": "2026-06-25T22:02:55.319013+00:00"
+ },
+ {
+  "id": "49e07f51-3997-4913-9bd5-992cd05eb8bd",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "mEREuO",
+  "question": "Acompanha",
+  "answer": "Sim, acompanho muito",
+  "created_at": "2026-06-25T22:04:33.685977+00:00"
+ },
+ {
+  "id": "81acca1b-37e0-41fb-9949-069cb14f5bce",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "4INrVe",
+  "question": "Ja fez algum curso?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-25T22:04:34.535153+00:00"
+ },
+ {
+  "id": "afb303b8-726d-4a71-8b29-2e4e71ef2360",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "HlkPWs",
+  "question": "Apoio",
+  "answer": "Não",
+  "created_at": "2026-06-25T22:04:43.38578+00:00"
+ },
+ {
+  "id": "52139e3a-0caa-4ae8-a2d8-0a13caf59555",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "UQpD4O",
+  "question": "Idade",
+  "answer": "+65 anos",
+  "created_at": "2026-06-25T23:21:58.742634+00:00"
+ },
+ {
+  "id": "b2372e84-642a-403e-8f4d-ab57d890cb02",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "EVRM9C",
+  "question": "Filhos",
+  "answer": "Não",
+  "created_at": "2026-06-25T23:21:59.716024+00:00"
+ },
+ {
+  "id": "d7654613-66c4-445b-9bd5-c46bea5050b1",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "lxxXex",
+  "question": "Região",
+  "answer": "Norte",
+  "created_at": "2026-06-25T23:22:01.494785+00:00"
+ },
+ {
+  "id": "1262918b-75b8-4fea-a994-2ecc52498b0f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "ViHTWP",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Sem uma profissão definida",
+  "created_at": "2026-06-26T00:18:25.04214+00:00"
+ },
+ {
+  "id": "be812bcc-c4f6-419e-bb60-20b499c0c77e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "lxxXex",
+  "question": "Região",
+  "answer": "Norte",
+  "created_at": "2026-06-26T00:41:45.322426+00:00"
+ },
+ {
+  "id": "e4c53f6c-3087-4767-b377-ca684fce2ac6",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "ViHTWP",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Sem uma profissão definida",
+  "created_at": "2026-06-26T00:41:48.453855+00:00"
+ },
+ {
+  "id": "9900df80-9d34-45ca-b954-823f6819a911",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "4INrVe",
+  "question": "Ja fez algum curso?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-26T00:41:55.190735+00:00"
+ },
+ {
+  "id": "2f4e24a1-2f54-4689-ae22-8f7846f6e749",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "nOlNBr",
+  "question": "Ocupação",
+  "answer": "Apenas estudo",
+  "created_at": "2026-06-25T23:22:02.349468+00:00"
+ },
+ {
+  "id": "2a505fe1-d479-4a6d-a1a9-1b4b23c9726b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "ViHTWP",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Trabalhando muito e ganhando pouco",
+  "created_at": "2026-06-25T23:22:04.11634+00:00"
+ },
+ {
+  "id": "7d9d8e6b-0dba-46c9-b988-039ea8afec61",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "impiSl",
+  "question": "Qual o seu nível de experiência com crochê?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-25T23:22:17.690536+00:00"
+ },
+ {
+  "id": "93d749d9-138a-4bc4-b3ed-837a71c9b3af",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "usulKR",
+  "question": "O que te motiva",
+  "answer": "Ajudar minha família",
+  "created_at": "2026-06-25T23:22:38.81017+00:00"
+ },
+ {
+  "id": "61ed03e0-66c4-4ccf-b315-70a05ea88ce2",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "zepiwy",
+  "question": "Fase da vida",
+  "answer": "Quero ter uma renda própria",
+  "created_at": "2026-06-25T23:22:40.427458+00:00"
+ },
+ {
+  "id": "f25f27b7-55e5-4d7a-af08-002ec8d0758c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "UQpD4O",
+  "question": "Idade",
+  "answer": "18 a 34 anos",
+  "created_at": "2026-06-25T23:44:23.569225+00:00"
+ },
+ {
+  "id": "17d07568-0694-49ac-a922-d4ae04b7a66d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "EVRM9C",
+  "question": "Filhos",
+  "answer": "Sim",
+  "created_at": "2026-06-25T23:44:43.603184+00:00"
+ },
+ {
+  "id": "3a7b0291-57d2-4115-911b-d7620131ff2d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "lxxXex",
+  "question": "Região",
+  "answer": "Norte",
+  "created_at": "2026-06-25T23:44:45.114703+00:00"
+ },
+ {
+  "id": "cd063465-0318-4c52-bb26-24258cd5ad7c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "nOlNBr",
+  "question": "Ocupação",
+  "answer": "Sou aposentada",
+  "created_at": "2026-06-25T23:44:46.232279+00:00"
+ },
+ {
+  "id": "298b0a69-649d-4019-8101-80b63f509c93",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "ViHTWP",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Sem uma profissão definida",
+  "created_at": "2026-06-25T23:44:47.682006+00:00"
+ },
+ {
+  "id": "e0fcc9c9-4ab1-42f9-a53a-fb53d0830a4f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "impiSl",
+  "question": "Qual o seu nível de experiência com crochê?",
+  "answer": "Sou iniciante",
+  "created_at": "2026-06-25T23:44:49.504321+00:00"
+ },
+ {
+  "id": "c2dac75d-4ea4-42f0-8ab1-eca57c0c4bb5",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "usulKR",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-25T23:44:50.70435+00:00"
+ },
+ {
+  "id": "8f59d3cc-9399-4652-b848-003c8d9b3767",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "zepiwy",
+  "question": "Fase da vida",
+  "answer": "Quero ter uma renda própria",
+  "created_at": "2026-06-25T23:44:52.03506+00:00"
+ },
+ {
+  "id": "8df36216-632c-40a4-8e21-e8720f097c3d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "mEREuO",
+  "question": "Acompanha",
+  "answer": "Vejo às vezes",
+  "created_at": "2026-06-25T23:44:54.220253+00:00"
+ },
+ {
+  "id": "976ac407-bf3b-42cb-83ee-98c3950ddcdc",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "4INrVe",
+  "question": "Ja fez algum curso?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-25T23:44:56.714846+00:00"
+ },
+ {
+  "id": "8cf3eea0-ad67-4564-bae3-b0f6d4c29a85",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "HlkPWs",
+  "question": "Apoio",
+  "answer": "Talvez",
+  "created_at": "2026-06-25T23:45:13.335895+00:00"
+ },
+ {
+  "id": "c7e0bc66-478b-4161-94d3-0a614292947d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "UQpD4O",
+  "question": "Idade",
+  "answer": "+65 anos",
+  "created_at": "2026-06-25T23:47:23.442109+00:00"
+ },
+ {
+  "id": "db058564-24cd-48c6-994d-f1764469a937",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "EVRM9C",
+  "question": "Filhos",
+  "answer": "Não",
+  "created_at": "2026-06-25T23:47:24.784277+00:00"
+ },
+ {
+  "id": "d270f21f-4541-4aac-9b8e-934e326ab21b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "lxxXex",
+  "question": "Região",
+  "answer": "Centro-Oeste",
+  "created_at": "2026-06-25T23:47:36.227241+00:00"
+ },
+ {
+  "id": "898b7204-d85e-4445-b3e4-6f1e6ea32363",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "nOlNBr",
+  "question": "Ocupação",
+  "answer": "Sou dona de casa",
+  "created_at": "2026-06-25T23:47:37.631177+00:00"
+ },
+ {
+  "id": "237b2765-b4c3-45db-a13c-52226493f1a4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "ViHTWP",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Sem uma profissão definida",
+  "created_at": "2026-06-25T23:47:38.766455+00:00"
+ },
+ {
+  "id": "48b6d8a8-1c11-4129-9291-d114a646df28",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "impiSl",
+  "question": "Qual o seu nível de experiência com crochê?",
+  "answer": "Já tenho experiência",
+  "created_at": "2026-06-25T23:47:39.84918+00:00"
+ },
+ {
+  "id": "87830ff2-7c7a-4e83-a49e-d623bc738cd9",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "usulKR",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-25T23:47:44.191227+00:00"
+ },
+ {
+  "id": "409a2db5-e1b9-477d-af39-1ee333a42510",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "zepiwy",
+  "question": "Fase da vida",
+  "answer": "Buscando independência financeira",
+  "created_at": "2026-06-25T23:47:57.662919+00:00"
+ },
+ {
+  "id": "820e71ff-7042-4787-ac0f-f4cbe936111e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "mEREuO",
+  "question": "Acompanha",
+  "answer": "Sim, acompanho muito",
+  "created_at": "2026-06-25T23:48:00.128621+00:00"
+ },
+ {
+  "id": "c51be5e3-d9ed-4a90-ae84-b484c8e1a7c9",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "4INrVe",
+  "question": "Ja fez algum curso?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-25T23:48:03.217452+00:00"
+ },
+ {
+  "id": "7ae59cb4-197d-4d1b-86b3-45f998b7cac0",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "HlkPWs",
+  "question": "Apoio",
+  "answer": "Não",
+  "created_at": "2026-06-25T23:48:10.569554+00:00"
+ },
+ {
+  "id": "137b3ffe-9fa7-4a9c-873e-f7ead766f6ad",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "UQpD4O",
+  "question": "Idade",
+  "answer": "54 a 64 anos",
+  "created_at": "2026-06-26T00:03:35.843432+00:00"
+ },
+ {
+  "id": "344e7756-8b0c-4b09-ae1b-0b5f69b9a010",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "EVRM9C",
+  "question": "Filhos",
+  "answer": "Não",
+  "created_at": "2026-06-26T00:03:37.714821+00:00"
+ },
+ {
+  "id": "730c2db4-da65-402c-8d20-165f318648d5",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "lxxXex",
+  "question": "Região",
+  "answer": "Norte",
+  "created_at": "2026-06-26T00:03:42.017088+00:00"
+ },
+ {
+  "id": "98410787-a790-46c4-b5bb-00dc529ec34f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "nOlNBr",
+  "question": "Ocupação",
+  "answer": "Apenas estudo",
+  "created_at": "2026-06-26T00:03:43.154538+00:00"
+ },
+ {
+  "id": "87d3526f-17e7-43f6-a9bb-d5a3c27ca53c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "ViHTWP",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Trabalhando muito e ganhando pouco",
+  "created_at": "2026-06-26T00:03:44.482867+00:00"
+ },
+ {
+  "id": "f1336ba1-513a-490e-b739-cf7601e25fb6",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "impiSl",
+  "question": "Qual o seu nível de experiência com crochê?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-26T00:03:46.038792+00:00"
+ },
+ {
+  "id": "22431027-86e3-4591-a622-4f0479f3c16d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "usulKR",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-26T00:03:47.763627+00:00"
+ },
+ {
+  "id": "36e9e4d3-2b6b-4329-8a67-fb976b89ed75",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "zepiwy",
+  "question": "Fase da vida",
+  "answer": "Buscando independência financeira",
+  "created_at": "2026-06-26T00:03:49.112157+00:00"
+ },
+ {
+  "id": "06528a3a-0e78-43fb-ac74-14de9679675b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "mEREuO",
+  "question": "Acompanha",
+  "answer": "Sim, acompanho muito",
+  "created_at": "2026-06-26T00:03:50.194815+00:00"
+ },
+ {
+  "id": "d95b56e9-34d0-46f3-ab2d-4bb8b231a2a3",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "4INrVe",
+  "question": "Ja fez algum curso?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-26T00:03:51.627768+00:00"
+ },
+ {
+  "id": "2a538580-1b70-4b95-82fc-c14889ab57c8",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_id": "HlkPWs",
+  "question": "Apoio",
+  "answer": "Sim, com certeza",
+  "created_at": "2026-06-26T00:03:52.751081+00:00"
+ },
+ {
+  "id": "9cf854f0-8c13-4c26-9cc5-c07e8ee768db",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "+65 anos",
+  "created_at": "2026-06-22T03:37:09.759256+00:00"
+ },
+ {
+  "id": "da29a2bb-a83f-4dee-ae30-723dd1a8d81e",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Norte",
+  "created_at": "2026-06-22T03:37:12.58111+00:00"
+ },
+ {
+  "id": "63b2cca6-5ecc-4efc-8835-a01c30e2e2a2",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Buscando algo que me dê liberdade e renda extra",
+  "created_at": "2026-06-22T03:37:15.020185+00:00"
+ },
+ {
+  "id": "120c145f-177b-4773-a87b-2c77b2d02118",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Abrir meu próprio ateliê",
+  "created_at": "2026-06-22T03:37:17.355318+00:00"
+ },
+ {
+  "id": "34a67399-2135-40bc-abc2-a8d5821f072e",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Vejo às vezes",
+  "created_at": "2026-06-22T03:37:36.134917+00:00"
+ },
+ {
+  "id": "acdee802-b378-4128-8b8d-f18a7c2e5b47",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-apoio",
+  "question": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+  "answer": "Sim, com certeza",
+  "created_at": "2026-06-22T03:37:38.147478+00:00"
+ },
+ {
+  "id": "df901fb5-2892-43e3-a8c9-9634f38c4e4b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "+65 anos",
+  "created_at": "2026-06-22T14:29:22.848684+00:00"
+ },
+ {
+  "id": "25efa9db-50c7-421e-9d62-d189f46eb34e",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Sim",
+  "created_at": "2026-06-22T14:29:23.888976+00:00"
+ },
+ {
+  "id": "5daa2236-a7da-485b-8ed9-cc1b23b00415",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Centro-Oeste",
+  "created_at": "2026-06-22T14:29:25.124012+00:00"
+ },
+ {
+  "id": "5161e917-4322-4445-b8c4-71f8a8aa7fff",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Trabalho e estudo",
+  "created_at": "2026-06-22T14:29:26.325566+00:00"
+ },
+ {
+  "id": "b25c0f0c-7feb-47cb-bd13-e20c898db2c6",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Sem uma profissão definida",
+  "created_at": "2026-06-22T14:29:27.451967+00:00"
+ },
+ {
+  "id": "44bb6209-bac9-44af-ad83-6c7692713206",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-experiencia",
+  "question": "Qual o seu nível de experiência com bolsas artesanais?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-22T14:29:28.594209+00:00"
+ },
+ {
+  "id": "19f54e2a-93df-4804-b4ad-060431da0706",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-22T14:29:29.804193+00:00"
+ },
+ {
+  "id": "ccdde515-4173-4ab4-a5f6-4e2f27aae2b2",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Quero recomeçar minha vida",
+  "created_at": "2026-06-22T14:29:30.812265+00:00"
+ },
+ {
+  "id": "5cdd9c34-51d1-47e1-ab46-794f078eb6c7",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Não acompanho",
+  "created_at": "2026-06-22T14:29:31.79329+00:00"
+ },
+ {
+  "id": "f7148e97-24c8-4acf-bea3-287eb1143bad",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-22T14:29:32.842672+00:00"
+ },
+ {
+  "id": "cf4bdaff-478a-4251-aaf2-5afc92c4ed7e",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-apoio",
+  "question": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+  "answer": "Sim, com certeza",
+  "created_at": "2026-06-22T14:29:34.077532+00:00"
+ },
+ {
+  "id": "4303d8c2-aecf-4d27-86b2-8e7741b49d7c",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "loading:cp0",
+  "question": "Você quer começar ainda este mês?",
+  "answer": "Sim, com tudo! 🔥",
+  "created_at": "2026-06-22T14:29:38.149895+00:00"
+ },
+ {
+  "id": "f9ee7f3d-9fa6-4995-8827-dad0e31b118c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "34 a 54 anos",
+  "created_at": "2026-06-23T16:57:38.775483+00:00"
+ },
+ {
+  "id": "a527fc3a-485c-4672-a1e2-5169ca16cac7",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Sim",
+  "created_at": "2026-06-23T16:57:40.066128+00:00"
+ },
+ {
+  "id": "7eeaedb9-aa17-4b48-b2dd-2c765c7ced78",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Norte",
+  "created_at": "2026-06-23T16:57:41.276628+00:00"
+ },
+ {
+  "id": "1b6f4f9c-b8da-43f1-82cb-214a568ded08",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Sou aposentada",
+  "created_at": "2026-06-23T16:57:42.222034+00:00"
+ },
+ {
+  "id": "50217112-67ad-48dc-a226-941eb662f0cf",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Sem uma profissão definida",
+  "created_at": "2026-06-23T16:57:43.229812+00:00"
+ },
+ {
+  "id": "980ebfab-e47e-4248-8daa-9d9e87780d59",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-experiencia",
+  "question": "Qual o seu nível de experiência com bolsas artesanais?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-23T16:57:45.075433+00:00"
+ },
+ {
+  "id": "98d006fe-b346-4e86-995c-48a4640e4744",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-23T16:57:46.330629+00:00"
+ },
+ {
+  "id": "611ddadb-d9ae-460c-87c4-413af07f9808",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "18 a 34 anos",
+  "created_at": "2026-06-19T00:13:35.827487+00:00"
+ },
+ {
+  "id": "2b42d608-33d2-45b4-9b29-a173c15398e9",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "+65 anos",
+  "created_at": "2026-06-19T03:56:49.247498+00:00"
+ },
+ {
+  "id": "d05667e2-5dcc-451f-b379-e60ac982058b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Não",
+  "created_at": "2026-06-19T03:56:51.679517+00:00"
+ },
+ {
+  "id": "c6438514-cadb-4de4-a892-b7b6b882e1c0",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Norte",
+  "created_at": "2026-06-19T03:56:53.522061+00:00"
+ },
+ {
+  "id": "8d8bb380-6e28-4293-909c-efc4d189319f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Sou aposentada",
+  "created_at": "2026-06-19T03:56:54.908345+00:00"
+ },
+ {
+  "id": "0c28f207-493b-4324-bec9-d26a2e1430e7",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Buscando algo que me dê liberdade e renda extra",
+  "created_at": "2026-06-19T03:56:57.267209+00:00"
+ },
+ {
+  "id": "8c9952f5-9a19-4962-b91d-b7e1062aabd0",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-experiencia",
+  "question": "Qual o seu nível de experiência com bolsas artesanais?",
+  "answer": "Já tenho experiência",
+  "created_at": "2026-06-19T03:56:59.669783+00:00"
+ },
+ {
+  "id": "b116c59c-75da-464f-b515-b336cacfd3df",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-19T03:57:01.620867+00:00"
+ },
+ {
+  "id": "1e9968bd-d9bd-4582-a72a-50df9abc34aa",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Quero ter uma renda própria",
+  "created_at": "2026-06-19T03:57:03.811249+00:00"
+ },
+ {
+  "id": "1d102918-3d71-4065-9edb-6247f0165ba3",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Vejo às vezes",
+  "created_at": "2026-06-19T03:57:06.512036+00:00"
+ },
+ {
+  "id": "436be1ff-ab7e-42b5-a02d-637c108d4c79",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-19T03:57:08.76765+00:00"
+ },
+ {
+  "id": "d45bca8b-9ce6-4af3-bc2c-05e7b340dda7",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-apoio",
+  "question": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+  "answer": "Sim, com certeza",
+  "created_at": "2026-06-19T03:57:10.298849+00:00"
+ },
+ {
+  "id": "62b2d09a-deda-4ec3-a022-69f9d86e216e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "18 a 34 anos",
+  "created_at": "2026-06-19T04:29:48.447696+00:00"
+ },
+ {
+  "id": "4ca95bcc-5367-458c-8d35-1c7ebc1cd1f1",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "18 a 34 anos",
+  "created_at": "2026-06-19T04:29:48.999747+00:00"
+ },
+ {
+  "id": "b417a1b7-3d48-45cf-97fd-0de7441ea794",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Sim",
+  "created_at": "2026-06-19T04:29:49.579295+00:00"
+ },
+ {
+  "id": "ac24399c-e961-4fa2-8d8c-5f63c2f31070",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Norte",
+  "created_at": "2026-06-19T04:29:50.121748+00:00"
+ },
+ {
+  "id": "a4043935-cd18-474e-9f2c-1a78884d2237",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Apenas trabalho",
+  "created_at": "2026-06-19T04:29:50.674832+00:00"
+ },
+ {
+  "id": "043c9f6d-6bdb-4763-8f72-3bc3122ba0f3",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Trabalhando muito e ganhando pouco",
+  "created_at": "2026-06-19T04:29:51.240389+00:00"
+ },
+ {
+  "id": "8ab98a74-2a4b-49dc-abff-36291fcd560d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-experiencia",
+  "question": "Qual o seu nível de experiência com bolsas artesanais?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-19T04:29:51.791871+00:00"
+ },
+ {
+  "id": "a5d50ca3-98af-4ac4-802e-63ffb98c55bf",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-19T04:29:52.339304+00:00"
+ },
+ {
+  "id": "16712226-b012-4291-b468-431a3830f28a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Sim, acompanho muito",
+  "created_at": "2026-06-19T04:29:52.901633+00:00"
+ },
+ {
+  "id": "f8a6ad3d-a6c2-47d5-82a6-725d2af17f6f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Sim, já fiz e concluí",
+  "created_at": "2026-06-19T04:29:53.462821+00:00"
+ },
+ {
+  "id": "44107c96-6fb8-4479-98c9-72f9b60e1092",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Sim, já fiz e concluí",
+  "created_at": "2026-06-19T04:29:54.034247+00:00"
+ },
+ {
+  "id": "386ad0d5-c57c-4ce5-9fbb-4e7a9fc41e85",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Apenas estudo",
+  "created_at": "2026-06-22T03:37:13.877616+00:00"
+ },
+ {
+  "id": "bf47396d-15dd-4170-8cda-7694a36dbef1",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-experiencia",
+  "question": "Qual o seu nível de experiência com bolsas artesanais?",
+  "answer": "Já tenho experiência",
+  "created_at": "2026-06-22T03:37:16.232747+00:00"
+ },
+ {
+  "id": "8fad5cf3-70f2-4afe-9bdf-1f3819503396",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Quero mais liberdade financeira",
+  "created_at": "2026-06-22T03:37:35.134042+00:00"
+ },
+ {
+  "id": "44f85ed2-9e9d-415f-9676-0914b97e5ab3",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-22T03:37:37.153031+00:00"
+ },
+ {
+  "id": "4c5d0d10-a5db-46fd-a8db-97c278f87993",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "loading:cp0",
+  "question": "Você quer começar ainda este mês?",
+  "answer": "Sim, com tudo! 🔥",
+  "created_at": "2026-06-22T03:37:42.709368+00:00"
+ },
+ {
+  "id": "f00a10ac-f217-4d87-85fd-9bec2bd03f30",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "34 a 54 anos",
+  "created_at": "2026-06-23T16:39:46.866565+00:00"
+ },
+ {
+  "id": "74b8cdf4-b393-4968-8205-7ca078d7a17e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Não",
+  "created_at": "2026-06-23T16:39:47.876781+00:00"
+ },
+ {
+  "id": "f565d392-d64c-4f42-b5de-ea4f3475b67e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Norte",
+  "created_at": "2026-06-23T16:39:49.204078+00:00"
+ },
+ {
+  "id": "1265ac60-f3c6-47b0-abc3-17990ecc9139",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Sou aposentada",
+  "created_at": "2026-06-23T16:39:50.165963+00:00"
+ },
+ {
+  "id": "b4441dc8-7fbe-403b-a609-c2484e633e33",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Trabalhando muito e ganhando pouco",
+  "created_at": "2026-06-23T16:39:51.257093+00:00"
+ },
+ {
+  "id": "d711c4f0-706f-47a4-9f75-f9f8ccbbc05a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-experiencia",
+  "question": "Qual o seu nível de experiência com bolsas artesanais?",
+  "answer": "Já tenho experiência",
+  "created_at": "2026-06-23T16:39:52.054861+00:00"
+ },
+ {
+  "id": "49fea1df-46f4-4812-967b-ba4d2b71e7b9",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-23T16:39:53.403519+00:00"
+ },
+ {
+  "id": "870e952e-fe78-4d4b-8e90-9668c577b0e5",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-apoio",
+  "question": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+  "answer": "Sim, com certeza",
+  "created_at": "2026-06-19T04:29:54.584966+00:00"
+ },
+ {
+  "id": "254578dc-ec54-4144-9174-9d5f5e6f453b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "+65 anos",
+  "created_at": "2026-06-22T03:11:25.316742+00:00"
+ },
+ {
+  "id": "25a5d520-9767-40ba-af21-068e6be12e92",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Não",
+  "created_at": "2026-06-22T03:11:27.079843+00:00"
+ },
+ {
+  "id": "3c37296d-76ff-486c-bde0-03a44207a5b0",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Norte",
+  "created_at": "2026-06-22T03:11:28.453115+00:00"
+ },
+ {
+  "id": "292e7360-51cb-4e8a-849e-8170c2b2594a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Trabalho e estudo",
+  "created_at": "2026-06-22T03:11:30.78816+00:00"
+ },
+ {
+  "id": "52fe8a7c-a2a5-4188-9e70-c0132c5f2084",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Insatisfeita e querendo mudança de vida",
+  "created_at": "2026-06-22T03:11:32.343955+00:00"
+ },
+ {
+  "id": "8f737b11-229f-489f-9115-8bc71c2a8b42",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-experiencia",
+  "question": "Qual o seu nível de experiência com bolsas artesanais?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-22T03:11:44.81893+00:00"
+ },
+ {
+  "id": "33feb153-9759-43e8-88af-78a39d77307f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-22T03:11:46.521869+00:00"
+ },
+ {
+  "id": "3454d2ee-d444-454c-a607-815619f63297",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Quero recomeçar minha vida",
+  "created_at": "2026-06-22T03:11:47.729998+00:00"
+ },
+ {
+  "id": "f52365e8-e706-4291-b69a-b14846d00000",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Vejo às vezes",
+  "created_at": "2026-06-22T03:11:48.861835+00:00"
+ },
+ {
+  "id": "c78468a0-0f4b-4a44-ba6c-cab72beefd82",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-22T03:11:50.050058+00:00"
+ },
+ {
+  "id": "5ce6f8f0-f439-442f-a139-f4d910f04d11",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-apoio",
+  "question": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+  "answer": "Talvez",
+  "created_at": "2026-06-22T03:11:51.256085+00:00"
+ },
+ {
+  "id": "467f92a5-abaa-4284-a18f-e4bc79353878",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "loading:cp0",
+  "question": "Você quer começar ainda este mês?",
+  "answer": "Sim, com tudo! 🔥",
+  "created_at": "2026-06-22T03:11:59.820665+00:00"
+ },
+ {
+  "id": "bc0642b3-888e-4898-81b9-b3ecc52d9b61",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Buscando independência financeira",
+  "created_at": "2026-06-23T16:40:09.149347+00:00"
+ },
+ {
+  "id": "6d5065cd-a1bf-4476-93cc-366399b4a45d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Sim, acompanho muito",
+  "created_at": "2026-06-23T16:40:10.289129+00:00"
+ },
+ {
+  "id": "d95071e1-8127-4ef6-b505-44d6fa53332f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-23T16:40:11.479852+00:00"
+ },
+ {
+  "id": "0f41aa63-9b1d-4e64-951b-b8185e4dff73",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-apoio",
+  "question": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+  "answer": "Sim, com certeza",
+  "created_at": "2026-06-23T16:40:12.586845+00:00"
+ },
+ {
+  "id": "767c9f27-6e3a-42bb-9c90-3aac293b6e69",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "loading:cp0",
+  "question": "Você quer começar ainda este mês?",
+  "answer": "Quero entender melhor",
+  "created_at": "2026-06-23T16:40:18.184036+00:00"
+ },
+ {
+  "id": "f3f487da-f5f6-4e85-80c3-4f85ba3ddeac",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Quero mais liberdade financeira",
+  "created_at": "2026-06-23T16:57:48.054259+00:00"
+ },
+ {
+  "id": "e1356e71-6ee0-4c9d-a7ea-9ddbaae50c8a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Sim, acompanho muito",
+  "created_at": "2026-06-23T16:57:49.080424+00:00"
+ },
+ {
+  "id": "9e4aa736-5f33-45de-ad19-6aa0cd8f5abf",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-23T16:57:50.451337+00:00"
+ },
+ {
+  "id": "d5e9abe8-2ea2-4390-adf7-0bf14d111a49",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-apoio",
+  "question": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+  "answer": "Não",
+  "created_at": "2026-06-23T16:57:51.948708+00:00"
+ },
+ {
+  "id": "1a2b2112-f57a-4325-a1f1-3abaf7acf218",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_id": "loading:cp0",
+  "question": "Você quer começar ainda este mês?",
+  "answer": "Sim, com tudo! 🔥",
+  "created_at": "2026-06-23T16:57:56.090589+00:00"
+ },
+ {
+  "id": "af21524b-f1d2-4f79-b2ea-518b2146cdd3",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "+65 anos",
+  "created_at": "2026-06-23T17:16:59.317007+00:00"
+ },
+ {
+  "id": "2f1b4dc4-2087-4508-92d5-bab8949d7467",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "54 a 64 anos",
+  "created_at": "2026-06-23T17:16:59.720322+00:00"
+ },
+ {
+  "id": "1f0d0930-a86d-4f04-8ea8-18176b0e6f55",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Nordeste",
+  "created_at": "2026-06-23T17:17:00.334081+00:00"
+ },
+ {
+  "id": "2927d21c-3cfb-4080-bd0a-af5e721b2a5a",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Nordeste",
+  "created_at": "2026-06-23T17:17:00.712063+00:00"
+ },
+ {
+  "id": "3220b998-4311-4a28-98e6-9c59151808fa",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Sou aposentada",
+  "created_at": "2026-06-23T17:17:01.095993+00:00"
+ },
+ {
+  "id": "c4c35372-760b-41ef-af67-dc05a15555da",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Buscando algo que me dê liberdade e renda extra",
+  "created_at": "2026-06-23T17:17:01.495241+00:00"
+ },
+ {
+  "id": "774fd793-5c45-4025-8d9e-55c3a0d1e4d9",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Realizar um sonho antigo",
+  "created_at": "2026-06-23T17:17:02.268626+00:00"
+ },
+ {
+  "id": "253bdfa3-ffaf-4b51-b5de-239d66dc9b86",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Quero mais liberdade financeira",
+  "created_at": "2026-06-23T17:17:04.441967+00:00"
+ },
+ {
+  "id": "2b5996f0-6aab-430d-821a-eee40edb7160",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Não acompanho",
+  "created_at": "2026-06-23T17:17:05.536487+00:00"
+ },
+ {
+  "id": "b64b58c8-a878-413d-9c6b-7dce2e24f35a",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Vejo às vezes",
+  "created_at": "2026-06-23T17:17:05.995509+00:00"
+ },
+ {
+  "id": "d402c0cd-f2e7-4da9-9799-bdda9b3663c3",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Já comecei, mas não terminei",
+  "created_at": "2026-06-23T17:17:06.394016+00:00"
+ },
+ {
+  "id": "dd7ff68c-6139-4341-9b65-5f650f7ae806",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "loading:cp0",
+  "question": "Você quer começar ainda este mês?",
+  "answer": "Sim, com tudo! 🔥",
+  "created_at": "2026-06-23T17:17:09.840687+00:00"
+ },
+ {
+  "id": "61225d5f-6d1c-48b5-83d3-0b810cff1be3",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "loading:cp0",
+  "question": "Você quer começar ainda este mês?",
+  "answer": "Sim, com tudo! 🔥",
+  "created_at": "2026-06-23T17:17:10.026407+00:00"
+ },
+ {
+  "id": "fa6d718c-8193-4085-b1c0-665aed09ce9c",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "+65 anos",
+  "created_at": "2026-06-23T17:33:15.487617+00:00"
+ },
+ {
+  "id": "04dcaf9c-347e-4a99-a55c-e43152a88869",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Não",
+  "created_at": "2026-06-23T17:33:16.934762+00:00"
+ },
+ {
+  "id": "fb3ef0c4-f77a-4043-a461-caa7f4c65d80",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Nordeste",
+  "created_at": "2026-06-23T17:33:18.392823+00:00"
+ },
+ {
+  "id": "b0759183-aab8-47ae-bed8-a9a64c0a2dfb",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Sou aposentada",
+  "created_at": "2026-06-23T17:33:19.553539+00:00"
+ },
+ {
+  "id": "1986ab11-1f39-4194-ac78-30a80fb6ff0b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Buscando algo que me dê liberdade e renda extra",
+  "created_at": "2026-06-23T17:33:20.570808+00:00"
+ },
+ {
+  "id": "56692f29-e60b-4e58-bb8e-6f6a15ce8462",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Buscando algo que me dê liberdade e renda extra",
+  "created_at": "2026-06-23T17:33:20.828376+00:00"
+ },
+ {
+  "id": "4e0cb3a0-04b4-48bc-be34-a13177e9be79",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Abrir meu próprio ateliê",
+  "created_at": "2026-06-23T17:33:21.163337+00:00"
+ },
+ {
+  "id": "ad6c1394-f426-4929-b7c8-74f5408152a6",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Abrir meu próprio ateliê",
+  "created_at": "2026-06-23T17:33:21.356616+00:00"
+ },
+ {
+  "id": "a68ec2a1-81a1-401a-93fb-700dffdc9bcf",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Abrir meu próprio ateliê",
+  "created_at": "2026-06-23T17:33:21.549729+00:00"
+ },
+ {
+  "id": "5a7fcd50-4de5-4907-b179-35fd1783250d",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Vejo às vezes",
+  "created_at": "2026-06-23T17:33:21.913514+00:00"
+ },
+ {
+  "id": "3a1d7eda-fd58-4953-aed5-e34f86a8aa51",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-23T17:33:22.312601+00:00"
+ },
+ {
+  "id": "8f4a7461-e675-4637-92d5-92f50bd5f8c4",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-apoio",
+  "question": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+  "answer": "Talvez",
+  "created_at": "2026-06-23T17:33:22.498649+00:00"
+ },
+ {
+  "id": "d407be24-f8e4-4b8d-8d56-0b003c937e69",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "54 a 64 anos",
+  "created_at": "2026-06-25T20:38:18.970742+00:00"
+ },
+ {
+  "id": "6a6dc702-185a-48b0-b258-40506c70908b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-idade",
+  "question": "Quantos anos você tem?",
+  "answer": "+65 anos",
+  "created_at": "2026-06-25T20:38:30.402088+00:00"
+ },
+ {
+  "id": "826e4b7e-e538-4a6c-816a-08d4dcbc1d80",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Não",
+  "created_at": "2026-06-25T20:38:32.055493+00:00"
+ },
+ {
+  "id": "e6a1a3ca-cfd9-4588-9d1c-8dc50ce60ac0",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-filhos",
+  "question": "Você tem filhos?",
+  "answer": "Sim",
+  "created_at": "2026-06-25T20:38:48.568047+00:00"
+ },
+ {
+  "id": "07bd1c4a-ba13-4cc1-b921-35fd661719f3",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-regiao",
+  "question": "Em qual região do Brasil você mora atualmente?",
+  "answer": "Norte",
+  "created_at": "2026-06-25T20:38:52.177997+00:00"
+ },
+ {
+  "id": "da6edfd9-0fc6-4f70-84d8-2bdc9cc60579",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-ocupacao",
+  "question": "Qual sua ocupação hoje?",
+  "answer": "Sou aposentada",
+  "created_at": "2026-06-25T20:38:54.443025+00:00"
+ },
+ {
+  "id": "0a9cc022-c359-44ac-b688-822e113601a8",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-situacao",
+  "question": "Em qual dessas situações você se vê hoje?",
+  "answer": "Trabalhando muito e ganhando pouco",
+  "created_at": "2026-06-25T20:38:56.531599+00:00"
+ },
+ {
+  "id": "a58a32bf-ae0a-4b38-84b3-c2e789d38b9d",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-experiencia",
+  "question": "Qual o seu nível de experiência com bolsas artesanais?",
+  "answer": "Sou iniciante",
+  "created_at": "2026-06-25T20:39:04.428196+00:00"
+ },
+ {
+  "id": "f127a1c3-7bd3-476f-8b91-5c8000784df1",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-motivacao",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Ajudar minha família",
+  "created_at": "2026-06-25T20:39:23.505635+00:00"
+ },
+ {
+  "id": "68c263e5-d7d7-461c-b47e-d9c41e27138b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-fase",
+  "question": "Em que fase da sua vida você sente que está agora?",
+  "answer": "Quero mais liberdade financeira",
+  "created_at": "2026-06-25T20:39:24.658804+00:00"
+ },
+ {
+  "id": "894ea676-8a69-4319-9bca-65f4d21e2cf6",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-acompanha",
+  "question": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+  "answer": "Não acompanho",
+  "created_at": "2026-06-25T20:39:25.753973+00:00"
+ },
+ {
+  "id": "acbe1f71-75dd-4578-b5c5-db536298b7d8",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-curso",
+  "question": "Você já fez algum curso online antes?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-25T20:39:27.043668+00:00"
+ },
+ {
+  "id": "16fc13bc-73ea-41e4-a6f2-792446ac7617",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "q-apoio",
+  "question": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+  "answer": "Talvez",
+  "created_at": "2026-06-25T20:39:28.245756+00:00"
+ },
+ {
+  "id": "8fe4c448-ade1-409e-8ad3-be0f8041a6ac",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_id": "loading:cp0",
+  "question": "Você quer começar ainda este mês?",
+  "answer": "Quero entender melhor",
+  "created_at": "2026-06-25T20:39:35.981748+00:00"
+ },
+ {
+  "id": "fd864580-de19-492f-ba63-fc9223ae683f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "impiSl",
+  "question": "Qual o seu nível de experiência com crochê?",
+  "answer": "Nunca fiz",
+  "created_at": "2026-06-26T00:18:26.058251+00:00"
+ },
+ {
+  "id": "bb85e044-f309-4906-bb4a-9893e4e3efa3",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "zepiwy",
+  "question": "Fase da vida",
+  "answer": "Quero ter uma renda própria",
+  "created_at": "2026-06-26T00:18:27.976908+00:00"
+ },
+ {
+  "id": "9d401352-7531-43d9-8588-50404543a14c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_id": "HlkPWs",
+  "question": "Apoio",
+  "answer": "Sim, com certeza",
+  "created_at": "2026-06-26T00:18:30.867065+00:00"
+ },
+ {
+  "id": "8236edba-e915-413a-b41a-e0eca38e0728",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_id": "usulKR",
+  "question": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+  "answer": "Sair do meu emprego atual",
+  "created_at": "2026-06-26T00:41:50.193423+00:00"
+ }
+]

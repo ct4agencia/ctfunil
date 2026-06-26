@@ -184,7 +184,7 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
                             <div onClick={(e) => e.stopPropagation()} className="absolute right-0 z-40 mt-1 w-40 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 text-sm shadow-xl">
                               <button onClick={() => router.push(`/builder/${f.slug}`)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">✏️ Editar</button>
                               <button onClick={() => router.push(`/dashboard/${f.slug}`)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">📊 Métricas</button>
-                              <a href={`/q/${f.slug}`} target="_blank" rel="noreferrer" className="block px-3 py-1.5 hover:bg-neutral-50">👁 Visualizar</a>
+                              <a href={f.domain ? `https://${f.domain}/${f.slug}` : `/${f.slug}`} target="_blank" rel="noreferrer" className="block px-3 py-1.5 hover:bg-neutral-50">👁 Visualizar</a>
                               <button onClick={() => doDuplicate(f.slug)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">⧉ Duplicar</button>
                               <button onClick={() => doDelete(f.slug)} className="block w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50">🗑 Excluir</button>
                             </div>

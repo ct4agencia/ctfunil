@@ -1,0 +1,6972 @@
+[
+ {
+  "id": "597f1807-40e0-43c7-8e90-9f28f2bcbd99",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:15.739119+00:00"
+ },
+ {
+  "id": "6d6ca81b-ffc0-4cc1-892d-b776af2d49fe",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 6,
+  "step_id": "ViHTWP",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:24.119033+00:00"
+ },
+ {
+  "id": "daf8ba2c-e392-4acf-8f24-ab363d54f6cf",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 8,
+  "step_id": "usulKR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:26.052982+00:00"
+ },
+ {
+  "id": "1c029330-74df-4d07-9cce-89b96ad51202",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 13,
+  "step_id": "zSikDv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:30.862275+00:00"
+ },
+ {
+  "id": "b164e262-0a71-49b9-80c7-a5a3d72c5ec9",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 15,
+  "step_id": "X7lxtB",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:36.491116+00:00"
+ },
+ {
+  "id": "dd6f9e23-04d9-4d20-b064-8d1d4dd548c7",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:30:46.511085+00:00"
+ },
+ {
+  "id": "7b2ecbbf-c29d-4e47-9076-2489057e6fc7",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:26.084671+00:00"
+ },
+ {
+  "id": "225da145-94fe-41b5-99e0-a44ce02acacb",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 15,
+  "step_id": "X7lxtB",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:42:07.730842+00:00"
+ },
+ {
+  "id": "1fd2a33d-1756-4afd-8983-63153d2f94ec",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T03:27:52.363473+00:00"
+ },
+ {
+  "id": "8a617e03-cb2c-473d-bee0-16078736cb47",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T03:28:11.517974+00:00"
+ },
+ {
+  "id": "490fc15e-ca83-40bb-8b13-208fb9b07da8",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T03:28:30.929939+00:00"
+ },
+ {
+  "id": "ff13678b-ec50-4fd4-9578-f25d83708f0c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 3,
+  "step_id": "EVRM9C",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T03:28:33.068647+00:00"
+ },
+ {
+  "id": "00cd210b-60af-4f88-8fe7-106c02ea84a4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 5,
+  "step_id": "nOlNBr",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T03:28:35.435129+00:00"
+ },
+ {
+  "id": "42194924-b1ce-470a-ae34-0cfe66273d36",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 8,
+  "step_id": "usulKR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T03:28:39.685772+00:00"
+ },
+ {
+  "id": "26d9bcbc-baf9-4476-8583-c853371afe0f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:40:46.234226+00:00"
+ },
+ {
+  "id": "4da43776-f8f5-4590-abaf-28b667419a91",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:40:58.757185+00:00"
+ },
+ {
+  "id": "e3e348c2-bf8e-4ec9-a05b-e845db0637b1",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:45:20.681087+00:00"
+ },
+ {
+  "id": "6ee974f0-ee04-4333-833a-9bd1a7a10bd7",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:20.069362+00:00"
+ },
+ {
+  "id": "a08957da-92cf-48af-a724-0bad6d76a9e6",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 4,
+  "step_id": "lxxXex",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:22.331062+00:00"
+ },
+ {
+  "id": "07b4380c-8bf0-477f-ad65-de9077ba2d45",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 10,
+  "step_id": "mEREuO",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:27.979232+00:00"
+ },
+ {
+  "id": "e85af8ad-f6d0-4f39-987e-6aff237a80da",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 12,
+  "step_id": "HlkPWs",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:29.802236+00:00"
+ },
+ {
+  "id": "07d8bdbb-9f47-4918-9dcd-92fd4fa4b86a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 16,
+  "step_id": "rZoHuK",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:37.616168+00:00"
+ },
+ {
+  "id": "e7a1e652-842e-416a-b09a-255636895245",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:33:27.116256+00:00"
+ },
+ {
+  "id": "641a699f-1a25-4951-98de-78240dd5911e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:35.852292+00:00"
+ },
+ {
+  "id": "eaa98339-7ae4-47c4-983c-31c90546fc29",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 7,
+  "step_id": "impiSl",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:48.454806+00:00"
+ },
+ {
+  "id": "33e82938-076d-4d48-99e7-a4e636bf56ab",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 9,
+  "step_id": "zepiwy",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:50.193427+00:00"
+ },
+ {
+  "id": "a5b667c2-881e-4c43-90f6-ef284612f8e4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 12,
+  "step_id": "HlkPWs",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:55.191164+00:00"
+ },
+ {
+  "id": "ff10ed9d-62eb-4777-8db6-ddf89ac6eaaa",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 14,
+  "step_id": "clQBmn",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:42:00.60117+00:00"
+ },
+ {
+  "id": "65644af0-df24-437a-b6d6-98ff8c5b5c92",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 18,
+  "step_id": "z1qlfR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:42:21.871095+00:00"
+ },
+ {
+  "id": "1a1e8eb4-eb43-47ce-8cc8-acb02917ec32",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T00:35:31.561192+00:00"
+ },
+ {
+  "id": "3bfe62a0-8450-4341-b196-2ecc88102f6b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T00:35:31.667231+00:00"
+ },
+ {
+  "id": "5aba8fa5-1433-4454-8a66-85594bf60d42",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 1,
+  "step_id": "confirm",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:19.204223+00:00"
+ },
+ {
+  "id": "7650af7e-156d-43ab-8492-8c98b1b86e3b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 1,
+  "step_id": "confirm",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:19.213916+00:00"
+ },
+ {
+  "id": "518a93e2-4094-4a36-9478-e9212beb4ed1",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 2,
+  "step_id": "q1",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:20.279592+00:00"
+ },
+ {
+  "id": "7bf97deb-e77c-4dab-a0c6-a9f0bfc3db1d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 2,
+  "step_id": "q1",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:20.279998+00:00"
+ },
+ {
+  "id": "1ba74483-d46a-466b-9b44-4eeb9541d6d7",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 3,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:21.111245+00:00"
+ },
+ {
+  "id": "fe2bcaac-c4d9-490b-953a-5f7d9ae7ca5d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 3,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:21.112042+00:00"
+ },
+ {
+  "id": "4ea5401e-85b7-4ff1-9adb-fa1911557c3d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 4,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:21.724597+00:00"
+ },
+ {
+  "id": "0922bd73-e307-45b4-a4aa-18f601ad702e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 4,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:21.787129+00:00"
+ },
+ {
+  "id": "26543500-94ed-469f-9453-2249e79a0643",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 6,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:22.909315+00:00"
+ },
+ {
+  "id": "7ffd161b-b924-4c48-965a-0fc11b3eb647",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 6,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:22.971155+00:00"
+ },
+ {
+  "id": "20a2ccb4-691a-4256-bac3-5b21dfe76a0a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 7,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:23.775955+00:00"
+ },
+ {
+  "id": "4b8c7fa5-4e05-4cdd-853e-f9549157299c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 7,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:23.826722+00:00"
+ },
+ {
+  "id": "c92d1ecb-e956-4b5b-af8e-0dc228d385ce",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 4,
+  "step_id": "lxxXex",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T03:28:34.276524+00:00"
+ },
+ {
+  "id": "5619543b-e0b0-4f01-afea-beb3a2afe1b4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 6,
+  "step_id": "ViHTWP",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T03:28:36.766769+00:00"
+ },
+ {
+  "id": "fc464edc-5dfc-41c1-9a63-9cfd7f7fb67d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T00:52:44.516674+00:00"
+ },
+ {
+  "id": "fc3d33eb-3932-43b6-ba8f-207efac236e9",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T00:52:50.612158+00:00"
+ },
+ {
+  "id": "7ddb078e-8f00-4afa-81ee-b9e992e17d43",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T00:52:50.714487+00:00"
+ },
+ {
+  "id": "0b8e58c0-8bc2-4452-8e7f-0528a2be0be8",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 7,
+  "step_id": "impiSl",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T03:28:38.3921+00:00"
+ },
+ {
+  "id": "12afd5eb-cf26-451c-81e2-7f5dad7ae51d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T03:28:41.960465+00:00"
+ },
+ {
+  "id": "d05fd9b0-87a1-48f4-82c6-a4a6a5bfd4c3",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:54:13.918894+00:00"
+ },
+ {
+  "id": "9e79d0c8-ba69-4273-96b5-386a1bd5ca59",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:54:15.952077+00:00"
+ },
+ {
+  "id": "f43e4296-3414-458a-801c-cedc56c503fb",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:47:00.241326+00:00"
+ },
+ {
+  "id": "2ff8564b-6b68-45d6-9ca8-afb350d53fc8",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T01:10:57.350515+00:00"
+ },
+ {
+  "id": "a888f09e-74db-4c71-ae91-52f11b0bedae",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T01:10:57.511067+00:00"
+ },
+ {
+  "id": "4de3d65a-06e2-4e3a-b2b1-daa6c992524e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T01:11:19.053048+00:00"
+ },
+ {
+  "id": "950b670f-c811-47db-974b-81f0d366b29e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T01:11:19.211987+00:00"
+ },
+ {
+  "id": "3d5a142a-a0e6-41ba-b6cf-bcb764df0b25",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T02:25:59.050445+00:00"
+ },
+ {
+  "id": "3d7837a5-3ae3-4881-a543-9b26ecdd4347",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T02:25:59.132919+00:00"
+ },
+ {
+  "id": "43dc10f5-c369-4ff9-adbd-b0b06150c70b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "confirm",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T02:26:01.459939+00:00"
+ },
+ {
+  "id": "b2a65263-5d37-46ef-a3e0-4b6dcc710eec",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "confirm",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T02:26:01.460331+00:00"
+ },
+ {
+  "id": "6c283b63-004a-4de3-b253-f7aa09c7dbf6",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 2,
+  "step_id": "q1",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T02:26:02.840226+00:00"
+ },
+ {
+  "id": "969f8bf3-fa5a-466e-b29d-648eda03ec0a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 2,
+  "step_id": "q1",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T02:26:02.841662+00:00"
+ },
+ {
+  "id": "9eb56469-5b39-4784-be5c-c8401574edda",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 3,
+  "step_id": "EVRM9C",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:21.283464+00:00"
+ },
+ {
+  "id": "f7eb6c48-9970-462b-a72a-af11fb071876",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 5,
+  "step_id": "nOlNBr",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:23.159434+00:00"
+ },
+ {
+  "id": "5067d1e5-afaa-405d-8176-1bf1446e6f14",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 17,
+  "step_id": "29sGdm",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:47.128091+00:00"
+ },
+ {
+  "id": "f89b849b-92aa-4ece-8d09-d33dfdf6371b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-26T00:33:46.950856+00:00"
+ },
+ {
+  "id": "1e765798-608f-496e-bddc-780bd22bc7e7",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 3,
+  "step_id": "EVRM9C",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:37.424182+00:00"
+ },
+ {
+  "id": "d25ef31e-e8e0-449c-ba8d-3ab172b67752",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 5,
+  "step_id": "nOlNBr",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:45.322086+00:00"
+ },
+ {
+  "id": "a97bd311-d29b-4c21-a06b-e240cf6eeddc",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 8,
+  "step_id": "usulKR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:49.3753+00:00"
+ },
+ {
+  "id": "4bc9499f-f336-448d-a49e-bce0115d4f54",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 13,
+  "step_id": "zSikDv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:56.950926+00:00"
+ },
+ {
+  "id": "c2952cc4-4b4d-4b1e-ad1f-503b657f851f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 17,
+  "step_id": "29sGdm",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:42:20.359545+00:00"
+ },
+ {
+  "id": "b7638fbf-74ff-458e-9039-e12af1208023",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T04:42:28.377411+00:00"
+ },
+ {
+  "id": "8e4bbda6-31e7-482e-a05d-1ca866f5616a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:54:52.11898+00:00"
+ },
+ {
+  "id": "afc0aa98-3429-46b0-a65b-bb093c9f3819",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:55:09.950932+00:00"
+ },
+ {
+  "id": "c906d6ed-a5fd-4a51-b039-bf76579a4917",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:47.473251+00:00"
+ },
+ {
+  "id": "20e862ce-d661-4273-b175-8eb7262bf920",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:47.566408+00:00"
+ },
+ {
+  "id": "91eeb05e-3b3f-45dc-a0f3-397072d77b33",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 1,
+  "step_id": "confirm",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:51.788441+00:00"
+ },
+ {
+  "id": "43ec22c1-236d-4812-a3a4-023969d0b054",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 1,
+  "step_id": "confirm",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:51.78844+00:00"
+ },
+ {
+  "id": "7bd0f2a4-d9ff-4b2b-8dcf-ef0a016795de",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 2,
+  "step_id": "q1",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:53.601354+00:00"
+ },
+ {
+  "id": "af30b1fc-664c-4618-9c5b-839299639191",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 2,
+  "step_id": "q1",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:53.601527+00:00"
+ },
+ {
+  "id": "01612a2c-a903-4998-b176-3cfda00e4564",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 3,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:54.884956+00:00"
+ },
+ {
+  "id": "7f841569-a6b3-4899-813d-dd87d9619f18",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 3,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:55.091558+00:00"
+ },
+ {
+  "id": "79a84d08-eee8-4555-a009-4ddae590994b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 4,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:55.948177+00:00"
+ },
+ {
+  "id": "4f9ba53d-20d8-436c-9b3c-dd4b37d6feac",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 4,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:55.948962+00:00"
+ },
+ {
+  "id": "459cb0cb-f484-4ed3-9080-aab0946437e3",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 5,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:58.574781+00:00"
+ },
+ {
+  "id": "61940f5e-0939-4f6e-8f7b-600ecff9de3c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 5,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:58.574781+00:00"
+ },
+ {
+  "id": "c8d9ee8c-7bb6-432a-8952-5071e8864088",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 6,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:59.996891+00:00"
+ },
+ {
+  "id": "065de2c2-4f23-4718-9056-285e3817b8bc",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 6,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:59.997853+00:00"
+ },
+ {
+  "id": "9f1c1be6-751f-4122-b106-bbbf0e607808",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 7,
+  "step_id": "ce8984e7-f4b1-49ef-b104-2923e34b30ce",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T03:58:45.369448+00:00"
+ },
+ {
+  "id": "7d7242de-c86a-4f51-a65c-f39f26f7b2b5",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 7,
+  "step_id": "ce8984e7-f4b1-49ef-b104-2923e34b30ce",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T03:58:45.369848+00:00"
+ },
+ {
+  "id": "9cfac635-9fbf-488b-83e1-538d3c93b64c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T04:04:06.573515+00:00"
+ },
+ {
+  "id": "2998c562-736e-4086-83cf-1e8fab90b5ba",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T04:13:18.419479+00:00"
+ },
+ {
+  "id": "7d48eae5-b5b5-4668-9065-8ffb176bb7fd",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "teste-zenlya-diag",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T04:13:18.570752+00:00"
+ },
+ {
+  "id": "3c403c05-3420-4602-b5e7-1fdc3d583982",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 7,
+  "step_id": "impiSl",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:25.04214+00:00"
+ },
+ {
+  "id": "e0f90eda-b5bf-47de-883e-f17fb60dcd3a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 9,
+  "step_id": "zepiwy",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:26.913871+00:00"
+ },
+ {
+  "id": "ea22531d-ccc8-4544-b1ca-b9b17586f502",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 14,
+  "step_id": "clQBmn",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:34.478989+00:00"
+ },
+ {
+  "id": "6bfdf530-3e51-4b53-9c6c-4f96a9e7a9b4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 18,
+  "step_id": "z1qlfR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:48.483783+00:00"
+ },
+ {
+  "id": "d5ce3a9c-21db-4bcb-8508-e0b649c8478d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:35:15.638708+00:00"
+ },
+ {
+  "id": "66523be8-0f00-4f2e-bd83-714a2a46931b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 4,
+  "step_id": "lxxXex",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:44.339446+00:00"
+ },
+ {
+  "id": "eca66b02-f18b-49d8-8346-c90465a5d63a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 6,
+  "step_id": "ViHTWP",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:47.438619+00:00"
+ },
+ {
+  "id": "6a3cfc34-a28b-48e6-a384-0486ae4858b5",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 11,
+  "step_id": "4INrVe",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:52.984053+00:00"
+ },
+ {
+  "id": "1ba01fbe-075a-40ba-a1d6-2098c29ef89f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T16:45:56.832209+00:00"
+ },
+ {
+  "id": "55104fbc-3c81-49e6-b16d-f746d6478e0e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T20:01:55.731543+00:00"
+ },
+ {
+  "id": "2b09c0e0-c463-4e40-9d74-ca8d73c8ca10",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T04:23:47.204466+00:00"
+ },
+ {
+  "id": "89a6178b-7479-42c8-8807-d2a5d8e90c31",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T04:23:47.267548+00:00"
+ },
+ {
+  "id": "27d3ae60-5077-49ea-890b-78d71bf5966a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "92954d7b-87e3-4310-8988-7c7f9d7bab63",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:01.23879+00:00"
+ },
+ {
+  "id": "c8bb2a67-1c2b-466d-8d3a-790eb95ccdf8",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "92954d7b-87e3-4310-8988-7c7f9d7bab63",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:01.239198+00:00"
+ },
+ {
+  "id": "cd297790-2f57-4894-aa7c-73bfd61578bb",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "confirm",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:08.613137+00:00"
+ },
+ {
+  "id": "aa923c47-213f-45b9-83fb-f6dffce143c3",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "confirm",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:08.614507+00:00"
+ },
+ {
+  "id": "c7799067-854d-4ce1-ac9b-dffabb7a5b27",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:10.195101+00:00"
+ },
+ {
+  "id": "8b0198bc-3d08-4402-ba85-c2388e79566e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:10.196049+00:00"
+ },
+ {
+  "id": "c00cd307-a578-4486-92c7-a73ec0ca56f6",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "3167c923-aee6-41e8-b98e-b6d545ff3a47",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:19.602331+00:00"
+ },
+ {
+  "id": "a0fc7794-de73-47ec-a76f-bb9b6e2c527e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "3167c923-aee6-41e8-b98e-b6d545ff3a47",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:19.602473+00:00"
+ },
+ {
+  "id": "9def564a-57a1-49c0-9ab3-7bae92eb86b7",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "3167c923-aee6-41e8-b98e-b6d545ff3a47",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:24.909543+00:00"
+ },
+ {
+  "id": "35003321-d41c-4f44-bdb0-57e50debe15e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "3167c923-aee6-41e8-b98e-b6d545ff3a47",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:24.909736+00:00"
+ },
+ {
+  "id": "f0f4a2b3-e99b-41a5-b67e-55cb6c05e16b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "3167c923-aee6-41e8-b98e-b6d545ff3a47",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:25.473253+00:00"
+ },
+ {
+  "id": "dada060b-0d5a-4d5e-a23f-165985586b1e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-2",
+  "step_index": 1,
+  "step_id": "3167c923-aee6-41e8-b98e-b6d545ff3a47",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T04:24:25.47856+00:00"
+ },
+ {
+  "id": "a430e442-e601-42f6-8c94-511260b0064e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T20:02:07.462048+00:00"
+ },
+ {
+  "id": "33878761-523c-4a62-93b4-eb4b397de5bc",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:10.269155+00:00"
+ },
+ {
+  "id": "ee0db941-4939-4a4d-93be-2750fc05c42f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 0,
+  "step_id": "name",
+  "step_type": "name",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:10.315794+00:00"
+ },
+ {
+  "id": "9b280964-be5f-41d4-8201-ff36fcacf6e6",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 2,
+  "step_id": "q1",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:13.166171+00:00"
+ },
+ {
+  "id": "60e162bf-d1c0-43f8-99d5-ee87206a687a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 2,
+  "step_id": "q1",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:13.166311+00:00"
+ },
+ {
+  "id": "41d9b934-bf5a-4030-ab94-64bd7838ada9",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 1,
+  "step_id": "confirm",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:14.089104+00:00"
+ },
+ {
+  "id": "334da7ec-4be7-48d9-b54b-e52f2cb8e048",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 1,
+  "step_id": "confirm",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:14.089104+00:00"
+ },
+ {
+  "id": "1eaab2aa-1b6e-4443-a277-5ffa0ee69250",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 2,
+  "step_id": "q1",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:14.740327+00:00"
+ },
+ {
+  "id": "13e12a2f-ccc6-43e8-bc8f-075d9edcae47",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 2,
+  "step_id": "q1",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:14.740981+00:00"
+ },
+ {
+  "id": "09b4ea7f-03fd-48dd-b248-b4a69395c7ac",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 3,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:15.429323+00:00"
+ },
+ {
+  "id": "bc1166d6-2807-4f67-8d72-4162469087bd",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 3,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:15.429584+00:00"
+ },
+ {
+  "id": "86150eaa-f9ff-4d28-b950-2c36958d7623",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 4,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:16.225074+00:00"
+ },
+ {
+  "id": "7c6107b8-1a60-44e8-8d11-8a6fc7e1157a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "novo-funil-3",
+  "step_index": 4,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T05:04:16.226527+00:00"
+ },
+ {
+  "id": "47aa6b3e-d3a4-47d0-8463-32b1b62f927c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 11,
+  "step_id": "4INrVe",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:18:28.847629+00:00"
+ },
+ {
+  "id": "776ee6be-9d9d-483f-9995-f34017e3a849",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:35:21.703906+00:00"
+ },
+ {
+  "id": "301d2e5a-ab6f-4c87-b107-0da469e2444b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 10,
+  "step_id": "mEREuO",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:41:51.413747+00:00"
+ },
+ {
+  "id": "0d00f795-fa2d-411f-b950-c815d942b636",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 16,
+  "step_id": "rZoHuK",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:42:09.055464+00:00"
+ },
+ {
+  "id": "83daf8e8-830e-4af4-90f8-85fd734a5deb",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T16:46:47.517234+00:00"
+ },
+ {
+  "id": "bd56bbc1-91b4-41c8-9440-abba68fa4b80",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:30:18.3388+00:00"
+ },
+ {
+  "id": "80ab8d83-8b6a-4993-9dc5-36c7ef686624",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:27.932644+00:00"
+ },
+ {
+  "id": "9cc5b6d8-0a7e-48f4-afca-ea85e8846f17",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 6,
+  "step_id": "ViHTWP",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:33.025744+00:00"
+ },
+ {
+  "id": "a0c9d264-f29d-4831-8607-c0bd72de7786",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 12,
+  "step_id": "HlkPWs",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:04:34.527322+00:00"
+ },
+ {
+  "id": "056570a2-8017-4ce6-aded-e679dd03f86a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:05:50.800018+00:00"
+ },
+ {
+  "id": "92e17c75-d29a-4d4a-b745-dccd047adb03",
+  "session_id": "s-4yfa1ot93vmqu2s7if",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:30:12.065436+00:00"
+ },
+ {
+  "id": "d0e27d5b-bd0a-4489-b4e5-15ed9561d0f0",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:15:11.607752+00:00"
+ },
+ {
+  "id": "d99bb9a3-3ce3-405f-a73a-aae805843fed",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:19:29.057328+00:00"
+ },
+ {
+  "id": "99dac72e-9c0d-4b2e-a49f-e254a33bd9c4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:21:54.883603+00:00"
+ },
+ {
+  "id": "f25b90d1-aec4-4253-9b34-f3a97604efda",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 4,
+  "step_id": "lxxXex",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:21:59.714696+00:00"
+ },
+ {
+  "id": "9bb53796-506a-47d5-855e-df24a0c9e4ca",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 7,
+  "step_id": "impiSl",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:22:04.119759+00:00"
+ },
+ {
+  "id": "8e1d37c6-d7f3-40a6-a095-bb1e976e952c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:43:32.145478+00:00"
+ },
+ {
+  "id": "31810130-35d2-46ee-8e8b-507e2a98d04f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:43:59.759772+00:00"
+ },
+ {
+  "id": "1e1d47a6-e45a-4f47-a20c-c1c10e20fddb",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:09.033747+00:00"
+ },
+ {
+  "id": "89d394ef-7878-4499-9f54-06e648584b07",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 6,
+  "step_id": "ViHTWP",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:46.232064+00:00"
+ },
+ {
+  "id": "cbdd7925-22b6-4317-8a45-51b20b13459a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 9,
+  "step_id": "zepiwy",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:50.714759+00:00"
+ },
+ {
+  "id": "2dafe680-5598-4728-bb9e-389984d0f420",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 12,
+  "step_id": "HlkPWs",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:56.713782+00:00"
+ },
+ {
+  "id": "f20335a8-dd75-4642-a8c5-7c7f92fe7860",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 16,
+  "step_id": "rZoHuK",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:45:38.595427+00:00"
+ },
+ {
+  "id": "470b6267-38d4-4501-a2d4-3c883ac66827",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:46:57.764606+00:00"
+ },
+ {
+  "id": "d346a2e6-d5de-4599-9cc2-af4e60b21460",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 4,
+  "step_id": "lxxXex",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:47:24.78603+00:00"
+ },
+ {
+  "id": "9c23949a-19a4-4059-90ea-ef009b49a051",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 6,
+  "step_id": "ViHTWP",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:47:37.633076+00:00"
+ },
+ {
+  "id": "a483ea4f-94b1-4a71-8439-fb9fd82dac82",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 9,
+  "step_id": "zepiwy",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:47:44.192841+00:00"
+ },
+ {
+  "id": "6b985172-705d-439b-9002-aa73b3dde2f4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 11,
+  "step_id": "4INrVe",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:48:00.13478+00:00"
+ },
+ {
+  "id": "3c7a1155-350d-4da5-9351-7cfca1786220",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 13,
+  "step_id": "zSikDv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:48:10.569068+00:00"
+ },
+ {
+  "id": "c81c5db4-f7e1-4b85-8731-e8eff4181475",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 15,
+  "step_id": "X7lxtB",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:48:22.943545+00:00"
+ },
+ {
+  "id": "8bb45d36-0ec4-4750-90ba-4cdedc189ac8",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:52:09.37853+00:00"
+ },
+ {
+  "id": "019d6a67-537c-4dc2-a61a-0fc2f0942034",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:21.493942+00:00"
+ },
+ {
+  "id": "bcfed13e-e008-41ef-bed9-9c250591f713",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 3,
+  "step_id": "EVRM9C",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:35.854881+00:00"
+ },
+ {
+  "id": "1f6a037e-edcd-4a36-98b0-3aa0143e1789",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 5,
+  "step_id": "nOlNBr",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:42.019337+00:00"
+ },
+ {
+  "id": "2c4c3c44-7729-4cb5-951c-9dc2f7d807f7",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 7,
+  "step_id": "impiSl",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:44.482647+00:00"
+ },
+ {
+  "id": "c02ab266-4e49-4804-9ea1-73b25de106ac",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 8,
+  "step_id": "usulKR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:46.038792+00:00"
+ },
+ {
+  "id": "5a13f774-661f-4c07-8f07-c9919bd5f1d9",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 10,
+  "step_id": "mEREuO",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:49.113046+00:00"
+ },
+ {
+  "id": "48df4fab-7926-42d0-9ae2-25278493ea2e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 16,
+  "step_id": "rZoHuK",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:04:12.062102+00:00"
+ },
+ {
+  "id": "95a63e1b-c0b7-4fbc-ae1b-96ba0c33907c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 17,
+  "step_id": "29sGdm",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:04:24.473659+00:00"
+ },
+ {
+  "id": "27f2025d-f57f-46f7-a40f-e08e87fe0294",
+  "session_id": "s-tt6e9cw6xsmqu5n0fs",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:06:23.033045+00:00"
+ },
+ {
+  "id": "3de4c251-805c-4bcd-a08f-e64965391979",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-22T03:36:40.122282+00:00"
+ },
+ {
+  "id": "e3c21ce4-b692-40d6-b7ee-a00871f6dabf",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:11.466938+00:00"
+ },
+ {
+  "id": "29c15514-5e1f-449f-be25-ebd94936dddf",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:16.408344+00:00"
+ },
+ {
+  "id": "dcf66c9a-1e1a-4b6f-877e-d31ad10b79ea",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 12,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:37.374606+00:00"
+ },
+ {
+  "id": "90a285fb-e9c4-4c2d-94a2-a35289d59746",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 15,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:54.933696+00:00"
+ },
+ {
+  "id": "6b67c596-93ee-489e-b11b-12e3ba857b51",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 18,
+  "step_id": "bridge",
+  "step_type": "bridge",
+  "meta": null,
+  "created_at": "2026-06-22T03:38:19.023519+00:00"
+ },
+ {
+  "id": "b301fbdc-1b6d-478d-a4d0-a0d3e558948c",
+  "session_id": "s-cmbxk8bhw9mqq5nnfx",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T04:39:33.61503+00:00"
+ },
+ {
+  "id": "ee1f93b4-2148-4953-8cc5-aea9b685ce31",
+  "session_id": "s-kkw4isczmamqq8472i",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:48:25.092722+00:00"
+ },
+ {
+  "id": "582fba43-b72f-4b42-bb60-7d615b579c8c",
+  "session_id": "s-84qoj4t8bgmqq84996",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:48:27.411536+00:00"
+ },
+ {
+  "id": "965c1966-6ea1-4a30-8759-a8a07eeeed6d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:26:31.772409+00:00"
+ },
+ {
+  "id": "66f1ee17-d579-4c1d-8330-3ffb8b6fb8c4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:26:53.005837+00:00"
+ },
+ {
+  "id": "fa1ba8e1-975b-40e2-b2d4-23bf18c1c14f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:36:05.707935+00:00"
+ },
+ {
+  "id": "dd377d5b-d9c3-4aa4-8af7-8e5f9dc532c2",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:47:20.09495+00:00"
+ },
+ {
+  "id": "7df5819c-0e55-4b8a-85e4-b427cc30b6ea",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T17:10:38.595294+00:00"
+ },
+ {
+  "id": "5432358f-7c36-4d34-80a4-5c9578e46db1",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:39:05.575921+00:00"
+ },
+ {
+  "id": "fad0e45f-e5a4-42db-9bfd-ad9fb0af92fd",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:39:07.041496+00:00"
+ },
+ {
+  "id": "c51c33f2-8946-40f2-a9ad-3bb5c894c36c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:39:23.310111+00:00"
+ },
+ {
+  "id": "21754924-f33a-423f-9332-08f00e570e85",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:39:44.191497+00:00"
+ },
+ {
+  "id": "87f798ed-824b-490d-9906-5eae98f13836",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:39:48.23509+00:00"
+ },
+ {
+  "id": "1e4a793f-6835-4a4e-961a-155c88586bd7",
+  "session_id": "s-vmrf7u75bbmqtyqhf5",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-25T20:36:53.010138+00:00"
+ },
+ {
+  "id": "b898152a-6a4f-4779-b9ec-fef4bdadb95d",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:15.722712+00:00"
+ },
+ {
+  "id": "bf8a21c1-aa7b-4af7-a92c-493a678cc332",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:16.854693+00:00"
+ },
+ {
+  "id": "e9cdd365-4fa6-4870-9386-d38316bb414e",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:18.190484+00:00"
+ },
+ {
+  "id": "e738943a-a466-4711-ac0d-998c42c2018e",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:19.399759+00:00"
+ },
+ {
+  "id": "f81e557f-9f40-412c-94da-0e1889d444df",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:20.713012+00:00"
+ },
+ {
+  "id": "522b887b-4bf8-49b8-ba5d-f8cd1acedb41",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:21.878286+00:00"
+ },
+ {
+  "id": "0d3293c4-f910-4e7a-bf5c-70771634acab",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:22.680906+00:00"
+ },
+ {
+  "id": "df19d5f7-eb88-4054-aa62-322bab82741d",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:23.127435+00:00"
+ },
+ {
+  "id": "784e9257-380c-4e14-b8f3-2efbf5180237",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:24.184457+00:00"
+ },
+ {
+  "id": "fdc153ab-706b-4c8f-80d7-4bfb57701579",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:24.915205+00:00"
+ },
+ {
+  "id": "2b4a2852-8258-4fee-8283-43d0efbfff9c",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 13,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:28.051324+00:00"
+ },
+ {
+  "id": "e2fac6ab-6361-4668-be6f-68dc98c7f271",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-25T20:44:05.678245+00:00"
+ },
+ {
+  "id": "b836f78a-f435-4f04-a3de-61dcf2874dee",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 3,
+  "step_id": "EVRM9C",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:29.683751+00:00"
+ },
+ {
+  "id": "76cfa94e-2f61-4613-b306-687faf282f50",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 14,
+  "step_id": "clQBmn",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:04:47.118711+00:00"
+ },
+ {
+  "id": "e7ede223-5eca-413f-87c6-5016556c5707",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:26:08.807271+00:00"
+ },
+ {
+  "id": "ba7ded70-7470-4860-8b84-5ac4085b6722",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:41:36.011758+00:00"
+ },
+ {
+  "id": "c23f59e0-912e-4d14-b8d8-06924b836d1e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:15:03.257362+00:00"
+ },
+ {
+  "id": "76f82fb9-e022-4b60-bf15-84a711de87ba",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:20:28.0148+00:00"
+ },
+ {
+  "id": "13467fec-64ad-44fd-b2ee-2c8101716d36",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:20:37.094561+00:00"
+ },
+ {
+  "id": "454b9449-88e2-4e79-afc7-cc63f9aea83f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 3,
+  "step_id": "EVRM9C",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:21:58.716009+00:00"
+ },
+ {
+  "id": "6e9ceee1-17aa-4fc9-8f1a-b467231a5912",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 6,
+  "step_id": "ViHTWP",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:22:02.350891+00:00"
+ },
+ {
+  "id": "309c6582-c1cd-483f-b6b0-ed3b4ccccf47",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:26:42.695733+00:00"
+ },
+ {
+  "id": "93557078-7cad-4a15-a864-33d8ab4e9470",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:36:49.98922+00:00"
+ },
+ {
+  "id": "c106ad61-9970-4e55-b8b5-3e59dbceeb4a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:49:42.830883+00:00"
+ },
+ {
+  "id": "56febe08-4c45-42e3-8cfd-cad1e0678ea7",
+  "session_id": "s-jiih1ih813mqvb7g5d",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:13:48.395438+00:00"
+ },
+ {
+  "id": "719af905-9030-41cd-8b60-0814708dcff6",
+  "session_id": "s-jiih1ih813mqvb7g5d",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:13:59.708956+00:00"
+ },
+ {
+  "id": "17fa6943-246a-466f-8f7a-62efe4025d17",
+  "session_id": "s-jiih1ih813mqvb7g5d",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:14:11.050146+00:00"
+ },
+ {
+  "id": "39b87a14-e59a-45ff-9c3b-e479a3395c88",
+  "session_id": "s-jiih1ih813mqvb7g5d",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:14:24.414746+00:00"
+ },
+ {
+  "id": "362f98ff-734a-4431-98bf-6993f144baf9",
+  "session_id": "s-jiih1ih813mqvb7g5d",
+  "funnel_slug": "cdb-r",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:14:38.052496+00:00"
+ },
+ {
+  "id": "e10a133f-0e5a-4d80-8d65-6fce8cdf0df0",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:40:31.024161+00:00"
+ },
+ {
+  "id": "772d13c0-1000-47a4-b3f5-34809f0cd944",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:40:37.680624+00:00"
+ },
+ {
+  "id": "2e5f1288-d537-419a-8cc3-451230442e78",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:25.183802+00:00"
+ },
+ {
+  "id": "4df55e8e-3747-4b4d-b713-c3a336e28d86",
+  "session_id": "s-6ru9oscj6umqtyqzak",
+  "funnel_slug": "clube-das-bolsas",
+  "step_index": 12,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:25.399333+00:00"
+ },
+ {
+  "id": "ac351f40-5180-4496-905d-387dd7c7801e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:20.996006+00:00"
+ },
+ {
+  "id": "df4eb134-9423-4d23-8625-6c07f9fa5422",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 4,
+  "step_id": "lxxXex",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:30.926149+00:00"
+ },
+ {
+  "id": "09986298-f3a6-4c4e-bc3b-7475531c7bb4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 5,
+  "step_id": "nOlNBr",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:31.993878+00:00"
+ },
+ {
+  "id": "c032c03e-af97-4619-8149-d5f7cd017a7e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 7,
+  "step_id": "impiSl",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:34.257174+00:00"
+ },
+ {
+  "id": "efd53611-19b4-4915-84df-f74e58bf2c33",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 9,
+  "step_id": "zepiwy",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:37.138414+00:00"
+ },
+ {
+  "id": "b9379840-5d1b-444e-adb2-a93ca9240682",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 15,
+  "step_id": "X7lxtB",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:05:18.173595+00:00"
+ },
+ {
+  "id": "f0239d68-52d6-4765-b4a5-3ca2bd40d90b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:28:47.722401+00:00"
+ },
+ {
+  "id": "2501a2e0-9618-4bea-8186-6898733c8f55",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:05:03.448103+00:00"
+ },
+ {
+  "id": "673b8ed3-f395-44bf-8e8d-b3fdfe1a6e81",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:05:11.973818+00:00"
+ },
+ {
+  "id": "b16aa0c5-99cc-4571-b4fc-0dfec95eee38",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:15:05.971359+00:00"
+ },
+ {
+  "id": "633567db-9a02-4ae5-9d88-a605412cd376",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:21:03.141765+00:00"
+ },
+ {
+  "id": "9e05db0a-41d9-4c37-a6cd-541d0c19292a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 5,
+  "step_id": "nOlNBr",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:22:01.496175+00:00"
+ },
+ {
+  "id": "1d867617-f49d-4e5d-8f16-a2ef12ad7850",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 10,
+  "step_id": "mEREuO",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:22:40.427744+00:00"
+ },
+ {
+  "id": "61f20ff9-3395-4c7e-9036-7a65f30fd126",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:43:34.137347+00:00"
+ },
+ {
+  "id": "de0aba6f-059d-4da3-bd01-68d5d184b6ee",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:14.65515+00:00"
+ },
+ {
+  "id": "89ca07bf-5d93-4ca8-a14f-0f55223328e1",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 4,
+  "step_id": "lxxXex",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:43.600979+00:00"
+ },
+ {
+  "id": "54fc4762-042a-4949-8e60-aa6a0d0d98a0",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 14,
+  "step_id": "clQBmn",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:45:17.031794+00:00"
+ },
+ {
+  "id": "59964ff5-69c2-4859-9f62-9d2aa722fa3f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 18,
+  "step_id": "z1qlfR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:45:56.735225+00:00"
+ },
+ {
+  "id": "bf0d4df3-d8ce-43e9-8da2-40954c8b51c8",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:46:11.824009+00:00"
+ },
+ {
+  "id": "49f7432f-04ba-4234-a16f-4eebf302569a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:47:03.343106+00:00"
+ },
+ {
+  "id": "a8c9f44f-d7f1-42d5-bb14-a1168627e35c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 7,
+  "step_id": "impiSl",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:47:38.767161+00:00"
+ },
+ {
+  "id": "5f361ee2-966c-476d-a9f1-db4707ac53ec",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 10,
+  "step_id": "mEREuO",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:47:57.66979+00:00"
+ },
+ {
+  "id": "dbf99754-023a-413c-b8eb-7d757cee09a0",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 12,
+  "step_id": "HlkPWs",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:48:03.215373+00:00"
+ },
+ {
+  "id": "61c92a36-d48a-439b-bc5b-976708af3cf5",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 14,
+  "step_id": "clQBmn",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:48:14.268189+00:00"
+ },
+ {
+  "id": "6450b37c-ac9a-40c8-a957-b01a4a227f5c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 16,
+  "step_id": "rZoHuK",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:48:25.555955+00:00"
+ },
+ {
+  "id": "72d22801-3ec2-4e57-900a-265ed1bf0254",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:30:21.522315+00:00"
+ },
+ {
+  "id": "39c546ef-7ed0-4b98-8f0f-371fb7e7b6f7",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:36:58.878494+00:00"
+ },
+ {
+  "id": "be3222b0-6da3-4a1e-9493-1f2ac993209e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:59:55.320472+00:00"
+ },
+ {
+  "id": "882af7ac-4d15-4778-83fb-86bbd3ceb032",
+  "session_id": "s-jiih1ih813mqvb7g5d",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:16:26.617305+00:00"
+ },
+ {
+  "id": "88b93a03-7a68-453b-a047-242c59fb71b6",
+  "session_id": "s-jiih1ih813mqvb7g5d",
+  "funnel_slug": "cdb-slide",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:16:33.20235+00:00"
+ },
+ {
+  "id": "56a99403-07d5-40b5-92f7-e88920a94616",
+  "session_id": "s-jiih1ih813mqvb7g5d",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:16:43.150558+00:00"
+ },
+ {
+  "id": "a195a783-563b-42e5-99f1-9ed944368d04",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:42:03.232351+00:00"
+ },
+ {
+  "id": "279f1fbd-76bb-4a96-aaf8-8b9e96de6464",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:25.164058+00:00"
+ },
+ {
+  "id": "b0662a86-8351-4361-91e3-5f49052fc257",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 8,
+  "step_id": "usulKR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:35.749957+00:00"
+ },
+ {
+  "id": "8f188398-0d8a-4e57-9242-e6a04af32891",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 10,
+  "step_id": "mEREuO",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:02:55.317669+00:00"
+ },
+ {
+  "id": "6d21b08d-afa6-4009-8560-19aa2d3dd6d0",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 11,
+  "step_id": "4INrVe",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:04:33.696873+00:00"
+ },
+ {
+  "id": "3c5b7a1a-29eb-4cc0-b586-ddd5193faf03",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 13,
+  "step_id": "zSikDv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:04:43.385778+00:00"
+ },
+ {
+  "id": "38c2ed51-746a-4a11-a742-41b0fdf403f8",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 16,
+  "step_id": "rZoHuK",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:05:39.42319+00:00"
+ },
+ {
+  "id": "850ff8f9-f41a-411b-b94a-d64257e421dc",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T22:29:21.993278+00:00"
+ },
+ {
+  "id": "7934529c-7771-46fe-ba49-2a208cb3aeb0",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:11:05.005295+00:00"
+ },
+ {
+  "id": "daa877bd-fdef-4c63-9d57-cab8a94286a3",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:15:16.989446+00:00"
+ },
+ {
+  "id": "7293bdfb-b93b-4e4e-9c89-113912fb89b2",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:21:53.147163+00:00"
+ },
+ {
+  "id": "f366f730-b56e-48ae-b19a-6b9b0d239bac",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 8,
+  "step_id": "usulKR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:22:17.689915+00:00"
+ },
+ {
+  "id": "f7ae6755-882b-4868-a3c9-c3dfc5d8bf64",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 9,
+  "step_id": "zepiwy",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:22:38.802798+00:00"
+ },
+ {
+  "id": "a49a106f-22f6-4887-9cef-a2cd6ab7954e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:43:38.727561+00:00"
+ },
+ {
+  "id": "fc9b4372-a3e7-4a9e-9963-7d8ee297c245",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 3,
+  "step_id": "EVRM9C",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:23.567732+00:00"
+ },
+ {
+  "id": "3cef3f59-2aa6-4d6a-9dfa-4eeab0528218",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 5,
+  "step_id": "nOlNBr",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:45.116952+00:00"
+ },
+ {
+  "id": "4ed82f19-9bf5-4d93-b7fa-4f11a24dac34",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 7,
+  "step_id": "impiSl",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:47.681253+00:00"
+ },
+ {
+  "id": "3c188b04-2152-4a27-a1b1-408c1280f776",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 8,
+  "step_id": "usulKR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:49.502118+00:00"
+ },
+ {
+  "id": "838082ad-febf-4a32-9648-94b310ab4991",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 10,
+  "step_id": "mEREuO",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:52.035248+00:00"
+ },
+ {
+  "id": "a80fdc31-c7b1-4d70-a0f2-9f7664322549",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 11,
+  "step_id": "4INrVe",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:44:54.220675+00:00"
+ },
+ {
+  "id": "9888b621-3fab-42d7-b937-82d0b501d018",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 13,
+  "step_id": "zSikDv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:45:13.323284+00:00"
+ },
+ {
+  "id": "45fb6363-9216-4483-aad5-85abeb6b4967",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 15,
+  "step_id": "X7lxtB",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:45:31.838241+00:00"
+ },
+ {
+  "id": "7e90abb7-13ad-44a8-9b6b-3788a4c1d50a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 17,
+  "step_id": "29sGdm",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:45:52.774278+00:00"
+ },
+ {
+  "id": "88407c77-d7e5-4ad3-9b33-868410cba583",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 3,
+  "step_id": "EVRM9C",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:47:23.447706+00:00"
+ },
+ {
+  "id": "483f579f-3ac5-4744-bddb-d84a210b7760",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 5,
+  "step_id": "nOlNBr",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:47:36.222403+00:00"
+ },
+ {
+  "id": "60a1a72e-7fc1-456c-95e5-7d4299c0a81f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 8,
+  "step_id": "usulKR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:47:39.851867+00:00"
+ },
+ {
+  "id": "571a1f92-71a9-4f96-bd46-030a19975603",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 17,
+  "step_id": "29sGdm",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:48:39.08812+00:00"
+ },
+ {
+  "id": "6dcd24a5-a319-4140-a511-969d5dd8b0ee",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 18,
+  "step_id": "z1qlfR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-25T23:48:44.538909+00:00"
+ },
+ {
+  "id": "51e0069f-ce5b-414f-bb0d-a27084d95899",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:09.122521+00:00"
+ },
+ {
+  "id": "53b44ea8-0e4b-4776-856d-fcd10d9443b1",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 2,
+  "step_id": "UQpD4O",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:32.70518+00:00"
+ },
+ {
+  "id": "1211d588-43e5-488f-920f-b2adc6325e84",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 4,
+  "step_id": "lxxXex",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:37.714637+00:00"
+ },
+ {
+  "id": "6a212074-40c3-47bb-9d45-2a90e322b554",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 6,
+  "step_id": "ViHTWP",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:43.165197+00:00"
+ },
+ {
+  "id": "f1ceb6f1-fe15-463b-8cfb-745a1fa4230e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 9,
+  "step_id": "zepiwy",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:47.763627+00:00"
+ },
+ {
+  "id": "3671d769-eefa-40b4-92b5-ea861912828c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 11,
+  "step_id": "4INrVe",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:50.195606+00:00"
+ },
+ {
+  "id": "e20b559a-029b-4c4b-a5e8-7b52110040d8",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 12,
+  "step_id": "HlkPWs",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:51.630481+00:00"
+ },
+ {
+  "id": "8f8388e8-7c47-4b24-89ae-dcdf75e171b8",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 13,
+  "step_id": "zSikDv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:52.750835+00:00"
+ },
+ {
+  "id": "341f505f-bfa5-48ea-b40c-dc57c48656e5",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 14,
+  "step_id": "clQBmn",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:03:56.417458+00:00"
+ },
+ {
+  "id": "47648edb-b182-4f5a-8992-8f7c3d9ad39f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 15,
+  "step_id": "X7lxtB",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:04:07.386277+00:00"
+ },
+ {
+  "id": "48ceb1e1-2d3f-464b-946c-57aa7d77b501",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 18,
+  "step_id": "z1qlfR",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:04:27.571692+00:00"
+ },
+ {
+  "id": "bdd99f23-b99e-4f4f-a041-b96c04e4e044",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:06:18.400842+00:00"
+ },
+ {
+  "id": "cb550ad3-175c-4cf5-804e-e5a031b0e4b4",
+  "session_id": "s-xmk1jhdcu2mqu68zin",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:07:13.330285+00:00"
+ },
+ {
+  "id": "ceb40b7c-b12c-4d64-bb2a-586cf8af5576",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:04.627277+00:00"
+ },
+ {
+  "id": "5ddbe6e9-6f3b-4f9a-adf9-24d0c8fb346e",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:23.435552+00:00"
+ },
+ {
+  "id": "ed2a0bd9-8472-462a-9a43-5bd4d8cdef70",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:31.018695+00:00"
+ },
+ {
+  "id": "8b6aa32d-53c2-4ae3-b05e-67cd8fd01eb3",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:47.949781+00:00"
+ },
+ {
+  "id": "22ab9bb1-8149-4bbe-aaa8-8e3f33d9dd66",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 14,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-22T03:12:01.988073+00:00"
+ },
+ {
+  "id": "54a43dba-52d4-44cc-9a15-ccf583fdb54d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 16,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-22T03:12:21.244009+00:00"
+ },
+ {
+  "id": "d598680f-13b1-4d0d-bc0e-839cc7203d40",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 17,
+  "step_id": "pos-captura",
+  "step_type": "post_capture",
+  "meta": null,
+  "created_at": "2026-06-22T03:12:46.339623+00:00"
+ },
+ {
+  "id": "ae26dd9e-9e35-4bbb-9dc5-88e11779b2b3",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 19,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-22T03:12:56.300819+00:00"
+ },
+ {
+  "id": "6ee5f0d1-d27c-4117-b231-cd11c658786d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T03:29:08.92424+00:00"
+ },
+ {
+  "id": "7a55ac08-03ec-4b71-b84c-aecd0c2715f0",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:15.634341+00:00"
+ },
+ {
+  "id": "1bf81e35-d0f4-4dcf-972a-a8589108fcdf",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:16.157891+00:00"
+ },
+ {
+  "id": "9e6e0b9c-660a-45d0-bce0-6348175a83f5",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:16.161175+00:00"
+ },
+ {
+  "id": "1c6afae8-132c-4488-a567-a614e02ee049",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:16.712419+00:00"
+ },
+ {
+  "id": "e2d822b6-12ed-4f4d-9c7e-8631c0077646",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:16.718421+00:00"
+ },
+ {
+  "id": "9345f804-8b58-4c70-a7c7-e22e629986f1",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:18.306192+00:00"
+ },
+ {
+  "id": "d88ded9b-564a-4cd0-a3d0-eadc2991fce1",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:18.310962+00:00"
+ },
+ {
+  "id": "6173f560-d62f-419d-913d-d0dc2c94ab12",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:18.908669+00:00"
+ },
+ {
+  "id": "1ecc2617-59b5-44ac-b621-5f402524f3ff",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:18.911251+00:00"
+ },
+ {
+  "id": "79596e92-c51a-416d-95a1-cd2d6e09c5e5",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:22.091914+00:00"
+ },
+ {
+  "id": "4a698848-0623-49d6-9bc0-665d6a4d2533",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:22.097204+00:00"
+ },
+ {
+  "id": "000b0d08-af89-4345-9b2b-e5b575cd4dea",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 16,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:32.19811+00:00"
+ },
+ {
+  "id": "f43c94d3-be62-45e9-bc7b-dd184bd511e2",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 17,
+  "step_id": "pos-captura",
+  "step_type": "post_capture",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:53.823719+00:00"
+ },
+ {
+  "id": "081b10fb-55dd-4458-9a9a-07d402c1786e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 18,
+  "step_id": "bridge",
+  "step_type": "bridge",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:05.289322+00:00"
+ },
+ {
+  "id": "2a02be5a-a6e6-4069-98c2-2bc854aa1d87",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 17,
+  "step_id": "pos-captura",
+  "step_type": "post_capture",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:53.831607+00:00"
+ },
+ {
+  "id": "9cd3bdfc-a693-4163-9058-83987527dcdf",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 18,
+  "step_id": "bridge",
+  "step_type": "bridge",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:05.291298+00:00"
+ },
+ {
+  "id": "ead22912-e634-4e80-85de-9396c984190d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 19,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:18.768002+00:00"
+ },
+ {
+  "id": "3dd9888a-652c-4b04-b65f-3bd8cdd8e27c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 19,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:18.777091+00:00"
+ },
+ {
+  "id": "60d3b378-9642-4908-b0dc-bfa88cc83000",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 19,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:36.987112+00:00"
+ },
+ {
+  "id": "3cb87df6-f22b-4665-9f9e-5a2db6da8220",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 19,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:36.987119+00:00"
+ },
+ {
+  "id": "cc76b4dd-1e8f-47f4-8f63-3442a59a74d8",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:40.010947+00:00"
+ },
+ {
+  "id": "1de40c46-26e6-4867-b7a5-3ca47e2fbd7a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:40.048698+00:00"
+ },
+ {
+  "id": "9d8652e4-4c4f-4ee4-99a8-faee92dc04cb",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "844f602c-02f5-47b6-b1c4-256098db01c3",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:47.020089+00:00"
+ },
+ {
+  "id": "100d3b75-bbba-4467-85ff-bfcc7a8067b7",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "844f602c-02f5-47b6-b1c4-256098db01c3",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:47.021137+00:00"
+ },
+ {
+  "id": "e427f1ab-308e-438b-9887-01d2152790fb",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:50.877378+00:00"
+ },
+ {
+  "id": "5fd7b352-a98a-480a-9d4f-ea492b91bc5c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:16:50.8789+00:00"
+ },
+ {
+  "id": "a83a186d-06ad-4a73-9fe6-4331b4a11a68",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:35.155548+00:00"
+ },
+ {
+  "id": "fc5383f2-06e6-4d6c-87db-990882fbe81e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:39:35.244816+00:00"
+ },
+ {
+  "id": "bf262b8f-1948-4cab-add7-2a0dd8e6bdbc",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:01:19.201845+00:00"
+ },
+ {
+  "id": "d6f96748-f581-4781-b1e3-8642a4f73502",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:01:20.201846+00:00"
+ },
+ {
+  "id": "45b4f98c-080a-4883-a62f-9690f3ee4a0a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:02:13.55214+00:00"
+ },
+ {
+  "id": "a8f07a06-9063-4575-bbc1-d179f4fda342",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:03:47.598167+00:00"
+ },
+ {
+  "id": "93aac6ca-b7c6-421a-92c7-2e04a0029d97",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:03:47.657702+00:00"
+ },
+ {
+  "id": "652ae334-87ca-4326-a992-287db27c45f4",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:05:07.608799+00:00"
+ },
+ {
+  "id": "6f49784b-9961-4206-bc85-a8bf75398cde",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:05:07.720952+00:00"
+ },
+ {
+  "id": "ba10dbb0-9245-4365-9f95-854e36d8e783",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:12:54.251821+00:00"
+ },
+ {
+  "id": "c037a5c5-7279-4e78-afee-bbe77d2c9d9e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "97a50e2d-38bc-4362-9e66-250a7aaa0889",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:18:56.606655+00:00"
+ },
+ {
+  "id": "8a6de86c-9289-4786-8bee-2dde0e43df36",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "97a50e2d-38bc-4362-9e66-250a7aaa0889",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:18:56.606669+00:00"
+ },
+ {
+  "id": "87efcb22-6077-4622-853d-38901b70bc03",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "a681ac21-460b-4327-9432-3334158b261a",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:02.618115+00:00"
+ },
+ {
+  "id": "76b89b9d-8781-4e59-a068-3fd6b1f5d5e0",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "a681ac21-460b-4327-9432-3334158b261a",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:02.622534+00:00"
+ },
+ {
+  "id": "7cb43e86-33c2-4c1f-9778-28d6e6718fa7",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:06.958643+00:00"
+ },
+ {
+  "id": "6f60c7ed-ea98-49f9-83ee-e83a5ed0fd4f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:06.960793+00:00"
+ },
+ {
+  "id": "5e73167f-075e-4b41-b478-e0d79f6b23ec",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:07.7251+00:00"
+ },
+ {
+  "id": "06d7c852-1869-4636-9726-51be8789d019",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:07.726092+00:00"
+ },
+ {
+  "id": "e0d3bc57-78b1-4112-ad6b-cb88f7f84fb3",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "97a50e2d-38bc-4362-9e66-250a7aaa0889",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:08.718868+00:00"
+ },
+ {
+  "id": "866404a6-c7fc-4713-8abd-cbb059c954aa",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "97a50e2d-38bc-4362-9e66-250a7aaa0889",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:08.721682+00:00"
+ },
+ {
+  "id": "e8f68e8c-d601-4c3e-a3fa-f6d36d67d39c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "d3cc8eef-723b-4f7e-b070-58a8e96e6a55",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:10.148197+00:00"
+ },
+ {
+  "id": "c2840491-e850-4af4-85d3-a2b68380f180",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "d3cc8eef-723b-4f7e-b070-58a8e96e6a55",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:10.153247+00:00"
+ },
+ {
+  "id": "f8f6291d-6dd7-433a-bf7a-abd02b5380bd",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "97a50e2d-38bc-4362-9e66-250a7aaa0889",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:11.492595+00:00"
+ },
+ {
+  "id": "0acbf9a8-3f9a-4b22-aaf0-ae1f9db22ce4",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "97a50e2d-38bc-4362-9e66-250a7aaa0889",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:11.492974+00:00"
+ },
+ {
+  "id": "f0f55887-50de-445e-a644-356ad2548e28",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:13.754232+00:00"
+ },
+ {
+  "id": "aae7cce3-5dda-40b0-b47f-ab5befee4c94",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T01:22:13.754552+00:00"
+ },
+ {
+  "id": "9ebddd3f-f50b-4a08-a1a8-43168a3047b2",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T02:14:28.557797+00:00"
+ },
+ {
+  "id": "808c785e-9510-46df-b71c-bb4a9d6ac3e6",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T02:25:29.700124+00:00"
+ },
+ {
+  "id": "a121820b-8b38-4f0b-8430-ed1f008cfa1d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T02:28:42.997406+00:00"
+ },
+ {
+  "id": "da13251f-5d61-4743-840c-0624e8946c2c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T02:28:43.045607+00:00"
+ },
+ {
+  "id": "d46a9f6f-1ddf-439b-bd61-0bf06a15fc5c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T02:31:29.527092+00:00"
+ },
+ {
+  "id": "5fbaf091-dd51-4edf-b965-a00da37bab4a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T02:31:29.532224+00:00"
+ },
+ {
+  "id": "ce88ca75-2fb9-4d8a-8c6e-ad0701930a04",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:05.866926+00:00"
+ },
+ {
+  "id": "9bfba608-490e-458b-9688-18718ec9a172",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:14.103685+00:00"
+ },
+ {
+  "id": "bbe6a0e9-7ceb-44aa-beda-040b8e390cb5",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:35.357522+00:00"
+ },
+ {
+  "id": "93fccd5a-384f-4182-b459-8ae324b4fb23",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 14,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:44.872375+00:00"
+ },
+ {
+  "id": "df63253a-91d8-457a-96d3-f5508875d80b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 16,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:58.826163+00:00"
+ },
+ {
+  "id": "67087c38-545c-4775-b21b-c06a1a582d70",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 17,
+  "step_id": "pos-captura",
+  "step_type": "post_capture",
+  "meta": null,
+  "created_at": "2026-06-22T03:38:16.560653+00:00"
+ },
+ {
+  "id": "e8196d43-6b2d-4d9f-b080-4c5d476ab9c1",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:19.187138+00:00"
+ },
+ {
+  "id": "256a0a23-b4e9-4a71-9422-b3039985357a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:27.312808+00:00"
+ },
+ {
+  "id": "75e0fc61-ac87-4168-a105-7e1aa2569e56",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:45.057204+00:00"
+ },
+ {
+  "id": "9d03e289-d110-44df-81e3-6285d523d61f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 12,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:50.281368+00:00"
+ },
+ {
+  "id": "d56ad140-c7e1-405f-ad34-f9585ded706f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 15,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-22T03:12:08.24236+00:00"
+ },
+ {
+  "id": "b5ba2f9a-a0e0-4b7c-a086-ca9058adcba6",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T03:30:43.585326+00:00"
+ },
+ {
+  "id": "15dde695-75dd-4997-8a9a-d50517f99fb1",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T02:32:08.379552+00:00"
+ },
+ {
+  "id": "dcce0243-3198-4f9b-b2a6-2dbc449ce761",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T03:37:44.87195+00:00"
+ },
+ {
+  "id": "d5fb3086-05c2-467b-a9b1-cf7ffcbe8827",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "51455a1e-ca6c-4a17-9e34-7c15386b3716",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T03:38:09.904467+00:00"
+ },
+ {
+  "id": "edbdbd0e-fff1-422f-88a2-6ebc3ea36fc1",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "51455a1e-ca6c-4a17-9e34-7c15386b3716",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T03:38:09.911886+00:00"
+ },
+ {
+  "id": "0d7b1b12-5178-42e5-b6a2-b64ed72ee6ac",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T03:40:53.150758+00:00"
+ },
+ {
+  "id": "80994e92-d7c9-4503-985b-4fef288bdb60",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "1b033545-3681-4ca0-8562-ca7346e31421",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T03:41:36.475187+00:00"
+ },
+ {
+  "id": "17c9b72d-47d9-48f0-884d-fb96cd0e0cce",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "1b033545-3681-4ca0-8562-ca7346e31421",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T03:41:36.475537+00:00"
+ },
+ {
+  "id": "e4c8c8b5-9f27-453b-9c56-c25799017c2f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "1b033545-3681-4ca0-8562-ca7346e31421",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T03:43:51.81315+00:00"
+ },
+ {
+  "id": "dbcc00b2-744e-4f2f-a7a1-6f53f000812c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "1b033545-3681-4ca0-8562-ca7346e31421",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T03:43:51.82537+00:00"
+ },
+ {
+  "id": "adf81ba6-7a50-4d08-b430-442ef94b51d9",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "1b033545-3681-4ca0-8562-ca7346e31421",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T03:46:39.955852+00:00"
+ },
+ {
+  "id": "17135a16-2def-45c1-8560-3355091ec78a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "1b033545-3681-4ca0-8562-ca7346e31421",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T03:46:39.95585+00:00"
+ },
+ {
+  "id": "cbbc28f2-7c72-461e-b0b6-1d09c9bb259f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:32.372168+00:00"
+ },
+ {
+  "id": "30533ac4-a9dd-4d2f-8baf-28ecf6b1f743",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:32.372179+00:00"
+ },
+ {
+  "id": "08edd65f-a3b9-4c96-9f63-27a44e21d84a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "e9c05373-1c47-464e-93d0-2fd4c0e6c6da",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:39.600738+00:00"
+ },
+ {
+  "id": "6c260fd1-e035-464c-ba66-833c595ec50d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "e9c05373-1c47-464e-93d0-2fd4c0e6c6da",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:39.6005+00:00"
+ },
+ {
+  "id": "cba76449-5a8d-471f-b4f5-b5c835a2303b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:47.695932+00:00"
+ },
+ {
+  "id": "19995e38-732f-4ce7-b2e2-aa449c36966d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:49.431689+00:00"
+ },
+ {
+  "id": "48256ed5-a0f7-49ea-a3e9-90d95e2b29d2",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:51.917591+00:00"
+ },
+ {
+  "id": "4f17de0c-2f91-4b4d-a22a-3333f4a26435",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:53.746933+00:00"
+ },
+ {
+  "id": "30db00b2-64e7-4cdf-8625-c1ae398a4f61",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:55.131443+00:00"
+ },
+ {
+  "id": "95fcc954-0641-4375-9528-4436b737c481",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:57.499625+00:00"
+ },
+ {
+  "id": "0669ed66-8f47-4ea4-a3c7-a4a6524a2df9",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:56:59.904273+00:00"
+ },
+ {
+  "id": "a72daa02-f536-4e44-97e4-fc6a4b855c05",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:01.85216+00:00"
+ },
+ {
+  "id": "4bacac93-6522-4838-8d10-0ee0fcac9638",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:04.046822+00:00"
+ },
+ {
+  "id": "6b44c4eb-7378-42b7-9bcc-03bf7951a841",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 12,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:06.73291+00:00"
+ },
+ {
+  "id": "3b467412-90f9-4f77-abde-88792213893f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 13,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:08.997116+00:00"
+ },
+ {
+  "id": "4cfe4999-e52e-4085-ab81-bedf45812901",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 14,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:10.515196+00:00"
+ },
+ {
+  "id": "a3dc5e0e-fdc3-4c00-bae0-86ef7966678c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 15,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:15.998117+00:00"
+ },
+ {
+  "id": "2c76061b-7266-4017-9945-2543b59791c4",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 16,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-19T03:57:23.208558+00:00"
+ },
+ {
+  "id": "9130f19c-d310-4b25-9092-dfdf443d7138",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:04:06.546223+00:00"
+ },
+ {
+  "id": "6e7b999d-913b-4477-84a7-1ee51f4bc2a6",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:04:06.817857+00:00"
+ },
+ {
+  "id": "19eba46e-ff48-4abe-88c8-6027c6d5a9e5",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:04:06.847462+00:00"
+ },
+ {
+  "id": "4c334de5-ffba-4a40-98dd-8488ef0fe88e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:04:13.07879+00:00"
+ },
+ {
+  "id": "7178c5fb-c609-4cc3-be83-48bb8e78949d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:05:05.385983+00:00"
+ },
+ {
+  "id": "baf067d1-a092-4110-95a1-16bb918e815c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:10:44.716863+00:00"
+ },
+ {
+  "id": "113914b9-adc7-44ba-bb0e-799de4998712",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:09.93751+00:00"
+ },
+ {
+  "id": "c2916bca-b024-4b32-8345-6d0b6c9c228d",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:15.235332+00:00"
+ },
+ {
+  "id": "971a425e-d0e8-40ea-a9cf-ab93a79af115",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:36.357116+00:00"
+ },
+ {
+  "id": "584bc07f-dda7-42f3-a407-b9ab8d8957ec",
+  "session_id": "s-bcx8lj6waamqq5nnmo",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T04:39:33.882669+00:00"
+ },
+ {
+  "id": "fc8f7d61-603a-43c7-bac9-3357c747fdd9",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:25.484132+00:00"
+ },
+ {
+  "id": "9239e79a-22d8-47a1-9c86-bd46d1eaabbb",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:32.57225+00:00"
+ },
+ {
+  "id": "d66d31c5-fc61-4209-b900-76d4f3aa0748",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:49.093247+00:00"
+ },
+ {
+  "id": "150bf1a1-7a2a-40c2-887b-f79aeb4b0cbe",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T03:31:03.585495+00:00"
+ },
+ {
+  "id": "ec505627-7a19-4961-8053-7d4bfeff267d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 16,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:32.197903+00:00"
+ },
+ {
+  "id": "3b230458-f231-40e4-9e07-17ce51043db4",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:10:44.717937+00:00"
+ },
+ {
+  "id": "785c5061-7ccb-4372-9755-bbd2e0337590",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:10:45.474783+00:00"
+ },
+ {
+  "id": "820b66d4-d145-4c48-bbd4-9fc1ddf8b69b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:10:45.486406+00:00"
+ },
+ {
+  "id": "56c95c45-0664-44eb-a28d-feb4cc604f1c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:10:46.260199+00:00"
+ },
+ {
+  "id": "8f6e9ea0-316d-46a2-8254-76753ad9f866",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:10:46.260548+00:00"
+ },
+ {
+  "id": "0c6c0ce7-8415-4796-9670-c687d087b391",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:10:47.63289+00:00"
+ },
+ {
+  "id": "08e19cc5-f53d-4191-9db1-c2cc1b533881",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:10:47.633839+00:00"
+ },
+ {
+  "id": "01082da6-d05c-40a0-98c8-2f68a8f3b474",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "e0ac1b07-abab-4b99-8b77-f3eec65c22f3",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T04:11:00.483918+00:00"
+ },
+ {
+  "id": "55c95d2d-2dee-424a-af21-ae231dfead5e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "e0ac1b07-abab-4b99-8b77-f3eec65c22f3",
+  "step_type": "scratch",
+  "meta": null,
+  "created_at": "2026-06-19T04:11:00.485045+00:00"
+ },
+ {
+  "id": "db941831-79f1-4e15-8f3c-60bb3db631ff",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:15:05.85065+00:00"
+ },
+ {
+  "id": "012f5571-3140-4084-95c5-1bb66f55ca9d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "963e9bd6-0922-445b-ab58-a8f37c2bc6d9",
+  "step_type": "measure",
+  "meta": null,
+  "created_at": "2026-06-19T04:15:22.502932+00:00"
+ },
+ {
+  "id": "362784f5-5642-45b8-bfe6-1588d6524e88",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "963e9bd6-0922-445b-ab58-a8f37c2bc6d9",
+  "step_type": "measure",
+  "meta": null,
+  "created_at": "2026-06-19T04:15:22.510315+00:00"
+ },
+ {
+  "id": "e9edc33e-6937-4e15-a9dd-13a0c8254373",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:22:47.873337+00:00"
+ },
+ {
+  "id": "d61bf674-18c6-4519-b8cf-b4ee3322353f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "e1f4c35c-838e-40ed-ba27-e63af8c012e7",
+  "step_type": "slider",
+  "meta": null,
+  "created_at": "2026-06-19T04:23:00.485301+00:00"
+ },
+ {
+  "id": "8ee8707d-1ded-466d-bd19-b55f337aeea7",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "e1f4c35c-838e-40ed-ba27-e63af8c012e7",
+  "step_type": "slider",
+  "meta": null,
+  "created_at": "2026-06-19T04:23:00.485301+00:00"
+ },
+ {
+  "id": "22dbc4e7-9b4e-4a46-96bc-94e9cd77d91e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "0cef12fd-64d3-4380-bf63-cabdb144734b",
+  "step_type": "measure",
+  "meta": null,
+  "created_at": "2026-06-19T04:23:07.901844+00:00"
+ },
+ {
+  "id": "a0c279e7-b3a9-49e6-88ce-3d3f502db53c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "0cef12fd-64d3-4380-bf63-cabdb144734b",
+  "step_type": "measure",
+  "meta": null,
+  "created_at": "2026-06-19T04:23:07.903507+00:00"
+ },
+ {
+  "id": "db77eba3-cbdb-4a88-9e0c-50dd6a0d47e3",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "1bbe7973-7621-4cf4-a7f4-bbdfb3d8c6f1",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T04:23:23.392071+00:00"
+ },
+ {
+  "id": "b862c3fc-52c5-456f-bc3c-e2ee5c8f0b5f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "1bbe7973-7621-4cf4-a7f4-bbdfb3d8c6f1",
+  "step_type": "confirm",
+  "meta": null,
+  "created_at": "2026-06-19T04:23:23.392602+00:00"
+ },
+ {
+  "id": "3000fc0a-2bc9-4bfa-90bd-7457e7e779f0",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "cce5e17d-3119-442c-8b25-64c662381795",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:23:36.975597+00:00"
+ },
+ {
+  "id": "1d283ec3-400f-4a6d-9ee9-65b07c0085ac",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "cce5e17d-3119-442c-8b25-64c662381795",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:23:36.977096+00:00"
+ },
+ {
+  "id": "d6f0fadf-fc60-490b-96ef-876a64f6cf55",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:02.898948+00:00"
+ },
+ {
+  "id": "90439058-05ac-44c2-b282-15517c5fa616",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:46.692109+00:00"
+ },
+ {
+  "id": "e5c5d5b1-9b5c-4448-b190-9110816f98a1",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:47.902409+00:00"
+ },
+ {
+  "id": "2cb52b89-6bc0-42b8-a97b-9e3b94773a4e",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:48.684054+00:00"
+ },
+ {
+  "id": "eb11582c-7338-4bcc-aed4-9500c665693c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:49.2335+00:00"
+ },
+ {
+  "id": "7222cafd-cbab-4650-b5b8-cab52f6f3543",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:49.801448+00:00"
+ },
+ {
+  "id": "4a0c9d8e-5dea-4aff-9c0c-29215d6b9c24",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:50.350098+00:00"
+ },
+ {
+  "id": "1417ff0f-7e0d-4117-8733-37b7bc2644e6",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:50.903342+00:00"
+ },
+ {
+  "id": "8006e34c-296a-4a28-894a-295f3dee8bce",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:51.4703+00:00"
+ },
+ {
+  "id": "9dfbb1f7-a3b8-4df1-b5b2-c1c978f00913",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:52.018228+00:00"
+ },
+ {
+  "id": "468c7d19-d3ca-41ea-9d72-c88ea84dc5c2",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:52.561605+00:00"
+ },
+ {
+  "id": "5a39c975-d539-4e08-9770-2e3ae114dbc2",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:53.124848+00:00"
+ },
+ {
+  "id": "065ffd1f-7e09-4559-b284-30e1f6b7c55b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 12,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:53.688586+00:00"
+ },
+ {
+  "id": "52fe4c18-b856-4d54-8498-96616a17f85a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 13,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:54.257176+00:00"
+ },
+ {
+  "id": "b05d3cd9-01b9-41cf-bda0-fe521890c602",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 14,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:54.822472+00:00"
+ },
+ {
+  "id": "222fccf7-5d4c-49d1-a324-0be632344516",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 15,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-19T04:29:55.141986+00:00"
+ },
+ {
+  "id": "6ba5d756-a490-4b86-bf11-ccf6513785e8",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:53:34.25216+00:00"
+ },
+ {
+  "id": "511a7a97-2371-4056-9562-be64d1dce091",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:53:34.252776+00:00"
+ },
+ {
+  "id": "92d1b269-0c1b-4ca6-9c84-f9e4f5d9c7ca",
+  "session_id": "s-vbi0p2yicgmqq5o5eu",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T04:39:57.503371+00:00"
+ },
+ {
+  "id": "89597ca2-dd8c-4d43-a9e1-bc2394c67417",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T04:53:34.262341+00:00"
+ },
+ {
+  "id": "f19dfef3-631a-4234-bee3-0a26e0347356",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:17:54.322677+00:00"
+ },
+ {
+  "id": "34cccb39-62a4-4c93-b394-b17e38f84987",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:18:11.502845+00:00"
+ },
+ {
+  "id": "d6edce3e-ce4a-461c-ac60-6166909bc1fd",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:18:11.511132+00:00"
+ },
+ {
+  "id": "efb87603-204e-40fb-a29e-39d4e6207ef7",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:26:24.653271+00:00"
+ },
+ {
+  "id": "75419d96-14e3-4f61-9628-20d8debec402",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:26:24.654644+00:00"
+ },
+ {
+  "id": "9089d533-bf22-415b-b9c3-3129e5743d0a",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:12.803909+00:00"
+ },
+ {
+  "id": "faffc4f3-6214-4d74-91ab-c8af6bb4170f",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:17.572679+00:00"
+ },
+ {
+  "id": "ef85843f-9ca3-4998-87f8-1ccd7a81dddb",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 13,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-22T03:37:38.371821+00:00"
+ },
+ {
+  "id": "0bf5c803-c532-440a-b623-054cc4867f78",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:28.685029+00:00"
+ },
+ {
+  "id": "5d3e9ef4-618d-42e1-9055-7eca4bfea0c3",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:46.752157+00:00"
+ },
+ {
+  "id": "581fd1bf-1d62-48b4-9253-288493e9b823",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 13,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-22T03:11:51.485117+00:00"
+ },
+ {
+  "id": "d3850453-aa1d-497a-bfa6-a079e72cae53",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:54.090982+00:00"
+ },
+ {
+  "id": "63d919b6-bc71-464b-a599-39df9ddbacf8",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:54.090759+00:00"
+ },
+ {
+  "id": "b2426a83-b4ee-4a3d-b3cf-82434b2b0b3d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:54.71965+00:00"
+ },
+ {
+  "id": "3f3cce15-4b2c-4d54-a4cf-c9d411ebf2ce",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:54.719242+00:00"
+ },
+ {
+  "id": "3720ffdc-affe-4ffc-b85f-4415afcc7d1b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:55.87253+00:00"
+ },
+ {
+  "id": "f734485f-4202-4556-ad68-0ac2a36e6dfb",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:13:11.904+00:00"
+ },
+ {
+  "id": "ff9391fc-ac45-4ba3-b4e5-4f906e6d9693",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:13:11.914425+00:00"
+ },
+ {
+  "id": "5dae52b6-fd23-482d-916a-57b2fac55b75",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:13:14.57478+00:00"
+ },
+ {
+  "id": "de43017a-96ed-44b0-bdc7-19ba4ca86f55",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:13:14.574562+00:00"
+ },
+ {
+  "id": "04a84b1f-49ea-43be-b796-99c2d0ba5cee",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:13:20.407925+00:00"
+ },
+ {
+  "id": "5eea71e6-b87a-458e-aed2-f137a2d027c2",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:13:33.976627+00:00"
+ },
+ {
+  "id": "069537bf-89c1-4633-9749-d62cc84536a3",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:13:34.879462+00:00"
+ },
+ {
+  "id": "fbc6ee18-2098-4da6-9825-2c1e6168fb11",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:13:36.01619+00:00"
+ },
+ {
+  "id": "6ffdd236-333e-4b05-86f8-5f7b334e77d9",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:22.055254+00:00"
+ },
+ {
+  "id": "fe43f356-5ddd-4788-9187-888e3b536953",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:22.060807+00:00"
+ },
+ {
+  "id": "543bc5c6-4fff-4c4c-a865-e25b5fa23b9b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:27.61431+00:00"
+ },
+ {
+  "id": "34beb9b0-a943-456f-8028-0ba911abf2da",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:27.61431+00:00"
+ },
+ {
+  "id": "96758248-1b80-4a07-bffa-86b65b4ed458",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:31.925332+00:00"
+ },
+ {
+  "id": "9f8d9c06-841b-40ac-86f4-9c6100c3d1cd",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:31.927174+00:00"
+ },
+ {
+  "id": "f854ee26-90f9-46d1-8cc1-03c1415b67dd",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:33.666984+00:00"
+ },
+ {
+  "id": "8949b593-bf64-419c-9363-3d79c2e351c9",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:33.670386+00:00"
+ },
+ {
+  "id": "28014e57-b8e3-4b2e-9b87-e8c2d5507bd1",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:35.631324+00:00"
+ },
+ {
+  "id": "54c44834-a998-4867-8bf9-569044cc07c8",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:35.635008+00:00"
+ },
+ {
+  "id": "6b174967-6b17-4436-bfa7-cf8160b8110a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:36.631271+00:00"
+ },
+ {
+  "id": "e96bd46e-bab0-4d03-ae61-1ffb30126568",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:36.631679+00:00"
+ },
+ {
+  "id": "dca5ab94-2bda-4a3c-8266-fe4efb1d2290",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:38.286712+00:00"
+ },
+ {
+  "id": "7ba2164f-b124-4728-910d-a3a297b43e18",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:38.287983+00:00"
+ },
+ {
+  "id": "c139f984-77ee-4bf2-9616-012ba101cd1f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:39.410856+00:00"
+ },
+ {
+  "id": "f797b03c-e0c4-444a-bb09-68d8cd60b5c5",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:39.415378+00:00"
+ },
+ {
+  "id": "a7298f21-64bb-441e-8dfb-2ea45032e743",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:40.415378+00:00"
+ },
+ {
+  "id": "dc242ebb-c98d-4d27-83ba-63e2a9deebcf",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:40.415974+00:00"
+ },
+ {
+  "id": "700fd51f-42ca-44d8-9097-1452f63424fd",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:41.492947+00:00"
+ },
+ {
+  "id": "7d729630-e9c8-47e6-a3cb-5c68e55ec812",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:41.497998+00:00"
+ },
+ {
+  "id": "e1e9c16f-c3f4-427a-bcef-a8cf8a39d361",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:43.15255+00:00"
+ },
+ {
+  "id": "140dd25d-5850-4a18-8d57-04d9855081b7",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:43.154787+00:00"
+ },
+ {
+  "id": "0fc10e05-dc1a-4858-ab0e-492428f2805d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:44.701509+00:00"
+ },
+ {
+  "id": "cc799eeb-49ff-479b-9cbf-0076526b2980",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:44.711005+00:00"
+ },
+ {
+  "id": "675ff93b-115a-4393-ab52-26f7ddcecba8",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:46.316307+00:00"
+ },
+ {
+  "id": "a0d4a137-dca7-4b90-b464-47e5c7790a0d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:46.334006+00:00"
+ },
+ {
+  "id": "229190dc-d13e-46db-a86e-da2b95b5318a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:48.810375+00:00"
+ },
+ {
+  "id": "c8540d0e-1329-43ed-8c1c-75adfe38cc8f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:14:48.811737+00:00"
+ },
+ {
+  "id": "025ef312-e449-46b7-81ce-892d2dbbae3d",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:11.720787+00:00"
+ },
+ {
+  "id": "03debffe-2a5c-401e-a716-cecad180e461",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 19,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-22T03:38:22.791716+00:00"
+ },
+ {
+  "id": "0a751b7c-e350-4a8c-bf15-142cde64a8b4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 18,
+  "step_id": "bridge",
+  "step_type": "bridge",
+  "meta": null,
+  "created_at": "2026-06-22T03:12:51.362087+00:00"
+ },
+ {
+  "id": "4f7de627-2264-435b-9663-fdeed938370c",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:01.33391+00:00"
+ },
+ {
+  "id": "a048a4d4-5c21-45f6-8e3f-d30538dcd5f8",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:03.659253+00:00"
+ },
+ {
+  "id": "3aa516cb-130b-4c26-8e3c-5356c3ef9fb1",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:03.900918+00:00"
+ },
+ {
+  "id": "8d310d1e-f681-484a-bcc1-375038914d75",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:31.32815+00:00"
+ },
+ {
+  "id": "fc3c69cd-160f-41f8-9c95-27a91cfa8fb2",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:31.433485+00:00"
+ },
+ {
+  "id": "26a87dfb-083e-4be2-96ce-6978a921e127",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:51.630914+00:00"
+ },
+ {
+  "id": "c5ce574f-2d1f-41d1-96ca-a28f57686529",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:51.632959+00:00"
+ },
+ {
+  "id": "868f9474-4d9e-4211-aa8c-bcf55a9775de",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:53.384032+00:00"
+ },
+ {
+  "id": "6531e7b7-ff38-4ba6-a2cb-a2762e96dd6b",
+  "session_id": "s-5ehwnhedebmqq5oc25",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T04:40:06.936263+00:00"
+ },
+ {
+  "id": "6baf0af0-c026-4b36-adc8-c40b4e6b7793",
+  "session_id": "s-m2mo09ec80mqq84aqw",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:48:29.432886+00:00"
+ },
+ {
+  "id": "30d74363-67ea-4231-aad7-99ad60187730",
+  "session_id": "s-he7hqf7k7mmqq84bks",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:48:30.972781+00:00"
+ },
+ {
+  "id": "fb15ab41-15c0-46c3-9a70-52089793c23e",
+  "session_id": "s-uv6yv32r78mqq84jyr",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:48:41.192492+00:00"
+ },
+ {
+  "id": "da9bcc3c-a60a-47c0-8355-c162e15fe4b5",
+  "session_id": "s-50nrih5fsqmqq84ly1",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:48:44.288558+00:00"
+ },
+ {
+  "id": "9d2cab4c-ddb6-4272-88d2-34698c319294",
+  "session_id": "s-9pzzmrgbbemqq84m6a",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:48:44.789927+00:00"
+ },
+ {
+  "id": "79407e97-7a4f-469b-aba2-993e95da2cf3",
+  "session_id": "s-dzrxa2gv7emqq8561t",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:49:10.004659+00:00"
+ },
+ {
+  "id": "5f973272-6ef2-4637-b057-72d7be335197",
+  "session_id": "s-3rtskmr9t6mqqc06o7",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T07:37:16.783396+00:00"
+ },
+ {
+  "id": "e776ddc6-44a6-432f-93c8-c4f690c5cab5",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-23T16:39:01.384947+00:00"
+ },
+ {
+  "id": "9dac6512-b66f-41d4-9017-e61d9cd73667",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T16:55:59.137472+00:00"
+ },
+ {
+  "id": "56fe1e83-9cfb-447b-ba64-bd7fd7d1b302",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T17:16:38.341431+00:00"
+ },
+ {
+  "id": "f56afdc1-7067-4f97-ad77-1787453bbdb4",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-23T17:16:54.706592+00:00"
+ },
+ {
+  "id": "2f249923-5ff0-4cc3-8328-cfea6d6bb220",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:16:58.047421+00:00"
+ },
+ {
+  "id": "a9463def-bf70-4dca-bc8e-1dfeaa8f17f9",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:16:59.938766+00:00"
+ },
+ {
+  "id": "3125cc47-7108-4abf-b141-04ec74e8ae26",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:00.939269+00:00"
+ },
+ {
+  "id": "73a360e2-ae6a-474f-98d6-7ab7431d0a4a",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:01.718267+00:00"
+ },
+ {
+  "id": "10840c7e-b570-46b6-93d7-865a2b77bf9d",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:04.666438+00:00"
+ },
+ {
+  "id": "88a9b8f6-10ae-4ce1-8c97-7a2ad3c494d7",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 12,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:06.221702+00:00"
+ },
+ {
+  "id": "bcd1c70e-d727-4cd8-87ef-a36d5aa27b7b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-24T19:21:19.579316+00:00"
+ },
+ {
+  "id": "bae847c6-49c2-433e-85ba-5edd33fa611b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 18,
+  "step_id": "bridge",
+  "step_type": "bridge",
+  "meta": null,
+  "created_at": "2026-06-25T20:40:33.826556+00:00"
+ },
+ {
+  "id": "694f01f8-d205-4464-b78e-e944149b320a",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 19,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-25T20:40:36.314745+00:00"
+ },
+ {
+  "id": "23adf2bf-70fa-43e0-ac4a-7eeefb800740",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-25T23:14:20.964479+00:00"
+ },
+ {
+  "id": "ceb71a29-125e-4981-9386-0213ed37a864",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-26T00:05:58.365161+00:00"
+ },
+ {
+  "id": "a20c2dec-ed8e-4c5d-a95d-14abaff55996",
+  "session_id": "s-tt6e9cw6xsmqu5n0fs",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-26T00:06:05.214834+00:00"
+ },
+ {
+  "id": "458eafb7-87e7-4190-93b2-912ed81a8021",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T00:11:53.385151+00:00"
+ },
+ {
+  "id": "7efba416-8062-4636-827f-75ac47a72489",
+  "session_id": "s-n55i8ftapjmqox2y8i",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T07:51:45.03799+00:00"
+ },
+ {
+  "id": "543a1676-97fc-4192-8de0-01c68cd193aa",
+  "session_id": "s-6a52jzdbffmqq7swut",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:39:38.395554+00:00"
+ },
+ {
+  "id": "7082ae74-9f8d-4c9d-9dec-57de0344dc1d",
+  "session_id": "s-gl33ts61btmqq7szna",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:39:42.008838+00:00"
+ },
+ {
+  "id": "0cfde3a4-494e-4280-9e7f-cf3ccbd5320b",
+  "session_id": "s-uo76icf6s7mqq8frpg",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:57:27.957928+00:00"
+ },
+ {
+  "id": "39169d75-8b10-4ec3-afe0-08bcdb451725",
+  "session_id": "s-orco5cxul7mqqcknoa",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T07:53:11.462768+00:00"
+ },
+ {
+  "id": "0074c2f0-b36c-40b9-b60d-76bbfb2fdaa5",
+  "session_id": "s-rp9q29dyc7mqqckog8",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T07:53:12.449071+00:00"
+ },
+ {
+  "id": "98172de0-87be-4152-bab6-3e559ed57d70",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:39:44.288879+00:00"
+ },
+ {
+  "id": "14207a21-afcb-49d9-a4c2-6d98eca9a382",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:39:47.035072+00:00"
+ },
+ {
+  "id": "a647904b-0e12-4389-8297-7ff5ade601e0",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:39:48.093627+00:00"
+ },
+ {
+  "id": "f7e40c4a-27a7-4548-8c38-1b447274b57a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:39:49.428446+00:00"
+ },
+ {
+  "id": "67877c19-6e74-4733-87f9-252ac85b8304",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:39:50.409402+00:00"
+ },
+ {
+  "id": "96f95268-b5bc-4dfd-b022-abf44a6c780a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:39:51.482058+00:00"
+ },
+ {
+  "id": "bbdf49b6-5e00-4184-8833-a470c9d87402",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:39:52.270368+00:00"
+ },
+ {
+  "id": "ea568efb-41e7-4850-8010-68698aee545d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:39:53.623446+00:00"
+ },
+ {
+  "id": "834c7c23-f466-4ecb-b1e1-cfa4ef47e9c5",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:40:09.494922+00:00"
+ },
+ {
+  "id": "60001aa3-dea3-46e7-8456-509742eea12f",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:40:10.507257+00:00"
+ },
+ {
+  "id": "9429deb6-edcd-4b5f-bd05-557d447a7817",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 12,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:40:11.701508+00:00"
+ },
+ {
+  "id": "f91d07e6-94f7-448e-8989-c08f869e1664",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 13,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-23T16:40:12.80794+00:00"
+ },
+ {
+  "id": "a9af869a-8d7c-4722-91e3-daaae8646d07",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 14,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-23T16:40:29.959515+00:00"
+ },
+ {
+  "id": "b58e0412-3a3a-4b8c-b505-cc2f51142dda",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:33.064441+00:00"
+ },
+ {
+  "id": "62adf841-bcef-4458-9f8f-61edf675dc3d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:35.159405+00:00"
+ },
+ {
+  "id": "3eddc40b-537b-4633-9f51-d1bab5a9afd8",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:38.994167+00:00"
+ },
+ {
+  "id": "d2b31175-e117-42d8-9f12-6557a42fdcee",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:40.320614+00:00"
+ },
+ {
+  "id": "1e5f72b4-88ab-4440-8b51-540854188d10",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:41.49594+00:00"
+ },
+ {
+  "id": "5fbaa235-6558-4b72-8fff-b1e43bb43567",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:42.44878+00:00"
+ },
+ {
+  "id": "ea0d2fbb-abc0-44b3-a8a9-6182aec35ab4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:43.456779+00:00"
+ },
+ {
+  "id": "8edc5705-ec05-44e5-aa70-aeddea1e6378",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:45.293886+00:00"
+ },
+ {
+  "id": "6037eb0a-12ee-4110-b2a7-0140470b2206",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:46.555993+00:00"
+ },
+ {
+  "id": "f6fc3b75-0da4-4a6d-8b32-cd899d75fa3b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:48.275626+00:00"
+ },
+ {
+  "id": "eea26539-0437-43de-aa23-f979390b91c9",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:49.311167+00:00"
+ },
+ {
+  "id": "27df2e2f-97ea-404b-8105-5eeb8efd6090",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 12,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:50.678291+00:00"
+ },
+ {
+  "id": "a6d951ad-6983-40bd-b84c-89c7dca8638b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 13,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:52.178525+00:00"
+ },
+ {
+  "id": "6fa96dc9-9c6a-41b5-bb57-75de18681c86",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:03.809281+00:00"
+ },
+ {
+  "id": "16f6e312-b512-4a1b-99c7-89afb40f317b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:10.427016+00:00"
+ },
+ {
+  "id": "d08d535c-0a9f-44a9-b4ec-d76bf1bcf0eb",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:13.406525+00:00"
+ },
+ {
+  "id": "de4949bc-071d-4b7b-884e-f7834d871bf5",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:17.166974+00:00"
+ },
+ {
+  "id": "58a3cbf5-b86d-4a5b-9794-7adacb42a78b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:19.7776+00:00"
+ },
+ {
+  "id": "ed61d6e0-84a0-4f8c-b2c9-f4c9f6eeb525",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:21.028232+00:00"
+ },
+ {
+  "id": "f06ddef6-34d0-4773-bdec-8ff9dcbd9d79",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:21.381669+00:00"
+ },
+ {
+  "id": "251c9d28-3dcd-49cf-a712-a0678f6aa521",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 12,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:22.134777+00:00"
+ },
+ {
+  "id": "f783e13d-185f-495f-8354-6c440ee49738",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 13,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:22.538957+00:00"
+ },
+ {
+  "id": "b48eb18c-73b3-4f54-9cec-e8f464575645",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 14,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:22.715998+00:00"
+ },
+ {
+  "id": "7eb586a4-8e04-4cb8-85b3-67910cefb94d",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 15,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:34.06968+00:00"
+ },
+ {
+  "id": "1e065e0a-2fad-4c8f-a556-fff05a7cf12b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 16,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:38.330497+00:00"
+ },
+ {
+  "id": "16667345-0a54-4bc5-8dfb-32aacfb878ae",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:42.153812+00:00"
+ },
+ {
+  "id": "1799aa73-b63b-41d3-a908-d8f4bb89e049",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:38:19.140741+00:00"
+ },
+ {
+  "id": "38d9a9f4-c8b5-4cc4-af8d-d149838e827c",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:38:27.363621+00:00"
+ },
+ {
+  "id": "fcb578f1-748e-44c2-9989-c83cf010cf45",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:38:32.273551+00:00"
+ },
+ {
+  "id": "70607125-5ec7-4d6c-a489-bc55eb715e00",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:38:35.570746+00:00"
+ },
+ {
+  "id": "8e196359-19ba-4efb-935a-59ce218651a9",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:38:52.395622+00:00"
+ },
+ {
+  "id": "ffd824e7-1b34-4177-bf62-7c67c43b516d",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:38:56.756614+00:00"
+ },
+ {
+  "id": "d018acba-ae68-426a-ba07-6cd15b2ba19f",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:39:23.737647+00:00"
+ },
+ {
+  "id": "e132c775-6d18-4508-8084-d0446f18a14f",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:39:25.983498+00:00"
+ },
+ {
+  "id": "cabd7500-c884-4a5d-be54-a7c3a6c9feb3",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 13,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-25T20:39:28.485448+00:00"
+ },
+ {
+  "id": "48e46e1b-ff65-43b4-a54d-33b5daa6f84d",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:06.792094+00:00"
+ },
+ {
+  "id": "2f3fe097-ebee-41e1-9315-b578a8f32e47",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:18.808555+00:00"
+ },
+ {
+  "id": "df63fe70-626e-4ab5-a11e-24d422de9ede",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:21.592038+00:00"
+ },
+ {
+  "id": "2f9e5053-0189-409d-81ff-eb2420f46fb0",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:23.0176+00:00"
+ },
+ {
+  "id": "a835a9d9-3ca6-4a67-b797-198fd5e3a418",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:24.12822+00:00"
+ },
+ {
+  "id": "f3c661e0-07d8-413a-858a-b2f418d615f2",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:25.345294+00:00"
+ },
+ {
+  "id": "2532c41d-fd29-44ca-8ba5-d5ee0fbc489c",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:26.548887+00:00"
+ },
+ {
+  "id": "471f8d7e-31f0-4eba-9b5d-28900d6ff220",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:27.669963+00:00"
+ },
+ {
+  "id": "2e19ffa1-2d1a-49c6-8daa-77d68b3a76a5",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:28.816962+00:00"
+ },
+ {
+  "id": "06e1a81a-4181-4eb9-9282-7170cf45232a",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:30.030888+00:00"
+ },
+ {
+  "id": "2a7f28af-5509-4356-a8b9-7d0317d0db2d",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:31.032249+00:00"
+ },
+ {
+  "id": "87e8dd3a-0602-4795-960d-78b4fa1f1e9f",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:32.018116+00:00"
+ },
+ {
+  "id": "3ff8a98c-fe99-4933-a532-31868d24cb0b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 12,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:33.003283+00:00"
+ },
+ {
+  "id": "65d64768-5f15-4ec9-9f2a-2930e8b89ce3",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 13,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:34.297071+00:00"
+ },
+ {
+  "id": "703e93aa-13fa-4922-961c-f3c86799b452",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 14,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:40.310624+00:00"
+ },
+ {
+  "id": "c67d2cca-3674-4f30-8e6e-d4761de1fb38",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 15,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:46.694189+00:00"
+ },
+ {
+  "id": "1dd42dc2-a765-448f-b6d8-3b5d11b205ee",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 16,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-22T14:29:50.703981+00:00"
+ },
+ {
+  "id": "906d17ac-33d1-41ed-8ad6-fe4206eef349",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 17,
+  "step_id": "pos-captura",
+  "step_type": "post_capture",
+  "meta": null,
+  "created_at": "2026-06-22T14:30:04.50341+00:00"
+ },
+ {
+  "id": "15877f3c-5336-4b1c-8f53-a22a4bb4be04",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 18,
+  "step_id": "bridge",
+  "step_type": "bridge",
+  "meta": null,
+  "created_at": "2026-06-22T14:30:06.760791+00:00"
+ },
+ {
+  "id": "9b18f40a-6bbe-43a0-b356-a13d93d33929",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 19,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-22T14:30:08.329328+00:00"
+ },
+ {
+  "id": "e07425fe-5d38-4a85-878d-388a4c7eabca",
+  "session_id": "s-zncueicwo8mqq7vwh2",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:41:58.24011+00:00"
+ },
+ {
+  "id": "0de966a9-fd10-4a3f-8c55-f28d97e1dbc0",
+  "session_id": "s-21d7pa2cxjmqq93uih",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T06:16:08.349418+00:00"
+ },
+ {
+  "id": "dd8eeeaf-258e-49dc-8e36-bb34a84c2842",
+  "session_id": "s-pf9ra7ije7mqqfenij",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T09:12:30.146073+00:00"
+ },
+ {
+  "id": "35045a3b-b5b0-45a6-9ee9-53bb3ffc02df",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 15,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-23T16:42:37.6896+00:00"
+ },
+ {
+  "id": "4510b26e-c967-44cd-98e0-c059fecea77d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 14,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:58.24962+00:00"
+ },
+ {
+  "id": "6024582c-78e7-4f3a-bd1a-c69870c0d95d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 15,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-23T16:57:59.982494+00:00"
+ },
+ {
+  "id": "e8158648-9af2-4210-b6f8-fae14c4def0a",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 16,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-23T16:58:01.471843+00:00"
+ },
+ {
+  "id": "49119cc6-13d0-429b-890c-d533f19beaab",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 17,
+  "step_id": "pos-captura",
+  "step_type": "post_capture",
+  "meta": null,
+  "created_at": "2026-06-23T16:58:13.820722+00:00"
+ },
+ {
+  "id": "b15659fb-796e-4471-a642-c5e46611f19c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 18,
+  "step_id": "bridge",
+  "step_type": "bridge",
+  "meta": null,
+  "created_at": "2026-06-23T16:59:10.460106+00:00"
+ },
+ {
+  "id": "200c09c4-f8fd-4895-9e5a-5d7008c4125d",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 19,
+  "step_id": "vsl",
+  "step_type": "vsl",
+  "meta": null,
+  "created_at": "2026-06-23T16:59:12.183106+00:00"
+ },
+ {
+  "id": "dcae2158-a9dc-44d7-a76b-9eb2ee641677",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:15.648521+00:00"
+ },
+ {
+  "id": "c42a7755-2e74-499f-8988-a040486cf691",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:18.616686+00:00"
+ },
+ {
+  "id": "eac2d2ae-f46c-4c3e-b106-feba48f7d37b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:20.795812+00:00"
+ },
+ {
+  "id": "d08041b3-3db4-4cad-b215-9debca96a777",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:21.581603+00:00"
+ },
+ {
+  "id": "98a55033-d5f7-4857-8a7f-e4b55d9ef1ba",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:33:21.771681+00:00"
+ },
+ {
+  "id": "e0611a7c-5741-40cb-b657-23cbb00a6683",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 1,
+  "step_id": "hero",
+  "step_type": "hero",
+  "meta": null,
+  "created_at": "2026-06-25T20:37:49.242696+00:00"
+ },
+ {
+  "id": "26a46d2c-ad18-4b9e-96fa-9175a7328f1f",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 2,
+  "step_id": "q-idade",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:38:11.532672+00:00"
+ },
+ {
+  "id": "c88584d7-f8a3-429f-862f-e353fececbf6",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:38:30.626145+00:00"
+ },
+ {
+  "id": "2c6e89ec-a4ed-4cb7-831f-2f2706220c4c",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 4,
+  "step_id": "q-regiao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:38:48.78602+00:00"
+ },
+ {
+  "id": "98ae6ca1-6a77-477b-8b63-3cd2032c1063",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:38:54.667504+00:00"
+ },
+ {
+  "id": "b7c6a458-2afc-42f3-b0f3-5d61a5ba2949",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 8,
+  "step_id": "q-motivacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:39:04.650987+00:00"
+ },
+ {
+  "id": "12a6cef8-b86b-4d93-a50c-b862dd47653b",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 10,
+  "step_id": "q-acompanha",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:39:24.888325+00:00"
+ },
+ {
+  "id": "eb0244d0-4440-451e-83cc-182e5046e23c",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 12,
+  "step_id": "q-apoio",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-25T20:39:27.268154+00:00"
+ },
+ {
+  "id": "c00fe20e-14c1-4e36-9494-85926ce1ec15",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 14,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-25T20:39:38.140504+00:00"
+ },
+ {
+  "id": "905cf45f-2bf1-4fc3-83b2-b6c9c46253b7",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 15,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-25T20:39:46.073622+00:00"
+ },
+ {
+  "id": "e1bcb0f6-12f6-459d-a46a-7bc2549fb6b7",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 16,
+  "step_id": "captura",
+  "step_type": "capture",
+  "meta": null,
+  "created_at": "2026-06-25T20:39:50.326813+00:00"
+ },
+ {
+  "id": "670e562f-fc8a-42f6-bd21-ab18239073ba",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:11.722553+00:00"
+ },
+ {
+  "id": "a219bd5b-adcb-437a-a759-647006fd9cff",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:13.896304+00:00"
+ },
+ {
+  "id": "8e6ca5fc-7d29-4fc2-ac38-e51f76cb3728",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 6,
+  "step_id": "q-situacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:13.945353+00:00"
+ },
+ {
+  "id": "656d8fa9-3605-469e-a751-8c78147440f8",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-19T00:15:15.629664+00:00"
+ },
+ {
+  "id": "f23cce66-3551-4db7-8aab-005fbf55c65f",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:26:25.065404+00:00"
+ },
+ {
+  "id": "3352022b-bc40-48d4-87e4-e64cfebf9918",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:26:25.101392+00:00"
+ },
+ {
+  "id": "32dc45b0-2387-4b27-a89d-bfc27e477704",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:42:51.026442+00:00"
+ },
+ {
+  "id": "4ef01503-a3f4-4d38-9d18-4174d63b5abd",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:42:51.026747+00:00"
+ },
+ {
+  "id": "e01fc7f9-ac07-471d-8ae7-042142311916",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:44:17.162713+00:00"
+ },
+ {
+  "id": "6a640c92-4bc9-4368-98c0-8d83450bc40a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:44:17.180489+00:00"
+ },
+ {
+  "id": "d1ea555c-79e7-4ff6-a6ac-aefcd727463b",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:44:17.251321+00:00"
+ },
+ {
+  "id": "2d92ad39-6eb7-4955-9b3e-407da9e5f505",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:44:17.304594+00:00"
+ },
+ {
+  "id": "0dcff7fb-475f-4d30-8217-3a6b25ec1503",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T05:55:54.267469+00:00"
+ },
+ {
+  "id": "65734370-109a-4fbe-ac82-f0fcbd7fe971",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T13:31:11.96189+00:00"
+ },
+ {
+  "id": "697c00a2-59c6-4b08-8c61-cf2f2d1dd287",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T13:31:27.294007+00:00"
+ },
+ {
+  "id": "9f3b677e-d6da-41d9-aa6d-e64423c7ab80",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T13:31:51.72829+00:00"
+ },
+ {
+  "id": "ba8a8bf8-e2fd-4e43-a8bf-280ddfddba7a",
+  "session_id": "s-qwb74nwo38mqk43jys",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T13:31:51.794001+00:00"
+ },
+ {
+  "id": "f23ac477-53fd-45fc-8448-c7ec53b319db",
+  "session_id": "s-4eh0jhebbsmqljw2fv",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T23:34:58.718925+00:00"
+ },
+ {
+  "id": "a46e273e-5363-48ff-8287-d2549e728eb2",
+  "session_id": "s-4eh0jhebbsmqljw2fv",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-19T23:35:22.690016+00:00"
+ },
+ {
+  "id": "3854cb66-8614-4b68-bc09-76733ec5bd8e",
+  "session_id": "s-uy5rxb1d14mqll758e",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-20T00:11:34.712626+00:00"
+ },
+ {
+  "id": "428f8a5b-993b-4f63-9eb9-5ffb479cfba4",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T03:05:38.485984+00:00"
+ },
+ {
+  "id": "978b7c7e-778d-4170-9c88-6b5e3c3e73b3",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T03:27:27.022955+00:00"
+ },
+ {
+  "id": "da0c0c9f-0285-4b9a-8b1b-9a28e1702d6c",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T03:27:45.186134+00:00"
+ },
+ {
+  "id": "bd8a1957-b61d-4089-b0a0-2b029488a510",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T03:36:33.478474+00:00"
+ },
+ {
+  "id": "5ada2b48-be49-49de-bc64-8b32a4078e1f",
+  "session_id": "s-ejehzkiagtmqposdd1",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-22T20:47:20.534067+00:00"
+ },
+ {
+  "id": "352b793a-bca9-4218-b733-31dc7bff5e37",
+  "session_id": "s-woylt6s5ecmqq8awvk",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T05:46:46.820263+00:00"
+ },
+ {
+  "id": "85aaa7b7-12c3-45d9-9431-8d71c6f915b5",
+  "session_id": "s-1926kn1q0wmqqa6doc",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T06:46:05.860942+00:00"
+ },
+ {
+  "id": "099be984-72b6-4593-ba01-9973deee5684",
+  "session_id": "s-i1swerq94gmqqa6e5l",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T06:46:10.094268+00:00"
+ },
+ {
+  "id": "55dc872f-b0e2-45fb-9645-0461e04e8f92",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T16:35:35.592352+00:00"
+ },
+ {
+  "id": "dc1ab1de-2f08-4689-a083-761c2f9e5f9b",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T16:51:45.77801+00:00"
+ },
+ {
+  "id": "c45b92d1-e30e-4733-bddb-993810190eef",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-23T17:16:16.476279+00:00"
+ },
+ {
+  "id": "4ecd5364-5f98-44d5-b449-c3ec93d9c63a",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 3,
+  "step_id": "q-filhos",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:16:59.502872+00:00"
+ },
+ {
+  "id": "a5f36cba-76ee-4227-81bb-d7f8d439b23c",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 5,
+  "step_id": "q-ocupacao",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:00.563377+00:00"
+ },
+ {
+  "id": "bf0be6de-490e-4a17-bd23-bc5ea2fbe348",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 7,
+  "step_id": "q-experiencia",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:01.317197+00:00"
+ },
+ {
+  "id": "509994bc-0ed9-41d7-80c8-d19c0fda379c",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 9,
+  "step_id": "q-fase",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:02.497493+00:00"
+ },
+ {
+  "id": "be9dcbd7-2e60-4dfc-995b-d5149be37fc7",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 11,
+  "step_id": "q-curso",
+  "step_type": "question",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:05.731902+00:00"
+ },
+ {
+  "id": "2d162df3-8ecf-45a2-907a-802e0f88cb50",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 13,
+  "step_id": "loading",
+  "step_type": "loading",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:06.619411+00:00"
+ },
+ {
+  "id": "4e234513-bfe1-4886-b8b1-0ea2bd2fa741",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 14,
+  "step_id": "result",
+  "step_type": "result",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:11.997163+00:00"
+ },
+ {
+  "id": "44c07605-9427-4b6a-b584-bb0a7822a37d",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 15,
+  "step_id": "offer",
+  "step_type": "offer",
+  "meta": null,
+  "created_at": "2026-06-23T17:17:35.057034+00:00"
+ },
+ {
+  "id": "9fd8ba81-8c80-401f-b40f-f2634cf670fd",
+  "session_id": "s-hz7v2uqlhxmqrr29e1",
+  "funnel_slug": "cdb-rr",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "roulette",
+  "meta": null,
+  "created_at": "2026-06-24T07:26:39.309628+00:00"
+ },
+ {
+  "id": "230611f4-6a1e-40b0-a8a4-310cbbf2c48a",
+  "session_id": "s-6ajdpyj7krmq5yfl7m",
+  "funnel_slug": "cdb-rr",
+  "step_index": 17,
+  "step_id": "pos-captura",
+  "step_type": "post_capture",
+  "meta": null,
+  "created_at": "2026-06-25T20:40:28.417404+00:00"
+ },
+ {
+  "id": "e9b646ac-d46f-48a5-ac72-53f938fb3950",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:17:14.600344+00:00"
+ },
+ {
+  "id": "3f988409-067c-460b-84e3-039f7a91e462",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:17:23.501521+00:00"
+ },
+ {
+  "id": "93b048cc-799a-4b80-bebf-4174ce1adf80",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 0,
+  "step_id": "roleta",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:30:37.202828+00:00"
+ },
+ {
+  "id": "699b4c4c-1c03-4358-8745-e60fb3c57ff2",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T00:40:33.855711+00:00"
+ },
+ {
+  "id": "a5c0b4e3-5726-4bc6-8232-d3fe6af209a6",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T02:16:16.162141+00:00"
+ },
+ {
+  "id": "e574662f-94c3-41b2-8705-afdd42d58969",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-slide",
+  "step_index": 0,
+  "step_id": "slider",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T02:16:19.205185+00:00"
+ },
+ {
+  "id": "b7c663a7-7904-4f61-949d-79d85631a4f0",
+  "session_id": "s-jiih1ih813mqvb7g5d",
+  "funnel_slug": "cdb-estado",
+  "step_index": 0,
+  "step_id": "p85l20",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T19:18:44.435638+00:00"
+ },
+ {
+  "id": "160ef89e-a98f-4015-a113-d27a3895fac6",
+  "session_id": "s-8qr5fbieosmqa26o3x",
+  "funnel_slug": "cdb-r",
+  "step_index": 1,
+  "step_id": "lAk9iv",
+  "step_type": "layers",
+  "meta": null,
+  "created_at": "2026-06-26T21:42:44.098657+00:00"
+ }
+]

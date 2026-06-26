@@ -12,6 +12,7 @@ export interface FunnelSummary {
   palette_id: string;
   status: string;
   updated_at: string;
+  domain?: string | null;
 }
 
 function slugify(s: string): string {
@@ -184,7 +185,7 @@ export async function listFunnelsDb(): Promise<FunnelSummary[]> {
     const sb = createAdminClient();
     const { data } = await sb
       .from("funnels")
-      .select("slug,name,niche,palette_id,status,updated_at")
+      .select("slug,name,niche,palette_id,status,updated_at,domain")
       .order("updated_at", { ascending: false });
     return (data as FunnelSummary[]) ?? [];
   } catch {

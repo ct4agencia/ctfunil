@@ -299,6 +299,11 @@ function DesignTab({ funnel, setFunnel }: { funnel: Funnel; setFunnel: (fn: (f: 
   const d = ((funnel.settings?.design as any) || {}) as Record<string, any>;
   const setDesign = (patch: Record<string, unknown>) =>
     setFunnel((f) => ({ ...f, settings: { ...(f.settings || {}), design: { ...((f.settings?.design as object) || {}), ...patch } } }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const hdr = (((funnel.settings as any)?.header) || {}) as Record<string, boolean>;
+  const setHeader = (patch: Record<string, boolean>) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setFunnel((f) => ({ ...f, settings: { ...(f.settings || {}), header: { ...(((f.settings as any)?.header) || {}), ...patch } } as any }));
   const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div className="flex items-center justify-between gap-3 border-b border-neutral-100 py-2.5"><span className="text-sm text-neutral-600">{label}</span><div className="flex items-center gap-2">{children}</div></div>
   );
@@ -322,6 +327,13 @@ function DesignTab({ funnel, setFunnel }: { funnel: Funnel; setFunnel: (fn: (f: 
       </Row>
       <Lbl>Logo (topo das lâminas, quando ativado)</Lbl>
       <ImageField value={d.logo?.src || ""} onChange={(v) => setDesign({ logo: { type: "image", src: v } })} />
+      <div className="mt-4 border-t border-neutral-100 pt-3">
+        <p className="mb-1 text-sm font-bold text-neutral-700">Header (todas as lâminas, exceto hero e VSL)</p>
+        {([["show_logo", "Mostrar logo"], ["show_progress", "Mostrar barra de progresso"], ["show_back", "Mostrar botão voltar"]] as const).map(([k, label]) => (
+          <label key={k} className="flex cursor-pointer items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">{label}</span>
+            <input type="checkbox" checked={!!hdr[k]} onChange={(e) => setHeader({ [k]: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
+        ))}
+      </div>
     </div>
   );
 }
@@ -579,13 +591,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
               </label>
               {step?.disabled ? <p className="-mt-1 text-[11px] text-amber-600">Esta lâmina é PULADA no funil publicado (continua aqui pra reativar).</p> : null}
               <div><Lbl>Título</Lbl><input value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className={inp} /></div>
-              <div>
-                <p className="mb-1 text-[11px] font-semibold text-neutral-500">Header</p>
-                {([["show_logo", "Mostrar logo"], ["show_progress", "Mostrar progresso"], ["show_back", "Mostrar botão voltar"]] as const).map(([k, label]) => (
-                  <label key={k} className="flex cursor-pointer items-center justify-between py-1 text-sm"><span className="text-neutral-600">{label}</span>
-                    <input type="checkbox" checked={!!(step?.options as Record<string, boolean> | undefined)?.[k]} onChange={(e) => patchStep(selStep, { options: { ...(step?.options || {}), [k]: e.target.checked } })} className="h-4 w-4 accent-neutral-900" /></label>
-                ))}
-              </div>
+              <p className="rounded-lg bg-neutral-50 p-2 text-[11px] text-neutral-500">O <b>Header</b> (logo/progresso/voltar) agora é configuração <b>geral</b>, na aba <b>🎨 Design</b> — vale pra todas as lâminas (exceto hero e VSL).</p>
               <p className="text-xs text-neutral-400">👆 Clique num bloco no celular pra editar.</p>
             </div>
           )}
