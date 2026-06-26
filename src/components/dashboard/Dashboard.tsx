@@ -174,7 +174,7 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
                     <div className="h-1 rounded-t-2xl" style={{ background: pal.primary }} />
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-2">
-                        <button onClick={() => router.push(`/dashboard/${f.slug}`)} className="min-w-0 flex-1 text-left">
+                        <button onClick={() => router.push(`/builder/${f.slug}`)} className="min-w-0 flex-1 text-left" title="Abrir construtor">
                           <h3 className="truncate font-bold text-neutral-800">{f.name}</h3>
                           <p className="mt-0.5 text-xs text-neutral-400">{fmtDate(f.updated_at)}{f.niche ? ` · ${f.niche}` : ""}</p>
                         </button>

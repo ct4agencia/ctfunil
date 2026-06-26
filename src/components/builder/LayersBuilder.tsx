@@ -7,6 +7,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
+import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
 import { saveFunnelAction } from "@/app/builder/[slug]/actions";
 
 function genId() {
@@ -444,6 +445,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const [msg, setMsg] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
   const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">("construtor");
+  const [showSettings, setShowSettings] = useState(false);
 
   const theme = (funnel.settings?.design as { themeColor?: string })?.themeColor || "#ea580c";
   const setSteps = (next: InleadStep[]) => setFunnel((f) => ({ ...f, steps: next as unknown as Funnel["steps"] }));
@@ -515,6 +517,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         </nav>
         <div className="flex items-center gap-3">
           {msg ? <span className={`text-xs font-semibold ${msg.startsWith("✓") ? "text-green-600" : "text-red-600"}`}>{msg}</span> : null}
+          <button onClick={() => setShowSettings(true)} title="Configurações do funil" className="rounded-lg border border-neutral-300 px-2.5 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⚙</button>
           <button onClick={save} disabled={saving} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{saving ? "Salvando…" : "💾 Salvar"}</button>
           <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white">Ver ao vivo ↗</a>
         </div>
@@ -598,6 +601,10 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         </aside>
       </div>
       )}
+
+      {showSettings ? (
+        <FunnelSettingsPanel funnel={funnel} onPatch={(patch) => setFunnel((f) => ({ ...f, ...patch }))} onClose={() => setShowSettings(false)} />
+      ) : null}
     </div>
   );
 }
