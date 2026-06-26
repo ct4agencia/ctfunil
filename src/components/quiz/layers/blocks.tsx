@@ -140,8 +140,9 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   }, [reveal, revealAt]);
 
   const onClick = () => {
+    // checkout externo (ex: botão da VSL): SEMPRE avisa a Meta (InitiateCheckout)
+    if (isExternal) { fireMetaEvent("InitiateCheckout"); ctx.navigate(dest); return; }
     if (ctx.hasFields) { ctx.submitFields(); return; }
-    if (isExternal) fireMetaEvent("InitiateCheckout");
     ctx.navigate(dest);
   };
 
@@ -457,7 +458,11 @@ export function SliderHero({
           </div>
 
           <button
-            onClick={() => ctx.navigate("next")}
+            onClick={() => {
+              // M10: grava a nota escolhida (aparece na aba Quiz)
+              ctx.trackAnswer(ctx.stepId, String(step.question || "Nota 0–10").replace(/[*=]/g, "").trim(), String(v));
+              ctx.navigate("next");
+            }}
             className="mt-7 w-full rounded-full py-4 text-[17px] font-bold text-white"
             style={{ background: theme, boxShadow: "0 14px 26px -12px rgba(0,0,0,.35)" }}
           >

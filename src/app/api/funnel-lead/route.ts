@@ -119,10 +119,15 @@ export async function POST(request: Request) {
           (wh.trigger_event === "click_component" && (wh.component_id ?? "") === componentId)),
     );
 
+    // Telefone p/ webhook (Datacrazy): +55 + número limpo (E.164). No banco fica
+    // só dígitos; aqui formatamos só na hora de enviar pro webhook, quando ativado.
+    const phoneDigits = String(body.phone ?? "").replace(/\D/g, "");
+    const phoneIntl = phoneDigits ? "+55" + phoneDigits.replace(/^55/, "") : "";
+
     const payload: Record<string, unknown> = {
       code: body.session_id ?? "",
       nome: body.name ?? "",
-      telefone: body.phone,
+      telefone: phoneIntl,
       pagina: funnel?.name ?? "",
       slug: funnel?.slug ?? body.funnelSlug,
       produto,

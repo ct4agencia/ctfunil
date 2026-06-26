@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, InleadDesign } from "@/lib/quiz/layers/types";
 import { trackStep, trackAnswer } from "@/lib/quiz/track";
-import { getSessionId, collectTrackingParams } from "@/lib/tracking";
+import { getSessionId, collectTrackingParams, fireMetaEvent } from "@/lib/tracking";
 import { ScrollHint } from "../ui";
 import { RouletteStepView, type StepCtx } from "../steps";
 import { getPalette, paletteVars } from "@/lib/quiz/theme";
@@ -62,39 +62,70 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
 
   const hasFields = (step.layers || []).some((l) => l.type === "field");
 
+  // A3: reenvia leads que falharam num envio anterior (ao montar o funil)
+  useEffect(() => {
+    let pend: unknown[] = [];
+    try { pend = JSON.parse(localStorage.getItem("ctf_pending_leads") || "[]"); } catch { pend = []; }
+    if (!Array.isArray(pend) || !pend.length) return;
+    Promise.allSettled(
+      pend.map((p) => fetch("/api/funnel-lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }).then((r) => (r.ok ? null : Promise.reject(new Error("fail"))))),
+    ).then((res) => {
+      const still = pend.filter((_, i) => res[i].status !== "fulfilled");
+      try { localStorage.setItem("ctf_pending_leads", JSON.stringify(still)); } catch { /* noop */ }
+    });
+  }, []);
+
   const submitFields = async () => {
     if (submitting) return;
-    const phone = fields["telefone"] || fields["whatsapp"] || "";
-    const nome = fields["nome"] || name || "";
-    // valida telefone obrigatório (se houver campo de telefone)
-    const needsPhone = (step.layers || []).some((l) => l.type === "field" && (l.content.type === "phone" || l.content.mask === "phone_br"));
-    if (needsPhone && phone.replace(/\D/g, "").length < 10) {
+    const fls = (step.layers || []).filter((l) => l.type === "field");
+    const keyOf = (l?: typeof fls[number]) => (l ? (l.content.name || l.content.id || "") : "");
+    const PHONE_RE = /tel|whats|phone|celular|wpp|fone/i;
+    const EMAIL_RE = /e-?mail/i;
+    const phoneL = fls.find((l) => l.content.type === "phone" || l.content.mask === "phone_br" || PHONE_RE.test(l.content.name || ""));
+    const emailL = fls.find((l) => l.content.type === "email" || EMAIL_RE.test(l.content.name || ""));
+    const nameL = fls.find((l) => l !== phoneL && l !== emailL && (l.content.type === "text" || l.content.type == null));
+
+    // A2: telefone guardado LIMPO (só dígitos). A máscara fica só na tela.
+    const phone = (phoneL ? (fields[keyOf(phoneL)] || "") : (fields["telefone"] || fields["whatsapp"] || "")).replace(/\D/g, "");
+    const nome = (nameL ? fields[keyOf(nameL)] : "") || name || "";
+    const email = emailL ? (fields[keyOf(emailL)] || "") : "";
+
+    if (phoneL && phone.length < 10) {
       alert("Confere seu número de Whatsapp com DDD 🙂");
       return;
     }
     setSubmitting(true);
+    const payload = {
+      funnelSlug: funnel.slug,
+      name: nome,
+      phone,
+      email: email || undefined,
+      componentId: "captura",
+      session_id: getSessionId(),
+      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      screen: `${window.screen.width}x${window.screen.height}`,
+      platform: navigator.platform,
+      user_agent: navigator.userAgent,
+      tracking: collectTrackingParams() as unknown as Record<string, string>,
+    };
+    let ok = false;
     try {
-      await fetch("/api/funnel-lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          funnelSlug: funnel.slug,
-          name: nome,
-          phone,
-          componentId: "captura",
-          session_id: getSessionId(),
-          viewport: `${window.innerWidth}x${window.innerHeight}`,
-          screen: `${window.screen.width}x${window.screen.height}`,
-          platform: navigator.platform,
-          user_agent: navigator.userAgent,
-          tracking: collectTrackingParams() as unknown as Record<string, string>,
-        }),
-      });
-    } catch {
-      /* best-effort: não bloqueia o avanço */
+      const res = await fetch("/api/funnel-lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      ok = res.ok;
+    } catch { ok = false; }
+
+    if (ok) {
+      // C1: avisa a Meta da conversão (esse era o evento que NUNCA disparava no motor layers)
+      if (phone) fireMetaEvent("Lead", { content_name: "lead_capture" });
+    } else {
+      // A3: NÃO perde o lead — guarda pra reenviar na próxima navegação
+      try {
+        const pend = JSON.parse(localStorage.getItem("ctf_pending_leads") || "[]");
+        pend.push(payload);
+        localStorage.setItem("ctf_pending_leads", JSON.stringify(pend.slice(-20)));
+      } catch { /* noop */ }
     }
     setSubmitting(false);
-    // avança pelo destino do botão da lâmina
     const btn = (step.layers || []).find((l) => l.type === "button");
     navigate(btn?.content.destination || "next");
   };
