@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
@@ -171,6 +171,136 @@ function LayerEditor({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
   }
 }
 
+// ───────────────────────── B — DESIGN ─────────────────────────
+function DesignTab({ funnel, setFunnel }: { funnel: Funnel; setFunnel: (fn: (f: Funnel) => Funnel) => void }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const d = ((funnel.settings?.design as any) || {}) as Record<string, any>;
+  const setDesign = (patch: Record<string, unknown>) =>
+    setFunnel((f) => ({ ...f, settings: { ...(f.settings || {}), design: { ...((f.settings?.design as object) || {}), ...patch } } }));
+  const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div className="flex items-center justify-between gap-3 border-b border-neutral-100 py-2.5"><span className="text-sm text-neutral-600">{label}</span><div className="flex items-center gap-2">{children}</div></div>
+  );
+  return (
+    <div className="mx-auto max-w-xl rounded-xl border border-neutral-200 bg-white p-5">
+      <h2 className="mb-3 text-base font-bold">🎨 Design global</h2>
+      <Row label="Cor do tema (botões/destaques)"><input type="color" value={d.themeColor || "#ea580c"} onChange={(e) => setDesign({ themeColor: e.target.value })} className="h-8 w-12" /></Row>
+      <Row label="Fundo da página"><input type="color" value={d.backgroundColor || "#ffffff"} onChange={(e) => setDesign({ backgroundColor: e.target.value })} className="h-8 w-12" /></Row>
+      <Row label="Cor do título"><input type="color" value={d.titleColor || "#000000"} onChange={(e) => setDesign({ titleColor: e.target.value })} className="h-8 w-12" /></Row>
+      <Row label="Cor do texto"><input type="color" value={d.contentColor || "#000000"} onChange={(e) => setDesign({ contentColor: e.target.value })} className="h-8 w-12" /></Row>
+      <Row label="Tamanho do texto (px)"><input type="number" value={Number(d.contentSize) || 17} onChange={(e) => setDesign({ contentSize: String(e.target.value) })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" /></Row>
+      <Row label="Largura do container">
+        <select value={d.container || "max-w-[34rem]"} onChange={(e) => setDesign({ container: e.target.value })} className="rounded border border-neutral-300 px-2 py-1 text-xs">
+          {["max-w-[30rem]", "max-w-[34rem]", "max-w-[40rem]"].map((c) => <option key={c} value={c}>{c.replace(/max-w-\[|\]/g, "")}</option>)}
+        </select>
+      </Row>
+      <Row label="Fonte">
+        <select value={funnel.font || "poppins"} onChange={(e) => setFunnel((f) => ({ ...f, font: e.target.value as Funnel["font"] }))} className="rounded border border-neutral-300 px-2 py-1 text-xs">
+          <option value="poppins">Poppins</option><option value="serif">Serif (Fraunces)</option>
+        </select>
+      </Row>
+      <Lbl>Logo (topo das lâminas, quando ativado)</Lbl>
+      <ImageField value={d.logo?.src || ""} onChange={(v) => setDesign({ logo: { type: "image", src: v } })} />
+    </div>
+  );
+}
+
+// ───────────────────────── C — FLUXO ─────────────────────────
+function FluxoTab({ steps, setSteps }: { steps: InleadStep[]; setSteps: (s: InleadStep[]) => void }) {
+  const setDest = (si: number, layerId: string, optId: string | null, dest: string) =>
+    setSteps(steps.map((s, i) => i !== si ? s : {
+      ...s, layers: (s.layers || []).map((l) => {
+        if (l.id !== layerId) return l;
+        if (optId) return { ...l, content: { ...l.content, options: (l.content.options || []).map((o) => o.id === optId ? { ...o, destination: dest } : o) } };
+        return { ...l, content: { ...l.content, destination: dest } };
+      }),
+    }));
+  const DestSel = ({ value, onChange }: { value?: string; onChange: (v: string) => void }) => (
+    <select value={/^https?:/.test(value || "") ? "__url" : (value || "next")} onChange={(e) => onChange(e.target.value)} className="rounded border border-neutral-300 px-1.5 py-1 text-xs">
+      <option value="next">→ próxima</option>
+      {steps.map((s) => <option key={s.id} value={s.id}>↪ {s.title || s.id}</option>)}
+      {/^https?:/.test(value || "") ? <option value="__url">🔗 link externo</option> : null}
+    </select>
+  );
+  return (
+    <div className="mx-auto max-w-2xl space-y-2">
+      <p className="px-1 text-xs text-neutral-500">Para onde cada botão/opção leva. “→ próxima” segue a ordem das lâminas.</p>
+      {steps.map((s, i) => {
+        const exits: { layerId: string; optId: string | null; label: string; dest?: string }[] = [];
+        (s.layers || []).forEach((l) => {
+          if (l.type === "button") exits.push({ layerId: l.id, optId: null, label: `🔘 ${l.content.label || "Botão"}`, dest: l.content.destination });
+          if (l.type === "options") (l.content.options || []).forEach((o) => exits.push({ layerId: l.id, optId: o.id, label: `☑️ ${strip(o.label)}`, dest: o.destination }));
+        });
+        return (
+          <div key={s.id} className="rounded-xl border border-neutral-200 bg-white p-3">
+            <div className="mb-1.5 text-sm font-bold text-neutral-800">{i + 1}. {s.title || s.id}</div>
+            {exits.length ? (
+              <div className="space-y-1">
+                {exits.map((x, k) => (
+                  <div key={k} className="flex items-center justify-between gap-2 text-xs">
+                    <span className="min-w-0 flex-1 truncate text-neutral-600">{x.label}</span>
+                    <DestSel value={x.dest} onChange={(v) => setDest(i, x.layerId, x.optId, v)} />
+                  </div>
+                ))}
+              </div>
+            ) : <p className="text-xs text-neutral-400">segue automático → próxima lâmina</p>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ───────────────────────── D — LEADS ─────────────────────────
+interface LeadRow { name: string | null; phone: string | null; funnel_slug: string | null; utm_source: string | null; src: string | null; created_at: string }
+function LeadsTab({ slug }: { slug: string }) {
+  const [rows, setRows] = useState<LeadRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [per, setPer] = useState(50);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/funnel-leads-list?slug=${encodeURIComponent(slug)}&page=${page}&per=${per}`)
+      .then((r) => r.json()).then((j) => { setRows(j.leads || []); setTotal(j.total || 0); }).catch(() => { }).finally(() => setLoading(false));
+  }, [slug, page, per]);
+  const pages = Math.max(1, Math.ceil(total / per));
+  return (
+    <div className="mx-auto max-w-3xl rounded-xl border border-neutral-200 bg-white">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3">
+        <h2 className="text-sm font-semibold text-neutral-700">Leads <span className="ml-1 text-xs font-normal text-neutral-400">({total} no total)</span></h2>
+        <div className="flex items-center gap-2">
+          <select value={per} onChange={(e) => { setPer(Number(e.target.value)); setPage(0); }} className="rounded border border-neutral-300 px-2 py-1 text-xs">
+            {[50, 100, 200].map((n) => <option key={n} value={n}>{n}/página</option>)}
+          </select>
+          <a href={`/api/export-leads?slug=${encodeURIComponent(slug)}`} className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white">⬇ CSV</a>
+        </div>
+      </div>
+      {loading ? <p className="p-6 text-center text-xs text-neutral-400">Carregando…</p> : rows.length ? (
+        <>
+          <table className="w-full text-sm">
+            <thead className="bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-neutral-400"><tr><th className="px-4 py-2.5">Data</th><th className="px-3 py-2.5">Nome</th><th className="px-3 py-2.5">Telefone</th><th className="px-3 py-2.5">Origem</th></tr></thead>
+            <tbody>
+              {rows.map((l, i) => (
+                <tr key={i} className="border-t border-neutral-100">
+                  <td className="px-4 py-2.5 text-neutral-400">{l.created_at ? new Date(l.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}</td>
+                  <td className="px-3 py-2.5 font-semibold text-neutral-800">{l.name || "—"}</td>
+                  <td className="px-3 py-2.5 text-neutral-600">{l.phone || "—"}</td>
+                  <td className="px-3 py-2.5 text-neutral-500">{l.utm_source || l.src || "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="flex items-center justify-between px-4 py-3 text-xs text-neutral-500">
+            <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} className="rounded border border-neutral-300 px-2 py-1 disabled:opacity-40">← anterior</button>
+            <span>página {page + 1} de {pages}</span>
+            <button onClick={() => setPage((p) => Math.min(pages - 1, p + 1))} disabled={page >= pages - 1} className="rounded border border-neutral-300 px-2 py-1 disabled:opacity-40">próxima →</button>
+          </div>
+        </>
+      ) : <p className="p-6 text-center text-xs text-neutral-400">Nenhum lead ainda neste funil.</p>}
+    </div>
+  );
+}
+
 export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const [funnel, setFunnel] = useState<Funnel>(initial);
   const steps = funnel.steps as unknown as InleadStep[];
@@ -180,6 +310,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
+  const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">("construtor");
 
   const theme = (funnel.settings?.design as { themeColor?: string })?.themeColor || "#ea580c";
   const setSteps = (next: InleadStep[]) => setFunnel((f) => ({ ...f, steps: next as unknown as Funnel["steps"] }));
@@ -225,6 +356,11 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
             <p className="text-xs text-neutral-500">/{funnel.slug} · {steps.length} lâminas</p>
           </div>
         </div>
+        <nav className="flex items-center gap-1 rounded-lg bg-neutral-100 p-1">
+          {([["construtor", "🧩 Construtor"], ["fluxo", "🔀 Fluxo"], ["design", "🎨 Design"], ["leads", "👥 Leads"]] as const).map(([k, label]) => (
+            <button key={k} onClick={() => setTab(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${tab === k ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}>{label}</button>
+          ))}
+        </nav>
         <div className="flex items-center gap-3">
           {msg ? <span className={`text-xs font-semibold ${msg.startsWith("✓") ? "text-green-600" : "text-red-600"}`}>{msg}</span> : null}
           <button onClick={save} disabled={saving} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{saving ? "Salvando…" : "💾 Salvar"}</button>
@@ -232,6 +368,11 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         </div>
       </header>
 
+      {tab === "design" && <div className="p-4"><DesignTab funnel={funnel} setFunnel={setFunnel} /></div>}
+      {tab === "fluxo" && <div className="p-4"><FluxoTab steps={steps} setSteps={setSteps} /></div>}
+      {tab === "leads" && <div className="p-4"><LeadsTab slug={funnel.slug} /></div>}
+
+      {tab === "construtor" && (
       <div className="grid gap-4 p-4 lg:grid-cols-[230px_1fr_360px]">
         {/* LÂMINAS */}
         <aside className="space-y-2">
@@ -310,6 +451,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
