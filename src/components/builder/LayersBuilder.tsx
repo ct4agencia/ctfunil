@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
@@ -88,6 +91,54 @@ function ImageField({ value, onChange }: { value?: string; onChange: (v: string)
 const Lbl = ({ children }: { children: React.ReactNode }) => <label className="mb-1 mt-2 block text-[11px] font-semibold text-neutral-500">{children}</label>;
 const inp = "w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs";
 
+/** Lê/escreve o alinhamento (classe ql-align-*) no HTML do bloco. */
+function htmlAlign(html?: string): "left" | "center" | "right" {
+  const m = (html || "").match(/ql-align-(center|right)/);
+  return (m?.[1] as "center" | "right") || "left";
+}
+function setHtmlAlign(html: string, align: "left" | "center" | "right"): string {
+  if (typeof document === "undefined") return html;
+  const div = document.createElement("div");
+  div.innerHTML = html || "";
+  div.querySelectorAll("p,h1,h2,h3").forEach((el) => {
+    el.classList.remove("ql-align-center", "ql-align-right", "ql-align-justify");
+    if (align !== "left") el.classList.add(`ql-align-${align}`);
+  });
+  return div.innerHTML;
+}
+
+/** Painel "Aparência" do bloco (alinhamento + largura). */
+function Appearance({ layer, onChange }: { layer: Layer; onChange: (l: Layer) => void }) {
+  const hasText = typeof layer.content.text === "string";
+  const align = hasText ? htmlAlign(layer.content.text) : "left";
+  const basis = Number(layer.design?.basis) || 100;
+  const setAlign = (a: "left" | "center" | "right") => onChange({ ...layer, content: { ...layer.content, text: setHtmlAlign(layer.content.text || "", a) } });
+  const setBasis = (b: number) => onChange({ ...layer, design: { ...(layer.design || {}), basis: b } });
+  return (
+    <div className="mt-3 border-t border-neutral-200 pt-2">
+      <Lbl>Aparência</Lbl>
+      {hasText ? (
+        <div className="mb-2 flex gap-1">
+          {([["left", "⬅"], ["center", "↔"], ["right", "➡"]] as const).map(([a, ic]) => (
+            <button key={a} onClick={() => setAlign(a)} className={`flex-1 rounded border px-2 py-1 text-xs ${align === a ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"}`}>{ic}</button>
+          ))}
+        </div>
+      ) : null}
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] text-neutral-500">Largura {basis}%</span>
+        <input type="range" min={40} max={100} value={basis} onChange={(e) => setBasis(Number(e.target.value))} className="flex-1" />
+      </div>
+    </div>
+  );
+}
+
+/** Linha arrastável (render-prop injeta o "handle" ⠿). */
+function SortableItem({ id, children }: { id: string; children: (handle: React.ReactNode) => React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const handle = <span {...attributes} {...listeners} className="cursor-grab select-none text-neutral-300 hover:text-neutral-500" title="Arrastar">⠿</span>;
+  return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}>{children(handle)}</div>;
+}
+
 /** Editor de um bloco (campos por tipo). */
 function LayerEditor({ layer, steps, onChange }: { layer: Layer; steps: InleadStep[]; onChange: (l: Layer) => void }) {
   const c = layer.content;
@@ -100,6 +151,7 @@ function LayerEditor({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
     </>
   );
 
+  const fields = ((): React.ReactNode => {
   switch (layer.type) {
     case "text":
       return (<><Lbl>Texto</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} /></>);
@@ -169,6 +221,9 @@ function LayerEditor({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
     default:
       return <p className="mt-2 text-xs text-neutral-500">Bloco “{BLOCK_META[layer.type]?.label || layer.type}” — edição avançada em breve. Conteúdo preservado.</p>;
   }
+  })();
+  const showAp = ["text", "alert", "button", "image", "options"].includes(layer.type);
+  return <>{fields}{showAp ? <Appearance layer={layer} onChange={onChange} /> : null}</>;
 }
 
 // ───────────────────────── B — DESIGN ─────────────────────────
@@ -336,15 +391,25 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
     setSteps(next); setSelStep(selStep + 1);
   };
   const delStep = (i: number) => { if (steps.length <= 1) return; const next = steps.filter((_, k) => k !== i); setSteps(next); setSelStep(Math.min(i, next.length - 1)); };
-  const moveStep = (i: number, dir: -1 | 1) => { const j = i + dir; if (j < 0 || j >= steps.length) return; const next = [...steps];[next[i], next[j]] = [next[j], next[i]]; setSteps(next); setSelStep(j); };
 
   // ── operações de bloco ──
   const addLayer = (t: LayerType) => { const l = newLayer(t); setLayers([...layers, l]); setSelLayer(l.id); setAdding(false); };
   const delLayer = (id: string) => setLayers(layers.filter((l) => l.id !== id));
-  const moveLayer = (i: number, dir: -1 | 1) => { const j = i + dir; if (j < 0 || j >= layers.length) return; const next = [...layers];[next[i], next[j]] = [next[j], next[i]]; setLayers(next); };
   const updateLayer = (id: string, l: Layer) => setLayers(layers.map((x) => x.id === id ? l : x));
 
   const sel = layers.find((l) => l.id === selLayer);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const onStepDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e; if (!over || active.id === over.id) return;
+    const from = steps.findIndex((s) => s.id === active.id); const to = steps.findIndex((s) => s.id === over.id);
+    if (from < 0 || to < 0) return; setSteps(arrayMove(steps, from, to)); setSelStep(to);
+  };
+  const onLayerDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e; if (!over || active.id === over.id) return;
+    const from = layers.findIndex((l) => l.id === active.id); const to = layers.findIndex((l) => l.id === over.id);
+    if (from < 0 || to < 0) return; setLayers(arrayMove(layers, from, to));
+  };
 
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-900">
@@ -380,19 +445,24 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
             <span className="text-xs font-bold text-neutral-600">Lâminas</span>
             <button onClick={addStep} className="rounded-md bg-neutral-900 px-2 py-0.5 text-xs font-semibold text-white">+ Lâmina</button>
           </div>
-          <div className="space-y-1">
-            {steps.map((s, i) => (
-              <div key={s.id} className={`group flex items-center gap-1 rounded-lg border px-2 py-1.5 text-sm ${i === selStep ? "border-neutral-900 bg-white shadow-sm" : "border-transparent hover:bg-white"}`}>
-                <button onClick={() => { setSelStep(i); setSelLayer(null); }} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
-                  <span className="text-[10px] text-neutral-400">{i + 1}</span>
-                  <span className="min-w-0 flex-1 truncate font-medium text-neutral-800">{s.title || s.id}</span>
-                </button>
-                <button onClick={() => moveStep(i, -1)} className="px-0.5 text-neutral-300 opacity-0 group-hover:opacity-100">▲</button>
-                <button onClick={() => moveStep(i, 1)} className="px-0.5 text-neutral-300 opacity-0 group-hover:opacity-100">▼</button>
-                <button onClick={() => delStep(i)} className="px-0.5 text-red-400 opacity-0 group-hover:opacity-100">✕</button>
+          <DndContext id="ll-steps" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onStepDragEnd}>
+            <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-1">
+                {steps.map((s, i) => (
+                  <SortableItem key={s.id} id={s.id}>{(handle) => (
+                    <div className={`group flex items-center gap-1 rounded-lg border px-2 py-1.5 text-sm ${i === selStep ? "border-neutral-900 bg-white shadow-sm" : "border-transparent hover:bg-white"}`}>
+                      {handle}
+                      <button onClick={() => { setSelStep(i); setSelLayer(null); }} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
+                        <span className="text-[10px] text-neutral-400">{i + 1}</span>
+                        <span className="min-w-0 flex-1 truncate font-medium text-neutral-800">{s.title || s.id}</span>
+                      </button>
+                      <button onClick={() => delStep(i)} className="px-0.5 text-red-400 opacity-0 group-hover:opacity-100">✕</button>
+                    </div>
+                  )}</SortableItem>
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         </aside>
 
         {/* BLOCOS da lâmina + editor */}
@@ -415,27 +485,32 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
             ) : null}
           </div>
 
-          <div className="space-y-1.5">
-            {layers.map((l, i) => (
-              <div key={l.id}>
-                <div className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 ${sel?.id === l.id ? "border-neutral-900 bg-neutral-50" : "border-neutral-200"}`}>
-                  <button onClick={() => setSelLayer(sel?.id === l.id ? null : l.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm">
-                    <span>{BLOCK_META[l.type]?.icon || "▫️"}</span>
-                    <span className="min-w-0 flex-1 truncate text-neutral-700">{BLOCK_META[l.type]?.label || l.type}<span className="ml-1 text-xs text-neutral-400">{strip(l.content.text || l.content.label || l.content.title).slice(0, 28)}</span></span>
-                  </button>
-                  <button onClick={() => moveLayer(i, -1)} className="px-0.5 text-neutral-300">▲</button>
-                  <button onClick={() => moveLayer(i, 1)} className="px-0.5 text-neutral-300">▼</button>
-                  <button onClick={() => delLayer(l.id)} className="px-0.5 text-red-400">✕</button>
-                </div>
-                {sel?.id === l.id ? (
-                  <div className="mt-1 rounded-lg border border-neutral-200 bg-neutral-50/60 p-3">
-                    <LayerEditor layer={l} steps={steps} onChange={(nl) => updateLayer(l.id, nl)} />
+          <DndContext id="ll-blocks" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onLayerDragEnd}>
+            <SortableContext items={layers.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-1.5">
+                {layers.map((l) => (
+                  <div key={l.id}>
+                    <SortableItem id={l.id}>{(handle) => (
+                      <div className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 ${sel?.id === l.id ? "border-neutral-900 bg-neutral-50" : "border-neutral-200"}`}>
+                        {handle}
+                        <button onClick={() => setSelLayer(sel?.id === l.id ? null : l.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm">
+                          <span>{BLOCK_META[l.type]?.icon || "▫️"}</span>
+                          <span className="min-w-0 flex-1 truncate text-neutral-700">{BLOCK_META[l.type]?.label || l.type}<span className="ml-1 text-xs text-neutral-400">{strip(l.content.text || l.content.label || l.content.title).slice(0, 28)}</span></span>
+                        </button>
+                        <button onClick={() => delLayer(l.id)} className="px-0.5 text-red-400">✕</button>
+                      </div>
+                    )}</SortableItem>
+                    {sel?.id === l.id ? (
+                      <div className="mt-1 rounded-lg border border-neutral-200 bg-neutral-50/60 p-3">
+                        <LayerEditor layer={l} steps={steps} onChange={(nl) => updateLayer(l.id, nl)} />
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
+                ))}
+                {!layers.length ? <p className="py-6 text-center text-xs text-neutral-400">Lâmina vazia — adicione um bloco acima.</p> : null}
               </div>
-            ))}
-            {!layers.length ? <p className="py-6 text-center text-xs text-neutral-400">Lâmina vazia — adicione um bloco acima.</p> : null}
-          </div>
+            </SortableContext>
+          </DndContext>
         </main>
 
         {/* PREVIEW */}
