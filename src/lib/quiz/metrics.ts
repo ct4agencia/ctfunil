@@ -16,6 +16,15 @@ export interface DashboardMetrics {
 
 const DONUT_COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#06b6d4", "#ef4444"];
 
+/** M11: partes da data no fuso de São Paulo (gráficos diário/horário). */
+const SP_FMT = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", hour12: false,
+});
+function spParts(d: Date): { day: string; month: string; hour: string } {
+  const p = Object.fromEntries(SP_FMT.formatToParts(d).map((x) => [x.type, x.value]));
+  return { day: p.day, month: p.month, hour: p.hour === "24" ? "00" : p.hour };
+}
+
 /** Métricas agregadas (overview do dashboard, estilo Datacrazy). */
 export async function dashboardMetrics(): Promise<DashboardMetrics> {
   const funis = await listFunnelsDb();
@@ -39,12 +48,12 @@ export async function dashboardMetrics(): Promise<DashboardMetrics> {
     const { data } = await sb.from("funnel_sessions").select("created_at").gte("created_at", since).limit(20000);
     const buckets = new Map<string, number>();
     for (let d = 6; d >= 0; d--) {
-      const dt = new Date(Date.now() - d * 86400000);
-      buckets.set(`${String(dt.getDate()).padStart(2, "0")}/${String(dt.getMonth() + 1).padStart(2, "0")}`, 0);
+      const { day, month } = spParts(new Date(Date.now() - d * 86400000));
+      buckets.set(`${day}/${month}`, 0);
     }
     for (const r of data ?? []) {
-      const dt = new Date(r.created_at as string);
-      const key = `${String(dt.getDate()).padStart(2, "0")}/${String(dt.getMonth() + 1).padStart(2, "0")}`;
+      const { day, month } = spParts(new Date(r.created_at as string));
+      const key = `${day}/${month}`;
       if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
     }
     for (const [day, sessoes] of buckets) daily.push({ day, sessoes });
@@ -281,13 +290,12 @@ export async function funnelMetrics(slug: string): Promise<FunnelMetrics> {
   const now = Date.now();
   const buckets = new Map<string, { v: number; r: number; l: number; c: number }>();
   for (let h = 23; h >= 0; h--) {
-    const d = new Date(now - h * 3600 * 1000);
-    buckets.set(`${String(d.getHours()).padStart(2, "0")}:00`, { v: 0, r: 0, l: 0, c: 0 });
+    buckets.set(`${spParts(new Date(now - h * 3600 * 1000)).hour}:00`, { v: 0, r: 0, l: 0, c: 0 });
   }
   for (const s of sessions) {
     const t = new Date(s.created_at).getTime();
     if (now - t > 24 * 3600 * 1000) continue;
-    const key = `${String(new Date(s.created_at).getHours()).padStart(2, "0")}:00`;
+    const key = `${spParts(new Date(s.created_at)).hour}:00`;
     const b = buckets.get(key);
     if (!b) continue;
     b.v++;

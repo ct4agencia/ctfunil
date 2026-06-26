@@ -217,7 +217,7 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
           ) : null}
           {step.options?.show_logo && design.logo?.src ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={design.logo.src} alt="" className="h-10 w-auto object-contain" />
+            <img src={design.logo.src} alt="" decoding="async" className="h-10 w-auto object-contain" />
           ) : null}
           {step.options?.show_progress ? (
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
@@ -252,7 +252,7 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
                         <div key={g.id} className="min-w-0 flex-1">
                           <Reveal delay={g.effects?.starts}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={g.content.image?.src || ""} alt="" className="h-auto w-full rounded-2xl object-contain" />
+                            <img src={g.content.image?.src || ""} alt="" loading="lazy" decoding="async" className="h-auto w-full rounded-2xl object-contain" />
                           </Reveal>
                         </div>
                       ))}

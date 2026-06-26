@@ -110,13 +110,19 @@ function AlertBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 
 // ─────────────────────────────── IMAGE ──────────────────────────────
 function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
-  const src = layer.content.image?.src;
+  const im = layer.content.image;
+  const src = im?.src;
   if (!src) return null;
   const basis = Number(layer.design?.basis) || 100;
   return (
     <div className="mx-auto flex w-full justify-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="" style={{ width: `${basis}%`, borderRadius: radius(ctx.design) }} className="h-auto object-contain" />
+      <img
+        src={src} alt="" loading="lazy" decoding="async"
+        width={im?.width || undefined} height={im?.height || undefined}
+        style={{ width: `${basis}%`, height: "auto", aspectRatio: im?.width && im?.height ? `${im.width}/${im.height}` : undefined, borderRadius: radius(ctx.design) }}
+        className="object-contain"
+      />
     </div>
   );
 }
@@ -257,7 +263,7 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
             {showIcon && iconStart ? <Chevron color={theme} /> : null}
             {img ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={img} alt="" className="h-10 w-10 rounded-lg object-cover" />
+              <img src={img} alt="" loading="lazy" decoding="async" className="h-10 w-10 rounded-lg object-cover" />
             ) : emoji ? <span className="text-2xl">{emoji}</span> : null}
             <Html html={interpHtml(o.label, ctx)} className={cols > 1 ? "" : "flex-1"} style={{ fontSize: `${remContent(ctx)}px`, fontWeight: 500, color: ctx.design.contentColor || "#000" }} />
             {showIcon && !iconStart ? <Chevron color={theme} /> : null}
@@ -476,7 +482,7 @@ export function SliderHero({
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28"
               style={{ background: `linear-gradient(to bottom, ${bgColor} 8%, transparent)` }} />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={step.image} alt="" className="block max-h-[46vh] w-full object-cover object-top" />
+            <img src={step.image} alt="" loading="lazy" decoding="async" className="block max-h-[46vh] w-full object-cover object-top" />
           </div>
         ) : null}
       </div>

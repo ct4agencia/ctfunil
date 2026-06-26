@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { Funnel } from "./types";
 import { getFunnel as getSeedFunnel } from "./registry";
@@ -76,8 +77,10 @@ function isMissingColumn(err: { code?: string; message?: string } | null): boole
     /column .* does not exist|could not find|schema cache/i.test(err.message ?? "");
 }
 
-/** Carrega do banco; se não existir lá, cai no seed em código. */
-export async function resolveFunnel(slug: string): Promise<Funnel | null> {
+/** Carrega do banco; se não existir lá, cai no seed em código.
+ *  Memoizado por request (React cache) — generateMetadata e a página compartilham
+ *  UMA query em vez de duas idas ao Supabase. */
+export const resolveFunnel = cache(async (slug: string): Promise<Funnel | null> => {
   if (configured()) {
     try {
       const sb = createAdminClient();
@@ -96,7 +99,7 @@ export async function resolveFunnel(slug: string): Promise<Funnel | null> {
     }
   }
   return getSeedFunnel(slug) ?? null;
-}
+});
 
 /** Carrega o funil cujo DOMÍNIO próprio bate com o host (multi-domínio). */
 export async function resolveFunnelByDomain(host: string): Promise<Funnel | null> {
