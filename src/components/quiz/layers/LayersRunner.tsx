@@ -10,7 +10,7 @@ import { ScrollHint } from "../ui";
 import { RouletteStepView, type StepCtx } from "../steps";
 import { getPalette, paletteVars } from "@/lib/quiz/theme";
 import type { RouletteStep } from "@/lib/quiz/types";
-import { Block, Reveal, SliderHero, type LayersCtx } from "./blocks";
+import { Block, Reveal, SliderHero, LayersEditContext, type LayersCtx, type LayersEdit } from "./blocks";
 
 /** rem da string container "max-w-[34rem]". */
 function containerMax(c?: string): string {
@@ -21,7 +21,7 @@ const ALIGN: Record<string, string> = {
   "justify-start": "flex-start", "justify-center": "center", "justify-end": "flex-end",
 };
 
-export default function LayersRunner({ funnel, geo, startIndex = 0, preview = false }: { funnel: Funnel; geo?: { estado?: string; cidade?: string }; startIndex?: number; preview?: boolean }) {
+export default function LayersRunner({ funnel, geo, startIndex = 0, preview = false, editor }: { funnel: Funnel; geo?: { estado?: string; cidade?: string }; startIndex?: number; preview?: boolean; editor?: LayersEdit }) {
   const steps = funnel.steps as unknown as InleadStep[];
   const design = (funnel.settings?.design as InleadDesign) || {};
   const total = steps.length;
@@ -183,6 +183,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   }
 
   return (
+    <LayersEditContext.Provider value={editor ?? null}>
     <div className="relative flex min-h-[100dvh] flex-col overflow-x-hidden" style={{ background: pageBg, color: design.contentColor || "#000" }}>
       <style>{`
         .lyr-html{line-height:1.45;overflow-wrap:break-word;word-break:break-word}
@@ -277,5 +278,6 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       {/* setinha pulsante "role pra baixo" (pedido do Luca) */}
       <ScrollHint dep={idx} />
     </div>
+    </LayersEditContext.Provider>
   );
 }

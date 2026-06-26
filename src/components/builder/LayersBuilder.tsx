@@ -21,7 +21,24 @@ const BLOCK_META: Record<string, { icon: string; label: string }> = {
   graphics: { icon: "📊", label: "Gráfico" }, clear: { icon: "↕️", label: "Espaço" }, embed: { icon: "▶️", label: "Vídeo/Embed" },
   video: { icon: "▶️", label: "Vídeo" }, roulette: { icon: "🎡", label: "Roleta" }, slider: { icon: "🎚️", label: "Slider" },
 };
-const PALETTE: LayerType[] = ["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed"];
+/** Paleta categorizada (ordem/categorias dos prints do inlead). */
+const CATS: { name: string; items: [string, string][] }[] = [
+  { name: "Formulário", items: [["field", "Campo"], ["email", "E-mail"], ["phone", "Telefone"], ["button", "Botão"], ["number", "Número"], ["textarea", "Textarea"], ["date", "Data"], ["height", "Altura"], ["weight", "Peso"]] },
+  { name: "Quiz", items: [["options", "Opções"], ["multi", "Múltipla Escolha"], ["single", "Escolha Única"], ["yesno", "Sim/Não"], ["videoanswer", "Vídeo Resposta"]] },
+  { name: "Mídia e conteúdo", items: [["text", "Texto"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
+  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"]] },
+  { name: "Argumentação", items: [["arguments", "Argumentos"], ["testimonials", "Depoimentos"], ["faq", "FAQ"], ["price", "Preço"], ["checklist", "Checklist"], ["beforeafter", "Antes/Depois"], ["carousel", "Carrossel"]] },
+  { name: "Gráficos", items: [["graphics", "Métricas"], ["charts", "Gráficos"]] },
+  { name: "Personalização", items: [["clear", "Espaço"], ["html", "HTML/Script"]] },
+];
+const PALETTE_ICON: Record<string, string> = {
+  field: "📝", email: "✉️", phone: "📞", button: "🔘", number: "🔢", textarea: "📄", date: "📅", height: "📏", weight: "⚖️",
+  options: "☑️", multi: "🗂️", single: "⚪", yesno: "🔀", videoanswer: "🎬", text: "🔤", image: "🖼️", video: "▶️", audio: "🔊",
+  alert: "⚠️", notification: "🔔", timer: "⏱️", loading: "⏳", level: "📶", arguments: "💬", testimonials: "⭐", faq: "❓",
+  price: "💲", checklist: "✅", beforeafter: "🔁", carousel: "🎠", graphics: "📊", charts: "📈", clear: "↕️", html: "▟",
+};
+/** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
+const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed", "email", "phone", "video"]);
 
 function newLayer(type: LayerType): Layer {
   const id = genId();
@@ -139,8 +156,8 @@ function SortableItem({ id, children }: { id: string; children: (handle: React.R
   return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}>{children(handle)}</div>;
 }
 
-/** Editor de um bloco (campos por tipo). */
-function LayerEditor({ layer, steps, onChange }: { layer: Layer; steps: InleadStep[]; onChange: (l: Layer) => void }) {
+/** Aba "Componente": campos de conteúdo por tipo de bloco. */
+function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadStep[]; onChange: (l: Layer) => void }) {
   const c = layer.content;
   const setC = (patch: Record<string, unknown>) => onChange({ ...layer, content: { ...c, ...patch } });
   const setD = (patch: Record<string, unknown>) => onChange({ ...layer, design: { ...(layer.design || {}), ...patch } });
@@ -151,7 +168,6 @@ function LayerEditor({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
     </>
   );
 
-  const fields = ((): React.ReactNode => {
   switch (layer.type) {
     case "text":
       return (<><Lbl>Texto</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} /></>);
@@ -219,11 +235,43 @@ function LayerEditor({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
       return (<><Lbl>Embed do player (cole o &lt;script&gt;+&lt;iframe&gt; do VTurb)</Lbl>
         <textarea value={c.embedHtml || ""} onChange={(e) => setC({ embedHtml: e.target.value })} rows={5} className={`${inp} font-mono`} /></>);
     default:
-      return <p className="mt-2 text-xs text-neutral-500">Bloco “{BLOCK_META[layer.type]?.label || layer.type}” — edição avançada em breve. Conteúdo preservado.</p>;
+      return <p className="mt-2 text-xs text-neutral-500">Bloco “{BLOCK_META[layer.type]?.label || layer.type}” — em breve. O conteúdo é preservado e renderiza no funil.</p>;
   }
-  })();
-  const showAp = ["text", "alert", "button", "image", "options"].includes(layer.type);
-  return <>{fields}{showAp ? <Appearance layer={layer} onChange={onChange} /> : null}</>;
+}
+
+/** Aba "Exibição": revelação e visibilidade do bloco. */
+function Exibicao({ layer, onChange }: { layer: Layer; onChange: (l: Layer) => void }) {
+  const starts = Number(layer.effects?.starts) || 0;
+  const hidden = !!layer.design?.hidden;
+  return (
+    <div>
+      <Lbl>Revelar após (segundos) — 0 = já aparece</Lbl>
+      <input type="number" min={0} value={starts} onChange={(e) => onChange({ ...layer, effects: { ...(layer.effects || {}), starts: Number(e.target.value) } })} className={inp} />
+      <label className="mt-3 flex cursor-pointer items-center justify-between text-sm">
+        <span className="text-neutral-600">Ocultar bloco</span>
+        <input type="checkbox" checked={hidden} onChange={(e) => onChange({ ...layer, design: { ...(layer.design || {}), hidden: e.target.checked } })} className="h-4 w-4 accent-neutral-900" />
+      </label>
+    </div>
+  );
+}
+
+/** Painel direito: Componente / Aparência / Exibição (estilo inlead). */
+function RightPanel({ layer, steps, onChange }: { layer: Layer; steps: InleadStep[]; onChange: (l: Layer) => void }) {
+  const [t, setT] = useState<"componente" | "aparencia" | "exibicao">("componente");
+  return (
+    <div>
+      <div className="flex border-b border-neutral-200 text-xs font-semibold">
+        {([["componente", "Componente"], ["aparencia", "Aparência"], ["exibicao", "Exibição"]] as const).map(([k, label]) => (
+          <button key={k} onClick={() => setT(k)} className={`flex-1 py-2.5 ${t === k ? "border-b-2 border-neutral-900 text-neutral-900" : "text-neutral-400"}`}>{label}</button>
+        ))}
+      </div>
+      <div className="p-3">
+        {t === "componente" ? <LayerFields layer={layer} steps={steps} onChange={onChange} /> : null}
+        {t === "aparencia" ? <Appearance layer={layer} onChange={onChange} /> : null}
+        {t === "exibicao" ? <Exibicao layer={layer} onChange={onChange} /> : null}
+      </div>
+    </div>
+  );
 }
 
 // ───────────────────────── B — DESIGN ─────────────────────────
@@ -361,7 +409,6 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const steps = funnel.steps as unknown as InleadStep[];
   const [selStep, setSelStep] = useState(0);
   const [selLayer, setSelLayer] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
@@ -393,9 +440,24 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const delStep = (i: number) => { if (steps.length <= 1) return; const next = steps.filter((_, k) => k !== i); setSteps(next); setSelStep(Math.min(i, next.length - 1)); };
 
   // ── operações de bloco ──
-  const addLayer = (t: LayerType) => { const l = newLayer(t); setLayers([...layers, l]); setSelLayer(l.id); setAdding(false); };
+  const addPaletteItem = (key: string, label: string) => {
+    if (!ADDABLE.has(key)) { window.alert(`Bloco "${label}" — em breve. Vamos ativar sob demanda.`); return; }
+    let l: Layer;
+    if (key === "email") { l = newLayer("field"); l.content = { ...l.content, name: "email", title: "Seu e-mail", placeholder: "voce@email.com", type: "email", mask: undefined }; }
+    else if (key === "phone") { l = newLayer("field"); }
+    else if (key === "video") { l = newLayer("embed"); }
+    else { l = newLayer(key as LayerType); }
+    setLayers([...layers, l]); setSelLayer(l.id);
+  };
   const delLayer = (id: string) => setLayers(layers.filter((l) => l.id !== id));
   const updateLayer = (id: string, l: Layer) => setLayers(layers.map((x) => x.id === id ? l : x));
+  const onSelect = (id: string) => setSelLayer(id);
+  const onAction = (id: string, action: "copy" | "hide" | "delete") => {
+    const i = layers.findIndex((l) => l.id === id); if (i < 0) return;
+    if (action === "delete") { delLayer(id); setSelLayer(null); return; }
+    if (action === "copy") { const copy = { ...JSON.parse(JSON.stringify(layers[i])), id: genId() } as Layer; setLayers([...layers.slice(0, i + 1), copy, ...layers.slice(i + 1)]); setSelLayer(copy.id); return; }
+    if (action === "hide") { const l = layers[i]; updateLayer(id, { ...l, design: { ...(l.design || {}), hidden: !l.design?.hidden } }); }
+  };
 
   const sel = layers.find((l) => l.id === selLayer);
 
@@ -405,12 +467,6 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
     const from = steps.findIndex((s) => s.id === active.id); const to = steps.findIndex((s) => s.id === over.id);
     if (from < 0 || to < 0) return; setSteps(arrayMove(steps, from, to)); setSelStep(to);
   };
-  const onLayerDragEnd = (e: DragEndEvent) => {
-    const { active, over } = e; if (!over || active.id === over.id) return;
-    const from = layers.findIndex((l) => l.id === active.id); const to = layers.findIndex((l) => l.id === over.id);
-    if (from < 0 || to < 0) return; setLayers(arrayMove(layers, from, to));
-  };
-
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-900">
       <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
@@ -438,25 +494,25 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
       {tab === "leads" && <div className="p-4"><LeadsTab slug={funnel.slug} /></div>}
 
       {tab === "construtor" && (
-      <div className="grid gap-4 p-4 lg:grid-cols-[230px_1fr_360px]">
-        {/* LÂMINAS */}
-        <aside className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-bold text-neutral-600">Lâminas</span>
-            <button onClick={addStep} className="rounded-md bg-neutral-900 px-2 py-0.5 text-xs font-semibold text-white">+ Lâmina</button>
+      <div className="grid h-[calc(100vh-49px)] grid-cols-[180px_180px_1fr_300px] bg-neutral-100">
+        {/* 1 · ETAPAS */}
+        <aside className="overflow-y-auto border-r border-neutral-200 bg-white p-2">
+          <div className="mb-2 flex items-center justify-between px-1">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">Etapas</span>
+            <button onClick={addStep} title="Nova etapa" className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs font-semibold text-white">+</button>
           </div>
           <DndContext id="ll-steps" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onStepDragEnd}>
             <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {steps.map((s, i) => (
                   <SortableItem key={s.id} id={s.id}>{(handle) => (
-                    <div className={`group flex items-center gap-1 rounded-lg border px-2 py-1.5 text-sm ${i === selStep ? "border-neutral-900 bg-white shadow-sm" : "border-transparent hover:bg-white"}`}>
-                      {handle}
+                    <div className={`group flex items-center gap-1 rounded-lg px-2 py-2 text-sm ${i === selStep ? "bg-neutral-900 text-white" : "text-neutral-700 hover:bg-neutral-100"}`}>
+                      <span className={i === selStep ? "text-white/50" : "text-neutral-300"}>{handle}</span>
                       <button onClick={() => { setSelStep(i); setSelLayer(null); }} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
-                        <span className="text-[10px] text-neutral-400">{i + 1}</span>
-                        <span className="min-w-0 flex-1 truncate font-medium text-neutral-800">{s.title || s.id}</span>
+                        <span className={`text-[10px] ${i === selStep ? "text-white/60" : "text-neutral-400"}`}>{i + 1}</span>
+                        <span className="min-w-0 flex-1 truncate font-medium">{s.title || s.id}</span>
                       </button>
-                      <button onClick={() => delStep(i)} className="px-0.5 text-red-400 opacity-0 group-hover:opacity-100">✕</button>
+                      <button onClick={() => delStep(i)} className={`px-0.5 opacity-0 group-hover:opacity-100 ${i === selStep ? "text-white/70" : "text-red-400"}`}>✕</button>
                     </div>
                   )}</SortableItem>
                 ))}
@@ -465,66 +521,50 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           </DndContext>
         </aside>
 
-        {/* BLOCOS da lâmina + editor */}
-        <main className="space-y-3 rounded-xl border border-neutral-200 bg-white p-4">
-          <div className="flex items-center gap-2 border-b border-neutral-100 pb-2">
-            <input value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className="flex-1 rounded-md border border-neutral-200 px-2 py-1 text-sm font-bold" placeholder="Nome da lâmina" />
-            <span className="text-xs text-neutral-400">{layers.length} blocos</span>
-          </div>
-
-          <div className="relative">
-            <button onClick={() => setAdding((a) => !a)} className="w-full rounded-lg border-2 border-dashed border-neutral-300 py-2 text-xs font-semibold text-neutral-500 hover:border-neutral-900">+ Adicionar bloco</button>
-            {adding ? (
-              <div className="mt-1 grid grid-cols-3 gap-1 rounded-lg border border-neutral-200 bg-white p-2 shadow">
-                {PALETTE.map((t) => (
-                  <button key={t} onClick={() => addLayer(t)} className="flex flex-col items-center gap-0.5 rounded-md border border-neutral-200 py-2 text-[11px] hover:border-neutral-900 hover:bg-neutral-50">
-                    <span className="text-base">{BLOCK_META[t]?.icon}</span>{BLOCK_META[t]?.label}
+        {/* 2 · PALETA categorizada */}
+        <aside className="overflow-y-auto border-r border-neutral-200 bg-neutral-50 p-2">
+          {CATS.map((cat) => (
+            <div key={cat.name} className="mb-2.5">
+              <p className="px-1 pb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">{cat.name}</p>
+              <div className="space-y-0.5">
+                {cat.items.map(([key, label]) => (
+                  <button key={key} onClick={() => addPaletteItem(key, label)} className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-white hover:shadow-sm ${ADDABLE.has(key) ? "text-neutral-700" : "text-neutral-400"}`}>
+                    <span>{PALETTE_ICON[key] || "▫️"}</span><span className="truncate">{label}</span>
                   </button>
                 ))}
               </div>
-            ) : null}
-          </div>
+            </div>
+          ))}
+        </aside>
 
-          <DndContext id="ll-blocks" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onLayerDragEnd}>
-            <SortableContext items={layers.map((l) => l.id)} strategy={verticalListSortingStrategy}>
-              <div className="space-y-1.5">
-                {layers.map((l) => (
-                  <div key={l.id}>
-                    <SortableItem id={l.id}>{(handle) => (
-                      <div className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 ${sel?.id === l.id ? "border-neutral-900 bg-neutral-50" : "border-neutral-200"}`}>
-                        {handle}
-                        <button onClick={() => setSelLayer(sel?.id === l.id ? null : l.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm">
-                          <span>{BLOCK_META[l.type]?.icon || "▫️"}</span>
-                          <span className="min-w-0 flex-1 truncate text-neutral-700">{BLOCK_META[l.type]?.label || l.type}<span className="ml-1 text-xs text-neutral-400">{strip(l.content.text || l.content.label || l.content.title).slice(0, 28)}</span></span>
-                        </button>
-                        <button onClick={() => delLayer(l.id)} className="px-0.5 text-red-400">✕</button>
-                      </div>
-                    )}</SortableItem>
-                    {sel?.id === l.id ? (
-                      <div className="mt-1 rounded-lg border border-neutral-200 bg-neutral-50/60 p-3">
-                        <LayerEditor layer={l} steps={steps} onChange={(nl) => updateLayer(l.id, nl)} />
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-                {!layers.length ? <p className="py-6 text-center text-xs text-neutral-400">Lâmina vazia — adicione um bloco acima.</p> : null}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </main>
-
-        {/* PREVIEW */}
-        <div className="lg:sticky lg:top-4 lg:h-fit">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-500">Preview · lâmina {selStep + 1}</span>
-            <button onClick={() => setNonce((n) => n + 1)} className="rounded-md border border-neutral-300 bg-white px-2 py-1 text-xs font-semibold">↻ Reiniciar</button>
-          </div>
-          <div className="mx-auto h-[680px] w-[340px] max-w-full overflow-hidden rounded-[2rem] border-[10px] border-neutral-900 bg-white shadow-xl" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
-            <div className="h-full overflow-y-auto transform-gpu">
-              <LayersRunner key={`${selStep}-${nonce}`} funnel={funnel} startIndex={selStep} preview />
+        {/* 3 · CANVAS (celular, edição inline) */}
+        <div className="flex items-start justify-center overflow-y-auto p-6">
+          <div className="h-[700px] w-[360px] shrink-0 overflow-hidden rounded-[2.2rem] border-[11px] border-neutral-900 bg-white shadow-2xl" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
+            <div className="h-full overflow-y-auto transform-gpu" onClick={() => setSelLayer(null)}>
+              <LayersRunner key={`${selStep}-${nonce}`} funnel={funnel} startIndex={selStep} preview editor={{ selectedId: selLayer || undefined, onSelect, onAction }} />
             </div>
           </div>
         </div>
+
+        {/* 4 · PAINEL direito (Componente/Aparência/Exibição OU Etapa) */}
+        <aside className="overflow-y-auto border-l border-neutral-200 bg-white">
+          {sel ? (
+            <RightPanel layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} />
+          ) : (
+            <div className="space-y-3 p-4">
+              <p className="text-sm font-bold text-neutral-700">Etapa</p>
+              <div><Lbl>Título</Lbl><input value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className={inp} /></div>
+              <div>
+                <p className="mb-1 text-[11px] font-semibold text-neutral-500">Header</p>
+                {([["show_logo", "Mostrar logo"], ["show_progress", "Mostrar progresso"], ["show_back", "Mostrar botão voltar"]] as const).map(([k, label]) => (
+                  <label key={k} className="flex cursor-pointer items-center justify-between py-1 text-sm"><span className="text-neutral-600">{label}</span>
+                    <input type="checkbox" checked={!!(step?.options as Record<string, boolean> | undefined)?.[k]} onChange={(e) => patchStep(selStep, { options: { ...(step?.options || {}), [k]: e.target.checked } })} className="h-4 w-4 accent-neutral-900" /></label>
+                ))}
+              </div>
+              <p className="text-xs text-neutral-400">👆 Clique num bloco no celular pra editar.</p>
+            </div>
+          )}
+        </aside>
       </div>
       )}
     </div>

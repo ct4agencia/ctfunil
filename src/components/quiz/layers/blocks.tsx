@@ -1,9 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { fireMetaEvent } from "@/lib/tracking";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
+
+/** Modo de edição no canvas (construtor inline estilo inlead). Off = runtime normal. */
+export interface LayersEdit {
+  selectedId?: string;
+  onSelect: (id: string) => void;
+  onAction: (id: string, action: "copy" | "hide" | "delete") => void;
+}
+export const LayersEditContext = createContext<LayersEdit | null>(null);
+
+/** Toolbar flutuante do bloco selecionado (≡ copiar arquivar excluir). */
+function BlockToolbar({ onAction }: { onAction: (a: "copy" | "hide" | "delete") => void }) {
+  const Btn = ({ a, title, children }: { a: "copy" | "hide" | "delete"; title: string; children: React.ReactNode }) => (
+    <button title={title} onClick={(e) => { e.stopPropagation(); onAction(a); }} className="grid h-6 w-6 place-items-center rounded text-white/90 hover:bg-white/20">{children}</button>
+  );
+  return (
+    <div className="absolute -top-7 left-0 z-30 flex items-center gap-0.5 rounded-md bg-blue-600 px-1 py-0.5 text-xs shadow-lg" onClick={(e) => e.stopPropagation()}>
+      <span className="cursor-grab px-1 text-white/80" title="Arrastar">⠿</span>
+      <Btn a="copy" title="Duplicar">⧉</Btn>
+      <Btn a="hide" title="Ocultar">◐</Btn>
+      <Btn a="delete" title="Excluir">🗑</Btn>
+    </div>
+  );
+}
 
 /** Contexto passado a cada bloco. */
 export interface LayersCtx {
@@ -509,6 +532,24 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
       default: return null;
     }
   })();
+  // ── modo de edição (canvas do construtor): seleção + toolbar, sem reveal ──
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const edit = useContext(LayersEditContext);
+  const hidden = !!layer.design?.hidden;
+  if (hidden && !edit) return null; // runtime: bloco oculto não renderiza
+  if (edit) {
+    const selected = edit.selectedId === layer.id;
+    return (
+      <div
+        onClickCapture={(e) => { e.stopPropagation(); e.preventDefault(); edit.onSelect(layer.id); }}
+        className="relative cursor-pointer rounded-md transition hover:outline hover:outline-1 hover:outline-blue-300"
+        style={{ outline: selected ? "2px solid #2563eb" : undefined, outlineOffset: 3, opacity: hidden ? 0.4 : 1 }}
+      >
+        {selected ? <BlockToolbar onAction={(a) => edit.onAction(layer.id, a)} /> : null}
+        {inner}
+      </div>
+    );
+  }
   // revelação progressiva (effects.starts) — ex: botão Continuar da VAGAS só após o loading.
   return <Reveal delay={layer.effects?.starts}>{inner}</Reveal>;
 }
