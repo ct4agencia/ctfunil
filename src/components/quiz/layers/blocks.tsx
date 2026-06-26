@@ -198,6 +198,58 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   );
 }
 
+// ─────────────────────────── CARROSSEL ──────────────────────────────
+/** Carrossel de fotos: auto-passa a cada `interval`s + swipe com o dedo (e drag). */
+function CarouselBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  const imgs: string[] = (layer.content.images as string[]) || [];
+  const interval = (Number(layer.content.interval) || 2) * 1000;
+  const n = imgs.length;
+  const [i, setI] = useState(0);
+  const theme = ctx.design.themeColor || "#ea580c";
+  const startX = useRef<number | null>(null);
+  const go = (d: number) => setI((x) => (x + d + n) % n);
+
+  // auto-play: re-arma a cada troca (manual ou automática) → swipe não briga com o timer
+  useEffect(() => {
+    if (n <= 1) return;
+    const id = setTimeout(() => setI((x) => (x + 1) % n), interval);
+    return () => clearTimeout(id);
+  }, [i, n, interval]);
+
+  if (!n) return null;
+  const onDown = (x: number) => { startX.current = x; };
+  const onUp = (x: number) => {
+    if (startX.current == null) return;
+    const dx = x - startX.current; startX.current = null;
+    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+  };
+  return (
+    <div className="mx-auto w-full select-none">
+      <div
+        className="relative overflow-hidden rounded-2xl"
+        onTouchStart={(e) => onDown(e.touches[0].clientX)}
+        onTouchEnd={(e) => onUp(e.changedTouches[0].clientX)}
+        onPointerDown={(e) => onDown(e.clientX)}
+        onPointerUp={(e) => onUp(e.clientX)}
+      >
+        <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${i * 100}%)` }}>
+          {imgs.map((src, k) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={k} src={src} alt="" loading={k === 0 ? undefined : "lazy"} decoding="async" draggable={false} className="w-full shrink-0 object-cover" style={{ aspectRatio: "1 / 1" }} />
+          ))}
+        </div>
+      </div>
+      {n > 1 ? (
+        <div className="mt-2.5 flex justify-center gap-1.5">
+          {imgs.map((_, k) => (
+            <button key={k} onClick={() => setI(k)} aria-label={`Foto ${k + 1}`} className="h-2 rounded-full transition-all" style={{ width: k === i ? 18 : 8, background: k === i ? theme : "rgba(0,0,0,.18)" }} />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 // ─────────────────────── EMBED / VÍDEO (VTurb) ──────────────────────
 /** Injeta o embed do player (seta innerHTML + RE-EXECUTA os <script>). */
 function EmbedBlock({ layer }: { layer: Layer }) {
@@ -529,6 +581,7 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
       case "notification": return <NotificationBlock layer={layer} ctx={ctx} />;
       case "graphics": return <GraphicsBlock layer={layer} ctx={ctx} />;
       case "embed": case "video": return <EmbedBlock layer={layer} />;
+      case "carousel": return <CarouselBlock layer={layer} ctx={ctx} />;
       default: return null;
     }
   })();

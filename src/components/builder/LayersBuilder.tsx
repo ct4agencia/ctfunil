@@ -20,6 +20,7 @@ const BLOCK_META: Record<string, { icon: string; label: string }> = {
   timer: { icon: "⏱️", label: "Timer" }, loading: { icon: "⏳", label: "Loading" }, notification: { icon: "🔔", label: "Notificação" },
   graphics: { icon: "📊", label: "Gráfico" }, clear: { icon: "↕️", label: "Espaço" }, embed: { icon: "▶️", label: "Vídeo/Embed" },
   video: { icon: "▶️", label: "Vídeo" }, roulette: { icon: "🎡", label: "Roleta" }, slider: { icon: "🎚️", label: "Slider" },
+  carousel: { icon: "🎠", label: "Carrossel" },
 };
 /** Paleta categorizada (ordem/categorias dos prints do inlead). */
 const CATS: { name: string; items: [string, string][] }[] = [
@@ -38,7 +39,7 @@ const PALETTE_ICON: Record<string, string> = {
   price: "💲", checklist: "✅", beforeafter: "🔁", carousel: "🎠", graphics: "📊", charts: "📈", clear: "↕️", html: "▟",
 };
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
-const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed", "email", "phone", "video"]);
+const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed", "email", "phone", "video", "carousel"]);
 
 function newLayer(type: LayerType): Layer {
   const id = genId();
@@ -53,6 +54,7 @@ function newLayer(type: LayerType): Layer {
     case "timer": return { ...base, design: { backgroundColor: "#e3eeff", color: "#1c72f1", borderColor: "#c7dcfe", padding: 10 }, content: { id, text: "<p><strong>Oferta acaba em: [time]</strong></p>", time: 300 } };
     case "loading": return { ...base, content: { id, title: "Carregando…", seconds: 4, type: "none", show_title: true, show_percent: true, show_progress: true } };
     case "clear": return { ...base, content: { id, clear: "h-[1rem]" } };
+    case "carousel": return { ...base, design: { basis: 100 }, content: { id, images: [], interval: 2 } };
     case "embed": case "video": return { ...base, content: { id, embedHtml: "" } };
     default: return base;
   }
@@ -234,6 +236,23 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
     case "embed": case "video":
       return (<><Lbl>Embed do player (cole o &lt;script&gt;+&lt;iframe&gt; do VTurb)</Lbl>
         <textarea value={c.embedHtml || ""} onChange={(e) => setC({ embedHtml: e.target.value })} rows={5} className={`${inp} font-mono`} /></>);
+    case "carousel": {
+      const imgs: string[] = (c.images as string[]) || [];
+      return (<>
+        <Lbl>Passar a cada (segundos)</Lbl>
+        <input type="number" min={1} value={Number(c.interval) || 2} onChange={(e) => setC({ interval: Number(e.target.value) })} className={inp} />
+        <Lbl>Fotos do carrossel</Lbl>
+        <div className="space-y-2">
+          {imgs.map((src, idx) => (
+            <div key={idx} className="rounded-md border border-neutral-200 p-2">
+              <div className="mb-1 flex items-center justify-between"><span className="text-[11px] font-semibold text-neutral-500">Foto {idx + 1}</span><button onClick={() => setC({ images: imgs.filter((_, k) => k !== idx) })} className="text-red-400">✕</button></div>
+              <ImageField value={src} onChange={(v) => setC({ images: imgs.map((x, k) => k === idx ? v : x) })} />
+            </div>
+          ))}
+          <button onClick={() => setC({ images: [...imgs, ""] })} className="rounded-md border border-dashed border-neutral-300 px-2 py-1 text-xs text-neutral-500">+ foto</button>
+        </div>
+      </>);
+    }
     default:
       return <p className="mt-2 text-xs text-neutral-500">Bloco “{BLOCK_META[layer.type]?.label || layer.type}” — em breve. O conteúdo é preservado e renderiza no funil.</p>;
   }
