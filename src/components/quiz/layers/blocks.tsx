@@ -410,6 +410,75 @@ function GraphicsBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   );
 }
 
+// ─────────────────── HERO SLIDER (layout dedicado) ──────────────────
+/** Hero de slider 0–10 com foto full-bleed no rodapé + gradiente (estilo inlead). */
+export function SliderHero({
+  step, ctx, theme, bgColor,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  step: any; ctx: LayersCtx; theme: string; bgColor: string;
+}) {
+  const min = Number(step.min) || 0;
+  const max = Number(step.max) ?? 10;
+  const stp = Number(step.step) || 1;
+  const [v, setV] = useState(Number.isFinite(Number(step.defaultValue)) ? Number(step.defaultValue) : Math.round((min + max) / 2));
+  const pct = ((v - min) / (max - min)) * 100;
+
+  // título: ==trecho== ou **trecho** vira texto na cor do tema (sem fundo de pílula)
+  const titleParts = String(step.question || "").split(/==(.+?)==|\*\*(.+?)\*\*/g).filter((p: string) => p !== undefined);
+
+  return (
+    <div className="flex min-h-[100dvh] flex-col" style={{ background: bgColor, color: "#111" }}>
+      {/* barra de progresso no topo */}
+      <div className="h-1 w-full" style={{ background: "rgba(0,0,0,.06)" }}>
+        <div className="h-full" style={{ width: "12%", background: theme }} />
+      </div>
+
+      <div className="flex flex-1 flex-col">
+        {/* conteúdo */}
+        <div className="px-6 pt-9">
+          <h2 className="text-center text-[26px] font-extrabold leading-tight">
+            {titleParts.map((p: string, i: number) =>
+              i % 2 === 1 ? <span key={i} style={{ color: theme }}>{p}</span> : <span key={i}>{p}</span>,
+            )}
+          </h2>
+          {step.help ? <p className="mt-2 text-center text-sm text-black/45">{step.help}</p> : null}
+
+          <div className="mt-8">
+            <input
+              type="range" min={min} max={max} step={stp} value={v}
+              onChange={(e) => setV(Number(e.target.value))}
+              className="q-slider h-2 w-full cursor-pointer appearance-none rounded-full"
+              style={{ accentColor: theme, background: `linear-gradient(90deg, ${theme} ${pct}%, #e7e1d8 ${pct}%)` }}
+            />
+            <div className="mt-2 flex justify-between px-0.5 text-xs font-semibold text-black/45">
+              {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((n) => <span key={n}>{n}</span>)}
+            </div>
+          </div>
+
+          <button
+            onClick={() => ctx.navigate("next")}
+            className="mt-7 w-full rounded-full py-4 text-[17px] font-bold text-white"
+            style={{ background: theme, boxShadow: "0 14px 26px -12px rgba(0,0,0,.35)" }}
+          >
+            {step.cta || "Continuar"}
+          </button>
+        </div>
+
+        {/* foto full-bleed no rodapé + gradiente que funde com o fundo */}
+        {step.image ? (
+          <div className="relative mt-auto w-full">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28"
+              style={{ background: `linear-gradient(to bottom, ${bgColor} 8%, transparent)` }} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={step.image} alt="" className="block max-h-[46vh] w-full object-cover object-top" />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────── DISPATCHER ─────────────────────────────
 export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; question: string }) {
   const inner = ((): React.ReactNode => {

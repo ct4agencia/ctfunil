@@ -7,10 +7,10 @@ import type { InleadStep, InleadDesign } from "@/lib/quiz/layers/types";
 import { trackStep, trackAnswer } from "@/lib/quiz/track";
 import { getSessionId, collectTrackingParams } from "@/lib/tracking";
 import { ScrollHint } from "../ui";
-import { RouletteStepView, SliderStepView, type StepCtx } from "../steps";
+import { RouletteStepView, type StepCtx } from "../steps";
 import { getPalette, paletteVars } from "@/lib/quiz/theme";
-import type { RouletteStep, SliderStep } from "@/lib/quiz/types";
-import { Block, Reveal, type LayersCtx } from "./blocks";
+import type { RouletteStep } from "@/lib/quiz/types";
+import { Block, Reveal, SliderHero, type LayersCtx } from "./blocks";
 
 /** rem da string container "max-w-[34rem]". */
 function containerMax(c?: string): string {
@@ -120,27 +120,29 @@ export default function LayersRunner({ funnel, geo }: { funnel: Funnel; geo?: { 
   const hero = (step.layers || []).find((l) => l.type === "roulette" || l.type === "slider");
   if (hero) {
     const palette = getPalette(funnel.paletteId);
-    const dark = hero.type === "roulette";
-    const heroBg = (hero.content.background as string) ||
-      (dark ? "radial-gradient(120% 80% at 50% 35%, #2a1d4d 0%, #150f29 55%, #0a0a1a 100%)" : (design.backgroundColor || "#ffffff"));
+    // SLIDER hero: layout dedicado (foto full-bleed no rodapé + gradiente, botão acima).
+    if (hero.type === "slider") {
+      return <SliderHero step={hero.content} ctx={ctx} theme={design.themeColor || palette.primary || "#ea580c"} bgColor={pageBg} />;
+    }
+    // ROLETA hero: tela cheia escura, reaproveita o RouletteStepView do /cdb-r.
     const stepCtx: StepCtx = {
       name, setName, advance: () => navigate("next"),
       funnelSlug: funnel.slug, palette, preview: false,
       estado: geo?.estado, cidade: geo?.cidade,
     };
+    const rbg = (hero.content.background as string) ||
+      "radial-gradient(120% 80% at 50% 35%, #2a1d4d 0%, #150f29 55%, #0a0a1a 100%)";
     return (
       <div
         className="relative flex min-h-[100dvh] flex-col overflow-x-hidden"
         style={{
           ...paletteVars(palette),
-          ...(dark ? { ["--q-bg"]: "#160a22", ["--q-text"]: "#ffffff", ["--q-text-muted"]: "rgba(255,255,255,.72)" } : {}),
-          background: heroBg, color: dark ? "#ffffff" : (design.contentColor || "#000"),
+          ["--q-bg"]: "#160a22", ["--q-text"]: "#ffffff", ["--q-text-muted"]: "rgba(255,255,255,.72)",
+          background: rbg, color: "#ffffff",
         } as React.CSSProperties}
       >
         <main className="flex flex-1 flex-col">
-          {hero.type === "roulette"
-            ? <RouletteStepView step={hero.content as unknown as RouletteStep} ctx={stepCtx} />
-            : <SliderStepView step={hero.content as unknown as SliderStep} ctx={stepCtx} />}
+          <RouletteStepView step={hero.content as unknown as RouletteStep} ctx={stepCtx} />
         </main>
         <ScrollHint dep={idx} />
       </div>
