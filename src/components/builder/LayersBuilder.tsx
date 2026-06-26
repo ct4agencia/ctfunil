@@ -527,9 +527,10 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   <SortableItem key={s.id} id={s.id}>{(handle) => (
                     <div className={`group flex items-center gap-1 rounded-lg px-2 py-2 text-sm ${i === selStep ? "bg-neutral-900 text-white" : "text-neutral-700 hover:bg-neutral-100"}`}>
                       <span className={i === selStep ? "text-white/50" : "text-neutral-300"}>{handle}</span>
-                      <button onClick={() => { setSelStep(i); setSelLayer(null); }} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
+                      <button onClick={() => { setSelStep(i); setSelLayer(null); }} className={`flex min-w-0 flex-1 items-center gap-1.5 text-left ${s.disabled ? "opacity-45" : ""}`}>
                         <span className={`text-[10px] ${i === selStep ? "text-white/60" : "text-neutral-400"}`}>{i + 1}</span>
-                        <span className="min-w-0 flex-1 truncate font-medium">{s.title || s.id}</span>
+                        <span className={`min-w-0 flex-1 truncate font-medium ${s.disabled ? "line-through" : ""}`}>{s.title || s.id}</span>
+                        {s.disabled ? <span className="shrink-0 rounded bg-neutral-200 px-1 text-[9px] font-bold uppercase text-neutral-500">off</span> : null}
                       </button>
                       <button onClick={() => delStep(i)} className={`px-0.5 opacity-0 group-hover:opacity-100 ${i === selStep ? "text-white/70" : "text-red-400"}`}>✕</button>
                     </div>
@@ -572,6 +573,11 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           ) : (
             <div className="space-y-3 p-4">
               <p className="text-sm font-bold text-neutral-700">Etapa</p>
+              <label className="flex cursor-pointer items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-sm">
+                <span className="font-semibold text-neutral-700">{step?.disabled ? "Lâmina desativada" : "Lâmina ativa"}</span>
+                <input type="checkbox" checked={!step?.disabled} onChange={(e) => patchStep(selStep, { disabled: !e.target.checked })} className="h-4 w-4 accent-green-600" />
+              </label>
+              {step?.disabled ? <p className="-mt-1 text-[11px] text-amber-600">Esta lâmina é PULADA no funil publicado (continua aqui pra reativar).</p> : null}
               <div><Lbl>Título</Lbl><input value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className={inp} /></div>
               <div>
                 <p className="mb-1 text-[11px] font-semibold text-neutral-500">Header</p>

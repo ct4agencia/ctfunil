@@ -22,7 +22,9 @@ const ALIGN: Record<string, string> = {
 };
 
 export default function LayersRunner({ funnel, geo, startIndex = 0, preview = false, editor }: { funnel: Funnel; geo?: { estado?: string; cidade?: string }; startIndex?: number; preview?: boolean; editor?: LayersEdit }) {
-  const steps = funnel.steps as unknown as InleadStep[];
+  const allSteps = funnel.steps as unknown as InleadStep[];
+  // runtime PULA lâminas desativadas; no preview do construtor mostra todas (pra editar)
+  const steps = preview ? allSteps : allSteps.filter((s) => !s.disabled);
   const design = (funnel.settings?.design as InleadDesign) || {};
   const total = steps.length;
 

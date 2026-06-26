@@ -103,6 +103,8 @@ export interface Layer {
 export interface InleadStep {
   id: string;
   title: string;
+  /** false/true: lâmina desativada é PULADA no funil publicado (sem deletar). */
+  disabled?: boolean;
   layers: Layer[];
   options?: { show_logo?: boolean; show_progress?: boolean; show_back?: boolean };
   design?: {
