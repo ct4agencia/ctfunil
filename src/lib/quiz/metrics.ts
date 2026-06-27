@@ -229,18 +229,24 @@ function stageIndices(steps: Step[]) {
   };
 }
 
+/** Janela de datas opcional (ISO). Filtra por created_at. */
+export interface DateRange { from?: string; to?: string }
+
 /** Conta leads REAIS (tabela funnel_leads) de um funil — fonte de verdade. */
-async function realLeadCount(slug: string): Promise<number> {
+async function realLeadCount(slug: string, range?: DateRange): Promise<number> {
   try {
     const sb = createAdminClient();
-    const { count } = await sb.from("funnel_leads").select("*", { count: "exact", head: true }).eq("funnel_slug", slug);
+    let q = sb.from("funnel_leads").select("*", { count: "exact", head: true }).eq("funnel_slug", slug);
+    if (range?.from) q = q.gte("created_at", range.from);
+    if (range?.to) q = q.lte("created_at", range.to);
+    const { count } = await q;
     return count ?? 0;
   } catch {
     return 0;
   }
 }
 
-export async function funnelMetrics(slug: string): Promise<FunnelMetrics> {
+export async function funnelMetrics(slug: string, range?: DateRange): Promise<FunnelMetrics> {
   const empty: FunnelMetrics = {
     found: false, name: slug, totalSteps: 0, visitantes: 0, respostas: 0, leads: 0, conclusoes: 0,
     taxaConclusao: 0, taxaInteracao: 0, taxaRejeicao: 0, mediaEtapas: 0, tempoMedioSeg: 0, score: 0,
@@ -254,12 +260,15 @@ export async function funnelMetrics(slug: string): Promise<FunnelMetrics> {
   let sessions: { max_step_reached: number; created_at: string; last_seen_at: string; utm_source: string | null; utm_campaign: string | null; src: string | null }[] = [];
   try {
     const sb = createAdminClient();
-    const { data } = await sb
+    let q = sb
       .from("funnel_sessions")
       .select("max_step_reached,created_at,last_seen_at,utm_source,utm_campaign,src")
       .eq("funnel_slug", slug)
       .order("created_at", { ascending: false })
       .limit(5000);
+    if (range?.from) q = q.gte("created_at", range.from);
+    if (range?.to) q = q.lte("created_at", range.to);
+    const { data } = await q;
     sessions = data ?? [];
   } catch {
     /* sem dados */
@@ -268,7 +277,7 @@ export async function funnelMetrics(slug: string): Promise<FunnelMetrics> {
   const visitantes = sessions.length;
   const respostas = sessions.filter((s) => s.max_step_reached >= firstQ).length;
   // C2: "leads" = leads REAIS (funnel_leads), não "quem chegou na lâmina de captura".
-  const leads = await realLeadCount(slug);
+  const leads = await realLeadCount(slug, range);
   const conclusoes = sessions.filter((s) => s.max_step_reached >= lastI).length;
   const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
   const taxaConclusao = pct(conclusoes, visitantes);

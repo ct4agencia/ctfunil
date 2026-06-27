@@ -393,14 +393,40 @@ function Bar({ pct, color = "#3b82f6" }: { pct: number; color?: string }) {
   return <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100"><div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} /></div>;
 }
 
+/** Data yyyy-mm-dd no fuso de São Paulo (offset em dias: 0 = hoje, 1 = ontem). */
+const spYmd = (offsetDays = 0) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" })
+    .format(new Date(Date.now() - offsetDays * 86400000));
+/** Limites UTC de um dia (00:00–23:59) no fuso BR (-03:00, sem horário de verão). */
+const dayBounds = (ymd: string): { from: string; to: string } => ({
+  from: new Date(`${ymd}T00:00:00.000-03:00`).toISOString(),
+  to: new Date(`${ymd}T23:59:59.999-03:00`).toISOString(),
+});
+const sinceDays = (n: number): { from: string } => ({ from: new Date(Date.now() - n * 86400000).toISOString() });
+const PERIODOS: { key: string; label: string; make: () => { from?: string; to?: string } }[] = [
+  { key: "tudo", label: "Tudo", make: () => ({}) },
+  { key: "hoje", label: "Hoje", make: () => dayBounds(spYmd(0)) },
+  { key: "ontem", label: "Ontem", make: () => dayBounds(spYmd(1)) },
+  { key: "7d", label: "7 dias", make: () => sinceDays(7) },
+  { key: "30d", label: "30 dias", make: () => sinceDays(30) },
+];
+
 /** Aba Leads = sub-abas Respostas / Resultados / Performance (estilo inlead). */
 function LeadsTab({ slug }: { slug: string }) {
   const [d, setD] = useState<Analytics | null>(null);
   const [sub, setSub] = useState<"respostas" | "resultados" | "performance">("respostas");
   const [loading, setLoading] = useState(true);
   const [resetting, setResetting] = useState(false);
-  const load = () => { setLoading(true); fetch(`/api/funnel-analytics?slug=${encodeURIComponent(slug)}`).then((r) => r.json()).then(setD).catch(() => { }).finally(() => setLoading(false)); };
-  useEffect(load, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [range, setRange] = useState<{ key: string; from?: string; to?: string }>({ key: "tudo" });
+  const [day, setDay] = useState("");
+  const load = () => {
+    setLoading(true);
+    const qs = new URLSearchParams({ slug });
+    if (range.from) qs.set("from", range.from);
+    if (range.to) qs.set("to", range.to);
+    fetch(`/api/funnel-analytics?${qs.toString()}`).then((r) => r.json()).then(setD).catch(() => { }).finally(() => setLoading(false));
+  };
+  useEffect(load, [slug, range.from, range.to]); // eslint-disable-line react-hooks/exhaustive-deps
   const reset = async () => {
     if (!window.confirm("Tem certeza? Isso apaga TODOS os dados (respostas, sessões e leads) DESTE funil. Extraia o CSV antes!")) return;
     setResetting(true);
@@ -422,6 +448,25 @@ function LeadsTab({ slug }: { slug: string }) {
           <a href={`/api/export-leads?slug=${encodeURIComponent(slug)}`} className="text-xs font-semibold text-neutral-600 hover:text-neutral-900">⬇ Exportar leads</a>
           <button onClick={reset} disabled={resetting} className="text-xs font-semibold text-red-500 hover:text-red-700">{resetting ? "Limpando…" : "♻ Resetar dados"}</button>
         </div>
+      </div>
+
+      {/* filtro de período (aplica às 3 sub-abas) */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold text-neutral-400">Período:</span>
+        <div className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-white p-1">
+          {PERIODOS.map((pr) => (
+            <button key={pr.key} onClick={() => { setDay(""); setRange({ key: pr.key, ...pr.make() }); }}
+              className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${range.key === pr.key ? "bg-neutral-900 text-white" : "text-neutral-500 hover:text-neutral-800"}`}>
+              {pr.label}
+            </button>
+          ))}
+        </div>
+        <label className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${range.key === "dia" ? "border-neutral-900 text-neutral-900" : "border-neutral-200 text-neutral-500"}`}>
+          📅 Dia
+          <input type="date" value={day} max={spYmd(0)}
+            onChange={(e) => { const ymd = e.target.value; setDay(ymd); setRange(ymd ? { key: "dia", ...dayBounds(ymd) } : { key: "tudo" }); }}
+            className="bg-transparent text-neutral-800 outline-none" />
+        </label>
       </div>
 
       {loading ? <p className="p-8 text-center text-sm text-neutral-400">Carregando…</p> : !d ? <p className="p-8 text-center text-sm text-neutral-400">Sem dados.</p> : (
