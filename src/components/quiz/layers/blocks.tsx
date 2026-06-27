@@ -411,7 +411,7 @@ function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
       {c.show_title && c.title ? <p className="mb-2 font-bold" style={{ fontSize: `${remContent(ctx) + 2}px` }}>{c.title}</p> : null}
       {c.show_progress !== false ? (
         <div className="mx-auto h-2.5 w-full overflow-hidden rounded-full bg-black/10">
-          <div className="h-full rounded-full transition-[width]" style={{ width: `${pct}%`, background: ctx.design.themeColor }} />
+          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: ctx.design.themeColor || "#ea580c" }} />
         </div>
       ) : null}
       {c.show_percent ? <p className="mt-2 text-sm font-semibold" style={{ color: ctx.design.themeColor }}>{Math.round(pct)}%</p> : null}
@@ -503,22 +503,27 @@ export function SliderHero({
   const min = Number(step.min) || 0;
   const max = Number(step.max) ?? 10;
   const stp = Number(step.step) || 1;
-  const [v, setV] = useState(Number.isFinite(Number(step.defaultValue)) ? Number(step.defaultValue) : Math.round((min + max) / 2));
+  const [v, setV] = useState(min);          // começa sempre no 0
+  const [touched, setTouched] = useState(false);
+  const advanced = useRef(false);
   const pct = ((v - min) / (max - min)) * 100;
 
   // título: ==trecho== ou **trecho** vira texto na cor do tema (sem fundo de pílula)
   const titleParts = String(step.question || "").split(/==(.+?)==|\*\*(.+?)\*\*/g).filter((p: string) => p !== undefined);
 
+  // ao SOLTAR o slider: se arrastou pra qualquer valor > 0, avança sozinho (sem botão)
+  const release = () => {
+    if (advanced.current || v <= min) return;
+    advanced.current = true;
+    ctx.trackAnswer(ctx.stepId, String(step.question || "Nota 0–10").replace(/[*=]/g, "").trim(), String(v));
+    setTimeout(() => ctx.navigate("next"), 280);
+  };
+
   return (
     <div className="flex min-h-[100dvh] flex-col" style={{ background: bgColor, color: "#111" }}>
-      {/* barra de progresso no topo */}
-      <div className="h-1 w-full" style={{ background: "rgba(0,0,0,.06)" }}>
-        <div className="h-full" style={{ width: "12%", background: theme }} />
-      </div>
-
       <div className="flex flex-1 flex-col">
         {/* conteúdo */}
-        <div className="px-6 pt-9">
+        <div className="px-6 pt-12">
           <h2 className="text-center text-[26px] font-extrabold leading-tight">
             {titleParts.map((p: string, i: number) =>
               i % 2 === 1 ? <span key={i} style={{ color: theme }}>{p}</span> : <span key={i}>{p}</span>,
@@ -526,29 +531,33 @@ export function SliderHero({
           </h2>
           {step.help ? <p className="mt-2 text-center text-sm text-black/45">{step.help}</p> : null}
 
-          <div className="mt-8">
+          <div className="relative mt-16">
+            {/* dedo animado arrastando — some assim que ela toca */}
+            {!touched ? (
+              <motion.div
+                className="pointer-events-none absolute -top-11 left-0 z-20 text-[34px] will-change-transform"
+                style={{ filter: "drop-shadow(0 6px 8px rgba(0,0,0,.25))" }}
+                initial={{ x: "2%" }}
+                animate={{ x: ["2%", "60%", "2%"], rotate: [-4, 8, -4], scale: [1, 0.9, 1] }}
+                transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+              >
+                👆
+              </motion.div>
+            ) : null}
             <input
               type="range" min={min} max={max} step={stp} value={v}
-              onChange={(e) => setV(Number(e.target.value))}
-              className="q-slider h-2 w-full cursor-pointer appearance-none rounded-full"
+              onChange={(e) => { setV(Number(e.target.value)); setTouched(true); }}
+              onPointerUp={release} onTouchEnd={release} onMouseUp={release}
+              className="q-slider h-3 w-full cursor-pointer appearance-none rounded-full"
               style={{ accentColor: theme, background: `linear-gradient(90deg, ${theme} ${pct}%, #e7e1d8 ${pct}%)` }}
             />
             <div className="mt-2 flex justify-between px-0.5 text-xs font-semibold text-black/45">
               {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((n) => <span key={n}>{n}</span>)}
             </div>
+            <p className="mt-6 text-center text-sm font-semibold" style={{ color: theme }}>
+              {touched ? "Solte para continuar" : "Arraste o seletor para responder"}
+            </p>
           </div>
-
-          <button
-            onClick={() => {
-              // M10: grava a nota escolhida (aparece na aba Quiz)
-              ctx.trackAnswer(ctx.stepId, String(step.question || "Nota 0–10").replace(/[*=]/g, "").trim(), String(v));
-              ctx.navigate("next");
-            }}
-            className="mt-7 w-full rounded-full py-4 text-[17px] font-bold text-white"
-            style={{ background: theme, boxShadow: "0 14px 26px -12px rgba(0,0,0,.35)" }}
-          >
-            {step.cta || "Continuar"}
-          </button>
         </div>
 
         {/* foto full-bleed no rodapé + gradiente que funde com o fundo */}
