@@ -140,9 +140,10 @@ function contrastText(hex?: string): string {
 export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepCtx }) {
   const [spinning, setSpinning] = useState(false);
   const [done, setDone] = useState(false);
-  const [rotation, setRotation] = useState(0);
   const N = step.segments.length;
   const seg = 360 / N;
+  // rotação inicial: mostra a fatia `initialIndex` sob o ponteiro antes de girar
+  const [rotation, setRotation] = useState(() => -((step.initialIndex ?? 0) * seg));
   const c = 100;
 
   const polar = (r: number, a: number): [number, number] => {
@@ -186,6 +187,13 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     }, 4300);
   };
 
+  // após vencer, avança sozinho (sem 2º clique) quando autoAdvance
+  useEffect(() => {
+    if (!done || !step.autoAdvance) return;
+    const t = setTimeout(() => ctx.advance(), step.autoAdvanceMs ?? 2600);
+    return () => clearTimeout(t);
+  }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <>
       <StepShell center>
@@ -204,7 +212,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               <div className="absolute left-1/2 top-[-3px] z-30 -translate-x-1/2"
                 style={{ width: 26, height: 26, background: ch.pointer, border: "3px solid #fff", borderRadius: "50% 50% 0 50%", transform: "rotate(45deg)", boxShadow: "0 4px 9px rgba(0,0,0,.28)" }} />
             )}
-            <motion.div className="h-full w-full" animate={{ rotate: rotation }}
+            <motion.div className="h-full w-full" initial={false} animate={{ rotate: rotation }}
               transition={{ duration: 4.2, ease: [0.16, 1, 0.3, 1] }}>
               <svg viewBox="0 0 200 200" className="h-full w-full" style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,.22))" }}>
                 <circle cx={c} cy={c} r={97} fill={ch.rim} />
@@ -258,14 +266,29 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
             </motion.div>
           ) : null}
         </AnimatePresence>
+
+        {/* botão LOGO ABAIXO da roleta (ctaBelow). Com autoAdvance, some na vitória. */}
+        {step.ctaBelow ? (
+          <div className="mx-auto mt-6 w-full max-w-xs">
+            {!done ? (
+              <CtaButton onClick={spin} disabled={spinning} pulse={!spinning}>{spinning ? "Girando..." : step.cta}</CtaButton>
+            ) : !step.autoAdvance ? (
+              <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
+            ) : null}
+          </div>
+        ) : null}
       </StepShell>
-      <StickyCta bare>
-        {done ? (
-          <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
-        ) : (
-          <CtaButton onClick={spin} disabled={spinning} pulse={!spinning}>{spinning ? "Girando..." : step.cta}</CtaButton>
-        )}
-      </StickyCta>
+
+      {/* rodapé sticky (padrão, quando não é ctaBelow) */}
+      {!step.ctaBelow ? (
+        <StickyCta bare>
+          {done ? (
+            <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
+          ) : (
+            <CtaButton onClick={spin} disabled={spinning} pulse={!spinning}>{spinning ? "Girando..." : step.cta}</CtaButton>
+          )}
+        </StickyCta>
+      ) : null}
     </>
   );
 }

@@ -132,6 +132,14 @@ export interface RouletteStep extends BaseStep {
   style?: RouletteStyle;
   /** fundo full-screen personalizado (CSS, ex: linear-gradient(...)) */
   background?: string;
+  /** índice da fatia exibida ANTES de girar (ex: começar em "15% OFF") */
+  initialIndex?: number;
+  /** após vencer, avança sozinho (sem 2º clique) */
+  autoAdvance?: boolean;
+  /** ms até auto-avançar depois da vitória (padrão 2600) */
+  autoAdvanceMs?: number;
+  /** botão logo abaixo da roleta (não no rodapé sticky) */
+  ctaBelow?: boolean;
 }
 
 /** Raspadinha (scratch-card) — variante da roleta p/ revelar o prêmio. */
