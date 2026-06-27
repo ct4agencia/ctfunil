@@ -339,7 +339,19 @@ function DesignTab({ funnel, setFunnel }: { funnel: Funnel; setFunnel: (fn: (f: 
   );
 }
 
-// ───────────────────────── C — FLUXO ─────────────────────────
+// ───────────────────────── C — FLUXO (canvas de nós, estilo typebot) ─────────────────────────
+interface FlowExit { layerId: string; optId: string | null; label: string; dest?: string }
+const FLOW = { W: 250, HEAD: 42, ROW: 30, GAPY: 64, COLX: 96, PADB: 14 } as const;
+const flowExits = (s: InleadStep): FlowExit[] => {
+  const exits: FlowExit[] = [];
+  (s.layers || []).forEach((l) => {
+    if (l.type === "button") exits.push({ layerId: l.id, optId: null, label: `🔘 ${strip(l.content.label) || "Botão"}`, dest: l.content.destination });
+    if (l.type === "options") (l.content.options || []).forEach((o) => exits.push({ layerId: l.id, optId: o.id, label: `☑️ ${strip(o.label) || "Opção"}`, dest: o.destination }));
+  });
+  return exits;
+};
+const nodeH = (nExits: number) => FLOW.HEAD + Math.max(1, nExits) * FLOW.ROW + FLOW.PADB;
+
 function FluxoTab({ steps, setSteps }: { steps: InleadStep[]; setSteps: (s: InleadStep[]) => void }) {
   const setDest = (si: number, layerId: string, optId: string | null, dest: string) =>
     setSteps(steps.map((s, i) => i !== si ? s : {
@@ -349,38 +361,124 @@ function FluxoTab({ steps, setSteps }: { steps: InleadStep[]; setSteps: (s: Inle
         return { ...l, content: { ...l.content, destination: dest } };
       }),
     }));
-  const DestSel = ({ value, onChange }: { value?: string; onChange: (v: string) => void }) => (
-    <select value={/^https?:/.test(value || "") ? "__url" : (value || "next")} onChange={(e) => onChange(e.target.value)} className="rounded border border-neutral-300 px-1.5 py-1 text-xs">
-      <option value="next">→ próxima</option>
-      {steps.map((s) => <option key={s.id} value={s.id}>↪ {s.title || s.id}</option>)}
-      {/^https?:/.test(value || "") ? <option value="__url">🔗 link externo</option> : null}
-    </select>
-  );
+
+  // layout automático: espinha vertical, cada nó abaixo do anterior
+  const autoLayout = (): Record<string, { x: number; y: number }> => {
+    const pos: Record<string, { x: number; y: number }> = {};
+    let y = 32;
+    steps.forEach((s) => { pos[s.id] = { x: FLOW.COLX, y }; y += nodeH(flowExits(s).length) + FLOW.GAPY; });
+    return pos;
+  };
+  const [pos, setPos] = useState<Record<string, { x: number; y: number }>>(autoLayout);
+  // re-encaixa nós novos/removidos sem perder os já arrastados
+  useEffect(() => {
+    setPos((prev) => {
+      const auto = autoLayout(); const next = { ...auto };
+      for (const id of Object.keys(auto)) if (prev[id]) next[id] = prev[id];
+      return next;
+    });
+  }, [steps.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const ids = new Set(steps.map((s) => s.id));
+  const targetId = (dest: string | undefined, fromIdx: number): string | null | undefined => {
+    if (!dest || dest === "next") return steps[fromIdx + 1]?.id;        // sequência
+    if (/^https?:/.test(dest)) return null;                              // link externo
+    return ids.has(dest) ? dest : steps[fromIdx + 1]?.id;               // destino inválido → próxima
+  };
+
+  // arrastar nó (pointer capture, sem libs)
+  const startDrag = (id: string) => (e: React.PointerEvent) => {
+    e.preventDefault();
+    const o = pos[id] || { x: FLOW.COLX, y: 32 };
+    const sx = e.clientX, sy = e.clientY;
+    const el = e.currentTarget as HTMLElement;
+    el.setPointerCapture(e.pointerId);
+    const move = (ev: PointerEvent) => setPos((p) => ({ ...p, [id]: { x: Math.max(8, o.x + (ev.clientX - sx)), y: Math.max(8, o.y + (ev.clientY - sy)) } }));
+    const up = () => { el.releasePointerCapture(e.pointerId); el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); };
+    el.addEventListener("pointermove", move); el.addEventListener("pointerup", up);
+  };
+
+  // arestas (setas) a partir das saídas
+  type Edge = { id: string; x1: number; y1: number; x2: number; y2: number; kind: "seq" | "jump" };
+  const edges: Edge[] = [];
+  steps.forEach((s, i) => {
+    const np = pos[s.id]; if (!np) return;
+    const exits = flowExits(s);
+    if (exits.length === 0) {
+      const t = steps[i + 1]; const tp = t && pos[t.id];
+      if (tp) edges.push({ id: `${s.id}-seq`, x1: np.x + FLOW.W / 2, y1: np.y + nodeH(0), x2: tp.x + FLOW.W / 2, y2: tp.y, kind: "seq" });
+      return;
+    }
+    exits.forEach((x, k) => {
+      const tid = targetId(x.dest, i); if (tid === null || tid === undefined) return; // externo/sem destino: sem seta
+      const tp = pos[tid]; if (!tp) return;
+      const y1 = np.y + FLOW.HEAD + k * FLOW.ROW + FLOW.ROW / 2;
+      const seq = (!x.dest || x.dest === "next") && tid === steps[i + 1]?.id;
+      edges.push({ id: `${s.id}-${x.layerId}-${k}`, x1: np.x + FLOW.W, y1, x2: tp.x + FLOW.W / 2, y2: tp.y, kind: seq ? "seq" : "jump" });
+    });
+  });
+
+  const canvasW = Math.max(820, ...steps.map((s) => (pos[s.id]?.x ?? 0) + FLOW.W)) + 220;
+  const canvasH = Math.max(360, ...steps.map((s) => (pos[s.id]?.y ?? 0) + nodeH(flowExits(s).length))) + 60;
+  const curve = (e: Edge) => {
+    const dx = Math.max(50, Math.abs(e.x2 - e.x1) * 0.5);
+    const dy = Math.max(40, Math.abs(e.y2 - e.y1) * 0.4);
+    return `M ${e.x1} ${e.y1} C ${e.x1 + dx} ${e.y1}, ${e.x2} ${e.y2 - dy}, ${e.x2} ${e.y2}`;
+  };
+
   return (
-    <div className="mx-auto max-w-2xl space-y-2">
-      <p className="px-1 text-xs text-neutral-500">Para onde cada botão/opção leva. “→ próxima” segue a ordem das lâminas.</p>
-      {steps.map((s, i) => {
-        const exits: { layerId: string; optId: string | null; label: string; dest?: string }[] = [];
-        (s.layers || []).forEach((l) => {
-          if (l.type === "button") exits.push({ layerId: l.id, optId: null, label: `🔘 ${l.content.label || "Botão"}`, dest: l.content.destination });
-          if (l.type === "options") (l.content.options || []).forEach((o) => exits.push({ layerId: l.id, optId: o.id, label: `☑️ ${strip(o.label)}`, dest: o.destination }));
-        });
-        return (
-          <div key={s.id} className="rounded-xl border border-neutral-200 bg-white p-3">
-            <div className="mb-1.5 text-sm font-bold text-neutral-800">{i + 1}. {s.title || s.id}</div>
-            {exits.length ? (
-              <div className="space-y-1">
-                {exits.map((x, k) => (
-                  <div key={k} className="flex items-center justify-between gap-2 text-xs">
-                    <span className="min-w-0 flex-1 truncate text-neutral-600">{x.label}</span>
-                    <DestSel value={x.dest} onChange={(v) => setDest(i, x.layerId, x.optId, v)} />
-                  </div>
-                ))}
+    <div className="space-y-2">
+      <div className="flex items-center justify-between px-1">
+        <p className="text-xs text-neutral-500">Arraste os nós. As setas mostram para onde cada botão/opção leva.</p>
+        <button onClick={() => setPos(autoLayout())} className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⤢ Auto-organizar</button>
+      </div>
+      <div className="relative h-[68vh] overflow-auto rounded-xl border border-neutral-200"
+        style={{ backgroundColor: "#fafafa", backgroundImage: "radial-gradient(#d4d4d4 1px, transparent 1px)", backgroundSize: "22px 22px" }}>
+        <div className="relative" style={{ width: canvasW, height: canvasH }}>
+          {/* setas */}
+          <svg className="pointer-events-none absolute inset-0" width={canvasW} height={canvasH}>
+            <defs>
+              <marker id="fl-seq" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8" /></marker>
+              <marker id="fl-jump" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ea580c" /></marker>
+            </defs>
+            {edges.map((e) => (
+              <path key={e.id} d={curve(e)} fill="none" strokeWidth={2}
+                stroke={e.kind === "seq" ? "#94a3b8" : "#ea580c"} strokeDasharray={e.kind === "seq" ? "5 5" : undefined}
+                markerEnd={`url(#${e.kind === "seq" ? "fl-seq" : "fl-jump"})`} />
+            ))}
+          </svg>
+          {/* nós */}
+          {steps.map((s, i) => {
+            const np = pos[s.id]; if (!np) return null;
+            const exits = flowExits(s);
+            return (
+              <div key={s.id} className="absolute rounded-xl border border-neutral-200 bg-white shadow-sm" style={{ left: np.x, top: np.y, width: FLOW.W }}>
+                <div onPointerDown={startDrag(s.id)} className="flex cursor-grab items-center gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-3 py-2.5 active:cursor-grabbing select-none">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-[10px] font-bold text-white">{i + 1}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-neutral-800">{s.title || s.id}</span>
+                  <span className="text-neutral-300">⠿</span>
+                </div>
+                <div className="px-2.5 py-2" style={{ minHeight: Math.max(1, exits.length) * FLOW.ROW }}>
+                  {exits.length ? exits.map((x, k) => (
+                    <div key={k} className="flex items-center justify-between gap-2 py-0.5 text-xs" style={{ height: FLOW.ROW }}>
+                      <span className="min-w-0 flex-1 truncate text-neutral-600">{x.label}</span>
+                      <div className="flex items-center gap-1">
+                        <select value={/^https?:/.test(x.dest || "") ? "__url" : (x.dest || "next")} onChange={(ev) => setDest(i, x.layerId, x.optId, ev.target.value)}
+                          className="max-w-[110px] truncate rounded border border-neutral-300 px-1 py-0.5 text-[11px]">
+                          <option value="next">→ próxima</option>
+                          {steps.map((t, ti) => <option key={t.id} value={t.id}>↪ {ti + 1}. {strip(t.title) || t.id}</option>)}
+                          {/^https?:/.test(x.dest || "") ? <option value="__url">🔗 link</option> : null}
+                        </select>
+                        <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: /^https?:/.test(x.dest || "") ? "#a3a3a3" : "#ea580c" }} />
+                      </div>
+                    </div>
+                  )) : <p className="flex items-center text-[11px] text-neutral-400" style={{ height: FLOW.ROW }}>segue → próxima lâmina</p>}
+                </div>
               </div>
-            ) : <p className="text-xs text-neutral-400">segue automático → próxima lâmina</p>}
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
