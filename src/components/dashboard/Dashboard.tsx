@@ -16,23 +16,6 @@ function fmtDate(s: string): string {
   try { return new Date(s).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }); } catch { return ""; }
 }
 
-/* ── Sidebar escura (Datacrazy) ────────────────────────────── */
-function Sidebar({ onCreate }: { onCreate: () => void }) {
-  const Icon = ({ children, active, title }: { children: React.ReactNode; active?: boolean; title?: string }) => (
-    <div title={title} className={`grid h-10 w-10 cursor-pointer place-items-center rounded-xl text-[18px] transition ${active ? "bg-blue-600 text-white" : "text-white/45 hover:bg-white/10 hover:text-white/80"}`}>{children}</div>
-  );
-  return (
-    <aside className="sticky top-0 flex h-screen w-[60px] shrink-0 flex-col items-center gap-1.5 border-r border-white/5 bg-[#0d0f1a] py-4">
-      <div className="mb-1 grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 text-sm font-black text-white">ᗯ</div>
-      <div className="mb-2 grid h-8 w-8 place-items-center rounded-full bg-white/10 text-xs font-bold text-white">C</div>
-      <Icon active title="Dashboard">▦</Icon>
-      <Icon title="Funis">⛢</Icon>
-      <button onClick={(e) => { e.stopPropagation(); onCreate(); }}><Icon title="Criar funil">＋</Icon></button>
-      <a href="/analytics"><Icon title="Analytics (9 abas)">📊</Icon></a>
-      <button onClick={() => signOut()} className="mt-auto" title="Sair"><Icon title="Sair">⎋</Icon></button>
-    </aside>
-  );
-}
 
 /* ── Card de métrica (Datacrazy) ───────────────────────────── */
 function MetricCard({ label, value, sub, icon, active }: { label: string; value: string; sub: string; icon: React.ReactNode; active?: boolean }) {
@@ -118,10 +101,8 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#f4f6f9] font-[var(--font-admin)] text-neutral-900" onClick={() => setMenu(null)}>
-      <Sidebar onCreate={() => setCreating(true)} />
-
-      <div className="flex-1 overflow-x-clip">
+    <div className="min-h-screen bg-[#f4f6f9] font-[var(--font-admin)] text-neutral-900" onClick={() => setMenu(null)}>
+      <div className="overflow-x-clip">
         <div className="mx-auto max-w-[1180px] px-7 py-6">
           {/* header */}
           <div className="flex flex-wrap items-end justify-between gap-3">
@@ -132,6 +113,7 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
             <div className="flex items-center gap-2">
               <a href="/analytics" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">📊 Analytics</a>
               <button onClick={() => setCreating(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Criar funil</button>
+              <button onClick={() => signOut()} title="Sair" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-500 hover:bg-neutral-50">⎋ Sair</button>
             </div>
           </div>
 

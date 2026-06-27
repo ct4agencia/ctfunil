@@ -105,7 +105,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       phone,
       email: email || undefined,
       componentId: "captura",
-      session_id: getSessionId(),
+      session_id: `${getSessionId()}::${funnel.slug}`,
       viewport: `${window.innerWidth}x${window.innerHeight}`,
       screen: `${window.screen.width}x${window.screen.height}`,
       platform: navigator.platform,

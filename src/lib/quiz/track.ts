@@ -12,18 +12,25 @@ import { getSessionId, collectTrackingParams } from "@/lib/tracking";
  * quebra a página (igual lib/tracking.ts do vsl-platform).
  */
 
-let ensured = false;
+const ensured = new Set<string>();
 
-/** Garante a linha da sessão (1x). */
+/** session_id POR FUNIL: o mesmo navegador pode passar por vários funis; sem isso,
+ *  a sessão (chaveada por session_id) se mistura entre funis e a análise por funil
+ *  fica errada. Compomos session_id::funil pra cada funil ter sua própria sessão. */
+function sid(funnelSlug: string): string {
+  return `${getSessionId()}::${funnelSlug}`;
+}
+
+/** Garante a linha da sessão (1x por funil). */
 async function ensureSession(funnelSlug: string): Promise<void> {
-  if (ensured) return;
-  ensured = true;
+  if (ensured.has(funnelSlug)) return;
+  ensured.add(funnelSlug);
   try {
     const supabase = createClient();
     const t = collectTrackingParams();
     await supabase.from("funnel_sessions").upsert(
       {
-        session_id: getSessionId(),
+        session_id: sid(funnelSlug),
         funnel_slug: funnelSlug,
         max_step_reached: 0,
         utm_source: t.utm_source ?? null,
@@ -53,7 +60,7 @@ export async function trackStep(
   try {
     await ensureSession(funnelSlug);
     const supabase = createClient();
-    const session_id = getSessionId();
+    const session_id = sid(funnelSlug);
     await supabase.from("step_events").insert({
       session_id,
       funnel_slug: funnelSlug,
@@ -82,7 +89,7 @@ export async function trackAnswer(
   try {
     const supabase = createClient();
     await supabase.from("quiz_answers").insert({
-      session_id: getSessionId(),
+      session_id: sid(funnelSlug),
       funnel_slug: funnelSlug,
       step_id: stepId,
       question,
