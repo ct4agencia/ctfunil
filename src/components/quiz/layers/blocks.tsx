@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { fireMetaEvent } from "@/lib/tracking";
+import { interpEstado } from "@/lib/quiz/estado";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
 
 /** Modo de edição no canvas (construtor inline estilo inlead). Off = runtime normal. */
@@ -65,13 +66,14 @@ export function Reveal({ delay, children }: { delay?: number; children: React.Re
 /** Interpola {estado}/{nome}/{cidade} dentro do HTML do Quill. */
 export function interpHtml(html: string | undefined, ctx: LayersCtx): string {
   if (!html) return "";
-  return html
+  let out = html
     // &nbsp; (espaço inquebrável do Quill) → espaço normal, senão a frase vira
     // uma "palavra" gigante e estoura a largura (igual o render do inlead faz).
     .replace(/&nbsp;/g, " ")
-    .replace(/\{nome\}/gi, cap(ctx.name) || "você")
-    .replace(/\{estado\}/gi, ctx.estado || "sua região")
-    .replace(/\{cidade\}/gi, ctx.cidade || "sua cidade");
+    .replace(/\{nome\}/gi, cap(ctx.name) || "você");
+  // {estado} com concordância de preposição (da Bahia / do Paraná / de São Paulo)
+  out = interpEstado(out, ctx.estado);
+  return out.replace(/\{cidade\}/gi, ctx.cidade || "sua cidade");
 }
 
 /** Texto puro de um HTML (para tracking de resposta). */

@@ -9,6 +9,7 @@ import type {
 import { CtaButton, OptionButton, StepShell, StickyCta, RichText, RICH_RE, useEdit } from "./ui";
 import { submitLead, submitFunnelLead, fireMetaEvent } from "@/lib/tracking";
 import { trackAnswer } from "@/lib/quiz/track";
+import { interpEstado } from "@/lib/quiz/estado";
 import { playSpinTicks, playWin, playUrl } from "@/lib/quiz/sound";
 
 /** Contexto passado a cada lâmina pelo QuizRunner. */
@@ -69,10 +70,9 @@ export function interp(s: string | undefined, vars: string | InterpVars): string
   if (!s) return "";
   const v: InterpVars = typeof vars === "string" ? { name: vars } : (vars ?? {});
   const cap = (x?: string) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : "");
-  return s
-    .replace(/\{nome\}/g, cap(v.name) || "você")
-    .replace(/\{estado\}/g, v.estado || "sua região")
-    .replace(/\{cidade\}/g, v.cidade || "sua cidade");
+  const out = s.replace(/\{nome\}/g, cap(v.name) || "você");
+  // {estado} com concordância de preposição (da Bahia / do Paraná / de São Paulo)
+  return interpEstado(out, v.estado).replace(/\{cidade\}/g, v.cidade || "sua cidade");
 }
 
 function Title({ children }: { children: React.ReactNode }) {
