@@ -24,6 +24,16 @@ function clone<T>(v: T): T {
   }
 }
 
+/**
+ * Tracking dos 4 funis (igual nas 4 variações). O PixelScripts (SSR) emite, a
+ * partir desses IDs:
+ *  - UTMify Pixel: window.pixelId + cdn.utmify.com.br/scripts/pixel/pixel.js
+ *  - UTMify UTMs: cdn.utmify.com.br/scripts/utms/latest.js (data-utmify-prevent-subids)
+ *  - Hotmart Launcher: launcher.hotmart.com/launcher.js + hot("account", …)
+ */
+const UTMIFY_PIXEL_ID = "6967e71d579dc0043882d672";
+const HOTMART_ACCOUNT_ID = "05e7c8af-88d1-3baa-80ae-ea71d7de1dd7";
+
 // ── CARD 02 — confirmação da inscrição (IGUAL nas 4 variações) ──────────────
 const CARD_2: QuestionStep = {
   id: "card2-inscricao",
@@ -54,6 +64,8 @@ function buildEstado(slug: string, name: string, hero: HeroStep): Funnel {
     paletteId: clubeDasBolsas.paletteId,
     font: clubeDasBolsas.font,
     clickSound: clubeDasBolsas.clickSound,
+    utmifyPixelId: UTMIFY_PIXEL_ID,
+    hotmartAccountId: HOTMART_ACCOUNT_ID,
     steps: [hero, clone(CARD_2), ...bodySteps()],
   };
 }
