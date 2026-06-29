@@ -227,7 +227,12 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
       </>);
     case "image":
       return (<><Lbl>Imagem</Lbl><ImageField value={c.image?.src || ""} onChange={(v) => setC({ image: { ...(c.image || {}), type: "image", src: v } })} />
-        <Lbl>Largura (%)</Lbl><input type="number" value={layer.design?.basis ?? 100} onChange={(e) => setD({ basis: Number(e.target.value) })} className={inp} />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <label className="mt-2 flex cursor-pointer items-center justify-between text-xs text-neutral-600"><span>Tela cheia (borda a borda)</span>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <input type="checkbox" checked={!!(layer.design as any)?.fullBleed} onChange={(e) => setD({ fullBleed: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" /></label>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {!(layer.design as any)?.fullBleed ? <><Lbl>Largura (%)</Lbl><input type="number" value={layer.design?.basis ?? 100} onChange={(e) => setD({ basis: Number(e.target.value) })} className={inp} /></> : null}
         <Lbl>Efeito (gradiente/fade com o fundo)</Lbl>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <select value={((layer.design as any)?.fade as string) || "none"} onChange={(e) => setD({ fade: e.target.value === "none" ? undefined : e.target.value })} className={inp}>

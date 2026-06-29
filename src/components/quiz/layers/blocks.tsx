@@ -150,8 +150,26 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   if (!src) return null;
   const basis = Number(layer.design?.basis) || 100;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fade = (layer.design as any)?.fade as "top" | "bottom" | "both" | undefined;
+  const d = (layer.design || {}) as any;
+  const fade = d.fade as "top" | "bottom" | "both" | undefined;
+  const fullBleed = !!d.fullBleed;
   const bg = ctx.design.backgroundColor || "#ffffff";
+  const overlays = (
+    <>
+      {fade === "top" || fade === "both" ? <div className="pointer-events-none absolute inset-x-0 top-0 h-2/5" style={{ background: `linear-gradient(to bottom, ${bg}, transparent)` }} /> : null}
+      {fade === "bottom" || fade === "both" ? <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5" style={{ background: `linear-gradient(to top, ${bg}, transparent)` }} /> : null}
+    </>
+  );
+  // TELA CHEIA: quebra o padding do container (px-5 = 1.25rem) → imagem encosta nas bordas da tela
+  if (fullBleed) {
+    return (
+      <div className="relative" style={{ width: "calc(100% + 2.5rem)", marginLeft: "-1.25rem", marginRight: "-1.25rem" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt="" loading="lazy" decoding="async" className="block w-full" style={{ height: "auto" }} />
+        {overlays}
+      </div>
+    );
+  }
   return (
     <div className="mx-auto flex w-full justify-center">
       <div className="relative" style={{ width: `${basis}%` }}>
@@ -162,8 +180,7 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
           style={{ width: "100%", height: "auto", aspectRatio: im?.width && im?.height ? `${im.width}/${im.height}` : undefined, borderRadius: radius(ctx.design) }}
           className="block object-contain"
         />
-        {fade === "top" || fade === "both" ? <div className="pointer-events-none absolute inset-x-0 top-0 h-2/5" style={{ background: `linear-gradient(to bottom, ${bg}, transparent)` }} /> : null}
-        {fade === "bottom" || fade === "both" ? <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5" style={{ background: `linear-gradient(to top, ${bg}, transparent)` }} /> : null}
+        {overlays}
       </div>
     </div>
   );
