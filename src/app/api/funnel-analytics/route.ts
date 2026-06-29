@@ -55,14 +55,24 @@ export async function GET(request: Request) {
   });
 
   // Respostas: por lead (sessão → respostas + dados do lead capturado)
-  let leadsQ = sb.from("funnel_leads").select("session_id,name,phone,created_at").eq("funnel_slug", slug).order("created_at", { ascending: false }).limit(3000);
+  let leadsQ = sb.from("funnel_leads")
+    .select("session_id,name,phone,created_at,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,fbclid,ctwa_clid,source_id,viewport,screen,platform,user_agent")
+    .eq("funnel_slug", slug).order("created_at", { ascending: false }).limit(5000);
   if (from) leadsQ = leadsQ.gte("created_at", from);
   if (to) leadsQ = leadsQ.lte("created_at", to);
   const { data: leads } = await leadsQ;
-  const leadBy = new Map((leads ?? []).map((l) => [String(l.session_id ?? ""), l]));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const leadBy = new Map((leads ?? []).map((l: any) => [String(l.session_id ?? ""), l]));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const trackOf = (l: any) => l ? {
+    utm_source: l.utm_source || "", utm_medium: l.utm_medium || "", utm_campaign: l.utm_campaign || "",
+    utm_content: l.utm_content || "", utm_term: l.utm_term || "", src: l.src || "", fbclid: l.fbclid || "",
+    ctwa_clid: l.ctwa_clid || "", source_id: l.source_id || "", viewport: l.viewport || "", screen: l.screen || "",
+    platform: l.platform || "", user_agent: l.user_agent || "",
+  } : {};
   const respostas = Array.from(bySession.entries()).map(([sid, ans]) => {
     const l = leadBy.get(sid);
-    return { session: sid.slice(0, 8), name: (l?.name as string) || null, phone: (l?.phone as string) || null, when: (l?.created_at as string) || null, answers: ans };
+    return { session: sid.slice(0, 8), name: (l?.name as string) || null, phone: (l?.phone as string) || null, when: (l?.created_at as string) || null, answers: ans, track: trackOf(l) };
   });
 
   // % de conclusão por etapa (igual inlead: 1ª etapa = 100%, demais relativas a ela)

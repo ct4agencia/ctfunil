@@ -485,7 +485,16 @@ function FluxoTab({ steps, setSteps }: { steps: InleadStep[]; setSteps: (s: Inle
 
 // ───────────────────────── D — LEADS ─────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface Analytics { performance: any; resultados: { question: string; total: number; options: { label: string; value: number; pct: number }[] }[]; questions: string[]; questionStats?: { question: string; total: number; pct: number }[]; respostas: { session: string; name: string | null; phone: string | null; when: string | null; answers: Record<string, string> }[] }
+interface Analytics { performance: any; resultados: { question: string; total: number; options: { label: string; value: number; pct: number }[] }[]; questions: string[]; questionStats?: { question: string; total: number; pct: number }[]; respostas: { session: string; name: string | null; phone: string | null; when: string | null; answers: Record<string, string>; track?: Record<string, string> }[] }
+/** Colunas de tracking (Onda B) — exibidas na tabela de Respostas, estilo inlead. */
+const TRACK_COLS: { key: string; label: string }[] = [
+  { key: "utm_source", label: "utm_source" }, { key: "utm_medium", label: "utm_medium" },
+  { key: "utm_campaign", label: "utm_campaign" }, { key: "utm_content", label: "utm_content" },
+  { key: "utm_term", label: "utm_term" }, { key: "src", label: "src" },
+  { key: "fbclid", label: "fbclid" }, { key: "ctwa_clid", label: "ctwa_clid" }, { key: "source_id", label: "source_id" },
+  { key: "viewport", label: "viewport" }, { key: "screen", label: "screen" },
+  { key: "platform", label: "platform" }, { key: "user_agent", label: "userAgent" },
+];
 
 /** Anel de % (estilo inlead) no header de cada etapa. */
 function PctRing({ pct }: { pct: number }) {
@@ -536,6 +545,7 @@ export function LeadsTab({ slug }: { slug: string }) {
   const [search, setSearch] = useState("");
   const [hiddenQ, setHiddenQ] = useState<Set<string>>(new Set());
   const [showMeta, setShowMeta] = useState(true); // colunas Lead/Telefone/Data
+  const [hiddenTrack, setHiddenTrack] = useState<Set<string>>(new Set(TRACK_COLS.map((c) => c.key))); // tracking oculto por padrão
   const [openFilter, setOpenFilter] = useState<"etapas" | "colunas" | null>(null);
   const [page, setPage] = useState(0);
   const PER = 50;
@@ -595,6 +605,7 @@ export function LeadsTab({ slug }: { slug: string }) {
           {sub === "respostas" ? (() => {
             const statById = new Map((d.questionStats || []).map((s) => [s.question, s.pct]));
             const visQ = d.questions.filter((q) => !hiddenQ.has(q));
+            const visTrack = TRACK_COLS.filter((c) => !hiddenTrack.has(c.key));
             const term = search.trim().toLowerCase();
             const rows = d.respostas.filter((r) => !term || [r.name, r.phone, ...Object.values(r.answers)].join(" ").toLowerCase().includes(term));
             const pages = Math.max(1, Math.ceil(rows.length / PER));
@@ -624,11 +635,18 @@ export function LeadsTab({ slug }: { slug: string }) {
                   <div className="relative">
                     <button onClick={() => setOpenFilter(openFilter === "colunas" ? null : "colunas")} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">▥ Colunas ▾</button>
                     {openFilter === "colunas" ? (
-                      <div className="absolute z-20 mt-1 w-52 rounded-xl border border-neutral-200 bg-white p-2 shadow-lg">
+                      <div className="absolute z-20 mt-1 max-h-72 w-56 overflow-y-auto rounded-xl border border-neutral-200 bg-white p-2 shadow-lg">
                         <label className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
-                          <span className="text-neutral-700">Lead / Telefone / Data</span>
+                          <span className="font-semibold text-neutral-700">Lead / Telefone / Data</span>
                           <input type="checkbox" checked={showMeta} onChange={() => setShowMeta((v) => !v)} className="h-3.5 w-3.5 accent-neutral-900" />
                         </label>
+                        <p className="mt-1 px-2 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">Tracking</p>
+                        {TRACK_COLS.map((c) => (
+                          <label key={c.key} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
+                            <span className="text-neutral-700">{c.label}</span>
+                            <input type="checkbox" checked={!hiddenTrack.has(c.key)} onChange={() => setHiddenTrack((s) => { const n = new Set(s); if (n.has(c.key)) n.delete(c.key); else n.add(c.key); return n; })} className="h-3.5 w-3.5 accent-neutral-900" />
+                          </label>
+                        ))}
                       </div>
                     ) : null}
                   </div>
@@ -646,6 +664,7 @@ export function LeadsTab({ slug }: { slug: string }) {
                               <div className="flex items-center gap-1.5"><PctRing pct={statById.get(q) ?? 0} /><span className="font-semibold text-neutral-700">{i + 1}. {strip(q).slice(0, 26)}</span></div>
                             </th>
                           ))}
+                          {visTrack.map((c) => <th key={c.key} className="whitespace-nowrap px-3 py-2.5 font-semibold text-violet-500">{c.label}</th>)}
                         </tr>
                       </thead>
                       <tbody>
@@ -657,6 +676,7 @@ export function LeadsTab({ slug }: { slug: string }) {
                               <td className="whitespace-nowrap px-3 py-2 text-neutral-400">{r.when ? new Date(r.when).toLocaleDateString("pt-BR") : "—"}</td>
                             </>) : null}
                             {visQ.map((q) => <td key={q} className="whitespace-nowrap px-3 py-2 text-neutral-600">{r.answers[q] || "—"}</td>)}
+                            {visTrack.map((c) => <td key={c.key} className="max-w-[160px] truncate whitespace-nowrap px-3 py-2 text-neutral-400" title={r.track?.[c.key] || ""}>{r.track?.[c.key] || "—"}</td>)}
                           </tr>
                         ))}
                       </tbody>
