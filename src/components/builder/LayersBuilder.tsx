@@ -485,7 +485,21 @@ function FluxoTab({ steps, setSteps }: { steps: InleadStep[]; setSteps: (s: Inle
 
 // ───────────────────────── D — LEADS ─────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface Analytics { performance: any; resultados: { question: string; total: number; options: { label: string; value: number; pct: number }[] }[]; questions: string[]; respostas: { session: string; name: string | null; phone: string | null; when: string | null; answers: Record<string, string> }[] }
+interface Analytics { performance: any; resultados: { question: string; total: number; options: { label: string; value: number; pct: number }[] }[]; questions: string[]; questionStats?: { question: string; total: number; pct: number }[]; respostas: { session: string; name: string | null; phone: string | null; when: string | null; answers: Record<string, string> }[] }
+
+/** Anel de % (estilo inlead) no header de cada etapa. */
+function PctRing({ pct }: { pct: number }) {
+  const color = pct >= 80 ? "#16a34a" : pct >= 50 ? "#f59e0b" : "#ef4444";
+  return (
+    <span className="relative inline-grid h-7 w-7 shrink-0 place-items-center">
+      <svg viewBox="0 0 36 36" className="h-7 w-7 -rotate-90">
+        <circle cx="18" cy="18" r="15" fill="none" stroke="#e5e7eb" strokeWidth="4" />
+        <circle cx="18" cy="18" r="15" fill="none" stroke={color} strokeWidth="4" strokeLinecap="round" strokeDasharray={`${(pct / 100) * 94.2} 94.2`} />
+      </svg>
+      <span className="absolute text-[8px] font-bold text-neutral-600">{pct}%</span>
+    </span>
+  );
+}
 
 function Bar({ pct, color = "#3b82f6" }: { pct: number; color?: string }) {
   return <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100"><div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} /></div>;
@@ -518,6 +532,13 @@ export function LeadsTab({ slug }: { slug: string }) {
   const [resetting, setResetting] = useState(false);
   const [range, setRange] = useState<{ key: string; from?: string; to?: string }>({ key: "tudo" });
   const [day, setDay] = useState("");
+  // Onda A: busca, filtros (etapas/colunas), paginação
+  const [search, setSearch] = useState("");
+  const [hiddenQ, setHiddenQ] = useState<Set<string>>(new Set());
+  const [showMeta, setShowMeta] = useState(true); // colunas Lead/Telefone/Data
+  const [openFilter, setOpenFilter] = useState<"etapas" | "colunas" | null>(null);
+  const [page, setPage] = useState(0);
+  const PER = 50;
   const load = () => {
     setLoading(true);
     const qs = new URLSearchParams({ slug });
@@ -570,29 +591,89 @@ export function LeadsTab({ slug }: { slug: string }) {
 
       {loading ? <p className="p-8 text-center text-sm text-neutral-400">Carregando…</p> : !d ? <p className="p-8 text-center text-sm text-neutral-400">Sem dados.</p> : (
         <>
-          {/* RESPOSTAS — tabela por lead (colunas = perguntas) */}
-          {sub === "respostas" ? (
-            d.respostas.length ? (
-              <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-                <table className="w-full text-xs">
-                  <thead className="bg-neutral-50 text-left font-semibold uppercase tracking-wide text-neutral-400">
-                    <tr><th className="whitespace-nowrap px-3 py-2.5">Lead</th><th className="whitespace-nowrap px-3 py-2.5">Telefone</th><th className="whitespace-nowrap px-3 py-2.5">Data</th>
-                      {d.questions.map((q) => <th key={q} className="whitespace-nowrap px-3 py-2.5">{q.slice(0, 28)}</th>)}</tr>
-                  </thead>
-                  <tbody>
-                    {d.respostas.map((r, i) => (
-                      <tr key={i} className="border-t border-neutral-100">
-                        <td className="whitespace-nowrap px-3 py-2 font-semibold text-neutral-800">{r.name || `#${r.session}`}</td>
-                        <td className="whitespace-nowrap px-3 py-2 text-neutral-600">{r.phone || "—"}</td>
-                        <td className="whitespace-nowrap px-3 py-2 text-neutral-400">{r.when ? new Date(r.when).toLocaleDateString("pt-BR") : "—"}</td>
-                        {d.questions.map((q) => <td key={q} className="whitespace-nowrap px-3 py-2 text-neutral-600">{r.answers[q] || "—"}</td>)}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* RESPOSTAS — tabela por lead (colunas = etapas com %) + busca + filtros + paginação */}
+          {sub === "respostas" ? (() => {
+            const statById = new Map((d.questionStats || []).map((s) => [s.question, s.pct]));
+            const visQ = d.questions.filter((q) => !hiddenQ.has(q));
+            const term = search.trim().toLowerCase();
+            const rows = d.respostas.filter((r) => !term || [r.name, r.phone, ...Object.values(r.answers)].join(" ").toLowerCase().includes(term));
+            const pages = Math.max(1, Math.ceil(rows.length / PER));
+            const pg = Math.min(page, pages - 1);
+            const slice = rows.slice(pg * PER, pg * PER + PER);
+            return (
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="relative">
+                    <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} placeholder="Pesquisar nome, telefone, resposta…"
+                      className="w-64 rounded-lg border border-neutral-200 bg-white py-1.5 pl-8 pr-3 text-xs outline-none focus:border-neutral-400" />
+                    <span className="pointer-events-none absolute left-2.5 top-1.5 text-neutral-400">🔎</span>
+                  </div>
+                  <div className="relative">
+                    <button onClick={() => setOpenFilter(openFilter === "etapas" ? null : "etapas")} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">▦ Etapas ▾</button>
+                    {openFilter === "etapas" ? (
+                      <div className="absolute z-20 mt-1 max-h-72 w-64 overflow-y-auto rounded-xl border border-neutral-200 bg-white p-2 shadow-lg">
+                        {d.questions.map((q, i) => (
+                          <label key={q} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
+                            <span className="min-w-0 flex-1 truncate text-neutral-700">{i + 1}. {strip(q)}</span>
+                            <input type="checkbox" checked={!hiddenQ.has(q)} onChange={() => setHiddenQ((s) => { const n = new Set(s); if (n.has(q)) n.delete(q); else n.add(q); return n; })} className="h-3.5 w-3.5 accent-neutral-900" />
+                          </label>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="relative">
+                    <button onClick={() => setOpenFilter(openFilter === "colunas" ? null : "colunas")} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">▥ Colunas ▾</button>
+                    {openFilter === "colunas" ? (
+                      <div className="absolute z-20 mt-1 w-52 rounded-xl border border-neutral-200 bg-white p-2 shadow-lg">
+                        <label className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
+                          <span className="text-neutral-700">Lead / Telefone / Data</span>
+                          <input type="checkbox" checked={showMeta} onChange={() => setShowMeta((v) => !v)} className="h-3.5 w-3.5 accent-neutral-900" />
+                        </label>
+                      </div>
+                    ) : null}
+                  </div>
+                  <span className="ml-auto text-xs text-neutral-400">{rows.length} resposta{rows.length === 1 ? "" : "s"}</span>
+                </div>
+
+                {slice.length ? (
+                  <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+                    <table className="w-full text-xs">
+                      <thead className="bg-neutral-50 text-left text-neutral-500">
+                        <tr>
+                          {showMeta ? (<><th className="whitespace-nowrap px-3 py-2.5 font-semibold">Lead</th><th className="whitespace-nowrap px-3 py-2.5 font-semibold">Telefone</th><th className="whitespace-nowrap px-3 py-2.5 font-semibold">Data</th></>) : null}
+                          {visQ.map((q, i) => (
+                            <th key={q} className="whitespace-nowrap px-3 py-2.5">
+                              <div className="flex items-center gap-1.5"><PctRing pct={statById.get(q) ?? 0} /><span className="font-semibold text-neutral-700">{i + 1}. {strip(q).slice(0, 26)}</span></div>
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {slice.map((r, i) => (
+                          <tr key={i} className="border-t border-neutral-100 hover:bg-neutral-50">
+                            {showMeta ? (<>
+                              <td className="whitespace-nowrap px-3 py-2 font-semibold text-neutral-800">{r.name || `#${r.session}`}</td>
+                              <td className="whitespace-nowrap px-3 py-2 text-neutral-600">{r.phone || "—"}</td>
+                              <td className="whitespace-nowrap px-3 py-2 text-neutral-400">{r.when ? new Date(r.when).toLocaleDateString("pt-BR") : "—"}</td>
+                            </>) : null}
+                            {visQ.map((q) => <td key={q} className="whitespace-nowrap px-3 py-2 text-neutral-600">{r.answers[q] || "—"}</td>)}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : <p className="p-8 text-center text-sm text-neutral-400">{term ? "Nenhuma resposta bate com a busca." : "Nenhuma resposta ainda. Passe um lead pelo funil."}</p>}
+
+                {pages > 1 ? (
+                  <div className="flex items-center justify-center gap-2 text-xs">
+                    <button onClick={() => setPage(Math.max(0, pg - 1))} disabled={pg === 0} className="rounded border border-neutral-200 px-2 py-1 font-semibold disabled:opacity-40">←</button>
+                    <span className="text-neutral-500">Página {pg + 1} de {pages}</span>
+                    <button onClick={() => setPage(Math.min(pages - 1, pg + 1))} disabled={pg >= pages - 1} className="rounded border border-neutral-200 px-2 py-1 font-semibold disabled:opacity-40">→</button>
+                  </div>
+                ) : null}
               </div>
-            ) : <p className="p-8 text-center text-sm text-neutral-400">Nenhuma resposta ainda. Passe um lead pelo funil.</p>
-          ) : null}
+            );
+          })() : null}
 
           {/* RESULTADOS — por pergunta, opções com % */}
           {sub === "resultados" ? (

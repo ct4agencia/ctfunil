@@ -65,5 +65,12 @@ export async function GET(request: Request) {
     return { session: sid.slice(0, 8), name: (l?.name as string) || null, phone: (l?.phone as string) || null, when: (l?.created_at as string) || null, answers: ans };
   });
 
-  return NextResponse.json({ performance, resultados, questions: qOrder, respostas });
+  // % de conclusão por etapa (igual inlead: 1ª etapa = 100%, demais relativas a ela)
+  const firstTotal = resultados[0]?.total || 0;
+  const questionStats = resultados.map((r) => ({
+    question: r.question, total: r.total,
+    pct: firstTotal ? Math.round((r.total / firstTotal) * 100) : 0,
+  }));
+
+  return NextResponse.json({ performance, resultados, questions: qOrder, questionStats, respostas });
 }
