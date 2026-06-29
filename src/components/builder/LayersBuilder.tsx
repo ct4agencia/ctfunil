@@ -697,11 +697,13 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const delLayer = (id: string) => setLayers(layers.filter((l) => l.id !== id));
   const updateLayer = (id: string, l: Layer) => setLayers(layers.map((x) => x.id === id ? l : x));
   const onSelect = (id: string) => setSelLayer(id);
-  const onAction = (id: string, action: "copy" | "hide" | "delete") => {
+  const onAction = (id: string, action: "copy" | "hide" | "delete" | "up" | "down") => {
     const i = layers.findIndex((l) => l.id === id); if (i < 0) return;
     if (action === "delete") { delLayer(id); setSelLayer(null); return; }
     if (action === "copy") { const copy = { ...JSON.parse(JSON.stringify(layers[i])), id: genId() } as Layer; setLayers([...layers.slice(0, i + 1), copy, ...layers.slice(i + 1)]); setSelLayer(copy.id); return; }
-    if (action === "hide") { const l = layers[i]; updateLayer(id, { ...l, design: { ...(l.design || {}), hidden: !l.design?.hidden } }); }
+    if (action === "hide") { const l = layers[i]; updateLayer(id, { ...l, design: { ...(l.design || {}), hidden: !l.design?.hidden } }); return; }
+    if (action === "up" && i > 0) { setLayers(arrayMove(layers, i, i - 1)); return; }
+    if (action === "down" && i < layers.length - 1) { setLayers(arrayMove(layers, i, i + 1)); }
   };
 
   const sel = layers.find((l) => l.id === selLayer);

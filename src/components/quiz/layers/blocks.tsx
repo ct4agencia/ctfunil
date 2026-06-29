@@ -10,18 +10,19 @@ import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types"
 export interface LayersEdit {
   selectedId?: string;
   onSelect: (id: string) => void;
-  onAction: (id: string, action: "copy" | "hide" | "delete") => void;
+  onAction: (id: string, action: "copy" | "hide" | "delete" | "up" | "down") => void;
 }
 export const LayersEditContext = createContext<LayersEdit | null>(null);
 
-/** Toolbar flutuante do bloco selecionado (≡ copiar arquivar excluir). */
-function BlockToolbar({ onAction }: { onAction: (a: "copy" | "hide" | "delete") => void }) {
-  const Btn = ({ a, title, children }: { a: "copy" | "hide" | "delete"; title: string; children: React.ReactNode }) => (
+/** Toolbar flutuante do bloco selecionado (mover ↑↓ · copiar · ocultar · excluir). */
+function BlockToolbar({ onAction }: { onAction: (a: "copy" | "hide" | "delete" | "up" | "down") => void }) {
+  const Btn = ({ a, title, children }: { a: "copy" | "hide" | "delete" | "up" | "down"; title: string; children: React.ReactNode }) => (
     <button title={title} onClick={(e) => { e.stopPropagation(); onAction(a); }} className="grid h-6 w-6 place-items-center rounded text-white/90 hover:bg-white/20">{children}</button>
   );
   return (
-    <div className="absolute -top-7 left-0 z-30 flex items-center gap-0.5 rounded-md bg-blue-600 px-1 py-0.5 text-xs shadow-lg" onClick={(e) => e.stopPropagation()}>
-      <span className="cursor-grab px-1 text-white/80" title="Arrastar">⠿</span>
+    <div data-block-toolbar className="absolute -top-7 left-0 z-30 flex items-center gap-0.5 rounded-md bg-blue-600 px-1 py-0.5 text-xs shadow-lg" onClick={(e) => e.stopPropagation()}>
+      <Btn a="up" title="Mover para cima">↑</Btn>
+      <Btn a="down" title="Mover para baixo">↓</Btn>
       <Btn a="copy" title="Duplicar">⧉</Btn>
       <Btn a="hide" title="Ocultar">◐</Btn>
       <Btn a="delete" title="Excluir">🗑</Btn>
@@ -605,7 +606,11 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
     const selected = edit.selectedId === layer.id;
     return (
       <div
-        onClickCapture={(e) => { e.stopPropagation(); e.preventDefault(); edit.onSelect(layer.id); }}
+        onClickCapture={(e) => {
+          // clique nos botões da toolbar: deixa passar (copy/hide/delete/mover funcionam)
+          if ((e.target as HTMLElement).closest("[data-block-toolbar]")) return;
+          e.stopPropagation(); e.preventDefault(); edit.onSelect(layer.id);
+        }}
         className="relative cursor-pointer rounded-md transition hover:outline hover:outline-1 hover:outline-blue-300"
         style={{ outline: selected ? "2px solid #2563eb" : undefined, outlineOffset: 3, opacity: hidden ? 0.4 : 1 }}
       >
