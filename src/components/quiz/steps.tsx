@@ -144,6 +144,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   const seg = 360 / N;
   // rotação inicial: mostra a fatia `initialIndex` sob o ponteiro antes de girar
   const [rotation, setRotation] = useState(() => -((step.initialIndex ?? 0) * seg));
+  const [instant, setInstant] = useState(false); // restaura prêmio travado sem animar o giro
   const c = 100;
 
   const polar = (r: number, a: number): [number, number] => {
@@ -176,6 +177,10 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
       else playSpinTicks(4200);
     }
     const win = step.mode === "random" ? Math.floor(Math.random() * N) : step.winningIndex;
+    // trava 24h: registra o prêmio no aparelho (fixa no reload + bloqueia novo giro)
+    if (step.lockReplay && typeof window !== "undefined") {
+      try { localStorage.setItem(`cdb-rl-${step.id}`, JSON.stringify({ w: win, ts: Date.now() })); } catch { /* noop */ }
+    }
     setRotation(360 * 6 - win * seg); // win=0 → 6 voltas exatas, labels terminam retas
     setTimeout(() => {
       setDone(true); setSpinning(false);
@@ -193,6 +198,23 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     const t = setTimeout(() => ctx.advance(), step.autoAdvanceMs ?? 2600);
     return () => clearTimeout(t);
   }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // trava 24h: se já girou e ganhou nas últimas 24h, restaura o prêmio FIXADO
+  // (sem animar) e bloqueia novo giro. localStorage = por aparelho/navegador.
+  useEffect(() => {
+    if (!step.lockReplay || typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(`cdb-rl-${step.id}`);
+      if (!raw) return;
+      const { w, ts } = JSON.parse(raw);
+      if (typeof w === "number" && Date.now() - Number(ts) < 24 * 3600 * 1000) {
+        setInstant(true);
+        setRotation(360 * 6 - w * seg);
+        setDone(true);
+      }
+    } catch { /* noop */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -213,7 +235,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                 style={{ width: 26, height: 26, background: ch.pointer, border: "3px solid #fff", borderRadius: "50% 50% 0 50%", transform: "rotate(45deg)", boxShadow: "0 4px 9px rgba(0,0,0,.28)" }} />
             )}
             <motion.div className="h-full w-full" initial={false} animate={{ rotate: rotation }}
-              transition={{ duration: 4.2, ease: [0.16, 1, 0.3, 1] }}>
+              transition={{ duration: instant ? 0 : 4.2, ease: [0.16, 1, 0.3, 1] }}>
               <svg viewBox="0 0 200 200" className="h-full w-full" style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,.22))" }}>
                 <circle cx={c} cy={c} r={97} fill={ch.rim} />
                 <circle cx={c} cy={c} r={88.5} fill="none" stroke={ch.rimInner} strokeWidth={3} />

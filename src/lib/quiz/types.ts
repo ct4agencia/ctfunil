@@ -140,6 +140,9 @@ export interface RouletteStep extends BaseStep {
   autoAdvanceMs?: number;
   /** botão logo abaixo da roleta (não no rodapé sticky) */
   ctaBelow?: boolean;
+  /** trava anti-repeat: se já girou e ganhou, não gira de novo por 24h (localStorage);
+   *  o prêmio fica fixado mesmo no reload. Opcional por funil (A/B). */
+  lockReplay?: boolean;
 }
 
 /** Raspadinha (scratch-card) — variante da roleta p/ revelar o prêmio. */

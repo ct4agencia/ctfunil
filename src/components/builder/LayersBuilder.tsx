@@ -1137,7 +1137,12 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                         <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Mensagem do prêmio</p>
                         <div><Lbl>Título</Lbl><MarkupField value={sc.winTitle} onChange={(v) => patchSpecial({ winTitle: v })} /></div>
                         <div><Lbl>Texto</Lbl><MarkupField value={sc.winBody} onChange={(v) => patchSpecial({ winBody: v })} /></div>
-                        <div><Lbl>Botão</Lbl><input value={sc.winCta || ""} onChange={(e) => patchSpecial({ winCta: e.target.value })} className={inp} /></div>
+                        <div><Lbl>Botão (resgatar)</Lbl><input value={sc.winCta || ""} onChange={(e) => patchSpecial({ winCta: e.target.value })} className={inp} /></div>
+                      </div>
+                      <div className="space-y-1.5 border-t border-orange-200/70 pt-2">
+                        <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Comportamento (lead)</p>
+                        <label className="flex cursor-pointer items-center justify-between gap-2 text-xs text-neutral-600"><span>Travar repetição — 1 giro por aparelho em 24h (prêmio fica fixado)</span><input type="checkbox" checked={!!sc.lockReplay} onChange={(e) => patchSpecial({ lockReplay: e.target.checked || undefined })} className="h-3.5 w-3.5 shrink-0 accent-neutral-900" /></label>
+                        <label className="flex cursor-pointer items-center justify-between gap-2 text-xs text-neutral-600"><span>Avançar automático ao ganhar (desligado = exige clique no Resgatar)</span><input type="checkbox" checked={!!sc.autoAdvance} onChange={(e) => patchSpecial({ autoAdvance: e.target.checked || undefined })} className="h-3.5 w-3.5 shrink-0 accent-neutral-900" /></label>
                       </div>
                     </div>
                   );
