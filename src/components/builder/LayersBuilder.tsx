@@ -101,6 +101,27 @@ function HtmlField({ value, onChange, theme = "#ea580c" }: { value?: string; onC
   );
 }
 
+/** Input de texto da roleta/slider (markup ==destaque== / **negrito**) com botões
+ *  que envolvem o trecho selecionado — casa com o RichText que a roleta renderiza. */
+function MarkupField({ value, onChange, placeholder }: { value?: string; onChange: (v: string) => void; placeholder?: string }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const wrap = (mark: string) => {
+    const el = ref.current; const v = value || "";
+    const s = el?.selectionStart ?? v.length, e = el?.selectionEnd ?? v.length;
+    const sel = v.slice(s, e) || "texto";
+    onChange(v.slice(0, s) + mark + sel + mark + v.slice(e));
+  };
+  return (
+    <div>
+      <div className="mb-1 flex gap-1">
+        <button type="button" onMouseDown={(ev) => { ev.preventDefault(); wrap("=="); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs font-bold text-orange-600">Destaque</button>
+        <button type="button" onMouseDown={(ev) => { ev.preventDefault(); wrap("**"); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs font-bold">Negrito</button>
+      </div>
+      <input ref={ref} value={value || ""} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={inp} />
+    </div>
+  );
+}
+
 function ImageField({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
   const [busy, setBusy] = useState(false);
   const up = async (file: File) => {
@@ -1020,7 +1041,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   return (
                     <div className="space-y-2 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
                       <p className="text-sm font-bold text-neutral-700">🎚️ Slider (hero)</p>
-                      <div><Lbl>Pergunta (use ==destaque==)</Lbl><input value={sc.question || ""} onChange={(e) => patchSpecial({ question: e.target.value })} className={inp} /></div>
+                      <div><Lbl>Pergunta</Lbl><MarkupField value={sc.question} onChange={(v) => patchSpecial({ question: v })} /></div>
                       <div><Lbl>Ajuda (linha menor)</Lbl><input value={sc.help || ""} onChange={(e) => patchSpecial({ help: e.target.value })} className={inp} /></div>
                       <div className="grid grid-cols-3 gap-2">
                         <div><Lbl>Mín</Lbl><input type="number" value={sc.min ?? 0} onChange={(e) => patchSpecial({ min: Number(e.target.value) })} className={inp} /></div>
@@ -1039,8 +1060,8 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   return (
                     <div className="space-y-2.5 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
                       <p className="text-sm font-bold text-neutral-700">🎡 Roleta (hero)</p>
-                      <div><Lbl>Título</Lbl><input value={sc.title || ""} onChange={(e) => patchSpecial({ title: e.target.value })} className={inp} /></div>
-                      <div><Lbl>Subtítulo</Lbl><input value={sc.subtitle || ""} onChange={(e) => patchSpecial({ subtitle: e.target.value })} className={inp} /></div>
+                      <div><Lbl>Título</Lbl><MarkupField value={sc.title} onChange={(v) => patchSpecial({ title: v })} /></div>
+                      <div><Lbl>Subtítulo</Lbl><MarkupField value={sc.subtitle} onChange={(v) => patchSpecial({ subtitle: v })} /></div>
                       <div><Lbl>Botão (girar)</Lbl><input value={sc.cta || ""} onChange={(e) => patchSpecial({ cta: e.target.value })} className={inp} /></div>
                       <div className="grid grid-cols-2 gap-2">
                         <div><Lbl>Tipo da roleta</Lbl>
@@ -1076,8 +1097,8 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                       </div>
                       <div className="border-t border-orange-200/70 pt-2">
                         <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Mensagem do prêmio</p>
-                        <div><Lbl>Título</Lbl><input value={sc.winTitle || ""} onChange={(e) => patchSpecial({ winTitle: e.target.value })} className={inp} /></div>
-                        <div><Lbl>Texto</Lbl><input value={sc.winBody || ""} onChange={(e) => patchSpecial({ winBody: e.target.value })} className={inp} /></div>
+                        <div><Lbl>Título</Lbl><MarkupField value={sc.winTitle} onChange={(v) => patchSpecial({ winTitle: v })} /></div>
+                        <div><Lbl>Texto</Lbl><MarkupField value={sc.winBody} onChange={(v) => patchSpecial({ winBody: v })} /></div>
                         <div><Lbl>Botão</Lbl><input value={sc.winCta || ""} onChange={(e) => patchSpecial({ winCta: e.target.value })} className={inp} /></div>
                       </div>
                     </div>
