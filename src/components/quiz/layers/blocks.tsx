@@ -106,8 +106,11 @@ function Html({ html, className, style }: { html: string; className?: string; st
 // ─────────────────────────────── TEXT ───────────────────────────────
 function TextBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const basis = Number(layer.design?.basis) || 100;
+  // alinhamento aplicado TAMBÉM no wrapper (além da classe ql-align) — garante efeito no construtor e no live
+  const m = (layer.content.text || "").match(/ql-align-(center|right|justify)/);
+  const textAlign = (m?.[1] as "center" | "right" | "justify") || "left";
   return (
-    <div className="mx-auto w-full" style={{ maxWidth: `${basis}%` }}>
+    <div className="mx-auto w-full" style={{ maxWidth: `${basis}%`, textAlign }}>
       <Html html={interpHtml(layer.content.text, ctx)} style={{ fontSize: `${remContent(ctx)}px`, color: ctx.design.contentColor || "#000" }} />
     </div>
   );
@@ -199,7 +202,7 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
           fontSize: `${remContent(ctx) + 1}px`, padding: "0 1.25rem",
           boxShadow: "0 12px 24px -10px rgba(0,0,0,.3)",
         }}>
-        {ctx.submitting ? "Enviando…" : c.label}
+        {ctx.submitting ? "Enviando…" : `${c.icon ? `${c.icon} ` : ""}${c.label || ""}`}
       </motion.button>
     </div>
   );

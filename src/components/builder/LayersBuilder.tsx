@@ -64,13 +64,13 @@ function newLayer(type: LayerType): Layer {
 /** contentEditable WYSIWYG simples (negrito + cor) que devolve o HTML. */
 function HtmlField({ value, onChange, theme = "#ea580c" }: { value?: string; onChange: (v: string) => void; theme?: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  // contentEditable NÃO-controlado: seta o HTML inicial UMA vez no mount e nunca
-  // re-seta a partir de props enquanto digita. Evita o React reposicionar o cursor
-  // (bug do caractere indo pro lugar errado). Troca de bloco remonta via key={sel.id}.
+  // contentEditable NÃO-controlado: re-sincroniza o HTML SÓ quando a mudança vem de
+  // fora (ex: alinhamento na aba Aparência) E o campo NÃO está focado. Enquanto você
+  // digita (campo focado), nunca re-seta → não reposiciona o cursor.
   useEffect(() => {
-    if (ref.current) ref.current.innerHTML = value || "";
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const el = ref.current;
+    if (el && document.activeElement !== el && el.innerHTML !== (value || "")) el.innerHTML = value || "";
+  }, [value]);
   const cmd = (c: string, v?: string) => { ref.current?.focus(); document.execCommand(c, false, v); if (ref.current) onChange(ref.current.innerHTML); };
   return (
     <div>
@@ -190,6 +190,15 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
     case "button":
       return (<>
         <Lbl>Rótulo do botão</Lbl><input value={c.label || ""} onChange={(e) => setC({ label: e.target.value })} className={inp} />
+        <Lbl>Ícone / emoji (opcional, antes do texto)</Lbl><input value={c.icon || ""} onChange={(e) => setC({ icon: e.target.value })} placeholder="ex: 👉 🔥 ✅" className={inp} />
+        <Lbl>Cor do botão</Lbl>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-1.5 text-xs text-neutral-600"><input type="color" value={layer.design?.backgroundColor || "#ea580c"} onChange={(e) => setD({ backgroundColor: e.target.value })} className="h-7 w-9 cursor-pointer rounded border border-neutral-300" /> Fundo</label>
+          <label className="flex items-center gap-1.5 text-xs text-neutral-600"><input type="color" value={layer.design?.color || "#ffffff"} onChange={(e) => setD({ color: e.target.value })} className="h-7 w-9 cursor-pointer rounded border border-neutral-300" /> Texto</label>
+        </div>
+        <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
+          <input type="checkbox" checked={!!layer.design?.borderColor} onChange={(e) => setD({ borderColor: e.target.checked ? (layer.design?.backgroundColor || "#ea580c") : undefined, backgroundColor: e.target.checked ? "transparent" : (layer.design?.borderColor || "#ea580c") })} className="h-3.5 w-3.5 accent-neutral-900" /> Botão vazado (só contorno)
+        </label>
         <Lbl>Ao clicar</Lbl>
         <select value={/^https?:/.test(c.destination || "") ? "__url" : (c.destination || "next")} onChange={(e) => setC({ destination: e.target.value === "__url" ? "https://" : e.target.value })} className={inp}>
           {destOptions}<option value="__url">🔗 Link externo (checkout)</option>
