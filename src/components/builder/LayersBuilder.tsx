@@ -697,13 +697,18 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const delLayer = (id: string) => setLayers(layers.filter((l) => l.id !== id));
   const updateLayer = (id: string, l: Layer) => setLayers(layers.map((x) => x.id === id ? l : x));
   const onSelect = (id: string) => setSelLayer(id);
-  const onAction = (id: string, action: "copy" | "hide" | "delete" | "up" | "down") => {
+  const onAction = (id: string, action: "copy" | "hide" | "delete") => {
     const i = layers.findIndex((l) => l.id === id); if (i < 0) return;
     if (action === "delete") { delLayer(id); setSelLayer(null); return; }
     if (action === "copy") { const copy = { ...JSON.parse(JSON.stringify(layers[i])), id: genId() } as Layer; setLayers([...layers.slice(0, i + 1), copy, ...layers.slice(i + 1)]); setSelLayer(copy.id); return; }
-    if (action === "hide") { const l = layers[i]; updateLayer(id, { ...l, design: { ...(l.design || {}), hidden: !l.design?.hidden } }); return; }
-    if (action === "up" && i > 0) { setLayers(arrayMove(layers, i, i - 1)); return; }
-    if (action === "down" && i < layers.length - 1) { setLayers(arrayMove(layers, i, i + 1)); }
+    if (action === "hide") { const l = layers[i]; updateLayer(id, { ...l, design: { ...(l.design || {}), hidden: !l.design?.hidden } }); }
+  };
+  // arrastar bloco no canvas (⠿) → reordena
+  const onReorder = (activeId: string, overId: string) => {
+    const from = layers.findIndex((l) => l.id === activeId);
+    const to = layers.findIndex((l) => l.id === overId);
+    if (from < 0 || to < 0) return;
+    setLayers(arrayMove(layers, from, to));
   };
 
   const sel = layers.find((l) => l.id === selLayer);
@@ -790,7 +795,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         <div className="flex items-start justify-center overflow-y-auto p-6">
           <div className="h-[700px] w-[360px] shrink-0 overflow-hidden rounded-[2.2rem] border-[11px] border-neutral-900 bg-white shadow-2xl" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
             <div className="h-full overflow-y-auto transform-gpu" onClick={() => setSelLayer(null)}>
-              <LayersRunner key={`${selStep}-${nonce}`} funnel={funnel} startIndex={selStep} preview editor={{ selectedId: selLayer || undefined, onSelect, onAction }} />
+              <LayersRunner key={`${selStep}-${nonce}`} funnel={funnel} startIndex={selStep} preview editor={{ selectedId: selLayer || undefined, onSelect, onAction, onReorder }} />
             </div>
           </div>
         </div>

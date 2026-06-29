@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { fireMetaEvent } from "@/lib/tracking";
 import { interpEstado } from "@/lib/quiz/estado";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
@@ -10,19 +12,21 @@ import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types"
 export interface LayersEdit {
   selectedId?: string;
   onSelect: (id: string) => void;
-  onAction: (id: string, action: "copy" | "hide" | "delete" | "up" | "down") => void;
+  onAction: (id: string, action: "copy" | "hide" | "delete") => void;
+  /** reordena blocos no canvas (drag & drop) */
+  onReorder?: (activeId: string, overId: string) => void;
 }
 export const LayersEditContext = createContext<LayersEdit | null>(null);
 
-/** Toolbar flutuante do bloco selecionado (mover ↑↓ · copiar · ocultar · excluir). */
-function BlockToolbar({ onAction }: { onAction: (a: "copy" | "hide" | "delete" | "up" | "down") => void }) {
-  const Btn = ({ a, title, children }: { a: "copy" | "hide" | "delete" | "up" | "down"; title: string; children: React.ReactNode }) => (
+/** Toolbar flutuante do bloco selecionado (⠿ arrastar · copiar · ocultar · excluir). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function BlockToolbar({ onAction, dragProps }: { onAction: (a: "copy" | "hide" | "delete") => void; dragProps?: any }) {
+  const Btn = ({ a, title, children }: { a: "copy" | "hide" | "delete"; title: string; children: React.ReactNode }) => (
     <button title={title} onClick={(e) => { e.stopPropagation(); onAction(a); }} className="grid h-6 w-6 place-items-center rounded text-white/90 hover:bg-white/20">{children}</button>
   );
   return (
     <div data-block-toolbar className="absolute -top-7 left-0 z-30 flex items-center gap-0.5 rounded-md bg-blue-600 px-1 py-0.5 text-xs shadow-lg" onClick={(e) => e.stopPropagation()}>
-      <Btn a="up" title="Mover para cima">↑</Btn>
-      <Btn a="down" title="Mover para baixo">↓</Btn>
+      <span {...(dragProps || {})} className="cursor-grab touch-none px-1 text-base leading-none text-white/90 active:cursor-grabbing" title="Arrastar para reordenar">⠿</span>
       <Btn a="copy" title="Duplicar">⧉</Btn>
       <Btn a="hide" title="Ocultar">◐</Btn>
       <Btn a="delete" title="Excluir">🗑</Btn>
@@ -597,28 +601,38 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
       default: return null;
     }
   })();
-  // ── modo de edição (canvas do construtor): seleção + toolbar, sem reveal ──
+  // ── modo de edição: o EditBlock (LayersRunner) cuida de wrapper/seleção/drag ──
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const edit = useContext(LayersEditContext);
   const hidden = !!layer.design?.hidden;
-  if (hidden && !edit) return null; // runtime: bloco oculto não renderiza
-  if (edit) {
-    const selected = edit.selectedId === layer.id;
-    return (
-      <div
-        onClickCapture={(e) => {
-          // clique nos botões da toolbar: deixa passar (copy/hide/delete/mover funcionam)
-          if ((e.target as HTMLElement).closest("[data-block-toolbar]")) return;
-          e.stopPropagation(); e.preventDefault(); edit.onSelect(layer.id);
-        }}
-        className="relative cursor-pointer rounded-md transition hover:outline hover:outline-1 hover:outline-blue-300"
-        style={{ outline: selected ? "2px solid #2563eb" : undefined, outlineOffset: 3, opacity: hidden ? 0.4 : 1 }}
-      >
-        {selected ? <BlockToolbar onAction={(a) => edit.onAction(layer.id, a)} /> : null}
-        {inner}
-      </div>
-    );
-  }
+  if (edit) return <>{inner}</>;          // EditBlock provê o wrapper/toolbar/sortable
+  if (hidden) return null;                 // runtime: bloco oculto não renderiza
   // revelação progressiva (effects.starts) — ex: botão Continuar da VAGAS só após o loading.
   return <Reveal delay={layer.effects?.starts}>{inner}</Reveal>;
+}
+
+/** Wrapper de edição no canvas: seleção + toolbar + arrastar (sortable).
+ *  Usado SÓ pelo LayersRunner em modo editor (dentro de um SortableContext). */
+export function EditBlock({ layer, ctx, question, edit }: { layer: Layer; ctx: LayersCtx; question: string; edit: LayersEdit }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: layer.id });
+  const selected = edit.selectedId === layer.id;
+  const hidden = !!layer.design?.hidden;
+  return (
+    <div
+      ref={setNodeRef}
+      onClickCapture={(e) => {
+        if ((e.target as HTMLElement).closest("[data-block-toolbar]")) return; // toolbar/⠿ funcionam
+        e.stopPropagation(); e.preventDefault(); edit.onSelect(layer.id);
+      }}
+      className="relative cursor-pointer rounded-md transition hover:outline hover:outline-1 hover:outline-blue-300"
+      style={{
+        transform: CSS.Transform.toString(transform), transition,
+        outline: selected ? "2px solid #2563eb" : undefined, outlineOffset: 3,
+        opacity: isDragging ? 0.5 : (hidden ? 0.4 : 1), zIndex: isDragging ? 40 : undefined,
+      }}
+    >
+      {selected ? <BlockToolbar onAction={(a) => edit.onAction(layer.id, a)} dragProps={{ ...attributes, ...listeners }} /> : null}
+      <Block layer={layer} ctx={ctx} question={question} />
+    </div>
+  );
 }

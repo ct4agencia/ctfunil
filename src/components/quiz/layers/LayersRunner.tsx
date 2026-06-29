@@ -10,7 +10,9 @@ import { ScrollHint } from "../ui";
 import { RouletteStepView, type StepCtx } from "../steps";
 import { getPalette, paletteVars } from "@/lib/quiz/theme";
 import type { RouletteStep } from "@/lib/quiz/types";
-import { Block, Reveal, SliderHero, LayersEditContext, type LayersCtx, type LayersEdit } from "./blocks";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Block, EditBlock, Reveal, SliderHero, LayersEditContext, type LayersCtx, type LayersEdit } from "./blocks";
 
 /** rem da string container "max-w-[34rem]". */
 function containerMax(c?: string): string {
@@ -27,6 +29,8 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   const steps = preview ? allSteps : allSteps.filter((s) => !s.disabled);
   const design = (funnel.settings?.design as InleadDesign) || {};
   const total = steps.length;
+  // sensores p/ arrastar blocos no canvas (modo editor)
+  const blockSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const [idx, setIdx] = useState(startIndex);
   const history = useRef<number[]>([]);
@@ -248,8 +252,19 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
             style={{ maxWidth: containerMax(design.container), gap: `${Number(design.gap) || 0.6}rem` }}
           >
             {(() => {
-              // agrupa IMAGENS consecutivas numa linha (igual inlead: 3 fotos 33% lado a lado)
               const ls = step.layers || [];
+              // ── modo editor: cada bloco arrastável (⠿) p/ reordenar; sem agrupar imagens ──
+              if (editor) {
+                return (
+                  <DndContext sensors={blockSensors} collisionDetection={closestCenter}
+                    onDragEnd={(e: DragEndEvent) => { const { active, over } = e; if (over && active.id !== over.id) editor.onReorder?.(String(active.id), String(over.id)); }}>
+                    <SortableContext items={ls.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                      {ls.map((l) => <EditBlock key={l.id} layer={l} ctx={ctx} question={question} edit={editor} />)}
+                    </SortableContext>
+                  </DndContext>
+                );
+              }
+              // agrupa IMAGENS consecutivas numa linha (igual inlead: 3 fotos 33% lado a lado)
               const out: React.ReactNode[] = [];
               for (let k = 0; k < ls.length; k++) {
                 const l = ls[k];
