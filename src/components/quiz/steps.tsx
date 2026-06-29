@@ -231,6 +231,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                   const fill = contrastText(s.color);
                   return (
                     <text key={`t${i}`} x={tx} y={ty} textAnchor="middle" dominantBaseline="middle"
+                      transform={`rotate(${i * seg} ${tx} ${ty})`}
                       fontSize={11} fontWeight={800} fill={fill} style={{ letterSpacing: ".2px" }}>
                       {ls.length === 1 ? ls[0] : ls.map((l, j) => <tspan key={j} x={tx} dy={j === 0 ? "-0.5em" : "1.1em"}>{l}</tspan>)}
                     </text>
