@@ -274,16 +274,29 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
     /* sem dados */
   }
 
-  const visitantes = sessions.length;
-  const respostas = sessions.filter((s) => s.max_step_reached >= firstQ).length;
+  // Contagens EXATAS (escalam além das 5000 amostradas) — COUNT no banco, não no JS.
+  // visitantes = todas as sessões; respostas = chegaram na 1ª pergunta; conclusões = chegaram ao fim.
+  const sbCount = createAdminClient();
+  const countSessions = async (minStep?: number): Promise<number> => {
+    try {
+      let q = sbCount.from("funnel_sessions").select("*", { count: "exact", head: true }).eq("funnel_slug", slug);
+      if (range?.from) q = q.gte("created_at", range.from);
+      if (range?.to) q = q.lte("created_at", range.to);
+      if (minStep !== undefined) q = q.gte("max_step_reached", minStep);
+      const { count } = await q;
+      return count ?? 0;
+    } catch { return 0; }
+  };
   // C2: "leads" = leads REAIS (funnel_leads), não "quem chegou na lâmina de captura".
-  const leads = await realLeadCount(slug, range);
-  const conclusoes = sessions.filter((s) => s.max_step_reached >= lastI).length;
+  const [visitantes, respostas, conclusoes, leads] = await Promise.all([
+    countSessions(), countSessions(firstQ), countSessions(lastI), realLeadCount(slug, range),
+  ]);
   const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
   const taxaConclusao = pct(conclusoes, visitantes);
   const taxaInteracao = pct(respostas, visitantes);
   const taxaRejeicao = Math.round((100 - taxaInteracao) * 10) / 10;
-  const mediaEtapas = visitantes ? Math.round((sessions.reduce((a, s) => a + s.max_step_reached + 1, 0) / visitantes) * 10) / 10 : 0;
+  // média de etapas/tempo: calculadas sobre a amostra recente (representativa), não dividem pela contagem total
+  const mediaEtapas = sessions.length ? Math.round((sessions.reduce((a, s) => a + s.max_step_reached + 1, 0) / sessions.length) * 10) / 10 : 0;
   const tempos = sessions.map((s) => (new Date(s.last_seen_at).getTime() - new Date(s.created_at).getTime()) / 1000).filter((t) => t >= 0 && t < 3600 * 6);
   const tempoMedioSeg = tempos.length ? Math.round(tempos.reduce((a, b) => a + b, 0) / tempos.length) : 0;
   const score = Math.min(100, Math.round((taxaConclusao * 0.6 + taxaInteracao * 0.4) * 10) / 10);
