@@ -1142,6 +1142,52 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
               </label>
               {step?.disabled ? <p className="-mt-1 text-[11px] text-amber-600">Esta lâmina é PULADA no funil publicado (continua aqui pra reativar).</p> : null}
               <div><Lbl>Título</Lbl><input value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className={inp} /></div>
+
+              {/* Imagem de fundo da lâmina (estilo inlead: ajuste + posição + opacidade) */}
+              {(() => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const sd: any = step?.design || {};
+                const patchDesign = (p: Record<string, unknown>) => patchStep(selStep, { design: { ...sd, ...p } });
+                const src = sd.backgroundImage?.src || "";
+                return (
+                  <div className="rounded-xl border border-neutral-200 p-3">
+                    <Lbl>Imagem de fundo</Lbl>
+                    <ImageField value={src} onChange={(v) => patchDesign({ backgroundImage: v ? { type: "image", src: v } : undefined })} />
+                    {src ? (
+                      <>
+                        <div className="mt-2 grid grid-cols-3 gap-2">
+                          <div>
+                            <Lbl>Ajuste</Lbl>
+                            <select value={sd.backgroundSize || "cover"} onChange={(e) => patchDesign({ backgroundSize: e.target.value })} className={inp}>
+                              <option value="cover">Tela inteira</option>
+                              <option value="auto">Original</option>
+                              <option value="contain">Adequar</option>
+                              <option value="fill">Esticar</option>
+                            </select>
+                          </div>
+                          <div>
+                            <Lbl>Posição</Lbl>
+                            <select value={sd.backgroundPosition || "center"} onChange={(e) => patchDesign({ backgroundPosition: e.target.value })} className={inp}>
+                              <option value="center">Centro</option>
+                              <option value="top">Topo</option>
+                              <option value="bottom">Base</option>
+                              <option value="left">Esquerda</option>
+                              <option value="right">Direita</option>
+                            </select>
+                          </div>
+                          <div>
+                            <Lbl>Opacidade</Lbl>
+                            <select value={String(sd.backgroundOpacity ?? 100)} onChange={(e) => patchDesign({ backgroundOpacity: Number(e.target.value) })} className={inp}>
+                              {[100, 90, 75, 50, 35, 25, 15, 10].map((o) => <option key={o} value={o}>{o}%</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <button onClick={() => patchDesign({ backgroundImage: undefined })} className="mt-2 text-xs font-semibold text-red-500 hover:text-red-700">Remover fundo</button>
+                      </>
+                    ) : null}
+                  </div>
+                );
+              })()}
               {/* Editor dedicado de slider/roleta (hero especial — não tem blocos clicáveis) */}
               {(() => {
                 const special = (step?.layers || []).find((l) => l.type === "slider" || l.type === "roulette");

@@ -152,6 +152,9 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
 
   const bgImg = step.design?.backgroundImage?.src || null;
   const bgOpacity = Number(step.design?.backgroundOpacity ?? 100) / 100;
+  // ajuste do fundo: cover (tela inteira) | none (original) | contain (adequar) | fill (esticar)
+  const bgFit = ({ cover: "cover", auto: "none", contain: "contain", fill: "fill" } as const)[(step.design?.backgroundSize as string) || "cover"] || "cover";
+  const bgPos = (step.design?.backgroundPosition as string) || "center";
   const pageBg = step.design?.backgroundColor || design.backgroundColor || "#ffffff";
   const question = step.title || "";
 
@@ -219,7 +222,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       {/* fundo personalizado da lâmina */}
       {bgImg ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={bgImg} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" style={{ opacity: bgOpacity }} />
+        <img src={bgImg} alt="" className="pointer-events-none absolute inset-0 h-full w-full" style={{ opacity: bgOpacity, objectFit: bgFit, objectPosition: bgPos }} />
       ) : null}
 
       {/* header GLOBAL (settings.header): logo + progresso + voltar.

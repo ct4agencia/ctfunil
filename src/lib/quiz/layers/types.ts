@@ -111,6 +111,8 @@ export interface InleadStep {
     backgroundColor?: string;
     backgroundImage?: InleadMedia;
     backgroundOpacity?: string | number;
+    backgroundSize?: string; // cover | auto | contain | fill
+    backgroundPosition?: string; // center | top | bottom | left | right
   };
 }
 
