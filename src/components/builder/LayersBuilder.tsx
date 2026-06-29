@@ -8,6 +8,7 @@ import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
+import PerformanceView from "@/components/dashboard/PerformanceView";
 import { saveFunnelAction } from "@/app/builder/[slug]/actions";
 
 function genId() {
@@ -661,7 +662,7 @@ function FluxoTab({ steps, setSteps }: { steps: InleadStep[]; setSteps: (s: Inle
 
 // ───────────────────────── D — LEADS ─────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface Analytics { performance: any; resultados: { question: string; total: number; options: { label: string; value: number; pct: number }[] }[]; questions: string[]; questionStats?: { question: string; total: number; pct: number }[]; respostas: { session: string; name: string | null; phone: string | null; when: string | null; answers: Record<string, string>; track?: Record<string, string> }[] }
+interface Analytics { performance: any; deltas?: Record<string, number> | null; resultados: { question: string; total: number; options: { label: string; value: number; pct: number }[] }[]; questions: string[]; questionStats?: { question: string; total: number; pct: number }[]; respostas: { session: string; name: string | null; phone: string | null; when: string | null; answers: Record<string, string>; track?: Record<string, string> }[] }
 /** Colunas de tracking (Onda B) — exibidas na tabela de Respostas, estilo inlead. */
 const TRACK_COLS: { key: string; label: string }[] = [
   { key: "utm_source", label: "utm_source" }, { key: "utm_medium", label: "utm_medium" },
@@ -740,7 +741,6 @@ export function LeadsTab({ slug }: { slug: string }) {
     setResetting(false); load();
   };
   const p = d?.performance;
-  const fmtT = (s: number) => `${String(Math.floor(s / 3600)).padStart(2, "0")}h ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}m ${String(s % 60).padStart(2, "0")}s`;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -892,33 +892,8 @@ export function LeadsTab({ slug }: { slug: string }) {
             ) : <p className="p-8 text-center text-sm text-neutral-400">Sem respostas de quiz ainda.</p>
           ) : null}
 
-          {/* PERFORMANCE — cards + funil + campanhas */}
-          {sub === "performance" && p ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-                {[["Score", `${p.score}`], ["Visitantes", `${p.visitantes}`], ["Respostas", `${p.respostas}`], ["Leads", `${p.leads}`], ["Tempo médio", fmtT(p.tempoMedioSeg)]].map(([l, v]) => (
-                  <div key={l} className="rounded-xl border border-neutral-200 bg-white p-3"><p className="text-[11px] text-neutral-400">{l}</p><p className="text-lg font-bold text-neutral-800">{v}</p></div>
-                ))}
-              </div>
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                  <p className="mb-1 text-sm font-bold text-neutral-700">Funil · conversão {p.taxaConclusao}%</p>
-                  {p.funil.map((f: { label: string; value: number; pct: number }) => (
-                    <div key={f.label} className="mb-2">
-                      <div className="mb-0.5 flex items-center justify-between text-xs"><span className="text-neutral-700">{f.label}</span><span className="font-semibold text-neutral-500">{f.value} · {f.pct}%</span></div>
-                      <Bar pct={f.pct} color="#ea580c" />
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                  <p className="mb-2 text-sm font-bold text-neutral-700">Campanhas <span className="text-xs font-normal text-neutral-400">· melhor origem: {p.melhorOrigem}</span></p>
-                  {p.campanhas.length ? p.campanhas.map((c: { name: string; value: number; pct: number }) => (
-                    <div key={c.name} className="mb-2"><div className="mb-0.5 flex items-center justify-between text-xs"><span className="min-w-0 flex-1 truncate text-neutral-700">{c.name}</span><span className="font-semibold text-neutral-500">{c.value} · {c.pct}%</span></div><Bar pct={c.pct} color="#8b5cf6" /></div>
-                  )) : <p className="text-xs text-neutral-400">Sem dados de campanha (UTM/src) ainda.</p>}
-                </div>
-              </div>
-            </div>
-          ) : null}
+          {/* PERFORMANCE — tela completa (= antigo "Métricas"): cards c/ deltas, funil, tráfego, campanhas, dispositivos, Sumário */}
+          {sub === "performance" && p ? <PerformanceView m={p} deltas={d.deltas} /> : null}
         </>
       )}
     </div>

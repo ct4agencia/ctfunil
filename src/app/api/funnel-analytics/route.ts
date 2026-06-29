@@ -24,6 +24,27 @@ export async function GET(request: Request) {
   const range = { from, to };
 
   const performance = await funnelMetrics(slug, range);
+
+  // deltas vs PERÍODO ANTERIOR (mesma duração imediatamente antes do início)
+  let deltas: Record<string, number> | null = null;
+  if (from) {
+    const fromMs = new Date(from).getTime();
+    const toMs = to ? new Date(to).getTime() : Date.now();
+    const len = Math.max(1, toMs - fromMs);
+    const prev = await funnelMetrics(slug, { from: new Date(fromMs - len).toISOString(), to: new Date(fromMs).toISOString() });
+    const pct = (cur: number, prv: number) => (prv > 0 ? Math.round(((cur - prv) / prv) * 1000) / 10 : cur > 0 ? 100 : 0);
+    deltas = {
+      visitantes: pct(performance.visitantes, prev.visitantes),
+      respostas: pct(performance.respostas, prev.respostas),
+      leads: pct(performance.leads, prev.leads),
+      conclusoes: pct(performance.conclusoes, prev.conclusoes),
+      score: pct(performance.score, prev.score),
+      taxaConclusao: pct(performance.taxaConclusao, prev.taxaConclusao),
+      taxaInteracao: pct(performance.taxaInteracao, prev.taxaInteracao),
+      mediaEtapas: pct(performance.mediaEtapas, prev.mediaEtapas),
+      tempoMedioSeg: pct(performance.tempoMedioSeg, prev.tempoMedioSeg),
+    };
+  }
   const sb = createAdminClient();
 
   // Resultados: por pergunta → opções com contagem/%
@@ -82,5 +103,5 @@ export async function GET(request: Request) {
     pct: firstTotal ? Math.round((r.total / firstTotal) * 100) : 0,
   }));
 
-  return NextResponse.json({ performance, resultados, questions: qOrder, questionStats, respostas });
+  return NextResponse.json({ performance, deltas, resultados, questions: qOrder, questionStats, respostas });
 }
