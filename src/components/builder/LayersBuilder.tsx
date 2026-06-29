@@ -66,34 +66,72 @@ function newLayer(type: LayerType): Layer {
 }
 
 /** contentEditable WYSIWYG simples (negrito + cor) que devolve o HTML. */
+const EDITOR_FONTS = ["Poppins", "Arial", "Georgia", "Times New Roman", "Verdana", "Courier New"];
+const EDITOR_SIZES = [12, 14, 16, 18, 20, 24, 28, 34, 40, 48];
+const EDITOR_VARS: [string, string][] = [["{nome}", "Nome"], ["{cidade}", "Cidade"], ["{estado}", "Estado"]];
+
 function HtmlField({ value, onChange, theme = "#ea580c" }: { value?: string; onChange: (v: string) => void; theme?: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  // contentEditable NÃO-controlado: re-sincroniza o HTML SÓ quando a mudança vem de
-  // fora (ex: alinhamento na aba Aparência) E o campo NÃO está focado. Enquanto você
-  // digita (campo focado), nunca re-seta → não reposiciona o cursor.
+  const saved = useRef<Range | null>(null);
+  const [menu, setMenu] = useState<"para" | "var" | null>(null);
+  // contentEditable NÃO-controlado: re-sincroniza só quando a mudança vem de fora E o
+  // campo não está focado → enquanto digita nunca re-seta (não pula o cursor).
   useEffect(() => {
     const el = ref.current;
     if (el && document.activeElement !== el && el.innerHTML !== (value || "")) el.innerHTML = value || "";
   }, [value]);
-  const cmd = (c: string, v?: string) => { ref.current?.focus(); document.execCommand(c, false, v); if (ref.current) onChange(ref.current.innerHTML); };
-  // tamanho de fonte do TRECHO selecionado: marca com fontSize=7 e troca por style px
+  const push = () => { if (ref.current) onChange(ref.current.innerHTML); };
+  const cmd = (c: string, v?: string) => { ref.current?.focus(); document.execCommand(c, false, v); push(); };
+  // salva/restaura a seleção (pros color pickers, que tiram o foco do campo)
+  const saveSel = () => { const s = window.getSelection(); if (s && s.rangeCount && ref.current?.contains(s.anchorNode)) saved.current = s.getRangeAt(0).cloneRange(); };
+  const withSel = (fn: () => void) => { ref.current?.focus(); const s = window.getSelection(); if (saved.current && s) { s.removeAllRanges(); s.addRange(saved.current); } fn(); push(); };
   const setSize = (px: string) => {
     const el = ref.current; if (!el) return; el.focus();
     document.execCommand("fontSize", false, "7");
     el.querySelectorAll('font[size="7"]').forEach((f) => { f.removeAttribute("size"); (f as HTMLElement).style.fontSize = `${px}px`; });
-    onChange(el.innerHTML);
+    push();
   };
+  const insHtml = (html: string) => { ref.current?.focus(); document.execCommand("insertHTML", false, html); push(); };
+  const wrapPill = () => {
+    const txt = window.getSelection()?.toString() || "destaque";
+    insHtml(`<span style="display:inline-block;margin:0 2px;border-radius:0.75rem;padding:0.1rem 0.6rem;font-weight:800;color:#fff;background:linear-gradient(95deg, #ea580c, #f28947);box-shadow:0 6px 16px -6px rgba(234,88,12,.55);">${txt}</span>&nbsp;`);
+  };
+  const b = "grid h-7 min-w-[28px] place-items-center rounded border border-neutral-300 px-1.5 text-xs hover:bg-neutral-50";
+  const sel = "rounded border border-neutral-300 px-1 py-0.5 text-xs";
   return (
     <div>
       <div className="mb-1 flex flex-wrap items-center gap-1">
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("bold"); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs font-bold">B</button>
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("foreColor", theme); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs font-bold" style={{ color: theme }}>Cor</button>
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("foreColor", "#000000"); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs">Preto</button>
-        <select title="Tamanho do trecho selecionado" defaultValue="" onMouseDown={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.value) { setSize(e.target.value); e.target.value = ""; } }} className="rounded border border-neutral-300 px-1 py-0.5 text-xs">
-          <option value="" disabled>Tam ↕</option>
-          {[12, 14, 16, 18, 20, 24, 28, 34, 40].map((s) => <option key={s} value={s}>{s}px</option>)}
+        <select title="Fonte" value="" onMouseDown={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.value) cmd("fontName", e.target.value); }} className={`${sel} max-w-[80px]`}>
+          <option value="">Fonte</option>{EDITOR_FONTS.map((f) => <option key={f} value={f}>{f}</option>)}
         </select>
+        <select title="Tamanho do trecho" value="" onMouseDown={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.value) setSize(e.target.value); }} className={sel}>
+          <option value="">Tam ↕</option>{EDITOR_SIZES.map((s) => <option key={s} value={s}>{s}px</option>)}
+        </select>
+        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("bold"); }} className={`${b} font-bold`}>B</button>
+        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("italic"); }} className={`${b} italic`}>I</button>
+        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("underline"); }} className={`${b} underline`}>U</button>
+        <label className={`${b} relative cursor-pointer font-bold`} title="Cor da fonte" onMouseDown={saveSel}><span style={{ color: theme }}>A</span>
+          <input type="color" onChange={(e) => withSel(() => document.execCommand("foreColor", false, e.target.value))} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" /></label>
+        <label className={`${b} relative cursor-pointer`} title="Cor de fundo (grifado)" onMouseDown={saveSel}>🖊
+          <input type="color" onChange={(e) => withSel(() => document.execCommand("hiliteColor", false, e.target.value))} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" /></label>
+        <button type="button" onMouseDown={(e) => { e.preventDefault(); wrapPill(); }} className={b} title="Caixa de destaque (pílula)">▭</button>
+        <button type="button" onClick={() => setMenu(menu === "para" ? null : "para")} className={b} title="Parágrafo / alinhamento">⋮</button>
+        <button type="button" onClick={() => setMenu(menu === "var" ? null : "var")} className={b} title="Inserir variável">{"{}"}</button>
       </div>
+      {menu === "para" ? (
+        <div className="mb-1 flex gap-1 rounded border border-neutral-200 bg-white p-1">
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyLeft"); }} className={b}>⬅</button>
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyCenter"); }} className={b}>↔</button>
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyRight"); }} className={b}>➡</button>
+        </div>
+      ) : null}
+      {menu === "var" ? (
+        <div className="mb-1 flex flex-wrap gap-1 rounded border border-neutral-200 bg-white p-1">
+          {EDITOR_VARS.map(([tok, lbl]) => (
+            <button key={tok} type="button" onMouseDown={(e) => { e.preventDefault(); insHtml(tok); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs hover:bg-neutral-50">{lbl}</button>
+          ))}
+        </div>
+      ) : null}
       <div ref={ref} contentEditable suppressContentEditableWarning
         onInput={() => onChange(ref.current?.innerHTML || "")}
         className="min-h-[44px] rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900" />

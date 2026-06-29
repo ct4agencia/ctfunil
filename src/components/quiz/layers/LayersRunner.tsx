@@ -208,6 +208,8 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
         .lyr-html strong{font-weight:700}
         .lyr-html em{font-style:italic}
         .lyr-html u{text-decoration:underline}
+        .lyr-html p{margin:0}
+        .lyr-html font{line-height:1.05}
         .lyr-html p br{display:block;content:"";height:0;padding-bottom:.5rem;margin-bottom:.5rem}
         .lyr-html a{color:${design.themeColor || "#ea580c"};text-decoration:underline}
       `}</style>
