@@ -27,6 +27,7 @@ const BLOCK_META: Record<string, { icon: string; label: string }> = {
 const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Formulário", items: [["field", "Campo"], ["email", "E-mail"], ["phone", "Telefone"], ["button", "Botão"], ["number", "Número"], ["textarea", "Textarea"], ["date", "Data"], ["height", "Altura"], ["weight", "Peso"]] },
   { name: "Quiz", items: [["options", "Opções"], ["multi", "Múltipla Escolha"], ["single", "Escolha Única"], ["yesno", "Sim/Não"], ["videoanswer", "Vídeo Resposta"]] },
+  { name: "Jogos (hero)", items: [["roulette", "Roleta"], ["slider", "Slider 0–10"]] },
   { name: "Mídia e conteúdo", items: [["text", "Texto"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
   { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"]] },
   { name: "Argumentação", items: [["arguments", "Argumentos"], ["testimonials", "Depoimentos"], ["faq", "FAQ"], ["price", "Preço"], ["checklist", "Checklist"], ["beforeafter", "Antes/Depois"], ["carousel", "Carrossel"]] },
@@ -38,9 +39,10 @@ const PALETTE_ICON: Record<string, string> = {
   options: "☑️", multi: "🗂️", single: "⚪", yesno: "🔀", videoanswer: "🎬", text: "🔤", image: "🖼️", video: "▶️", audio: "🔊",
   alert: "⚠️", notification: "🔔", timer: "⏱️", loading: "⏳", level: "📶", arguments: "💬", testimonials: "⭐", faq: "❓",
   price: "💲", checklist: "✅", beforeafter: "🔁", carousel: "🎠", graphics: "📊", charts: "📈", clear: "↕️", html: "▟",
+  roulette: "🎡", slider: "🎚️",
 };
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
-const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed", "email", "phone", "video", "carousel"]);
+const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed", "email", "phone", "video", "carousel", "roulette", "slider"]);
 
 function newLayer(type: LayerType): Layer {
   const id = genId();
@@ -57,6 +59,8 @@ function newLayer(type: LayerType): Layer {
     case "clear": return { ...base, content: { id, clear: "h-[1rem]" } };
     case "carousel": return { ...base, design: { basis: 100 }, content: { id, images: [], interval: 2 } };
     case "embed": case "video": return { ...base, content: { id, embedHtml: "" } };
+    case "roulette": return { ...base, content: { id, type: "roulette", style: "soft", mode: "always", title: "Gire a roleta e descubra sua condição especial.", subtitle: "Você tem uma chance de liberar um benefício exclusivo agora.", cta: "Girar", initialIndex: 0, winningIndex: 0, winTitle: "🎉 Você ganhou!", winBody: "", winCta: "Continuar →", background: "#0b1f3a", segments: [{ label: "ACESSO GRÁTIS", color: "#008516", value: "" }, { label: "25% OFF", color: "#67c57a", value: "" }, { label: "Não foi dessa vez", color: "#f56161", value: "" }, { label: "15% OFF", color: "#9af4b9", value: "" }, { label: "Tente de novo", color: "#4a4845", value: "" }] } } as unknown as Layer;
+    case "slider": return { ...base, content: { id, type: "slider", question: "De 0 a 10, o quanto você quer isso?", help: "Arraste o seletor para responder", min: 0, max: 10, step: 1 } } as unknown as Layer;
     default: return base;
   }
 }
@@ -1027,13 +1031,58 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                     </div>
                   );
                 }
-                return (
-                  <div className="space-y-2 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
-                    <p className="text-sm font-bold text-neutral-700">🎡 Roleta (hero)</p>
-                    <div><Lbl>Pergunta</Lbl><input value={sc.question || ""} onChange={(e) => patchSpecial({ question: e.target.value })} className={inp} /></div>
-                    <p className="text-[11px] text-neutral-400">Segmentos/prêmios da roleta são configuração avançada — me peça que eu ajusto.</p>
-                  </div>
-                );
+                {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const segs: any[] = Array.isArray(sc.segments) ? sc.segments : [];
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const setSeg = (i: number, patch: any) => patchSpecial({ segments: segs.map((s, k) => k === i ? { ...s, ...patch } : s) });
+                  return (
+                    <div className="space-y-2.5 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
+                      <p className="text-sm font-bold text-neutral-700">🎡 Roleta (hero)</p>
+                      <div><Lbl>Título</Lbl><input value={sc.title || ""} onChange={(e) => patchSpecial({ title: e.target.value })} className={inp} /></div>
+                      <div><Lbl>Subtítulo</Lbl><input value={sc.subtitle || ""} onChange={(e) => patchSpecial({ subtitle: e.target.value })} className={inp} /></div>
+                      <div><Lbl>Botão (girar)</Lbl><input value={sc.cta || ""} onChange={(e) => patchSpecial({ cta: e.target.value })} className={inp} /></div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div><Lbl>Tipo da roleta</Lbl>
+                          <select value={sc.style || "soft"} onChange={(e) => patchSpecial({ style: e.target.value })} className={inp}>
+                            <option value="soft">Suave (paleta)</option><option value="casino">Cassino (dourado)</option><option value="neon">Neon (roxo)</option><option value="bulbs">Vegas (vinho)</option>
+                          </select>
+                        </div>
+                        <div><Lbl>Fundo (tela cheia)</Lbl><input type="color" value={sc.background || "#0b1f3a"} onChange={(e) => patchSpecial({ background: e.target.value })} className="h-8 w-full rounded border border-neutral-300" /></div>
+                      </div>
+                      <div><Lbl>Imagem do centro</Lbl><ImageField value={sc.centerImage || ""} onChange={(v) => patchSpecial({ centerImage: v })} /></div>
+                      <Lbl>Fatias (texto + cor)</Lbl>
+                      <div className="space-y-1.5">
+                        {segs.map((s, i) => (
+                          <div key={i} className="flex items-center gap-1">
+                            <input type="color" value={s.color || "#ea580c"} onChange={(e) => setSeg(i, { color: e.target.value })} className="h-7 w-8 shrink-0 cursor-pointer rounded border border-neutral-300" />
+                            <input value={s.label || ""} onChange={(e) => setSeg(i, { label: e.target.value })} className={`${inp} flex-1`} />
+                            <button onClick={() => patchSpecial({ segments: segs.filter((_, k) => k !== i) })} className="px-1 text-red-400">✕</button>
+                          </div>
+                        ))}
+                        <button onClick={() => patchSpecial({ segments: [...segs, { label: "Nova fatia", color: "#67c57a", value: "" }] })} className="rounded-md border border-dashed border-neutral-300 px-2 py-1 text-xs text-neutral-500">+ fatia</button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div><Lbl>Parada (sob o ponteiro)</Lbl>
+                          <select value={sc.initialIndex ?? 0} onChange={(e) => patchSpecial({ initialIndex: Number(e.target.value) })} className={inp}>
+                            {segs.map((s, i) => <option key={i} value={i}>{i + 1}. {strip(s.label)}</option>)}
+                          </select>
+                        </div>
+                        <div><Lbl>Prêmio (ao girar)</Lbl>
+                          <select value={sc.winningIndex ?? 0} onChange={(e) => patchSpecial({ winningIndex: Number(e.target.value) })} className={inp}>
+                            {segs.map((s, i) => <option key={i} value={i}>{i + 1}. {strip(s.label)}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="border-t border-orange-200/70 pt-2">
+                        <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Mensagem do prêmio</p>
+                        <div><Lbl>Título</Lbl><input value={sc.winTitle || ""} onChange={(e) => patchSpecial({ winTitle: e.target.value })} className={inp} /></div>
+                        <div><Lbl>Texto</Lbl><input value={sc.winBody || ""} onChange={(e) => patchSpecial({ winBody: e.target.value })} className={inp} /></div>
+                        <div><Lbl>Botão</Lbl><input value={sc.winCta || ""} onChange={(e) => patchSpecial({ winCta: e.target.value })} className={inp} /></div>
+                      </div>
+                    </div>
+                  );
+                }
               })()}
               <p className="rounded-lg bg-neutral-50 p-2 text-[11px] text-neutral-500">O <b>Header</b> (logo/progresso/voltar) agora é configuração <b>geral</b>, na aba <b>🎨 Design</b> — vale pra todas as lâminas (exceto hero e VSL).</p>
               <p className="text-xs text-neutral-400">👆 Clique num bloco no celular pra editar.</p>
