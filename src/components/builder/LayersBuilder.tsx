@@ -96,6 +96,14 @@ function HtmlField({ value, onChange, theme = "#ea580c" }: { value?: string; onC
     const txt = window.getSelection()?.toString() || "destaque";
     insHtml(`<span style="display:inline-block;margin:0 2px;border-radius:0.75rem;padding:0.1rem 0.6rem;font-weight:800;color:#fff;background:linear-gradient(95deg, #ea580c, #f28947);box-shadow:0 6px 16px -6px rgba(234,88,12,.55);">${txt}</span>&nbsp;`);
   };
+  // entrelinhas: aplica line-height nos parágrafos do bloco (ou envolve o texto solto)
+  const setLineHeight = (lh: string) => {
+    const el = ref.current; if (!el) return; el.focus();
+    const blocks = el.querySelectorAll("p,h1,h2,h3,div,li");
+    if (blocks.length) blocks.forEach((bl) => { (bl as HTMLElement).style.lineHeight = lh; });
+    else el.innerHTML = `<div style="line-height:${lh}">${el.innerHTML}</div>`;
+    push();
+  };
   const b = "grid h-7 min-w-[28px] place-items-center rounded border border-neutral-300 px-1.5 text-xs hover:bg-neutral-50";
   const sel = "rounded border border-neutral-300 px-1 py-0.5 text-xs";
   return (
@@ -119,10 +127,18 @@ function HtmlField({ value, onChange, theme = "#ea580c" }: { value?: string; onC
         <button type="button" onClick={() => setMenu(menu === "var" ? null : "var")} className={b} title="Inserir variável">{"{}"}</button>
       </div>
       {menu === "para" ? (
-        <div className="mb-1 flex gap-1 rounded border border-neutral-200 bg-white p-1">
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyLeft"); }} className={b}>⬅</button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyCenter"); }} className={b}>↔</button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyRight"); }} className={b}>➡</button>
+        <div className="mb-1 space-y-1 rounded border border-neutral-200 bg-white p-1.5">
+          <div className="flex gap-1">
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyLeft"); }} className={b} title="Esquerda">⬅</button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyCenter"); }} className={b} title="Centro">↔</button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyRight"); }} className={b} title="Direita">➡</button>
+          </div>
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-[10px] font-semibold text-neutral-400">Entrelinhas:</span>
+            {([["1", "Simples"], ["1.15", "1,15"], ["1.5", "1,5"], ["2", "Duplo"]] as const).map(([lh, lbl]) => (
+              <button key={lh} type="button" onMouseDown={(e) => { e.preventDefault(); setLineHeight(lh); }} className={b}>{lbl}</button>
+            ))}
+          </div>
         </div>
       ) : null}
       {menu === "var" ? (
