@@ -55,6 +55,7 @@ export async function GET(request: Request) {
   const qMap = new Map<string, Map<string, number>>();
   const qOrder: string[] = [];
   const bySession = new Map<string, Record<string, string>>();
+  const qSessions = new Map<string, Set<string>>(); // pergunta → sessões distintas (retenção real)
   for (const a of answers ?? []) {
     const q = (a.question as string)?.trim() || "—";
     const ans = (a.answer as string)?.trim() || "—";
@@ -62,7 +63,10 @@ export async function GET(request: Request) {
     if (!qMap.has(q)) { qMap.set(q, new Map()); qOrder.push(q); }
     const am = qMap.get(q)!;
     am.set(ans, (am.get(ans) ?? 0) + 1);
-    if (sid) { if (!bySession.has(sid)) bySession.set(sid, {}); bySession.get(sid)![q] = ans; }
+    if (sid) {
+      if (!bySession.has(sid)) bySession.set(sid, {}); bySession.get(sid)![q] = ans;
+      if (!qSessions.has(q)) qSessions.set(q, new Set()); qSessions.get(q)!.add(sid);
+    }
   }
   const resultados = qOrder.map((question) => {
     const am = qMap.get(question)!;
@@ -96,12 +100,14 @@ export async function GET(request: Request) {
     return { session: sid.slice(0, 8), name: (l?.name as string) || null, phone: (l?.phone as string) || null, when: (l?.created_at as string) || null, answers: ans, track: trackOf(l) };
   });
 
-  // % de conclusão por etapa (igual inlead: 1ª etapa = 100%, demais relativas a ela)
-  const firstTotal = resultados[0]?.total || 0;
-  const questionStats = resultados.map((r) => ({
-    question: r.question, total: r.total,
-    pct: firstTotal ? Math.round((r.total / firstTotal) * 100) : 0,
-  }));
+  // % de conclusão por etapa = SESSÕES distintas que responderam a etapa ÷ sessões
+  // da 1ª etapa (1ª = 100%). Conta sessões, não linhas — multi-seleção / re-resposta
+  // não inflam mais o número (era o bug do "100→50→100").
+  const baseSess = qOrder[0] ? (qSessions.get(qOrder[0])?.size ?? 0) : 0;
+  const questionStats = qOrder.map((question) => {
+    const reached = qSessions.get(question)?.size ?? 0;
+    return { question, total: reached, pct: baseSess ? Math.min(100, Math.round((reached / baseSess) * 100)) : 0 };
+  });
 
   return NextResponse.json({ performance, deltas, resultados, questions: qOrder, questionStats, respostas });
 }

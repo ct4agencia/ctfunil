@@ -110,6 +110,8 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       email: email || undefined,
       componentId: "captura",
       session_id: `${getSessionId()}::${funnel.slug}`,
+      estado: geo?.estado || "",
+      cidade: geo?.cidade || "",
       viewport: `${window.innerWidth}x${window.innerHeight}`,
       screen: `${window.screen.width}x${window.screen.height}`,
       platform: navigator.platform,

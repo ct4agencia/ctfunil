@@ -20,6 +20,8 @@ type Body = {
   platform?: string;
   user_agent?: string;
   session_id?: string;
+  estado?: string;
+  cidade?: string;
   tracking?: Record<string, string>;
 };
 
@@ -124,14 +126,45 @@ export async function POST(request: Request) {
     const phoneDigits = String(body.phone ?? "").replace(/\D/g, "");
     const phoneIntl = phoneDigits ? "+55" + phoneDigits.replace(/^55/, "") : "";
 
+    // Respostas do quiz (pra Datacrazy): busca quiz_answers desta sessão e monta
+    // pergunta_N / resposta_N (1 por pergunta, última prevalece) + um campo único
+    // "respostas" legível. Best-effort: se a tabela/sessão não tiver, segue vazio.
+    const respFields: Record<string, string> = {};
+    let respostasStr = "";
+    if (body.session_id) {
+      const { data: qa } = await sb
+        .from("quiz_answers")
+        .select("question, answer, created_at")
+        .eq("session_id", body.session_id)
+        .order("created_at", { ascending: true });
+      const order: string[] = [];
+      const ansByQ = new Map<string, string>();
+      for (const row of qa ?? []) {
+        const q = String(row.question ?? "").trim();
+        const a = String(row.answer ?? "").trim();
+        if (!q || !a) continue;
+        if (!ansByQ.has(q)) order.push(q);
+        ansByQ.set(q, a); // re-resposta (voltou e mudou) → última prevalece
+      }
+      order.forEach((q, i) => {
+        respFields[`pergunta_${i + 1}`] = q;
+        respFields[`resposta_${i + 1}`] = ansByQ.get(q)!;
+      });
+      respostasStr = order.map((q) => `${q}: ${ansByQ.get(q)}`).join(" | ");
+    }
+
     const payload: Record<string, unknown> = {
       code: body.session_id ?? "",
       nome: body.name ?? "",
       telefone: phoneIntl,
+      estado: body.estado ?? "",
+      cidade: body.cidade ?? "",
       pagina: funnel?.name ?? "",
       slug: funnel?.slug ?? body.funnelSlug,
       produto,
       data: dataHora,
+      respostas: respostasStr,
+      ...respFields,
       utm_source: t.utm_source ?? "",
       utm_medium: t.utm_medium ?? "",
       utm_campaign: t.utm_campaign ?? "",
