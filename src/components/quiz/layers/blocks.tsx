@@ -353,6 +353,9 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   // colunas: o inlead usa content.cols (quase sempre grid-cols-1 = empilhado);
   // design.grid é resíduo e NÃO deve ser usado (gerava 2/3 colunas espremidas).
   const cols = Math.max(1, parseInt(String(c.cols || "grid-cols-1").replace(/\D/g, "")) || 1);
+  // multi-coluna: card vira COLUNA (emoji em cima, texto embaixo, centralizado) —
+  // senão o texto é espremido numa coluna estreita e quebra letra a letra.
+  const multi = cols > 1;
   // espessura da borda: "border-[4px]" → 4px | "border" → 1px
   const bw = (() => { const m = String(d.border || "border").match(/\[(\d+)px\]/); return m ? parseInt(m[1]) : 1; })();
   // fundo "contrast" = leve tom do tema (pêssego); senão branco
@@ -388,20 +391,20 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
         const active = sel.includes(o.id);
         return (
           <motion.button key={o.id} onClick={() => pick(o)} whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-3 text-left transition"
+            className={`flex transition ${multi ? "flex-col items-center justify-center gap-2 text-center" : "flex-row items-center justify-start gap-3 text-left"}`}
             style={{
               borderRadius: radius(ctx.design), minHeight: ctx.design.elementSize || "64px",
               background: cardBg,
               border: `${bw}px solid ${active ? theme : contrast ? `color-mix(in srgb, ${theme} 55%, #ffffff)` : "#e5e7eb"}`,
               boxShadow: active ? `0 0 0 2px ${theme}` : shadow,
-              padding: ".75rem 1rem", justifyContent: cols > 1 ? "center" : "flex-start",
+              padding: multi ? ".9rem .65rem" : ".75rem 1rem",
             }}>
             {showIcon && iconStart ? <Chevron color={theme} /> : null}
             {img ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={img} alt="" loading="lazy" decoding="async" className="h-10 w-10 rounded-lg object-cover" />
-            ) : emoji ? <span className="text-2xl">{emoji}</span> : null}
-            <Html html={interpHtml(o.label, ctx)} className={cols > 1 ? "" : "flex-1"} style={{ fontSize: `${remContent(ctx)}px`, fontWeight: 500, color: ctx.design.contentColor || "#000" }} />
+              <img src={img} alt="" loading="lazy" decoding="async" className={`rounded-lg object-cover ${multi ? "h-12 w-12" : "h-10 w-10"}`} />
+            ) : emoji ? <span className={multi ? "text-3xl" : "text-2xl"}>{emoji}</span> : null}
+            <Html html={interpHtml(o.label, ctx)} className={multi ? "w-full" : "flex-1"} style={{ fontSize: `${remContent(ctx)}px`, fontWeight: 500, lineHeight: 1.25, color: ctx.design.contentColor || "#000" }} />
             {showIcon && !iconStart ? <Chevron color={theme} /> : null}
           </motion.button>
         );

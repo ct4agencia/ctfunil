@@ -197,7 +197,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     <LayersEditContext.Provider value={editor ?? null}>
     <div className="relative flex min-h-[100dvh] flex-col overflow-x-hidden" style={{ background: pageBg, color: design.contentColor || "#000" }}>
       <style>{`
-        .lyr-html{line-height:1.45;overflow-wrap:break-word;word-break:break-word}
+        .lyr-html{line-height:1.45;overflow-wrap:break-word}
         .lyr-html p{margin:0}
         .lyr-html p+p,.lyr-html p+ul,.lyr-html p+ol,.lyr-html ul+p,.lyr-html h1+p,.lyr-html h2+p,.lyr-html h3+p{margin-top:.75rem}
         .lyr-html h1{font-size:2em}
