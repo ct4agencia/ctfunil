@@ -238,30 +238,36 @@ function setHtmlAlign(html: string, align: "left" | "center" | "right"): string 
 
 /** Painel "Aparência" do bloco (alinhamento + largura). */
 function Appearance({ layer, onChange }: { layer: Layer; onChange: (l: Layer) => void }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const d = (layer.design || {}) as any;
   const hasText = typeof layer.content.text === "string";
-  const align = hasText ? htmlAlign(layer.content.text) : "left";
-  const basis = Number(layer.design?.basis) || 100;
-  const setAlign = (a: "left" | "center" | "right") => onChange({ ...layer, content: { ...layer.content, text: setHtmlAlign(layer.content.text || "", a) } });
-  const setBasis = (b: number) => onChange({ ...layer, design: { ...(layer.design || {}), basis: b } });
+  const align = d.align || (hasText ? htmlAlign(layer.content.text) : "center");
+  const basis = Number(d.basis) || 100;
+  const opacity = d.opacity == null ? 100 : Number(d.opacity);
+  const setD = (patch: Record<string, unknown>) => onChange({ ...layer, design: { ...(layer.design || {}), ...patch } });
   return (
-    <div className="mt-3 border-t border-neutral-200 pt-2">
+    <div className="mt-3 space-y-2.5 border-t border-neutral-200 pt-2">
       <Lbl>Aparência</Lbl>
-      {hasText ? (
-        <div className="mb-2 flex gap-1">
+      <div>
+        <span className="text-[11px] text-neutral-500">Alinhamento</span>
+        <div className="mt-1 flex gap-1">
           {([["left", "⬅"], ["center", "↔"], ["right", "➡"]] as const).map(([a, ic]) => (
-            <button key={a} onClick={() => setAlign(a)} className={`flex-1 rounded border px-2 py-1 text-xs ${align === a ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"}`}>{ic}</button>
+            <button key={a} onClick={() => setD({ align: a })} className={`flex-1 rounded border px-2 py-1 text-xs ${align === a ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"}`}>{ic}</button>
           ))}
         </div>
-      ) : null}
+      </div>
       <div className="flex items-center gap-2">
-        <span className="text-[11px] text-neutral-500">Largura {basis}%</span>
-        <input type="range" min={40} max={100} value={basis} onChange={(e) => setBasis(Number(e.target.value))} className="flex-1" />
+        <span className="w-24 shrink-0 text-[11px] text-neutral-500">Largura {basis}%</span>
+        <input type="range" min={20} max={100} value={basis} onChange={(e) => setD({ basis: Number(e.target.value) })} className="flex-1" />
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="w-24 shrink-0 text-[11px] text-neutral-500">Opacidade {opacity}%</span>
+        <input type="range" min={0} max={100} value={opacity} onChange={(e) => setD({ opacity: Number(e.target.value) === 100 ? undefined : Number(e.target.value) })} className="flex-1" />
       </div>
       {hasText ? (
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-[11px] text-neutral-500">Tamanho da fonte (bloco)</span>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <input type="number" min={10} max={60} placeholder="auto" value={((layer.design as any)?.fontSize as number) || ""} onChange={(e) => onChange({ ...layer, design: { ...(layer.design || {}), fontSize: e.target.value ? Number(e.target.value) : undefined } })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" />
+        <div className="flex items-center gap-2">
+          <span className="w-24 shrink-0 text-[11px] text-neutral-500">Fonte (bloco)</span>
+          <input type="number" min={10} max={60} placeholder="auto" value={(d.fontSize as number) || ""} onChange={(e) => setD({ fontSize: e.target.value ? Number(e.target.value) : undefined })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" />
           <span className="text-[11px] text-neutral-400">px</span>
         </div>
       ) : null}

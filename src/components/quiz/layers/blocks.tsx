@@ -103,16 +103,25 @@ function Html({ html, className, style }: { html: string; className?: string; st
   return <div className={`lyr-html ${className || ""}`} style={style} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
+// ── alinhamento (design.align) + opacidade (design.opacity) genéricos por bloco ──
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function hAlign(d?: any): string { const a = d?.align; return a === "left" ? "mr-auto ml-0" : a === "right" ? "ml-auto mr-0" : "mx-auto"; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function justifyOf(d?: any): string { const a = d?.align; return a === "left" ? "justify-start" : a === "right" ? "justify-end" : "justify-center"; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function opacityOf(d?: any): number | undefined { const o = d?.opacity; return o == null || Number(o) >= 100 ? undefined : Number(o) / 100; }
+
 // ─────────────────────────────── TEXT ───────────────────────────────
 function TextBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const basis = Number(layer.design?.basis) || 100;
-  // alinhamento aplicado TAMBÉM no wrapper (além da classe ql-align) — garante efeito no construtor e no live
-  const m = (layer.content.text || "").match(/ql-align-(center|right|justify)/);
-  const textAlign = (m?.[1] as "center" | "right" | "justify") || "left";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fs = Number((layer.design as any)?.fontSize) || remContent(ctx); // tamanho por bloco (sobrepõe o global)
+  const d = layer.design as any;
+  // alinhamento: design.align tem prioridade; senão lê a classe ql-align do HTML
+  const m = (layer.content.text || "").match(/ql-align-(center|right|justify)/);
+  const textAlign = (d?.align as "left" | "center" | "right") || (m?.[1] as "center" | "right" | "justify") || "left";
+  const fs = Number(d?.fontSize) || remContent(ctx); // tamanho por bloco (sobrepõe o global)
   return (
-    <div className="mx-auto w-full" style={{ maxWidth: `${basis}%`, textAlign }}>
+    <div className={`${hAlign(d)} w-full`} style={{ maxWidth: `${basis}%`, textAlign }}>
       <Html html={interpHtml(layer.content.text, ctx)} style={{ fontSize: `${fs}px`, color: ctx.design.contentColor || "#000" }} />
     </div>
   );
@@ -171,7 +180,7 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     );
   }
   return (
-    <div className="mx-auto flex w-full justify-center">
+    <div className={`flex w-full ${justifyOf(d)}`}>
       <div className="relative" style={{ width: `${basis}%` }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -215,7 +224,7 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     return <p className="mx-auto w-full text-center text-sm opacity-60">{c.waitText || "⏳ Assista o vídeo para liberar o acesso…"}</p>;
   }
   return (
-    <div className="mx-auto w-full" style={{ maxWidth: `${basis}%` }}>
+    <div className={`${hAlign(d)} w-full`} style={{ maxWidth: `${basis}%` }}>
       <motion.button
         onClick={onClick} disabled={ctx.submitting}
         initial={revealAt > 0 ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }}
@@ -630,14 +639,17 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
       default: return null;
     }
   })();
+  // opacidade (design.opacity) — genérica pra QUALQUER bloco
+  const op = opacityOf(layer.design);
+  const node = op !== undefined ? <div style={{ opacity: op }}>{inner}</div> : inner;
   // ── modo de edição: o EditBlock (LayersRunner) cuida de wrapper/seleção/drag ──
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const edit = useContext(LayersEditContext);
   const hidden = !!layer.design?.hidden;
-  if (edit) return <>{inner}</>;          // EditBlock provê o wrapper/toolbar/sortable
+  if (edit) return <>{node}</>;            // EditBlock provê o wrapper/toolbar/sortable
   if (hidden) return null;                 // runtime: bloco oculto não renderiza
   // revelação progressiva (effects.starts) — ex: botão Continuar da VAGAS só após o loading.
-  return <Reveal delay={layer.effects?.starts}>{inner}</Reveal>;
+  return <Reveal delay={layer.effects?.starts}>{node}</Reveal>;
 }
 
 /** Wrapper de edição no canvas: seleção + toolbar + arrastar (sortable).
