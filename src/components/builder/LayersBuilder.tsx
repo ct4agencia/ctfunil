@@ -64,8 +64,14 @@ function newLayer(type: LayerType): Layer {
 /** contentEditable WYSIWYG simples (negrito + cor) que devolve o HTML. */
 function HtmlField({ value, onChange, theme = "#ea580c" }: { value?: string; onChange: (v: string) => void; theme?: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  const init = useRef(value || "");
-  const cmd = (c: string, v?: string) => { document.execCommand(c, false, v); if (ref.current) onChange(ref.current.innerHTML); };
+  // contentEditable NÃO-controlado: seta o HTML inicial UMA vez no mount e nunca
+  // re-seta a partir de props enquanto digita. Evita o React reposicionar o cursor
+  // (bug do caractere indo pro lugar errado). Troca de bloco remonta via key={sel.id}.
+  useEffect(() => {
+    if (ref.current) ref.current.innerHTML = value || "";
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const cmd = (c: string, v?: string) => { ref.current?.focus(); document.execCommand(c, false, v); if (ref.current) onChange(ref.current.innerHTML); };
   return (
     <div>
       <div className="mb-1 flex gap-1">
@@ -75,8 +81,7 @@ function HtmlField({ value, onChange, theme = "#ea580c" }: { value?: string; onC
       </div>
       <div ref={ref} contentEditable suppressContentEditableWarning
         onInput={() => onChange(ref.current?.innerHTML || "")}
-        className="min-h-[44px] rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
-        dangerouslySetInnerHTML={{ __html: init.current }} />
+        className="min-h-[44px] rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900" />
     </div>
   );
 }
@@ -949,7 +954,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         {/* 4 · PAINEL direito (Componente/Aparência/Exibição OU Etapa) */}
         <aside className="overflow-y-auto border-l border-neutral-200 bg-white">
           {sel ? (
-            <RightPanel layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} />
+            <RightPanel key={sel.id} layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} />
           ) : (
             <div className="space-y-3 p-4">
               <p className="text-sm font-bold text-neutral-700">Etapa</p>
