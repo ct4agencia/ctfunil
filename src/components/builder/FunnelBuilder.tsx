@@ -14,6 +14,7 @@ import { PALETTES, getPalette } from "@/lib/quiz/theme";
 import QuizRunner from "@/components/quiz/QuizRunner";
 import StepEditor from "./StepEditor";
 import FunnelSettingsPanel from "./FunnelSettingsPanel";
+import { LeadsTab } from "./LayersBuilder";
 import { saveFunnelAction } from "@/app/builder/[slug]/actions";
 
 const TYPE_ICON: Record<StepType, string> = {
@@ -59,6 +60,34 @@ function Row({ step, index, active, onSelect, onDup, onDel }: {
   );
 }
 
+/** Aba FLUXO (typed) — lâminas em nós conectados em sequência (motor linear). */
+function FluxoTyped({ steps, selectedId, onSelect }: { steps: Step[]; selectedId: string; onSelect: (id: string) => void }) {
+  return (
+    <div className="mx-auto max-w-md">
+      <p className="mb-3 px-1 text-xs text-neutral-500">As lâminas seguem em sequência (motor typed é linear). Clique num nó para editá-lo.</p>
+      <div className="rounded-xl border border-neutral-200 p-5"
+        style={{ backgroundColor: "#fafafa", backgroundImage: "radial-gradient(#d4d4d4 1px, transparent 1px)", backgroundSize: "22px 22px" }}>
+        <div className="mx-auto flex w-fit flex-col items-center">
+          {steps.map((s, i) => (
+            <div key={s.id} className="flex flex-col items-center">
+              <button onClick={() => onSelect(s.id)}
+                className={`w-64 rounded-xl border bg-white px-3 py-2.5 text-left shadow-sm transition ${s.id === selectedId ? "border-neutral-900 ring-2 ring-neutral-900/10" : "border-neutral-200 hover:border-neutral-400"}`}>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-[10px] font-bold text-white">{i + 1}</span>
+                  <span className="shrink-0">{TYPE_ICON[s.type]}</span>
+                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-neutral-800">{stepSnippet(s)}</span>
+                  <span className="shrink-0 text-[9px] uppercase tracking-wide text-neutral-400">{STEP_LABELS[s.type]}</span>
+                </div>
+              </button>
+              {i < steps.length - 1 ? <div className="my-1 text-neutral-300">↓</div> : null}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function FunnelBuilder({ initial }: { initial: Funnel }) {
   const [funnel, setFunnel] = useState<Funnel>(initial);
   const [selectedId, setSelectedId] = useState<string>(initial.steps[0]?.id ?? "");
@@ -67,6 +96,7 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">("construtor");
   const editorRef = useRef<HTMLElement>(null);
   const [flashEditor, setFlashEditor] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -135,6 +165,11 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
             <p className="text-xs text-neutral-500">/{funnel.slug} · {steps.length} lâminas</p>
           </div>
         </div>
+        <nav className="flex items-center gap-1 rounded-lg bg-neutral-100 p-1">
+          {([["construtor", "🧩 Construtor"], ["fluxo", "🔀 Fluxo"], ["design", "🎨 Design"], ["leads", "👥 Leads"]] as const).map(([k, label]) => (
+            <button key={k} onClick={() => setTab(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${tab === k ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}>{label}</button>
+          ))}
+        </nav>
         <div className="flex items-center gap-3">
           {savedMsg ? <span className={`text-xs font-semibold ${savedMsg.startsWith("✓") ? "text-green-600" : "text-red-600"}`}>{savedMsg}</span> : null}
           <button onClick={() => setShowSettings(true)} className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⚙ Configurações</button>
@@ -143,9 +178,12 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
         </div>
       </header>
 
-      <div className="grid gap-4 p-4 lg:grid-cols-[260px_1fr_380px]">
-        {/* SIDEBAR: paleta + lâminas */}
-        <aside className="space-y-4">
+      {tab === "fluxo" && <div className="p-4"><FluxoTyped steps={steps} selectedId={selectedId} onSelect={setSelectedId} /></div>}
+      {tab === "leads" && <div className="p-4"><LeadsTab slug={funnel.slug} /></div>}
+
+      {/* DESIGN — paleta, tipografia e áudio (estilo inlead) */}
+      {tab === "design" && (
+      <div className="mx-auto max-w-md space-y-4 p-4">
           <section className="rounded-xl border-2 border-neutral-900 bg-white p-3">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-bold">🎨 Paleta</span>
@@ -193,7 +231,13 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
               className="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1 text-xs" />
             <p className="mt-1 text-[10px] leading-tight text-neutral-400">A trilha inicia no 1º toque do usuário (regra de autoplay). Royalty-free: pixabay.com/music, freesound.org.</p>
           </section>
+      </div>
+      )}
 
+      {/* CONSTRUTOR — lâminas + editor + preview */}
+      {tab === "construtor" && (
+      <div className="grid gap-4 p-4 lg:grid-cols-[260px_1fr_380px]">
+        <aside className="space-y-4">
           <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-2">
             <div className="mb-1.5 flex items-center justify-between px-1">
               <span className="text-xs font-bold text-neutral-600">Lâminas</span>
@@ -261,6 +305,7 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
           </div>
         </div>
       </div>
+      )}
 
       {showSettings ? (
         <FunnelSettingsPanel funnel={funnel} onPatch={patchFunnel} onClose={() => setShowSettings(false)} />

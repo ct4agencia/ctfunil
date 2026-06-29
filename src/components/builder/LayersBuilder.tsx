@@ -509,8 +509,9 @@ const PERIODOS: { key: string; label: string; make: () => { from?: string; to?: 
   { key: "30d", label: "30 dias", make: () => sinceDays(30) },
 ];
 
-/** Aba Leads = sub-abas Respostas / Resultados / Performance (estilo inlead). */
-function LeadsTab({ slug }: { slug: string }) {
+/** Aba Leads = sub-abas Respostas / Resultados / Performance (estilo inlead).
+ *  Exportada pra ser reusada também no FunnelBuilder (motor typed). */
+export function LeadsTab({ slug }: { slug: string }) {
   const [d, setD] = useState<Analytics | null>(null);
   const [sub, setSub] = useState<"respostas" | "resultados" | "performance">("respostas");
   const [loading, setLoading] = useState(true);
