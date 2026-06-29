@@ -227,7 +227,15 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
       </>);
     case "image":
       return (<><Lbl>Imagem</Lbl><ImageField value={c.image?.src || ""} onChange={(v) => setC({ image: { ...(c.image || {}), type: "image", src: v } })} />
-        <Lbl>Largura (%)</Lbl><input type="number" value={layer.design?.basis ?? 100} onChange={(e) => setD({ basis: Number(e.target.value) })} className={inp} /></>);
+        <Lbl>Largura (%)</Lbl><input type="number" value={layer.design?.basis ?? 100} onChange={(e) => setD({ basis: Number(e.target.value) })} className={inp} />
+        <Lbl>Efeito (gradiente/fade com o fundo)</Lbl>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <select value={((layer.design as any)?.fade as string) || "none"} onChange={(e) => setD({ fade: e.target.value === "none" ? undefined : e.target.value })} className={inp}>
+          <option value="none">Nenhum</option>
+          <option value="top">Fade no topo</option>
+          <option value="bottom">Fade na base</option>
+          <option value="both">Fade nos dois</option>
+        </select></>);
     case "field":
       return (<>
         <Lbl>Tipo</Lbl>

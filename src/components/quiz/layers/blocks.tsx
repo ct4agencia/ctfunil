@@ -149,15 +149,22 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const src = im?.src;
   if (!src) return null;
   const basis = Number(layer.design?.basis) || 100;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fade = (layer.design as any)?.fade as "top" | "bottom" | "both" | undefined;
+  const bg = ctx.design.backgroundColor || "#ffffff";
   return (
     <div className="mx-auto flex w-full justify-center">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src} alt="" loading="lazy" decoding="async"
-        width={im?.width || undefined} height={im?.height || undefined}
-        style={{ width: `${basis}%`, height: "auto", aspectRatio: im?.width && im?.height ? `${im.width}/${im.height}` : undefined, borderRadius: radius(ctx.design) }}
-        className="object-contain"
-      />
+      <div className="relative" style={{ width: `${basis}%` }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src} alt="" loading="lazy" decoding="async"
+          width={im?.width || undefined} height={im?.height || undefined}
+          style={{ width: "100%", height: "auto", aspectRatio: im?.width && im?.height ? `${im.width}/${im.height}` : undefined, borderRadius: radius(ctx.design) }}
+          className="block object-contain"
+        />
+        {fade === "top" || fade === "both" ? <div className="pointer-events-none absolute inset-x-0 top-0 h-2/5" style={{ background: `linear-gradient(to bottom, ${bg}, transparent)` }} /> : null}
+        {fade === "bottom" || fade === "both" ? <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5" style={{ background: `linear-gradient(to top, ${bg}, transparent)` }} /> : null}
+      </div>
     </div>
   );
 }
