@@ -247,15 +247,15 @@ function Appearance({ layer, onChange }: { layer: Layer; onChange: (l: Layer) =>
   const setD = (patch: Record<string, unknown>) => onChange({ ...layer, design: { ...(layer.design || {}), ...patch } });
   const valign = d.valign || "middle";
   const pill = (active: boolean) => `flex h-8 flex-1 items-center justify-center rounded-md text-sm ${active ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-700"}`;
-  const step = (n: number) => setD({ basis: Math.min(100, Math.max(20, n)) });
+  const step = (n: number) => setD({ basis: Math.min(200, Math.max(20, n)) });
   return (
     <div className="mt-3 space-y-4 border-t border-neutral-200 pt-3">
-      {/* LARGURA — − [slider] + (estilo inlead) */}
+      {/* LARGURA — − [slider] + (estilo inlead); até 200% pra ampliar a imagem */}
       <div>
-        <Lbl>Largura</Lbl>
+        <Lbl>Largura {basis > 100 ? "(ampliada)" : ""}</Lbl>
         <div className="flex items-center gap-2">
           <button onClick={() => step(basis - 5)} className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-neutral-300 text-neutral-500 hover:bg-neutral-50">−</button>
-          <input type="range" min={20} max={100} value={basis} onChange={(e) => setD({ basis: Number(e.target.value) })} className="flex-1" />
+          <input type="range" min={20} max={200} value={basis} onChange={(e) => setD({ basis: Number(e.target.value) })} className="flex-1" />
           <button onClick={() => step(basis + 5)} className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-neutral-300 text-neutral-500 hover:bg-neutral-50">+</button>
         </div>
         <p className="mt-0.5 text-center text-[11px] font-semibold text-neutral-400">{basis}%</p>

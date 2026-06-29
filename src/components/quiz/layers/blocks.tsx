@@ -182,9 +182,10 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   // TELA CHEIA: quebra o padding do container (px-5 = 1.25rem) → imagem encosta nas bordas da tela
   if (fullBleed) {
     return (
-      <div className="relative" style={{ width: "calc(100% + 2.5rem)", marginLeft: "-1.25rem", marginRight: "-1.25rem" }}>
+      <div className="relative overflow-hidden" style={{ width: "calc(100% + 2.5rem)", marginLeft: "-1.25rem", marginRight: "-1.25rem" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt="" loading="lazy" decoding="async" className="block w-full" style={{ height: "auto" }} />
+        {/* basis > 100% amplia (imagem mais larga que a tela, recortada e centralizada) */}
+        <img src={src} alt="" loading="lazy" decoding="async" className="block" style={{ width: `${basis}%`, height: "auto", marginLeft: basis > 100 ? `${(100 - basis) / 2}%` : 0 }} />
         {overlays}
       </div>
     );
