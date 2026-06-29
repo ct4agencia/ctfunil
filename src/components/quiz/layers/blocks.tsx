@@ -109,9 +109,11 @@ function TextBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   // alinhamento aplicado TAMBÉM no wrapper (além da classe ql-align) — garante efeito no construtor e no live
   const m = (layer.content.text || "").match(/ql-align-(center|right|justify)/);
   const textAlign = (m?.[1] as "center" | "right" | "justify") || "left";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fs = Number((layer.design as any)?.fontSize) || remContent(ctx); // tamanho por bloco (sobrepõe o global)
   return (
     <div className="mx-auto w-full" style={{ maxWidth: `${basis}%`, textAlign }}>
-      <Html html={interpHtml(layer.content.text, ctx)} style={{ fontSize: `${remContent(ctx)}px`, color: ctx.design.contentColor || "#000" }} />
+      <Html html={interpHtml(layer.content.text, ctx)} style={{ fontSize: `${fs}px`, color: ctx.design.contentColor || "#000" }} />
     </div>
   );
 }

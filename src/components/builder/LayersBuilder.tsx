@@ -72,12 +72,23 @@ function HtmlField({ value, onChange, theme = "#ea580c" }: { value?: string; onC
     if (el && document.activeElement !== el && el.innerHTML !== (value || "")) el.innerHTML = value || "";
   }, [value]);
   const cmd = (c: string, v?: string) => { ref.current?.focus(); document.execCommand(c, false, v); if (ref.current) onChange(ref.current.innerHTML); };
+  // tamanho de fonte do TRECHO selecionado: marca com fontSize=7 e troca por style px
+  const setSize = (px: string) => {
+    const el = ref.current; if (!el) return; el.focus();
+    document.execCommand("fontSize", false, "7");
+    el.querySelectorAll('font[size="7"]').forEach((f) => { f.removeAttribute("size"); (f as HTMLElement).style.fontSize = `${px}px`; });
+    onChange(el.innerHTML);
+  };
   return (
     <div>
-      <div className="mb-1 flex gap-1">
+      <div className="mb-1 flex flex-wrap items-center gap-1">
         <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("bold"); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs font-bold">B</button>
         <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("foreColor", theme); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs font-bold" style={{ color: theme }}>Cor</button>
         <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("foreColor", "#000000"); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs">Preto</button>
+        <select title="Tamanho do trecho selecionado" defaultValue="" onMouseDown={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.value) { setSize(e.target.value); e.target.value = ""; } }} className="rounded border border-neutral-300 px-1 py-0.5 text-xs">
+          <option value="" disabled>Tam ↕</option>
+          {[12, 14, 16, 18, 20, 24, 28, 34, 40].map((s) => <option key={s} value={s}>{s}px</option>)}
+        </select>
       </div>
       <div ref={ref} contentEditable suppressContentEditableWarning
         onInput={() => onChange(ref.current?.innerHTML || "")}
@@ -153,6 +164,14 @@ function Appearance({ layer, onChange }: { layer: Layer; onChange: (l: Layer) =>
         <span className="text-[11px] text-neutral-500">Largura {basis}%</span>
         <input type="range" min={40} max={100} value={basis} onChange={(e) => setBasis(Number(e.target.value))} className="flex-1" />
       </div>
+      {hasText ? (
+        <div className="mt-2 flex items-center gap-2">
+          <span className="text-[11px] text-neutral-500">Tamanho da fonte (bloco)</span>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <input type="number" min={10} max={60} placeholder="auto" value={((layer.design as any)?.fontSize as number) || ""} onChange={(e) => onChange({ ...layer, design: { ...(layer.design || {}), fontSize: e.target.value ? Number(e.target.value) : undefined } })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" />
+          <span className="text-[11px] text-neutral-400">px</span>
+        </div>
+      ) : null}
     </div>
   );
 }
