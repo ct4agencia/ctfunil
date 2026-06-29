@@ -339,7 +339,16 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <option value="top">Fade no topo</option>
           <option value="bottom">Fade na base</option>
           <option value="both">Fade nos dois</option>
-        </select></>);
+        </select>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {(layer.design as any)?.fade ? (
+          <div className="mt-1.5 flex items-center gap-2">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <span className="w-28 shrink-0 text-[11px] text-neutral-500">Intensidade {Number((layer.design as any)?.fadeStrength) || 55}%</span>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <input type="range" min={20} max={90} value={Number((layer.design as any)?.fadeStrength) || 55} onChange={(e) => setD({ fadeStrength: Number(e.target.value) })} className="flex-1" />
+          </div>
+        ) : null}</>);
     case "field":
       return (<>
         <Lbl>Tipo</Lbl>
