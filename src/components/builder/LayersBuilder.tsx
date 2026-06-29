@@ -964,6 +964,36 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
               </label>
               {step?.disabled ? <p className="-mt-1 text-[11px] text-amber-600">Esta lâmina é PULADA no funil publicado (continua aqui pra reativar).</p> : null}
               <div><Lbl>Título</Lbl><input value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className={inp} /></div>
+              {/* Editor dedicado de slider/roleta (hero especial — não tem blocos clicáveis) */}
+              {(() => {
+                const special = (step?.layers || []).find((l) => l.type === "slider" || l.type === "roulette");
+                if (!special) return null;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const sc: any = special.content || {};
+                const patchSpecial = (patch: Record<string, unknown>) => patchStep(selStep, { layers: (step!.layers || []).map((l) => l.id === special.id ? { ...l, content: { ...l.content, ...patch } } : l) });
+                if (special.type === "slider") {
+                  return (
+                    <div className="space-y-2 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
+                      <p className="text-sm font-bold text-neutral-700">🎚️ Slider (hero)</p>
+                      <div><Lbl>Pergunta (use ==destaque==)</Lbl><input value={sc.question || ""} onChange={(e) => patchSpecial({ question: e.target.value })} className={inp} /></div>
+                      <div><Lbl>Ajuda (linha menor)</Lbl><input value={sc.help || ""} onChange={(e) => patchSpecial({ help: e.target.value })} className={inp} /></div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div><Lbl>Mín</Lbl><input type="number" value={sc.min ?? 0} onChange={(e) => patchSpecial({ min: Number(e.target.value) })} className={inp} /></div>
+                        <div><Lbl>Máx</Lbl><input type="number" value={sc.max ?? 10} onChange={(e) => patchSpecial({ max: Number(e.target.value) })} className={inp} /></div>
+                        <div><Lbl>Passo</Lbl><input type="number" value={sc.step ?? 1} onChange={(e) => patchSpecial({ step: Number(e.target.value) })} className={inp} /></div>
+                      </div>
+                      <div><Lbl>Imagem (rodapé)</Lbl><ImageField value={sc.image || ""} onChange={(v) => patchSpecial({ image: v })} /></div>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="space-y-2 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
+                    <p className="text-sm font-bold text-neutral-700">🎡 Roleta (hero)</p>
+                    <div><Lbl>Pergunta</Lbl><input value={sc.question || ""} onChange={(e) => patchSpecial({ question: e.target.value })} className={inp} /></div>
+                    <p className="text-[11px] text-neutral-400">Segmentos/prêmios da roleta são configuração avançada — me peça que eu ajusto.</p>
+                  </div>
+                );
+              })()}
               <p className="rounded-lg bg-neutral-50 p-2 text-[11px] text-neutral-500">O <b>Header</b> (logo/progresso/voltar) agora é configuração <b>geral</b>, na aba <b>🎨 Design</b> — vale pra todas as lâminas (exceto hero e VSL).</p>
               <p className="text-xs text-neutral-400">👆 Clique num bloco no celular pra editar.</p>
             </div>
