@@ -166,11 +166,17 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   // fade FLUIDO: usa a própria cor do fundo com alfa 0 (mesma tonalidade) em vez de
   // `transparent` (que é preto-transparente e cria uma linha cinza no meio do gradiente).
   const transp = /^#[0-9a-f]{6}$/i.test(bg) ? `${bg}00` : "transparent";
-  const fadeH = Math.min(95, Math.max(10, Number(d.fadeStrength) || 55)); // % da altura
+  // INTENSIDADE: maior = zona MENOR (desce menos) + fade mais forte. O fundo fica
+  // sólido no topo (cobre a borda) e dissolve numa faixa curta perto da borda.
+  const v = Math.min(90, Math.max(10, Number(d.fadeStrength) || 50));
+  const zoneH = 70 - v * 0.5;   // v=10→65% · v=50→45% · v=90→25% (zona menor)
+  const solid = 18 + v * 0.5;   // v=10→23% · v=50→43% · v=90→63% (mais sólido = mais intenso)
+  const topG = `linear-gradient(to bottom, ${bg} 0%, ${bg} ${solid}%, ${transp} 100%)`;
+  const botG = `linear-gradient(to top, ${bg} 0%, ${bg} ${solid}%, ${transp} 100%)`;
   const overlays = (
     <>
-      {fade === "top" || fade === "both" ? <div className="pointer-events-none absolute inset-x-0 top-0" style={{ height: `${fadeH}%`, background: `linear-gradient(to bottom, ${bg}, ${transp})` }} /> : null}
-      {fade === "bottom" || fade === "both" ? <div className="pointer-events-none absolute inset-x-0 bottom-0" style={{ height: `${fadeH}%`, background: `linear-gradient(to top, ${bg}, ${transp})` }} /> : null}
+      {fade === "top" || fade === "both" ? <div className="pointer-events-none absolute inset-x-0 top-0" style={{ height: `${zoneH}%`, background: topG }} /> : null}
+      {fade === "bottom" || fade === "both" ? <div className="pointer-events-none absolute inset-x-0 bottom-0" style={{ height: `${zoneH}%`, background: botG }} /> : null}
     </>
   );
   // TELA CHEIA: quebra o padding do container (px-5 = 1.25rem) → imagem encosta nas bordas da tela

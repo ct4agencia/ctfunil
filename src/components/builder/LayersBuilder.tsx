@@ -245,30 +245,52 @@ function Appearance({ layer, onChange }: { layer: Layer; onChange: (l: Layer) =>
   const basis = Number(d.basis) || 100;
   const opacity = d.opacity == null ? 100 : Number(d.opacity);
   const setD = (patch: Record<string, unknown>) => onChange({ ...layer, design: { ...(layer.design || {}), ...patch } });
+  const valign = d.valign || "middle";
+  const pill = (active: boolean) => `flex h-8 flex-1 items-center justify-center rounded-md text-sm ${active ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-700"}`;
+  const step = (n: number) => setD({ basis: Math.min(100, Math.max(20, n)) });
   return (
-    <div className="mt-3 space-y-2.5 border-t border-neutral-200 pt-2">
-      <Lbl>Aparência</Lbl>
+    <div className="mt-3 space-y-4 border-t border-neutral-200 pt-3">
+      {/* LARGURA — − [slider] + (estilo inlead) */}
       <div>
-        <span className="text-[11px] text-neutral-500">Alinhamento</span>
-        <div className="mt-1 flex gap-1">
-          {([["left", "⬅"], ["center", "↔"], ["right", "➡"]] as const).map(([a, ic]) => (
-            <button key={a} onClick={() => setD({ align: a })} className={`flex-1 rounded border px-2 py-1 text-xs ${align === a ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"}`}>{ic}</button>
-          ))}
+        <Lbl>Largura</Lbl>
+        <div className="flex items-center gap-2">
+          <button onClick={() => step(basis - 5)} className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-neutral-300 text-neutral-500 hover:bg-neutral-50">−</button>
+          <input type="range" min={20} max={100} value={basis} onChange={(e) => setD({ basis: Number(e.target.value) })} className="flex-1" />
+          <button onClick={() => step(basis + 5)} className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-neutral-300 text-neutral-500 hover:bg-neutral-50">+</button>
+        </div>
+        <p className="mt-0.5 text-center text-[11px] font-semibold text-neutral-400">{basis}%</p>
+      </div>
+      {/* ALINHAMENTO — 3 horizontais | 4 verticais (estilo inlead) */}
+      <div>
+        <Lbl>Alinhamento</Lbl>
+        <div className="flex items-center gap-2">
+          <div className="flex flex-1 gap-0.5 rounded-lg border border-neutral-200 bg-neutral-100 p-1">
+            {([["left", "⬅"], ["center", "↔"], ["right", "➡"]] as const).map(([a, ic]) => (
+              <button key={a} onClick={() => setD({ align: a })} title={`Horizontal: ${a}`} className={pill(align === a)}>{ic}</button>
+            ))}
+          </div>
+          <div className="flex flex-1 gap-0.5 rounded-lg border border-neutral-200 bg-neutral-100 p-1">
+            {([["top", "⬆"], ["middle", "↕"], ["bottom", "⬇"], ["stretch", "⤢"]] as const).map(([a, ic]) => (
+              <button key={a} onClick={() => setD({ valign: a })} title={`Vertical: ${a}`} className={pill(valign === a)}>{ic}</button>
+            ))}
+          </div>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="w-24 shrink-0 text-[11px] text-neutral-500">Largura {basis}%</span>
-        <input type="range" min={20} max={100} value={basis} onChange={(e) => setD({ basis: Number(e.target.value) })} className="flex-1" />
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="w-24 shrink-0 text-[11px] text-neutral-500">Opacidade {opacity}%</span>
-        <input type="range" min={0} max={100} value={opacity} onChange={(e) => setD({ opacity: Number(e.target.value) === 100 ? undefined : Number(e.target.value) })} className="flex-1" />
+      {/* OPACIDADE */}
+      <div>
+        <Lbl>Opacidade</Lbl>
+        <div className="flex items-center gap-2">
+          <input type="range" min={0} max={100} value={opacity} onChange={(e) => setD({ opacity: Number(e.target.value) === 100 ? undefined : Number(e.target.value) })} className="flex-1" />
+          <span className="w-9 shrink-0 text-right text-[11px] font-semibold text-neutral-400">{opacity}%</span>
+        </div>
       </div>
       {hasText ? (
-        <div className="flex items-center gap-2">
-          <span className="w-24 shrink-0 text-[11px] text-neutral-500">Fonte (bloco)</span>
-          <input type="number" min={10} max={60} placeholder="auto" value={(d.fontSize as number) || ""} onChange={(e) => setD({ fontSize: e.target.value ? Number(e.target.value) : undefined })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" />
-          <span className="text-[11px] text-neutral-400">px</span>
+        <div>
+          <Lbl>Tamanho da fonte (bloco)</Lbl>
+          <div className="flex items-center gap-2">
+            <input type="number" min={10} max={60} placeholder="auto" value={(d.fontSize as number) || ""} onChange={(e) => setD({ fontSize: e.target.value ? Number(e.target.value) : undefined })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" />
+            <span className="text-[11px] text-neutral-400">px</span>
+          </div>
         </div>
       ) : null}
     </div>
