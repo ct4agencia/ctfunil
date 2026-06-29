@@ -797,14 +797,16 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
       fetch("/api/funnels-export").then((r) => r.json()).then((d: any) => { setImportFunnels(d.funnels || []); setImportSel(d.funnels?.[0]?.slug || ""); }).catch(() => setImportFunnels([]));
     }
   };
-  // clona a lâmina com ids NOVOS (evita colisão) e insere após a atual
+  // clona uma lâmina com IDs NOVOS em tudo (step, blocos, conteúdo, opções e a
+  // referência `step` de cada bloco) — evita qualquer colisão/edição travada.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const importStep = (srcStep: any) => {
+  const cloneStepFresh = (srcStep: any) => {
     const s = JSON.parse(JSON.stringify(srcStep));
     s.id = genId();
+    delete s.position; delete s.selected; delete s.chosen;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (Array.isArray(s.layers)) s.layers = s.layers.map((l: any) => {
-      const nl = { ...l, id: genId() };
+      const nl = { ...l, id: genId(), step: s.id };
       if (nl.content) {
         nl.content = { ...nl.content, id: genId() };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -812,10 +814,17 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
       }
       return nl;
     });
-    setSteps([...steps.slice(0, selStep + 1), s, ...steps.slice(selStep + 1)] as InleadStep[]);
-    setSelStep(selStep + 1);
-    setImportOpen(false);
+    return s;
   };
+  // inserir clone após a atual + selecionar (limpa o bloco selecionado pra abrir limpo)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const insertStepAfter = (s: any) => {
+    setSteps([...steps.slice(0, selStep + 1), s, ...steps.slice(selStep + 1)] as InleadStep[]);
+    setSelStep(selStep + 1); setSelLayer(null);
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const importStep = (srcStep: any) => { insertStepAfter(cloneStepFresh(srcStep)); setImportOpen(false); };
+  const dupStep = () => { const s = cloneStepFresh(steps[selStep]); s.title = `${s.title || "Lâmina"} (cópia)`; insertStepAfter(s); };
 
   // ── operações de bloco ──
   const addPaletteItem = (key: string, label: string) => {
@@ -886,7 +895,8 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           <div className="mb-2 flex items-center justify-between px-1">
             <span className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">Etapas</span>
             <div className="flex items-center gap-1">
-              <button onClick={openImport} title="Importar lâmina de outro funil" className="rounded border border-neutral-300 px-1.5 py-0.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⬇ Importar</button>
+              <button onClick={openImport} title="Importar lâmina de outro funil" className="rounded border border-neutral-300 px-1.5 py-0.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⬇</button>
+              <button onClick={dupStep} title="Duplicar esta lâmina" className="rounded border border-neutral-300 px-1.5 py-0.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⧉</button>
               <button onClick={addStep} title="Nova etapa" className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs font-semibold text-white">+</button>
             </div>
           </div>
