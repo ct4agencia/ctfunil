@@ -340,6 +340,13 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
           <input type="checkbox" checked={!!layer.design?.borderColor} onChange={(e) => setD({ borderColor: e.target.checked ? (layer.design?.backgroundColor || "#ea580c") : undefined, backgroundColor: e.target.checked ? "transparent" : (layer.design?.borderColor || "#ea580c") })} className="h-3.5 w-3.5 accent-neutral-900" /> Botão vazado (só contorno)
         </label>
+        <Lbl>Efeito de animação</Lbl>
+        <select value={(layer.design?.effect as string) || "none"} onChange={(e) => setD({ effect: e.target.value })} className={inp}>
+          <option value="none">Nenhum</option>
+          <option value="shine">✨ Brilho (varre o botão)</option>
+          <option value="pulse">💓 Pulsar</option>
+          <option value="shine-pulse">🔥 Brilho + Pulsar (igual a roleta)</option>
+        </select>
         <Lbl>Ao clicar</Lbl>
         <select value={/^https?:/.test(c.destination || "") ? "__url" : (c.destination || "next")} onChange={(e) => setC({ destination: e.target.value === "__url" ? "https://" : e.target.value })} className={inp}>
           {destOptions}<option value="__url">🔗 Link externo (checkout)</option>

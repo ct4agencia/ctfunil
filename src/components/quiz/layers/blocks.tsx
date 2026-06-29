@@ -234,13 +234,18 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   if (!reveal) {
     return <p className="mx-auto w-full text-center text-sm opacity-60">{c.waitText || "⏳ Assista o vídeo para liberar o acesso…"}</p>;
   }
+  // Efeito de animação configurável (igual a roleta): brilho que varre + pulsar.
+  // Pulsa o wrapper (não conflita com o transform do motion); brilho vai no botão.
+  const effect = (d.effect as string) || "none";
+  const pulseCls = effect === "pulse" || effect === "shine-pulse" ? "fx-pulse" : "";
+  const shineCls = effect === "shine" || effect === "shine-pulse" ? "fx-shine" : "";
   return (
-    <div className={`${hAlign(d)} w-full`} style={{ maxWidth: `${basis}%` }}>
+    <div className={`${hAlign(d)} w-full ${pulseCls}`} style={{ maxWidth: `${basis}%` }}>
       <motion.button
         onClick={onClick} disabled={ctx.submitting}
         initial={revealAt > 0 ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }}
         whileTap={{ scale: 0.97 }}
-        className="w-full font-bold disabled:opacity-60"
+        className={`w-full font-bold disabled:opacity-60 ${shineCls}`}
         style={{
           background: bg, color: d.color || "#fff",
           border: d.borderColor ? `1px solid ${d.borderColor}` : "none",
