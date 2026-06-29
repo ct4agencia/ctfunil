@@ -785,6 +785,38 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   };
   const delStep = (i: number) => { if (steps.length <= 1) return; const next = steps.filter((_, k) => k !== i); setSteps(next); setSelStep(Math.min(i, next.length - 1)); };
 
+  // ── importar lâmina de outro funil ──
+  const [importOpen, setImportOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [importFunnels, setImportFunnels] = useState<any[] | null>(null);
+  const [importSel, setImportSel] = useState("");
+  const openImport = () => {
+    setImportOpen(true);
+    if (!importFunnels) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fetch("/api/funnels-export").then((r) => r.json()).then((d: any) => { setImportFunnels(d.funnels || []); setImportSel(d.funnels?.[0]?.slug || ""); }).catch(() => setImportFunnels([]));
+    }
+  };
+  // clona a lâmina com ids NOVOS (evita colisão) e insere após a atual
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const importStep = (srcStep: any) => {
+    const s = JSON.parse(JSON.stringify(srcStep));
+    s.id = genId();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (Array.isArray(s.layers)) s.layers = s.layers.map((l: any) => {
+      const nl = { ...l, id: genId() };
+      if (nl.content) {
+        nl.content = { ...nl.content, id: genId() };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (Array.isArray(nl.content.options)) nl.content.options = nl.content.options.map((o: any) => ({ ...o, id: genId() }));
+      }
+      return nl;
+    });
+    setSteps([...steps.slice(0, selStep + 1), s, ...steps.slice(selStep + 1)] as InleadStep[]);
+    setSelStep(selStep + 1);
+    setImportOpen(false);
+  };
+
   // ── operações de bloco ──
   const addPaletteItem = (key: string, label: string) => {
     if (!ADDABLE.has(key)) { window.alert(`Bloco "${label}" — em breve. Vamos ativar sob demanda.`); return; }
@@ -853,7 +885,10 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         <aside className="overflow-y-auto border-r border-neutral-200 bg-white p-2">
           <div className="mb-2 flex items-center justify-between px-1">
             <span className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">Etapas</span>
-            <button onClick={addStep} title="Nova etapa" className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs font-semibold text-white">+</button>
+            <div className="flex items-center gap-1">
+              <button onClick={openImport} title="Importar lâmina de outro funil" className="rounded border border-neutral-300 px-1.5 py-0.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⬇ Importar</button>
+              <button onClick={addStep} title="Nova etapa" className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs font-semibold text-white">+</button>
+            </div>
           </div>
           <DndContext id="ll-steps" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onStepDragEnd}>
             <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
@@ -924,6 +959,40 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
 
       {showSettings ? (
         <FunnelSettingsPanel funnel={funnel} onPatch={(patch) => setFunnel((f) => ({ ...f, ...patch }))} onClose={() => setShowSettings(false)} />
+      ) : null}
+
+      {/* ── Modal: importar lâmina de outro funil ── */}
+      {importOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setImportOpen(false)}>
+          <div className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-3">
+              <h2 className="text-sm font-bold text-neutral-800">⬇ Importar lâmina</h2>
+              <button onClick={() => setImportOpen(false)} className="text-neutral-400 hover:text-neutral-700">✕</button>
+            </div>
+            {!importFunnels ? (
+              <p className="p-8 text-center text-sm text-neutral-400">Carregando funis…</p>
+            ) : (
+              <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+                <label className="text-xs font-semibold text-neutral-500">De qual funil?
+                  <select value={importSel} onChange={(e) => setImportSel(e.target.value)} className="mt-1 w-full rounded-lg border border-neutral-300 px-2 py-2 text-sm">
+                    {importFunnels.map((f) => <option key={f.slug} value={f.slug}>{f.name} (/{f.slug})</option>)}
+                  </select>
+                </label>
+                <p className="text-xs font-semibold text-neutral-500">Qual lâmina importar?</p>
+                <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-neutral-200">
+                  {(importFunnels.find((f) => f.slug === importSel)?.steps || []).map((s: { id: string; title: string; types?: string[]; step: Record<string, unknown> }, i: number) => (
+                    <button key={s.id} onClick={() => importStep(s.step)} className="group flex w-full items-center gap-2 border-b border-neutral-100 px-3 py-2.5 text-left text-sm last:border-b-0 hover:bg-orange-50">
+                      <span className="min-w-0 flex-1 truncate"><span className="mr-1.5 text-xs font-bold text-neutral-400">{i + 1}.</span><span className="font-semibold text-neutral-800">{s.title}</span> <span className="text-[10px] text-neutral-400">{(s.types || []).slice(0, 5).join(" · ")}</span></span>
+                      <span className="shrink-0 rounded bg-neutral-900 px-2 py-0.5 text-[10px] font-semibold text-white opacity-0 group-hover:opacity-100">Importar</span>
+                    </button>
+                  ))}
+                  {!(importFunnels.find((f) => f.slug === importSel)?.steps || []).length ? <p className="p-6 text-center text-xs text-neutral-400">Esse funil não tem lâminas.</p> : null}
+                </div>
+                <p className="text-[11px] text-neutral-400">A lâmina entra logo após a atual, com IDs novos (sem conflito). Clique em 💾 Salvar pra persistir.</p>
+              </div>
+            )}
+          </div>
+        </div>
       ) : null}
     </div>
   );
