@@ -44,6 +44,20 @@ const PALETTE_ICON: Record<string, string> = {
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
 const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed", "email", "phone", "video", "carousel", "roulette", "slider"]);
 
+/** Dispositivos do preview (mesmas dimensões CSS do DevTools) — validação 1:1. */
+const PREVIEW_DEVICES: { name: string; w: number; h: number }[] = [
+  { name: "iPhone 12/13/14", w: 390, h: 844 },
+  { name: "iPhone SE", w: 375, h: 667 },
+  { name: "iPhone XR / 11", w: 414, h: 896 },
+  { name: "iPhone 14 Pro Max", w: 430, h: 932 },
+  { name: "Pixel 7", w: 412, h: 915 },
+  { name: "Galaxy S8+", w: 360, h: 740 },
+  { name: "Galaxy S20 Ultra", w: 412, h: 915 },
+  { name: "Galaxy A51/71", w: 412, h: 914 },
+  { name: "Compacto (360×640)", w: 360, h: 640 },
+  { name: "iPad Mini", w: 768, h: 1024 },
+];
+
 function newLayer(type: LayerType): Layer {
   const id = genId();
   const base = { id, type, content: { id: genId() } } as Layer;
@@ -884,6 +898,8 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const [nonce, setNonce] = useState(0);
   const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">("construtor");
   const [showSettings, setShowSettings] = useState(false);
+  const [device, setDevice] = useState(0); // dispositivo do preview (índice em PREVIEW_DEVICES)
+  const [zoom, setZoom] = useState(80);     // zoom do preview (%)
 
   const theme = (funnel.settings?.design as { themeColor?: string })?.themeColor || "#ea580c";
   const setSteps = (next: InleadStep[]) => setFunnel((f) => ({ ...f, steps: next as unknown as Funnel["steps"] }));
@@ -1062,13 +1078,36 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           ))}
         </aside>
 
-        {/* 3 · CANVAS (celular, edição inline) */}
-        <div className="flex items-start justify-center overflow-y-auto p-6">
-          <div className="h-[700px] w-[360px] shrink-0 overflow-hidden rounded-[2.2rem] border-[11px] border-neutral-900 bg-white shadow-2xl" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
-            <div className="h-full overflow-y-auto transform-gpu" onClick={() => setSelLayer(null)}>
-              <LayersRunner key={`${selStep}-${nonce}`} funnel={funnel} startIndex={selStep} preview editor={{ selectedId: selLayer || undefined, onSelect, onAction, onReorder }} />
-            </div>
-          </div>
+        {/* 3 · CANVAS (celular, edição inline) — com seletor de dispositivo igual DevTools */}
+        <div className="flex flex-col items-center overflow-auto p-6">
+          {(() => {
+            const dev = PREVIEW_DEVICES[device]; const z = zoom / 100;
+            return (
+              <>
+                {/* barra: dispositivo + dimensões + zoom */}
+                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs shadow-sm">
+                  <span className="text-neutral-400">📱</span>
+                  <select value={device} onChange={(e) => setDevice(Number(e.target.value))} className="rounded border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-700">
+                    {PREVIEW_DEVICES.map((d, i) => <option key={i} value={i}>{d.name}</option>)}
+                  </select>
+                  <span className="font-mono text-neutral-400">{dev.w} × {dev.h}</span>
+                  <span className="text-neutral-200">|</span>
+                  <select value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="rounded border border-neutral-300 px-2 py-1 text-xs text-neutral-600">
+                    {[50, 60, 70, 80, 90, 100].map((v) => <option key={v} value={v}>{v}%</option>)}
+                  </select>
+                </div>
+                {/* moldura escalada — conteúdo na dimensão CSS exata do device (validação 1:1) */}
+                <div className="shrink-0" style={{ width: (dev.w + 22) * z, height: (dev.h + 22) * z }}>
+                  <div className="w-fit overflow-hidden rounded-[2.2rem] border-[11px] border-neutral-900 bg-white shadow-2xl"
+                    style={{ transform: `scale(${z})`, transformOrigin: "top left", fontFamily: "'Poppins', system-ui, sans-serif" }}>
+                    <div className="overflow-y-auto transform-gpu" style={{ width: dev.w, height: dev.h }} onClick={() => setSelLayer(null)}>
+                      <LayersRunner key={`${selStep}-${nonce}-${device}`} funnel={funnel} startIndex={selStep} preview editor={{ selectedId: selLayer || undefined, onSelect, onAction, onReorder }} />
+                    </div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         {/* 4 · PAINEL direito (Componente/Aparência/Exibição OU Etapa) */}
