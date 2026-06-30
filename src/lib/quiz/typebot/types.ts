@@ -23,7 +23,11 @@ export type TbBubble =
   | (Base & { type: "date"; label?: string })
   | (Base & { type: "voice"; duration?: string })
   | (Base & { type: "call"; mode: "voice" | "video"; status?: "missed" | "outgoing" | "incoming"; duration?: string })
-  | (Base & { type: "system"; variant: "encrypted" | "deleted" | "disappearing" | "custom"; text?: string });
+  | (Base & { type: "system"; variant: "encrypted" | "deleted" | "disappearing" | "custom"; text?: string })
+  | (Base & { type: "document"; name?: string; size?: string; url?: string })
+  | (Base & { type: "link"; url: string; title?: string; desc?: string; image?: string })
+  | (Base & { type: "location"; address?: string; image?: string })
+  | (Base & { type: "contact"; name?: string; phone?: string; avatar?: string });
 
 /** Inputs = pedem resposta do lead (param a conversa). */
 export type TbInput =
@@ -31,7 +35,11 @@ export type TbInput =
   | (Base & { type: "input-number"; variable?: string; placeholder?: string; button?: string })
   | (Base & { type: "input-email"; variable?: string; placeholder?: string; button?: string })
   | (Base & { type: "input-phone"; variable?: string; placeholder?: string; button?: string })
-  | (Base & { type: "input-choice"; variable?: string; multiple?: boolean; items: TbChoiceItem[] });
+  | (Base & { type: "input-choice"; variable?: string; multiple?: boolean; items: TbChoiceItem[] })
+  | (Base & { type: "input-date"; variable?: string; placeholder?: string; button?: string })
+  | (Base & { type: "input-time"; variable?: string; placeholder?: string; button?: string })
+  | (Base & { type: "input-url"; variable?: string; placeholder?: string; button?: string })
+  | (Base & { type: "input-rating"; variable?: string; max?: number; icon?: "star" | "heart" | "number"; button?: string });
 
 /** Lógica = operações de bastidor (invisíveis ao lead). */
 export type TbLogic =
@@ -95,7 +103,7 @@ export interface TbFunnel {
   typing: { enabled: boolean; speed: number; maxDelay: number };
 }
 
-const BUBBLE_TYPES = ["text", "image", "audio", "video", "embed", "date", "voice", "call", "system"];
+const BUBBLE_TYPES = ["text", "image", "audio", "video", "embed", "date", "voice", "call", "system", "document", "link", "location", "contact"];
 /** Bolha / elemento visual (não pede resposta). */
 export const isBubble = (b: TbBlock): b is TbBubble => BUBBLE_TYPES.includes(b.type);
 
@@ -105,8 +113,10 @@ export const isInput = (b: TbBlock): b is TbInput => b.type.startsWith("input-")
 export const TB_BLOCK_LABEL: Record<string, string> = {
   text: "Texto", image: "Imagem", audio: "Áudio", video: "Vídeo", embed: "Embed",
   date: "Separador de data", voice: "Nota de voz", call: "Chamada", system: "Aviso de sistema",
+  document: "Documento", link: "Link (preview)", location: "Localização", contact: "Contato",
   "input-text": "Texto (resposta)", "input-number": "Número", "input-email": "E-mail",
   "input-phone": "Telefone/WhatsApp", "input-choice": "Botões",
+  "input-date": "Data", "input-time": "Hora", "input-url": "Site/URL", "input-rating": "Avaliação",
   wait: "Esperar", "set-variable": "Definir variável", condition: "Condição", redirect: "Redirecionar",
 };
 

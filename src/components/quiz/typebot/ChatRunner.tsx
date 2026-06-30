@@ -16,6 +16,10 @@ type FeedItem =
   | (FeedBase & { side: "host"; kind: "embed"; html: string })
   | (FeedBase & { side: "host"; kind: "voice"; duration: string })
   | (FeedBase & { side: "host"; kind: "call"; mode: "voice" | "video"; status?: string; duration?: string })
+  | (FeedBase & { side: "host"; kind: "document"; name: string; size?: string })
+  | (FeedBase & { side: "host"; kind: "link"; url: string; title?: string; desc?: string; image?: string })
+  | (FeedBase & { side: "host"; kind: "location"; address?: string; image?: string })
+  | (FeedBase & { side: "host"; kind: "contact"; name?: string; phone?: string; avatar?: string })
   | (FeedBase & { side: "center"; kind: "date"; label: string })
   | (FeedBase & { side: "center"; kind: "system"; variant: string; html: string });
 
@@ -110,6 +114,10 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
         else if (b.type === "voice") push({ side: "host", kind: "voice", duration: b.duration || "0:08" });
         else if (b.type === "call") push({ side: "host", kind: "call", mode: b.mode, status: b.status, duration: b.duration });
         else if (b.type === "system") push({ side: "center", kind: "system", variant: b.variant, html: b.variant === "custom" ? (b.text || "") : (SYS_TEXT[b.variant] || "") });
+        else if (b.type === "document") push({ side: "host", kind: "document", name: b.name || "Documento.pdf", size: b.size });
+        else if (b.type === "link") push({ side: "host", kind: "link", url: interp(b.url), title: b.title, desc: b.desc, image: b.image });
+        else if (b.type === "location") push({ side: "host", kind: "location", address: interp(b.address || ""), image: b.image });
+        else if (b.type === "contact") push({ side: "host", kind: "contact", name: interp(b.name || ""), phone: b.phone, avatar: b.avatar });
         await sleep(160);
         bi++; continue;
       }
@@ -184,10 +192,13 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
   const avatar = theme.avatarUrl || null;
   const botName = theme.botName || funnel.name || "Chat";
   const isChoice = pending?.block.type === "input-choice";
-  const isText = !!pending && !isChoice;
-  const inputType = pending?.block.type === "input-number" ? "number"
-    : pending?.block.type === "input-email" ? "email" : pending?.block.type === "input-phone" ? "tel" : "text";
+  const isRating = pending?.block.type === "input-rating";
+  const isText = !!pending && !isChoice && !isRating;
+  const pt = pending?.block.type;
+  const inputType = pt === "input-number" ? "number" : pt === "input-email" ? "email" : pt === "input-phone" ? "tel"
+    : pt === "input-date" ? "date" : pt === "input-time" ? "time" : pt === "input-url" ? "url" : "text";
   const choiceBlock = pending?.block.type === "input-choice" ? (pending.block as Extract<TbInput, { type: "input-choice" }>) : null;
+  const ratingBlock = pending?.block.type === "input-rating" ? (pending.block as Extract<TbInput, { type: "input-rating" }>) : null;
 
   // paleta efetiva (claro/escuro/android) + cromo do "celular"
   const chromeBg = dark ? "#1f2c34" : ios ? "#f7f7f7" : (theme.headerColor || "#008069");
@@ -295,6 +306,40 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
                           </div>
                           <Time m={m} />
                         </div>
+                      ) : m.kind === "document" ? (
+                        <div className="flex items-center gap-2.5 rounded-lg px-2 py-2" style={{ background: dark ? "#ffffff0d" : "#00000008", minWidth: 200 }}>
+                          <span className="grid h-10 w-9 shrink-0 place-items-center rounded text-[18px]" style={{ background: dark ? "#ffffff14" : "#ffffff" }}>📄</span>
+                          <div className="min-w-0 flex-1"><div className="truncate text-[14px] font-medium">{m.name}</div><div className="text-[11.5px]" style={{ color: C.time }}>{m.size || "PDF"}</div></div>
+                          <span className="text-lg" style={{ color: C.time }}>⤓</span>
+                        </div>
+                      ) : m.kind === "link" ? (
+                        <a href={m.url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg" style={{ background: dark ? "#ffffff0d" : "#00000008", maxWidth: 250 }}>
+                          {m.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={m.image} alt="" className="block h-28 w-full object-cover" />
+                          ) : null}
+                          <div className="px-2.5 py-1.5">
+                            {m.title ? <div className="text-[13.5px] font-semibold leading-tight">{m.title}</div> : null}
+                            {m.desc ? <div className="mt-0.5 text-[11.5px] leading-snug" style={{ color: C.time }}>{m.desc}</div> : null}
+                            <div className="mt-0.5 truncate text-[11px]" style={{ color: C.tick }}>{m.url}</div>
+                          </div>
+                        </a>
+                      ) : m.kind === "location" ? (
+                        <div className="overflow-hidden rounded-lg" style={{ maxWidth: 230 }}>
+                          {m.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={m.image} alt="" className="block h-28 w-full object-cover" />
+                          ) : <div className="grid h-28 w-full place-items-center text-3xl" style={{ background: dark ? "#0e3a2f" : "#cfe8d8" }}>📍</div>}
+                          <div className="px-2 py-1.5 text-[12.5px]"><span className="mr-1">📍</span>{m.address || "Localização"}<Time m={m} /></div>
+                        </div>
+                      ) : m.kind === "contact" ? (
+                        <div className="flex items-center gap-2.5 px-1 py-1" style={{ minWidth: 200 }}>
+                          {m.avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={m.avatar} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+                          ) : <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg" style={{ background: dark ? "#ffffff14" : "#00000010" }}>👤</span>}
+                          <div className="min-w-0 flex-1"><div className="truncate text-[14px] font-medium">{m.name || "Contato"}</div>{m.phone ? <div className="text-[11.5px]" style={{ color: C.time }}>{m.phone}</div> : null}</div>
+                        </div>
                       ) : <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /></div>}
                 </div>
               </div>
@@ -333,13 +378,26 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
             </div>
           </div>
         ) : null}
+        {isRating && ratingBlock ? (
+          <div className="mx-auto w-full max-w-[680px] px-2.5 pt-3">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {Array.from({ length: Math.max(2, ratingBlock.max || 5) }, (_, i) => i + 1).map((n) => (
+                <button key={n} onClick={() => submit(String(n))} className="transition active:scale-90" aria-label={`${n}`}>
+                  {ratingBlock.icon === "number"
+                    ? <span className="grid h-10 w-10 place-items-center rounded-full border-2 text-base font-bold" style={{ borderColor: theme.buttonBg, color: theme.buttonBg }}>{n}</span>
+                    : <span className="text-[30px] leading-none">{ratingBlock.icon === "heart" ? "❤️" : "⭐"}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
         <div className="mx-auto flex w-full max-w-[680px] items-center gap-2 px-2.5 py-2">
           <span className="text-2xl leading-none" style={{ color: dark ? "#8696a0" : "#54656f" }}>＋</span>
           {isText ? (
             <form onSubmit={(e) => { e.preventDefault(); submit(textVal); }} className="flex flex-1 items-center gap-2">
               <input autoFocus value={textVal} onChange={(e) => setTextVal(e.target.value)} type={inputType}
                 inputMode={inputType === "tel" ? "tel" : inputType === "number" ? "numeric" : "text"}
-                placeholder={pending && pending.block.type !== "input-choice" ? (pending.block.placeholder || "Mensagem") : "Mensagem"}
+                placeholder={(pending?.block as { placeholder?: string })?.placeholder || "Mensagem"}
                 className="min-w-0 flex-1 rounded-full border-0 px-4 py-2.5 text-[15px] shadow-sm outline-none" style={{ background: C.inputBg, color: C.inputText }} />
               <button type="submit" aria-label="Enviar" className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white" style={{ background: theme.buttonBg }}>➤</button>
             </form>

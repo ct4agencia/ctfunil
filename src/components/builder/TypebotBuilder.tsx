@@ -18,8 +18,8 @@ const Lbl = ({ children }: { children: React.ReactNode }) => <label className="m
 
 const ADD_TYPES: [string, string[]][] = [
   ["Bolhas", ["text", "image", "audio", "video", "embed"]],
-  ["WhatsApp", ["date", "voice", "call", "system"]],
-  ["Inputs", ["input-text", "input-number", "input-email", "input-phone", "input-choice"]],
+  ["WhatsApp", ["date", "voice", "call", "system", "document", "link", "location", "contact"]],
+  ["Inputs", ["input-text", "input-number", "input-email", "input-phone", "input-url", "input-date", "input-time", "input-rating", "input-choice"]],
   ["Lógica", ["wait", "set-variable", "condition", "redirect"]],
 ];
 
@@ -35,7 +35,15 @@ function newBlock(type: string): TbBlock {
     case "voice": return { id, type: "voice", duration: "0:08" };
     case "call": return { id, type: "call", mode: "voice", status: "outgoing", duration: "" };
     case "system": return { id, type: "system", variant: "encrypted" };
+    case "document": return { id, type: "document", name: "Documento.pdf", size: "PDF · 1,2 MB" };
+    case "link": return { id, type: "link", url: "https://", title: "Título do link", desc: "", image: "" };
+    case "location": return { id, type: "location", address: "", image: "" };
+    case "contact": return { id, type: "contact", name: "", phone: "", avatar: "" };
     case "input-text": return { id, type: "input-text", variable: "resposta", placeholder: "Digite aqui…", button: "Enviar" };
+    case "input-url": return { id, type: "input-url", variable: "site", placeholder: "https://…", button: "Enviar" };
+    case "input-date": return { id, type: "input-date", variable: "data", button: "Enviar" };
+    case "input-time": return { id, type: "input-time", variable: "hora", button: "Enviar" };
+    case "input-rating": return { id, type: "input-rating", variable: "avaliacao", max: 5, icon: "star" };
     case "input-number": return { id, type: "input-number", variable: "numero", placeholder: "Digite…", button: "Enviar" };
     case "input-email": return { id, type: "input-email", variable: "email", placeholder: "seu@email.com", button: "Enviar" };
     case "input-phone": return { id, type: "input-phone", variable: "whatsapp", placeholder: "WhatsApp com DDD", button: "Enviar" };
@@ -51,7 +59,9 @@ function newBlock(type: string): TbBlock {
 const ICON: Record<string, string> = {
   text: "💬", image: "🖼️", audio: "🎧", video: "🎬", embed: "🔗",
   date: "📅", voice: "🎤", call: "📞", system: "🔒",
+  document: "📄", link: "🪧", location: "📍", contact: "👤",
   "input-text": "✏️", "input-number": "🔢", "input-email": "📧", "input-phone": "📱", "input-choice": "🔘",
+  "input-url": "🌐", "input-date": "📆", "input-time": "🕐", "input-rating": "⭐",
   wait: "⏲️", "set-variable": "🧮", condition: "🔀", redirect: "↗️",
 };
 
@@ -230,6 +240,10 @@ function blockPreview(b: TbBlock): string {
   if (b.type === "voice") return `Nota de voz ${b.duration || ""}`;
   if (b.type === "call") return `Chamada de ${b.mode === "video" ? "vídeo" : "voz"}`;
   if (b.type === "system") return `Aviso: ${b.variant}`;
+  if (b.type === "document") return `Documento: ${b.name || ""}`;
+  if (b.type === "link") return `Link: ${(b.title || b.url || "").slice(0, 30)}`;
+  if (b.type === "location") return `Localização: ${(b.address || "").slice(0, 26)}`;
+  if (b.type === "contact") return `Contato: ${b.name || ""}`;
   if (b.type === "input-choice") return `Botões: ${b.items.map((i) => i.label).join(" / ").slice(0, 34)}`;
   if (isInput(b)) return `${TB_BLOCK_LABEL[b.type]} → {${b.variable || "?"}}`;
   if (b.type === "wait") return `Esperar ${b.seconds}s`;
@@ -263,11 +277,36 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
     </select>
     {b.variant === "custom" ? (<><Lbl>Texto</Lbl><input value={b.text || ""} onChange={(e) => patch({ text: e.target.value })} className={inp} /></>) : null}
   </>);
-  if (b.type === "input-text" || b.type === "input-number" || b.type === "input-email" || b.type === "input-phone") return (<>
+  if (b.type === "input-text" || b.type === "input-number" || b.type === "input-email" || b.type === "input-phone" || b.type === "input-url" || b.type === "input-date" || b.type === "input-time") return (<>
     <Lbl>Salvar na variável</Lbl><input value={b.variable || ""} onChange={(e) => patch({ variable: e.target.value })} placeholder="ex: nome" className={inp} />
-    <Lbl>Placeholder</Lbl><input value={b.placeholder || ""} onChange={(e) => patch({ placeholder: e.target.value })} className={inp} />
+    {b.type === "input-date" || b.type === "input-time" ? null : <><Lbl>Placeholder</Lbl><input value={b.placeholder || ""} onChange={(e) => patch({ placeholder: e.target.value })} className={inp} /></>}
     <Lbl>Texto do botão</Lbl><input value={b.button || ""} onChange={(e) => patch({ button: e.target.value })} className={inp} />
     {b.type === "input-phone" ? <p className="mt-1 text-[11px] text-amber-600">📱 Este input dispara a captura do lead (webhook Datacrazy).</p> : null}
+  </>);
+  if (b.type === "input-rating") return (<>
+    <Lbl>Salvar na variável</Lbl><input value={b.variable || ""} onChange={(e) => patch({ variable: e.target.value })} placeholder="ex: avaliacao" className={inp} />
+    <Lbl>Quantidade</Lbl><input type="number" min={2} max={10} value={b.max ?? 5} onChange={(e) => patch({ max: Number(e.target.value) })} className={inp} />
+    <Lbl>Ícone</Lbl>
+    <select value={b.icon || "star"} onChange={(e) => patch({ icon: e.target.value })} className={inp}><option value="star">⭐ Estrelas</option><option value="heart">❤️ Corações</option><option value="number">🔢 Números</option></select>
+  </>);
+  if (b.type === "document") return (<>
+    <Lbl>Nome do arquivo</Lbl><input value={b.name || ""} onChange={(e) => patch({ name: e.target.value })} placeholder="Apostila.pdf" className={inp} />
+    <Lbl>Subtítulo (tipo · tamanho)</Lbl><input value={b.size || ""} onChange={(e) => patch({ size: e.target.value })} placeholder="PDF · 1,2 MB" className={inp} />
+  </>);
+  if (b.type === "link") return (<>
+    <Lbl>URL</Lbl><input value={b.url} onChange={(e) => patch({ url: e.target.value })} placeholder="https://…" className={inp} />
+    <Lbl>Título</Lbl><input value={b.title || ""} onChange={(e) => patch({ title: e.target.value })} className={inp} />
+    <Lbl>Descrição</Lbl><input value={b.desc || ""} onChange={(e) => patch({ desc: e.target.value })} className={inp} />
+    <Lbl>Imagem de preview (URL)</Lbl><input value={b.image || ""} onChange={(e) => patch({ image: e.target.value })} placeholder="https://…" className={inp} />
+  </>);
+  if (b.type === "location") return (<>
+    <Lbl>Endereço</Lbl><input value={b.address || ""} onChange={(e) => patch({ address: e.target.value })} placeholder="Av. Paulista, 1000 — São Paulo" className={inp} />
+    <Lbl>Imagem do mapa (URL)</Lbl><input value={b.image || ""} onChange={(e) => patch({ image: e.target.value })} placeholder="https://…" className={inp} />
+  </>);
+  if (b.type === "contact") return (<>
+    <Lbl>Nome</Lbl><input value={b.name || ""} onChange={(e) => patch({ name: e.target.value })} className={inp} />
+    <Lbl>Telefone</Lbl><input value={b.phone || ""} onChange={(e) => patch({ phone: e.target.value })} placeholder="+55 …" className={inp} />
+    <Lbl>Avatar (URL)</Lbl><input value={b.avatar || ""} onChange={(e) => patch({ avatar: e.target.value })} placeholder="https://…" className={inp} />
   </>);
   if (b.type === "input-choice") return (<>
     <Lbl>Salvar na variável (opcional)</Lbl><input value={b.variable || ""} onChange={(e) => patch({ variable: e.target.value })} placeholder="ex: idade" className={inp} />
