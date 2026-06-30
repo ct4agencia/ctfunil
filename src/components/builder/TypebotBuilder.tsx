@@ -269,7 +269,12 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
       ))}
     </div>
   </>);
-  if (b.type === "image" || b.type === "audio" || b.type === "video") return (<><Lbl>URL do arquivo</Lbl><input value={b.url} onChange={(e) => patch({ url: e.target.value })} placeholder="https://…" className={inp} />{b.type === "image" && b.url ? (/* eslint-disable-next-line @next/next/no-img-element */ <img src={b.url} alt="" className="mt-2 max-h-32 rounded" />) : null}</>);
+  if (b.type === "image" || b.type === "audio" || b.type === "video") return (<>
+    <Lbl>{b.type === "audio" ? "Áudio (upload ou URL)" : b.type === "video" ? "Vídeo (upload ou URL)" : "Imagem (upload ou URL)"}</Lbl>
+    <ImgUpload value={b.url} onChange={(v) => patch({ url: v })} accept={b.type === "audio" ? "audio/*" : b.type === "video" ? "video/*" : "image/*"} />
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    {b.type === "image" && b.url ? <img src={b.url} alt="" className="mt-2 max-h-32 rounded" /> : null}
+  </>);
   if (b.type === "embed") return (<><Lbl>HTML / iframe</Lbl><textarea value={b.html} onChange={(e) => patch({ html: e.target.value })} rows={4} className={inp} /></>);
   if (b.type === "date") return (<><Lbl>Texto do separador de data</Lbl><input value={b.label || ""} onChange={(e) => patch({ label: e.target.value })} placeholder="Hoje / Ontem / 21/06/2025" className={inp} /></>);
   if (b.type === "voice") return (<><Lbl>Duração da nota de voz</Lbl><input value={b.duration || ""} onChange={(e) => patch({ duration: e.target.value })} placeholder="0:08" className={inp} /><p className="mt-1 text-[11px] text-neutral-400">Visual de nota de voz (waveform). O áudio real use o bloco 🎧 Áudio.</p></>);
@@ -313,7 +318,7 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
     {b.items.map((it) => (
       <div key={it.id} className="mb-2 rounded-lg border border-neutral-200 p-2">
         <input value={it.label} onChange={(e) => patch({ items: b.items.map((x) => x.id === it.id ? { ...x, label: e.target.value } : x) })} placeholder="rótulo" className={`${inp} mb-1`} />
-        <input value={it.image || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === it.id ? { ...x, image: e.target.value } : x) })} placeholder="URL da imagem" className={`${inp} mb-1`} />
+        <div className="mb-1"><ImgUpload value={it.image} onChange={(v) => patch({ items: b.items.map((x) => x.id === it.id ? { ...x, image: v } : x) })} /></div>
         <div className="flex items-center gap-1">
           <select value={it.to || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === it.id ? { ...x, to: e.target.value || undefined } : x) })} className="flex-1 rounded border border-neutral-300 px-1 py-1 text-[11px]"><option value="">→ próximo grupo padrão</option>{groupOpts.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select>
           <button onClick={() => patch({ items: b.items.filter((x) => x.id !== it.id) })} className="shrink-0 text-red-400">✕</button>
@@ -328,7 +333,7 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
       <div key={c.id} className="mb-2 rounded-lg border border-neutral-200 p-2">
         <input value={c.title || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, title: e.target.value } : x) })} placeholder="título" className={`${inp} mb-1`} />
         <input value={c.desc || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, desc: e.target.value } : x) })} placeholder="descrição" className={`${inp} mb-1`} />
-        <input value={c.image || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, image: e.target.value } : x) })} placeholder="URL da imagem" className={`${inp} mb-1`} />
+        <div className="mb-1"><ImgUpload value={c.image} onChange={(v) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, image: v } : x) })} /></div>
         <div className="flex items-center gap-1">
           <input value={c.button || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, button: e.target.value } : x) })} placeholder="botão" className="w-24 rounded border border-neutral-300 px-1.5 py-1 text-[11px]" />
           <select value={c.to || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, to: e.target.value || undefined } : x) })} className="flex-1 rounded border border-neutral-300 px-1 py-1 text-[11px]"><option value="">→ padrão</option>{groupOpts.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select>
@@ -346,16 +351,16 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
     <Lbl>URL</Lbl><input value={b.url} onChange={(e) => patch({ url: e.target.value })} placeholder="https://…" className={inp} />
     <Lbl>Título</Lbl><input value={b.title || ""} onChange={(e) => patch({ title: e.target.value })} className={inp} />
     <Lbl>Descrição</Lbl><input value={b.desc || ""} onChange={(e) => patch({ desc: e.target.value })} className={inp} />
-    <Lbl>Imagem de preview (URL)</Lbl><input value={b.image || ""} onChange={(e) => patch({ image: e.target.value })} placeholder="https://…" className={inp} />
+    <Lbl>Imagem de preview</Lbl><ImgUpload value={b.image} onChange={(v) => patch({ image: v })} />
   </>);
   if (b.type === "location") return (<>
     <Lbl>Endereço</Lbl><input value={b.address || ""} onChange={(e) => patch({ address: e.target.value })} placeholder="Av. Paulista, 1000 — São Paulo" className={inp} />
-    <Lbl>Imagem do mapa (URL)</Lbl><input value={b.image || ""} onChange={(e) => patch({ image: e.target.value })} placeholder="https://…" className={inp} />
+    <Lbl>Imagem do mapa</Lbl><ImgUpload value={b.image} onChange={(v) => patch({ image: v })} />
   </>);
   if (b.type === "contact") return (<>
     <Lbl>Nome</Lbl><input value={b.name || ""} onChange={(e) => patch({ name: e.target.value })} className={inp} />
     <Lbl>Telefone</Lbl><input value={b.phone || ""} onChange={(e) => patch({ phone: e.target.value })} placeholder="+55 …" className={inp} />
-    <Lbl>Avatar (URL)</Lbl><input value={b.avatar || ""} onChange={(e) => patch({ avatar: e.target.value })} placeholder="https://…" className={inp} />
+    <Lbl>Avatar</Lbl><ImgUpload value={b.avatar} onChange={(v) => patch({ avatar: v })} />
   </>);
   if (b.type === "input-choice") return (<>
     <Lbl>Salvar na variável (opcional)</Lbl><input value={b.variable || ""} onChange={(e) => patch({ variable: e.target.value })} placeholder="ex: idade" className={inp} />
@@ -401,7 +406,7 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
   return null;
 }
 
-function ImgUpload({ value, onChange, placeholder }: { value?: string; onChange: (v: string) => void; placeholder?: string }) {
+function ImgUpload({ value, onChange, placeholder, accept }: { value?: string; onChange: (v: string) => void; placeholder?: string; accept?: string }) {
   const [busy, setBusy] = useState(false);
   const up = async (f: File) => {
     setBusy(true);
@@ -411,7 +416,7 @@ function ImgUpload({ value, onChange, placeholder }: { value?: string; onChange:
   return (
     <div className="flex items-center gap-2">
       <input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder || "https://… ou faça upload"} className={`${inp} flex-1`} />
-      <label className="shrink-0 cursor-pointer rounded-lg bg-neutral-900 px-3 py-2 text-xs font-bold text-white hover:bg-neutral-700">{busy ? "…" : "⭱ Upload"}<input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) up(f); e.currentTarget.value = ""; }} /></label>
+      <label className="shrink-0 cursor-pointer rounded-lg bg-neutral-900 px-3 py-2 text-xs font-bold text-white hover:bg-neutral-700">{busy ? "…" : "⭱ Upload"}<input type="file" accept={accept || "image/*"} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) up(f); e.currentTarget.value = ""; }} /></label>
     </div>
   );
 }

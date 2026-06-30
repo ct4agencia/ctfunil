@@ -314,7 +314,9 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={avatar} alt="" className="h-11 w-11 rounded-full object-cover" />
                             ) : <span className="grid h-11 w-11 place-items-center rounded-full text-lg" style={{ background: dark ? "#ffffff14" : "#00000010" }}>👤</span>}
-                            <span className="absolute -bottom-0.5 -left-1 grid h-[18px] w-[18px] place-items-center rounded-full text-[9px] text-white" style={{ background: "#25d366" }}>🎤</span>
+                            <span className="absolute -bottom-0.5 -left-1 grid h-[18px] w-[18px] place-items-center rounded-full" style={{ background: "#25d366" }}>
+                              <svg width="10" height="11" viewBox="0 0 24 24" fill="#ffffff"><rect x="9" y="2.5" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0013 0h-2a4.5 4.5 0 01-9 0z" /><rect x="11" y="17.5" width="2" height="3.5" rx="1" /></svg>
+                            </span>
                           </div>
                         </div>
                       ) : m.kind === "call" ? (
