@@ -352,7 +352,18 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           {destOptions}<option value="__url">🔗 Link externo (checkout)</option>
         </select>
         {/^https?:/.test(c.destination || "") ? <input value={c.destination} onChange={(e) => setC({ destination: e.target.value })} placeholder="https://pay.hotmart.com/…" className={`${inp} mt-1`} /> : null}
-        <Lbl>Revelar após (s) — pitch da VSL (0 = já)</Lbl><input type="number" value={c.revealAt ?? 0} onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
+        <div className="mt-3 space-y-1.5 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
+          <p className="text-xs font-bold text-neutral-700">⏱ Liberação (pitch da VSL)</p>
+          <Lbl>Liberar botão após (segundos) — 0 = já visível</Lbl>
+          <input type="number" min={0} value={c.revealAt ?? 0} onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
+          {Number(c.revealAt) > 0 ? (<>
+            <Lbl>Texto enquanto bloqueado</Lbl>
+            <input value={c.waitText || ""} onChange={(e) => setC({ waitText: e.target.value })} placeholder="⏳ Assista o vídeo para liberar o acesso…" className={inp} />
+            <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs text-neutral-600">
+              <input type="checkbox" checked={!!c.countdown} onChange={(e) => setC({ countdown: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" /> Mostrar contagem regressiva (mm:ss)
+            </label>
+          </>) : null}
+        </div>
       </>);
     case "image":
       return (<><Lbl>Imagem</Lbl><ImageField value={c.image?.src || ""} onChange={(v) => setC({ image: { ...(c.image || {}), type: "image", src: v } })} />

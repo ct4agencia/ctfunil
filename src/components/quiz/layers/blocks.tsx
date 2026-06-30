@@ -219,12 +219,19 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 
   // revealAt: botão de checkout só aparece após N segundos (pitch da VSL)
   const revealAt = Number(c.revealAt) || 0;
+  const showCountdown = !!c.countdown;
   const [reveal, setReveal] = useState(revealAt <= 0);
+  const [remaining, setRemaining] = useState(revealAt);
   useEffect(() => {
     if (reveal) return;
     const t = setTimeout(() => setReveal(true), revealAt * 1000);
     return () => clearTimeout(t);
   }, [reveal, revealAt]);
+  useEffect(() => {
+    if (reveal || !showCountdown) return;
+    const iv = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
+    return () => clearInterval(iv);
+  }, [reveal, showCountdown]);
 
   const onClick = () => {
     // checkout externo (ex: botão da VSL): SEMPRE avisa a Meta (InitiateCheckout)
@@ -234,7 +241,10 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   };
 
   if (!reveal) {
-    return <p className="mx-auto w-full text-center text-sm opacity-60">{c.waitText || "⏳ Assista o vídeo para liberar o acesso…"}</p>;
+    const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
+    const ss = String(remaining % 60).padStart(2, "0");
+    const wait = c.waitText || "⏳ Assista o vídeo para liberar o acesso…";
+    return <p className="mx-auto w-full text-center text-sm opacity-60">{wait}{showCountdown ? ` ${mm}:${ss}` : ""}</p>;
   }
   // Efeito de animação configurável (igual a roleta): brilho que varre + pulsar.
   // Pulsa o wrapper (não conflita com o transform do motion); brilho vai no botão.
