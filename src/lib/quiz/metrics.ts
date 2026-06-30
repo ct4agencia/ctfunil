@@ -295,8 +295,12 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
     lastI = Math.max(0, tbGroups.length - 1);
     captureI = ci < 0 ? Math.max(0, lastI - 1) : ci;
   } else {
-    ({ firstQ, captureI, lastI } = stageIndices(steps));
-    totalSteps = steps.length;
+    // o LayersRunner PULA lâminas desativadas no runtime → max_step_reached é o
+    // índice na lista FILTRADA. Calculamos os índices sobre as ATIVAS pra bater
+    // (senão a última etapa/VSL nunca é "alcançada" → conclusões = 0).
+    const enabled = steps.filter((s) => !(s as { disabled?: boolean }).disabled);
+    ({ firstQ, captureI, lastI } = stageIndices(enabled.length ? enabled : steps));
+    totalSteps = enabled.length || steps.length;
   }
 
   let sessions: { max_step_reached: number; created_at: string; last_seen_at: string; utm_source: string | null; utm_campaign: string | null; src: string | null }[] = [];
