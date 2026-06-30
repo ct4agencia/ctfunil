@@ -239,8 +239,12 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
   );
 
   return (
-    <div className={`flex flex-col ${preview ? "h-full" : "min-h-[100dvh]"}`}
+    <div className={`relative flex flex-col overflow-hidden ${preview ? "h-full" : "h-[100dvh]"}`}
       style={{ fontFamily: ({ system: "-apple-system,'Segoe UI',Helvetica,Arial,sans-serif", poppins: "Poppins,system-ui,sans-serif", roboto: "Roboto,system-ui,sans-serif", opensans: "'Open Sans',system-ui,sans-serif" } as Record<string, string>)[(theme.font || "poppins").toLowerCase()] || `${theme.font || "Poppins"},system-ui,sans-serif`, ["--wa-host" as string]: C.host, ["--wa-guest" as string]: C.guest }}>
+      {/* fundo FIXO atrás de tudo (não rola com a conversa) */}
+      <div className="pointer-events-none absolute inset-0" style={theme.chatBgImage
+        ? { zIndex: 0, background: C.bg, backgroundImage: `url("${theme.chatBgImage}")`, backgroundSize: "cover", backgroundPosition: "center" }
+        : { zIndex: 0, background: C.bg, backgroundImage: `url("${doodle}")`, backgroundSize: "94px 94px" }} />
       <style>{`
         .wa-bubble{position:relative;border-radius:10px}
         .wa-host{border-top-left-radius:2px}
@@ -251,7 +255,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
 
       {/* barra de status (só no preview — no celular real existe a de verdade) */}
       {preview && theme.showStatusBar !== false ? (
-        <div className="flex items-center justify-between px-5 pb-0.5 pt-2 text-[12px] font-semibold" style={{ background: chromeBg, color: chromeText }}>
+        <div className="relative z-10 flex shrink-0 items-center justify-between px-5 pb-0.5 pt-2 text-[12px] font-semibold" style={{ background: chromeBg, color: chromeText }}>
           <span>{theme.statusTime || "10:04"}</span>
           <span className="flex items-center gap-1.5">
             <span className="flex items-end gap-[2px]">{[5, 7, 9, 11].map((h, i) => <span key={i} className="w-[2.6px] rounded-sm" style={{ height: h, background: chromeText, opacity: i === 3 ? 0.4 : 1 }} />)}</span>
@@ -269,7 +273,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
 
       {/* header */}
       {!theme.hideHeader ? (
-        <header className="flex items-center gap-2.5 px-2.5 py-2 shadow-sm" style={{ background: chromeBg, color: chromeText }}>
+        <header className="relative z-10 flex shrink-0 items-center gap-2.5 px-2.5 py-2 shadow-sm" style={{ background: chromeBg, color: chromeText }}>
           <span className="text-2xl leading-none" style={{ color: accent }}>‹</span>
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -290,10 +294,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
       ) : null}
 
       {/* conversa */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto"
-        style={theme.chatBgImage
-          ? { background: C.bg, backgroundImage: `url("${theme.chatBgImage}")`, backgroundSize: "cover", backgroundPosition: "center" }
-          : { background: C.bg, backgroundImage: `url("${doodle}")`, backgroundSize: "94px 94px" }}>
+      <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-[680px] flex-col gap-1.5 px-3 py-3">
           {theme.encryptionBanner !== false ? (
             <div className="mx-auto my-1 max-w-[90%] rounded-lg px-3 py-1.5 text-center text-[11.5px] leading-snug shadow-sm" style={{ background: dark ? "#182229" : "#fdf3c4", color: dark ? "#ffd27d" : "#5c5638" }}>
@@ -411,7 +412,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
 
       {/* input (estilo WhatsApp) — sempre na pergunta; rodapé ocioso some se hideFooter */}
       {pending || !theme.hideFooter ? (
-      <div style={{ background: C.inputBar }}>
+      <div className="relative z-10 shrink-0" style={{ background: C.inputBar }}>
         {isChoice && choiceBlock ? (
           <div className="mx-auto w-full max-w-[680px] px-2.5 pt-2.5">
             <div className="flex flex-col gap-2">
