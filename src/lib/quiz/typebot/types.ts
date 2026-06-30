@@ -129,7 +129,7 @@ export const TB_DEFAULT_THEME: TbTheme = {
   bg: "#efeae2",            // bege do WhatsApp
   hostBubbleBg: "#ffffff",  // recebido = branco (esquerda)
   hostBubbleColor: "#111b21",
-  guestBubbleBg: "#d9fdd3", // enviado = verde claro (direita)
+  guestBubbleBg: "#e6ffda", // enviado = verde claro (direita) — medido do WhatsApp real
   guestBubbleColor: "#111b21",
   buttonBg: "#008069",      // verde WhatsApp
   buttonColor: "#ffffff",

@@ -420,7 +420,7 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
         <div className="mt-4 border-t border-neutral-100 pt-3">
           <p className="mb-2 text-sm font-bold text-neutral-700">Celular (estilo WhatsApp)</p>
           <div className="mb-2 flex gap-2">
-            <button onClick={() => set({ dark: false, bg: "#efeae2", hostBubbleBg: "#ffffff", hostBubbleColor: "#111b21", guestBubbleBg: "#d9fdd3", guestBubbleColor: "#111b21", buttonBg: "#008069", buttonColor: "#ffffff" })} className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold hover:bg-neutral-50">☀️ WhatsApp Claro</button>
+            <button onClick={() => set({ dark: false, bg: "#efeae2", hostBubbleBg: "#ffffff", hostBubbleColor: "#111b21", guestBubbleBg: "#e6ffda", guestBubbleColor: "#111b21", buttonBg: "#008069", buttonColor: "#ffffff" })} className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold hover:bg-neutral-50">☀️ WhatsApp Claro</button>
             <button onClick={() => set({ dark: true })} className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold hover:bg-neutral-50">🌙 WhatsApp Escuro</button>
           </div>
           <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Aparelho</span>

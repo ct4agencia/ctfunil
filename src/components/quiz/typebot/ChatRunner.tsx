@@ -212,13 +212,13 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
   const accent = ios && !dark ? "#007aff" : chromeText;
   const C = dark
     ? { bg: "#0b141a", host: "#202c33", hostText: "#e9edef", guest: "#005c4b", guestText: "#e9edef", time: "rgba(233,237,239,.55)", tick: "#53bdeb", inputBar: "#1f2c34", inputBg: "#2a3942", inputText: "#e9edef", doodle: "#16222c", typing: "#8696a0" }
-    : { bg: theme.bg || "#efeae2", host: theme.hostBubbleBg || "#ffffff", hostText: theme.hostBubbleColor || "#111b21", guest: theme.guestBubbleBg || "#d9fdd3", guestText: theme.guestBubbleColor || "#111b21", time: "rgba(0,0,0,.42)", tick: "#34b7f1", inputBar: ios ? "#f7f7f7" : "#f0f2f5", inputBg: "#ffffff", inputText: theme.inputColor || "#111b21", doodle: "#d8d0c2", typing: "#9aa6ac" };
+    : { bg: theme.bg || "#efeae2", host: theme.hostBubbleBg || "#ffffff", hostText: theme.hostBubbleColor || "#111b21", guest: theme.guestBubbleBg || "#e6ffda", guestText: theme.guestBubbleColor || "#111b21", time: "rgba(0,0,0,.45)", tick: "#34b7f1", inputBar: ios ? "#f7f7f7" : "#f0f2f5", inputBg: "#ffffff", inputText: theme.inputColor || "#111b21", doodle: "#d8d0c2", typing: "#9aa6ac" };
   // padrão "doodle" AUTORAL (não é o asset do WhatsApp) — evoca o fundo da conversa
   const doodle = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='112' height='112'><g fill='none' stroke='${C.doodle}' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M20 26c-3-5-11-3-11 2 0 5 11 11 11 11s11-6 11-11c0-5-8-7-11-2z'/><path d='M84 16l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z'/><circle cx='32' cy='84' r='10'/><path d='M27 86c2 2.5 8 2.5 10 0'/><path d='M76 74v18M76 74c6-1 11 1 11 4.5s-5 5.5-11 4.5'/><path d='M100 100c-7-2-14 2-14 9 0 0 9 1 14-3 3-3 3-8 0-6z'/></g></svg>`)}`;
   const battery = Math.max(0, Math.min(100, theme.battery ?? 80));
 
   const Time = ({ m }: { m: FeedItem }) => (
-    <span className="ml-1.5 inline-flex translate-y-0.5 items-center gap-0.5 text-[10.5px] leading-none" style={{ color: C.time }}>
+    <span className="ml-1.5 inline-flex translate-y-0.5 items-center gap-0.5 text-[11.5px] leading-none" style={{ color: C.time }}>
       {m.time}{m.side === "guest" ? <span style={{ color: C.tick }}>✓✓</span> : null}
     </span>
   );
@@ -227,7 +227,7 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
     <div className={`flex flex-col ${preview ? "h-full" : "min-h-[100dvh]"}`}
       style={{ fontFamily: `${theme.font || "Poppins"}, system-ui, sans-serif`, ["--wa-host" as string]: C.host, ["--wa-guest" as string]: C.guest }}>
       <style>{`
-        .wa-bubble{position:relative;border-radius:9px}
+        .wa-bubble{position:relative;border-radius:10px}
         .wa-host{border-top-left-radius:2px}
         .wa-guest{border-top-right-radius:2px}
         .wa-host::before{content:"";position:absolute;top:0;left:-7px;border-style:solid;border-width:0 8px 7px 0;border-color:transparent var(--wa-host) transparent transparent}
@@ -285,8 +285,8 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
             const guest = m.side === "guest";
             return (
               <div key={m.id} className={`flex ${guest ? "justify-end" : "justify-start"}`}>
-                <div className={`wa-bubble ${guest ? "wa-guest" : "wa-host"} max-w-[82%] px-2 py-[5px] text-[14.5px] leading-snug`}
-                  style={{ background: guest ? C.guest : C.host, color: guest ? C.guestText : C.hostText, boxShadow: "0 1px 0.5px rgba(0,0,0,.13)" }}>
+                <div className={`wa-bubble ${guest ? "wa-guest" : "wa-host"} max-w-[82%] px-[7px] py-[5px] text-[15px] leading-snug`}
+                  style={{ background: guest ? C.guest : C.host, color: guest ? C.guestText : C.hostText, boxShadow: "0 1px 1px rgba(0,0,0,.13)" }}>
                   {m.kind === "text" ? (
                     <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /><Time m={m} /></div>
                   ) : m.kind === "image" ? (<div className="px-0.5">
