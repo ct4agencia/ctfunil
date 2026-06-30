@@ -472,6 +472,7 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
         </Card>
 
         <Card title="🔋 Barra de status">
+          <Toggle label="Mostrar barra de status" on={t.showStatusBar !== false} onChange={(v) => set({ showStatusBar: v })} />
           <div className="grid grid-cols-3 gap-2">
             <div><Lbl>Hora</Lbl><input value={t.statusTime || ""} onChange={(e) => set({ statusTime: e.target.value })} placeholder="10:04" className={inp} /></div>
             <div><Lbl>Rede</Lbl><input value={t.network || ""} onChange={(e) => set({ network: e.target.value })} placeholder="5G" className={inp} /></div>

@@ -112,6 +112,8 @@ export interface TbTheme {
   headerSilent?: boolean;
   /** relógio das mensagens em 12h (AM/PM) em vez de 24h */
   clock12h?: boolean;
+  /** mostra a barra de status (relógio/sinal/bateria) no preview */
+  showStatusBar?: boolean;
 }
 
 export interface TbFunnel {

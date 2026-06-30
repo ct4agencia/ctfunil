@@ -250,7 +250,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
       `}</style>
 
       {/* barra de status (só no preview — no celular real existe a de verdade) */}
-      {preview ? (
+      {preview && theme.showStatusBar !== false ? (
         <div className="flex items-center justify-between px-5 pb-0.5 pt-2 text-[12px] font-semibold" style={{ background: chromeBg, color: chromeText }}>
           <span>{theme.statusTime || "10:04"}</span>
           <span className="flex items-center gap-1.5">
