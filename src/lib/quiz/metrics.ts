@@ -255,7 +255,24 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
   const funnel = await resolveFunnel(slug);
   if (!funnel) return empty;
   const steps = funnel.steps;
-  const { firstQ, captureI, lastI } = stageIndices(steps);
+  // typebot: os índices vivem nos GRUPOS (steps fica vazio nesse motor). max_step_reached
+  // é o índice do grupo, então firstQ/lastI/captureI têm que ser em termos de grupo.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tbGroups: any[] | null = funnel.settings?.engine === "typebot" && Array.isArray((funnel.settings as any)?.typebot?.groups) ? (funnel.settings as any).typebot.groups : null;
+  let firstQ: number, captureI: number, lastI: number, totalSteps: number;
+  if (tbGroups) {
+    totalSteps = tbGroups.length;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const qi = tbGroups.findIndex((g: any) => Array.isArray(g?.blocks) && g.blocks.some((b: any) => typeof b?.type === "string" && b.type.startsWith("input-")));
+    firstQ = qi < 0 ? 1 : qi;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ci = tbGroups.findIndex((g: any) => Array.isArray(g?.blocks) && g.blocks.some((b: any) => b?.type === "input-phone"));
+    lastI = Math.max(0, tbGroups.length - 1);
+    captureI = ci < 0 ? Math.max(0, lastI - 1) : ci;
+  } else {
+    ({ firstQ, captureI, lastI } = stageIndices(steps));
+    totalSteps = steps.length;
+  }
 
   let sessions: { max_step_reached: number; created_at: string; last_seen_at: string; utm_source: string | null; utm_campaign: string | null; src: string | null }[] = [];
   try {
@@ -345,7 +362,7 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
   const melhorOrigem = Array.from(origMap.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
 
   return {
-    found: true, name: funnel.name, totalSteps: steps.length,
+    found: true, name: funnel.name, totalSteps,
     visitantes, respostas, leads, conclusoes,
     taxaConclusao, taxaInteracao, taxaRejeicao, mediaEtapas, tempoMedioSeg, score,
     funil, trafego, totalRastreado: rastreado, melhorOrigem, campanhas,
