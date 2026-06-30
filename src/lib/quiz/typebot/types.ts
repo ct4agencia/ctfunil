@@ -65,6 +65,10 @@ export interface TbTheme {
   /** mostra o avatar do bot ao lado das bolhas */
   showAvatar?: boolean;
   font?: string;
+  /** nome do contato no topo (estilo WhatsApp) */
+  botName?: string;
+  /** cor da barra de topo (WhatsApp) */
+  headerColor?: string;
 }
 
 export interface TbFunnel {
@@ -91,15 +95,16 @@ export const TB_BLOCK_LABEL: Record<string, string> = {
 };
 
 export const TB_DEFAULT_THEME: TbTheme = {
-  bg: "#ffffff",
-  hostBubbleBg: "#f1f1f3",
-  hostBubbleColor: "#111111",
-  guestBubbleBg: "#ea580c",
-  guestBubbleColor: "#ffffff",
-  buttonBg: "#ea580c",
+  bg: "#efeae2",            // bege do WhatsApp
+  hostBubbleBg: "#ffffff",  // recebido = branco (esquerda)
+  hostBubbleColor: "#111b21",
+  guestBubbleBg: "#d9fdd3", // enviado = verde claro (direita)
+  guestBubbleColor: "#111b21",
+  buttonBg: "#008069",      // verde WhatsApp
   buttonColor: "#ffffff",
   inputBg: "#ffffff",
-  inputColor: "#111111",
+  inputColor: "#111b21",
   showAvatar: true,
   font: "Poppins",
+  headerColor: "#075e54",   // barra de topo WhatsApp
 };

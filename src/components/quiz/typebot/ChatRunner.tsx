@@ -7,12 +7,15 @@ import { isBubble, isInput, TB_DEFAULT_THEME } from "@/lib/quiz/typebot/types";
 import { getSessionId, collectTrackingParams, fireMetaEvent } from "@/lib/tracking";
 import { trackAnswer, trackStep } from "@/lib/quiz/track";
 
+type FeedBase = { id: string; time?: string };
 type FeedItem =
-  | { id: string; side: "host" | "guest"; kind: "text"; html: string }
-  | { id: string; side: "host"; kind: "image"; url: string }
-  | { id: string; side: "host"; kind: "audio"; url: string }
-  | { id: string; side: "host"; kind: "video"; url: string }
-  | { id: string; side: "host"; kind: "embed"; html: string };
+  | (FeedBase & { side: "host" | "guest"; kind: "text"; html: string })
+  | (FeedBase & { side: "host"; kind: "image"; url: string })
+  | (FeedBase & { side: "host"; kind: "audio"; url: string })
+  | (FeedBase & { side: "host"; kind: "video"; url: string })
+  | (FeedBase & { side: "host"; kind: "embed"; html: string });
+
+const nowHM = () => { const d = new Date(); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
 /** Runtime do funil typebot: reproduz a conversa (bolhas progressivas + digitação),
  *  coleta inputs, interpola {variavel}, ramifica e captura o lead. */
@@ -41,7 +44,7 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
   const toHtml = (s: string) =>
     interp(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
-  const push = (it: Record<string, unknown>) => setFeed((f) => [...f, { ...it, id: `f${++fid.current}` } as FeedItem]);
+  const push = (it: Record<string, unknown>) => setFeed((f) => [...f, { ...it, id: `f${++fid.current}`, time: nowHM() } as FeedItem]);
   const typeDelay = (s: string) => {
     if (!theme || !tb?.typing?.enabled) return 0;
     const cps = tb.typing.speed || 28;
@@ -161,44 +164,69 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
 
   if (!tb || !tb.groups?.length) return <div className="grid min-h-[100dvh] place-items-center text-neutral-400">Funil typebot vazio.</div>;
 
-  const avatar = theme.showAvatar && theme.avatarUrl ? theme.avatarUrl : null;
+  const avatar = theme.avatarUrl || null;
+  const headerColor = theme.headerColor || "#075e54";
+  const botName = theme.botName || funnel.name || "Chat";
   const isChoice = pending?.block.type === "input-choice";
   const inputType = pending?.block.type === "input-number" ? "number"
     : pending?.block.type === "input-email" ? "email" : pending?.block.type === "input-phone" ? "tel" : "text";
+  const choiceBlock = pending?.block.type === "input-choice" ? (pending.block as Extract<TbInput, { type: "input-choice" }>) : null;
+
+  const Time = ({ m }: { m: FeedItem }) => (
+    <span className="ml-2 inline-flex translate-y-0.5 items-center gap-0.5 text-[10px]" style={{ opacity: 0.5 }}>{m.time}{m.side === "guest" ? " ✓✓" : ""}</span>
+  );
 
   return (
-    <div className={`flex flex-col ${preview ? "h-full" : "min-h-[100dvh]"}`} style={{ background: theme.bg, fontFamily: `${theme.font || "Poppins"}, system-ui, sans-serif` }}>
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-[680px] flex-col gap-2.5 px-3 py-5">
+    <div className={`flex flex-col ${preview ? "h-full" : "min-h-[100dvh]"}`}
+      style={{ fontFamily: `${theme.font || "Poppins"}, system-ui, sans-serif`, ["--wa-host" as string]: theme.hostBubbleBg, ["--wa-guest" as string]: theme.guestBubbleBg }}>
+      <style>{`
+        .wa-bubble{position:relative;border-radius:8px}
+        .wa-host{border-top-left-radius:2px}
+        .wa-guest{border-top-right-radius:2px}
+        .wa-host::before{content:"";position:absolute;top:0;left:-8px;border-style:solid;border-width:0 8px 8px 0;border-color:transparent var(--wa-host) transparent transparent}
+        .wa-guest::before{content:"";position:absolute;top:0;right:-8px;border-style:solid;border-width:0 0 8px 8px;border-color:transparent transparent transparent var(--wa-guest)}
+      `}</style>
+
+      {/* topo estilo WhatsApp */}
+      <header className="flex items-center gap-3 px-3 py-2 text-white shadow-md" style={{ background: headerColor }}>
+        <span className="text-xl leading-none opacity-90">‹</span>
+        {avatar ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
+        ) : <span className="grid h-9 w-9 place-items-center rounded-full bg-white/20 text-sm">👤</span>}
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[15px] font-semibold leading-tight">{botName}</div>
+          <div className="text-[11px] leading-tight opacity-80">{typing ? "digitando…" : "online"}</div>
+        </div>
+        <span className="text-lg opacity-90">📹</span>
+        <span className="text-base opacity-90">📞</span>
+      </header>
+
+      {/* área da conversa (fundo WhatsApp) */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto"
+        style={{ background: theme.bg, backgroundImage: "radial-gradient(rgba(0,0,0,0.035) 1.1px, transparent 1.1px)", backgroundSize: "18px 18px" }}>
+        <div className="mx-auto flex w-full max-w-[680px] flex-col gap-1.5 px-3 py-4">
           {feed.map((m) => (
-            <div key={m.id} className={`flex items-end gap-2 ${m.side === "guest" ? "flex-row-reverse" : ""}`}>
-              {m.side === "host" && avatar ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatar} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
-              ) : m.side === "host" ? <span className="w-7 shrink-0" /> : null}
-              <div className="max-w-[80%] overflow-hidden rounded-2xl px-3.5 py-2.5 text-[15px] leading-snug shadow-sm"
-                style={m.side === "guest"
-                  ? { background: theme.guestBubbleBg, color: theme.guestBubbleColor, borderBottomRightRadius: 4 }
-                  : { background: theme.hostBubbleBg, color: theme.hostBubbleColor, borderBottomLeftRadius: 4 }}>
-                {m.kind === "text" ? <span dangerouslySetInnerHTML={{ __html: m.html }} />
-                  : m.kind === "image" ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={m.url} alt="" className="-mx-3.5 -my-2.5 block w-[min(280px,70vw)] object-cover" />
-                  ) : m.kind === "audio" ? <audio controls src={m.url} className="w-[230px]" />
-                    : m.kind === "video" ? <video controls src={m.url} className="w-[min(280px,70vw)] rounded-lg" />
-                      : <span dangerouslySetInnerHTML={{ __html: m.html }} />}
+            <div key={m.id} className={`flex ${m.side === "guest" ? "justify-end" : "justify-start"}`}>
+              <div className={`wa-bubble ${m.side === "guest" ? "wa-guest" : "wa-host"} max-w-[80%] px-2 py-1.5 text-[14.5px] leading-snug shadow-sm`}
+                style={{ background: m.side === "guest" ? theme.guestBubbleBg : theme.hostBubbleBg, color: m.side === "guest" ? theme.guestBubbleColor : theme.hostBubbleColor }}>
+                {m.kind === "text" ? (
+                  <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /><Time m={m} /></div>
+                ) : m.kind === "image" ? (<>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={m.url} alt="" className="block w-[min(260px,68vw)] rounded-md object-cover" />
+                  <div className="mt-0.5 text-right"><Time m={m} /></div>
+                </>) : m.kind === "audio" ? (<div className="px-0.5"><audio controls src={m.url} className="h-9 w-[230px]" /><div className="text-right"><Time m={m} /></div></div>)
+                  : m.kind === "video" ? (<><video controls src={m.url} className="w-[min(260px,68vw)] rounded-md" /><div className="mt-0.5 text-right"><Time m={m} /></div></>)
+                    : <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /></div>}
               </div>
             </div>
           ))}
           {typing ? (
-            <div className="flex items-end gap-2">
-              {avatar ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatar} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
-              ) : <span className="w-7 shrink-0" />}
-              <div className="flex gap-1 rounded-2xl px-4 py-3" style={{ background: theme.hostBubbleBg, borderBottomLeftRadius: 4 }}>
+            <div className="flex justify-start">
+              <div className="wa-bubble wa-host flex gap-1 px-3.5 py-3 shadow-sm" style={{ background: theme.hostBubbleBg }}>
                 {[0, 1, 2].map((i) => (
-                  <span key={i} className="h-2 w-2 animate-bounce rounded-full" style={{ background: theme.hostBubbleColor, opacity: 0.45, animationDelay: `${i * 0.15}s` }} />
+                  <span key={i} className="h-2 w-2 animate-bounce rounded-full" style={{ background: "#667781", opacity: 0.6, animationDelay: `${i * 0.15}s` }} />
                 ))}
               </div>
             </div>
@@ -206,39 +234,36 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
         </div>
       </div>
 
-      {/* área de input */}
+      {/* barra de input */}
       {pending ? (
-        <div className="border-t" style={{ borderColor: "#0000000f", background: theme.bg }}>
-          <div className="mx-auto w-full max-w-[680px] px-3 py-3">
-            {isChoice ? (
+        <div style={{ background: "#f0f2f5" }}>
+          <div className="mx-auto w-full max-w-[680px] px-2.5 py-2.5">
+            {isChoice && choiceBlock ? (
               <div className="flex flex-col gap-2">
-                {(pending.block as Extract<TbInput, { type: "input-choice" }>).items.map((it) => {
+                {choiceBlock.items.map((it) => {
                   const sel = multiSel.includes(it.id);
-                  const multiple = (pending.block as Extract<TbInput, { type: "input-choice" }>).multiple;
                   return (
                     <button key={it.id}
-                      onClick={() => multiple ? setMultiSel((s) => sel ? s.filter((x) => x !== it.id) : [...s, it.id]) : submit(it.label, it)}
-                      className="rounded-xl px-4 py-3 text-[15px] font-semibold transition active:scale-[0.99]"
-                      style={{ background: sel ? theme.buttonBg : "transparent", color: sel ? theme.buttonColor : theme.buttonBg, border: `2px solid ${theme.buttonBg}` }}>
+                      onClick={() => choiceBlock.multiple ? setMultiSel((s) => sel ? s.filter((x) => x !== it.id) : [...s, it.id]) : submit(it.label, it)}
+                      className="rounded-full px-4 py-2.5 text-[14.5px] font-semibold shadow-sm transition active:scale-[0.99]"
+                      style={{ background: sel ? theme.buttonBg : "#ffffff", color: sel ? theme.buttonColor : theme.buttonBg, border: `1.5px solid ${theme.buttonBg}` }}>
                       {it.label}
                     </button>
                   );
                 })}
-                {(pending.block as Extract<TbInput, { type: "input-choice" }>).multiple ? (
-                  <button onClick={() => { const items = (pending.block as Extract<TbInput, { type: "input-choice" }>).items.filter((x) => multiSel.includes(x.id)); submit(items.map((x) => x.label).join(", "), items[0]); }}
-                    className="mt-1 rounded-xl px-4 py-3 font-bold" style={{ background: theme.buttonBg, color: theme.buttonColor }}>Enviar</button>
+                {choiceBlock.multiple ? (
+                  <button onClick={() => { const items = choiceBlock.items.filter((x) => multiSel.includes(x.id)); submit(items.map((x) => x.label).join(", "), items[0]); }}
+                    className="mt-1 rounded-full px-4 py-2.5 font-bold" style={{ background: theme.buttonBg, color: theme.buttonColor }}>Enviar</button>
                 ) : null}
               </div>
             ) : (
               <form onSubmit={(e) => { e.preventDefault(); submit(textVal); }} className="flex items-center gap-2">
                 <input autoFocus value={textVal} onChange={(e) => setTextVal(e.target.value)} type={inputType}
                   inputMode={inputType === "tel" ? "tel" : inputType === "number" ? "numeric" : "text"}
-                  placeholder={pending.block.type !== "input-choice" ? (pending.block.placeholder || "Digite aqui…") : ""}
-                  className="flex-1 rounded-xl border px-4 py-3 text-[15px] outline-none"
-                  style={{ background: theme.inputBg, color: theme.inputColor, borderColor: "#0000001f" }} />
-                <button type="submit" className="rounded-xl px-5 py-3 font-bold" style={{ background: theme.buttonBg, color: theme.buttonColor }}>
-                  {pending.block.type !== "input-choice" ? (pending.block.button || "Enviar") : "Enviar"}
-                </button>
+                  placeholder={pending.block.type !== "input-choice" ? (pending.block.placeholder || "Digite uma mensagem…") : ""}
+                  className="flex-1 rounded-full border-0 bg-white px-4 py-2.5 text-[15px] shadow-sm outline-none"
+                  style={{ color: theme.inputColor }} />
+                <button type="submit" aria-label="Enviar" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-white shadow-sm" style={{ background: theme.buttonBg }}>➤</button>
               </form>
             )}
           </div>

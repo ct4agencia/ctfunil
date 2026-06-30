@@ -6,6 +6,8 @@ import type { TbBlock, TbFunnel, TbGroup } from "@/lib/quiz/typebot/types";
 import { TB_BLOCK_LABEL, TB_DEFAULT_THEME, isInput } from "@/lib/quiz/typebot/types";
 import ChatRunner from "@/components/quiz/typebot/ChatRunner";
 import { LeadsTab } from "@/components/builder/LayersBuilder";
+import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
+import TypebotFlow from "@/components/builder/TypebotFlow";
 import { saveFunnelAction } from "@/app/builder/[slug]/actions";
 
 function genId() {
@@ -53,11 +55,12 @@ export default function TypebotBuilder({ initial }: { initial: Funnel }) {
   const groups = tb.groups || [];
   const [selG, setSelG] = useState(0);
   const [selB, setSelB] = useState<string | null>(null);
-  const [tab, setTab] = useState<"chat" | "tema" | "leads">("chat");
+  const [tab, setTab] = useState<"chat" | "fluxo" | "tema" | "leads">("chat");
   const [addOpen, setAddOpen] = useState(false);
   const [nonce, setNonce] = useState(0);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   const group = groups[selG];
   const block = group?.blocks.find((b) => b.id === selB) || null;
@@ -90,21 +93,22 @@ export default function TypebotBuilder({ initial }: { initial: Funnel }) {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-neutral-50">
+    <div className="flex h-[100dvh] flex-col bg-neutral-50 text-neutral-900">
       {/* HEADER */}
       <header className="flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-2.5">
         <div className="flex items-center gap-3">
           <span className="rounded bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-700">TYPEBOT</span>
-          <input value={funnel.name} onChange={(e) => setFunnel((f) => ({ ...f, name: e.target.value }))} className="w-64 rounded border border-transparent px-1 py-0.5 text-sm font-bold hover:border-neutral-200" />
-          <span className="text-xs text-neutral-400">/{funnel.slug}</span>
+          <input value={funnel.name} onChange={(e) => setFunnel((f) => ({ ...f, name: e.target.value }))} className="w-64 rounded border border-transparent px-1 py-0.5 text-sm font-bold text-neutral-900 hover:border-neutral-200" />
+          <span className="text-xs text-neutral-500">/{funnel.slug}</span>
         </div>
         <nav className="flex gap-1 rounded-lg bg-neutral-100 p-1">
-          {([["chat", "💬 Construtor"], ["tema", "🎨 Tema"], ["leads", "👥 Leads"]] as const).map(([k, l]) => (
-            <button key={k} onClick={() => setTab(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold ${tab === k ? "bg-white shadow-sm" : "text-neutral-500"}`}>{l}</button>
+          {([["chat", "💬 Construtor"], ["fluxo", "🔀 Fluxo"], ["tema", "🎨 Tema"], ["leads", "👥 Leads"]] as const).map(([k, l]) => (
+            <button key={k} onClick={() => setTab(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold ${tab === k ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500"}`}>{l}</button>
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          {msg ? <span className="text-xs font-semibold text-neutral-500">{msg}</span> : null}
+          {msg ? <span className="text-xs font-semibold text-neutral-600">{msg}</span> : null}
+          <button onClick={() => setShowSettings(true)} title="Configurações do funil (pixel, checkout, domínio, webhooks)" className="rounded-lg border border-neutral-300 px-2.5 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⚙</button>
           <button onClick={save} disabled={saving} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700">{saving ? "Salvando…" : "Salvar"}</button>
           <a href={`/${funnel.slug}`} target="_blank" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white">Ver ao vivo ↗</a>
         </div>
@@ -112,6 +116,8 @@ export default function TypebotBuilder({ initial }: { initial: Funnel }) {
 
       {tab === "leads" ? (
         <div className="flex-1 overflow-auto p-4"><LeadsTab slug={funnel.slug} /></div>
+      ) : tab === "fluxo" ? (
+        <TypebotFlow tb={tb} setGroups={setGroups} onSelect={(gid) => { const i = groups.findIndex((g) => g.id === gid); if (i >= 0) { setSelG(i); setSelB(null); setTab("chat"); } }} />
       ) : tab === "tema" ? (
         <ThemeTab tb={tb} setTb={setTb} />
       ) : (
@@ -200,6 +206,10 @@ export default function TypebotBuilder({ initial }: { initial: Funnel }) {
           </div>
         </div>
       )}
+
+      {showSettings ? (
+        <FunnelSettingsPanel funnel={funnel} onPatch={(patch) => setFunnel((f) => ({ ...f, ...patch }))} onClose={() => setShowSettings(false)} />
+      ) : null}
     </div>
   );
 }
@@ -291,8 +301,9 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
         <Color label="Bolha do lead — texto" k="guestBubbleColor" />
         <Color label="Botões — fundo" k="buttonBg" />
         <Color label="Botões — texto" k="buttonColor" />
-        <div className="flex items-center justify-between border-b border-neutral-100 py-2 text-sm"><span className="text-neutral-600">Mostrar avatar do bot</span>
-          <input type="checkbox" checked={!!t.showAvatar} onChange={(e) => set({ showAvatar: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></div>
+        <Color label="Barra de topo (WhatsApp)" k="headerColor" />
+        <Lbl>Nome do contato (topo)</Lbl>
+        <input value={t.botName || ""} onChange={(e) => set({ botName: e.target.value })} placeholder="ex: Sônia 🧡" className={inp} />
         <Lbl>Avatar do bot (URL)</Lbl>
         <input value={t.avatarUrl || ""} onChange={(e) => set({ avatarUrl: e.target.value })} placeholder="https://…" className={inp} />
         <div className="mt-4 border-t border-neutral-100 pt-3">

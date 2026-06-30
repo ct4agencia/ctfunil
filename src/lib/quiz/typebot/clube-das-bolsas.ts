@@ -173,7 +173,7 @@ export function clubeDasBolsasTypebot(): TbFunnel {
     startGroup: "inicio",
     groups,
     variables: ["estado", "nome", "whatsapp", "idade", "filhos", "ocupacao", "situacao", "experiencia", "sonho", "fase", "acompanha", "curso", "apoio", "comprometimento"],
-    theme: { ...TB_DEFAULT_THEME, avatarUrl: CDB_SONIA, guestBubbleBg: "#ea580c", buttonBg: "#ea580c" },
+    theme: { ...TB_DEFAULT_THEME, avatarUrl: CDB_SONIA, botName: "Sônia 🧡" },
     typing: { enabled: true, speed: 28, maxDelay: 1.4 },
   };
 }
