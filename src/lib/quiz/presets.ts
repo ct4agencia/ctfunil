@@ -2,6 +2,7 @@ import type { Funnel, Step } from "./types";
 import { newStep } from "./types";
 import { clubeDasBolsas } from "./funnels/clube-das-bolsas";
 import { clubeDasBolsasTypebot } from "./typebot/clube-das-bolsas";
+import { cdbWhatsappTypebot } from "./typebot/cdb-whatsapp";
 import type { TbFunnel } from "./typebot/types";
 
 // Fotos + logo reais do inlead.digital/cdb01 (mesmo CDN do seed Clube das Bolsas)
@@ -98,6 +99,15 @@ export const PRESETS: Preset[] = [
     engine: "typebot",
     build: () => [],
     buildTypebot: () => clubeDasBolsasTypebot(),
+  },
+  {
+    id: "typebot-cdb-wpp",
+    name: "💬 Typebot — CDB [BOLSAS] WhatsApp",
+    description: "Chat WhatsApp 1:1 do Doc: abertura + áudio → quiz 11 perguntas → resultado 94% → apresentação Sônia (áudio) → captura → VSL",
+    paletteId: "laranja-cdb",
+    engine: "typebot",
+    build: () => [],
+    buildTypebot: () => cdbWhatsappTypebot(),
   },
   {
     id: "blank",
