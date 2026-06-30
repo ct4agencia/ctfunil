@@ -214,7 +214,34 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
 
             {tab === "vendas" && <ComingSoon title="Vendas" desc="Receita, ticket médio e conversão de checkout. Integra com Hotmart/UTMify via webhook de venda." source="webhook de venda / UTMify (próxima etapa)" />}
             {tab === "diagnostico" && <ComingSoon title="Diagnóstico" desc="Perfil agregado dos respondentes (dores, objeções, segmentos) cruzando respostas do quiz com conversão." source="quiz_answers × funnel_leads (próxima etapa)" />}
-            {tab === "criativos" && <ComingSoon title="Criativos" desc="Desempenho por criativo/anúncio (CTR, CPL, ROAS) cruzando utm_content com leads e vendas." source="UTMify (Meta/Google) — MCP já conectado" />}
+            {tab === "criativos" && (data.creatives.length ? (
+              <section className="rounded-2xl border border-neutral-200 bg-white p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-neutral-800">Criativos / anúncios</h2>
+                  <span className="text-xs text-neutral-400">por utm_content · {data.creatives.length}</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-left text-xs text-neutral-400">
+                      <tr><th className="px-3 py-2 font-semibold">Criativo</th><th className="px-3 py-2 font-semibold">Origem</th><th className="px-3 py-2 font-semibold">Campanha</th><th className="px-3 py-2 text-right font-semibold">Cliques</th><th className="px-3 py-2 text-right font-semibold">Leads</th><th className="px-3 py-2 text-right font-semibold">Conversão</th></tr>
+                    </thead>
+                    <tbody>
+                      {data.creatives.map((c, i) => (
+                        <tr key={i} className="border-t border-neutral-100">
+                          <td className="max-w-[260px] truncate px-3 py-2.5 font-medium text-neutral-800" title={c.content}>{c.content}</td>
+                          <td className="px-3 py-2.5 text-neutral-500">{c.source || "—"}</td>
+                          <td className="max-w-[200px] truncate px-3 py-2.5 text-neutral-500" title={c.campaign}>{c.campaign || "—"}</td>
+                          <td className="px-3 py-2.5 text-right text-neutral-600">{c.clicks}</td>
+                          <td className="px-3 py-2.5 text-right font-semibold text-neutral-800">{c.leads}</td>
+                          <td className="px-3 py-2.5 text-right"><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${c.conv >= 10 ? "bg-green-50 text-green-600" : c.conv > 0 ? "bg-amber-50 text-amber-600" : "bg-neutral-100 text-neutral-400"}`}>{c.conv}%</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="mt-3 text-[11px] text-neutral-400">Cliques = sessões · Leads = capturas · Conversão = leads ÷ cliques. Gasto/CPL/ROAS entram ao ligar a UTMify (próxima etapa).</p>
+              </section>
+            ) : <ComingSoon title="Criativos" desc="Ainda sem dados de criativo. Rode tráfego com utm_content nos anúncios pra preencher esta tabela." source="funnel_sessions × funnel_leads" />)}
             {tab === "vsl" && <ComingSoon title="VSL" desc="Retenção do vídeo, play-rate e clique no CTA por segundo, no estilo VTurb." source="eventos da lâmina VSL (próxima etapa)" />}
           </div>
         </div>
