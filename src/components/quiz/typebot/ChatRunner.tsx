@@ -43,6 +43,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
   const [pending, setPending] = useState<{ groupId: string; blockIdx: number; block: TbInput } | null>(null);
   const [typing, setTyping] = useState(false);
   const [textVal, setTextVal] = useState("");
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const [multiSel, setMultiSel] = useState<string[]>([]);
 
   const varsRef = useRef<Record<string, string>>({});
@@ -302,8 +303,8 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                     : m.kind === "video" ? (<div className="px-0.5"><video controls src={m.url} className="w-[min(250px,66vw)] rounded-[6px]" /><div className="text-right"><Time m={m} /></div></div>)
                       : m.kind === "voice" ? (
                         <div data-voice className="flex items-center gap-2.5 py-0.5 pl-0.5 pr-0.5" style={{ minWidth: 230 }}>
-                          <button onClick={(e) => { const a = e.currentTarget.closest("[data-voice]")?.querySelector("audio") as HTMLAudioElement | null; if (a) { if (a.paused) a.play(); else a.pause(); } }} className="grid h-9 w-9 shrink-0 place-items-center text-[18px]" style={{ color: dark ? "#e9edef" : "#54656f" }}>▶</button>
-                          {m.url ? <audio src={m.url} preload="none" /> : null}
+                          <button onClick={(e) => { const a = e.currentTarget.closest("[data-voice]")?.querySelector("audio") as HTMLAudioElement | null; if (a) { if (a.paused) a.play().catch(() => alert("Este navegador não conseguiu tocar o áudio. Use MP3 (o iPhone/Safari não toca .ogg).")); else a.pause(); } }} className="grid h-9 w-9 shrink-0 place-items-center text-[18px]" style={{ color: dark ? "#e9edef" : "#54656f" }}>{playingId === m.id ? "⏸" : "▶"}</button>
+                          {m.url ? <audio src={m.url} preload="none" onPlay={() => setPlayingId(m.id)} onPause={() => setPlayingId((p) => (p === m.id ? null : p))} onEnded={() => setPlayingId((p) => (p === m.id ? null : p))} /> : null}
                           <div className="flex flex-1 flex-col gap-1">
                             <div className="flex items-center gap-[2px]">
                               {[7, 11, 16, 9, 13, 18, 8, 12, 15, 10, 17, 7, 14, 9, 12, 16, 8, 11, 13, 7].map((h, i) => <span key={i} className="w-[2px] rounded-full" style={{ height: h, background: i < 3 ? (dark ? "#e9edef" : "#54656f") : (dark ? "#54656f" : "#c4ccce") }} />)}
