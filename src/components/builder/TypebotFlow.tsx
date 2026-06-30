@@ -23,19 +23,22 @@ export default function TypebotFlow({ tb, setGroups, onSelect }: {
     return m;
   }, [groups]);
   const [pos, setPos] = useState<Record<string, Pt>>(initial);
-  const dragId = useRef<string | null>(null);
+  const moved = useRef(false);
 
   const persist = (p: Record<string, Pt>) => setGroups(groups.map((g) => (p[g.id] ? { ...g, x: p[g.id].x, y: p[g.id].y } : g)));
 
   const startDrag = (id: string) => (e: React.PointerEvent) => {
     e.preventDefault(); e.stopPropagation();
-    dragId.current = id;
+    moved.current = false;
     const o = pos[id] || { x: 80, y: 40 };
     const sx = e.clientX, sy = e.clientY;
     const el = e.currentTarget as HTMLElement;
     el.setPointerCapture(e.pointerId);
-    const move = (ev: PointerEvent) => setPos((p) => ({ ...p, [id]: { x: Math.max(8, o.x + (ev.clientX - sx)), y: Math.max(8, o.y + (ev.clientY - sy)) } }));
-    const up = () => { dragId.current = null; el.releasePointerCapture(e.pointerId); el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); setPos((p) => { persist(p); return p; }); };
+    const move = (ev: PointerEvent) => {
+      if (Math.abs(ev.clientX - sx) > 3 || Math.abs(ev.clientY - sy) > 3) moved.current = true;
+      setPos((p) => ({ ...p, [id]: { x: Math.max(8, o.x + (ev.clientX - sx)), y: Math.max(8, o.y + (ev.clientY - sy)) } }));
+    };
+    const up = () => { el.releasePointerCapture(e.pointerId); el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); setPos((p) => { persist(p); return p; }); };
     el.addEventListener("pointermove", move); el.addEventListener("pointerup", up);
   };
 
@@ -94,7 +97,7 @@ export default function TypebotFlow({ tb, setGroups, onSelect }: {
           const first = g.blocks.find((b) => b.type === "text") as { richText?: string } | undefined;
           const exits = g.blocks.reduce((n, b) => n + (b.type === "input-choice" ? b.items.length : b.type === "condition" ? b.items.length : 0), 0);
           return (
-            <div key={g.id} onPointerDown={startDrag(g.id)} onClick={() => onSelect(g.id)}
+            <div key={g.id} onPointerDown={startDrag(g.id)} onClick={() => { if (moved.current) { moved.current = false; return; } onSelect(g.id); }}
               className="absolute cursor-grab rounded-xl border border-neutral-300 bg-white p-2.5 shadow-sm active:cursor-grabbing hover:border-violet-400"
               style={{ left: p.x, top: p.y, width: W }}>
               <div className="flex items-center justify-between">
