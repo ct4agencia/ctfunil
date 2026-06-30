@@ -30,6 +30,8 @@ const SYS_TEXT: Record<string, string> = {
 };
 
 const nowHM = () => { const d = new Date(); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
+const WAVE = [7, 11, 16, 9, 13, 18, 8, 12, 15, 10, 17, 7, 14, 9, 12, 16, 8, 11, 13, 7, 15, 9, 13, 17, 8, 12, 10, 14];
+const fmtSec = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
 /** Runtime do funil typebot: reproduz a conversa (bolhas progressivas + digitação),
  *  coleta inputs, interpola {variavel}, ramifica e captura o lead. */
@@ -44,6 +46,8 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
   const [typing, setTyping] = useState(false);
   const [textVal, setTextVal] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [voiceProg, setVoiceProg] = useState(0);
+  const [voiceClock, setVoiceClock] = useState("");
   const [multiSel, setMultiSel] = useState<string[]>([]);
 
   const varsRef = useRef<Record<string, string>>({});
@@ -304,13 +308,22 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                       : m.kind === "voice" ? (
                         <div data-voice className="flex items-center gap-2.5 py-0.5 pl-0.5 pr-0.5" style={{ minWidth: 230 }}>
                           <button onClick={(e) => { const a = e.currentTarget.closest("[data-voice]")?.querySelector("audio") as HTMLAudioElement | null; if (a) { if (a.paused) a.play().catch(() => alert("Este navegador não conseguiu tocar o áudio. Use MP3 (o iPhone/Safari não toca .ogg).")); else a.pause(); } }} className="grid h-9 w-9 shrink-0 place-items-center text-[18px]" style={{ color: dark ? "#e9edef" : "#54656f" }}>{playingId === m.id ? "⏸" : "▶"}</button>
-                          {m.url ? <audio src={m.url} preload="none" onPlay={() => setPlayingId(m.id)} onPause={() => setPlayingId((p) => (p === m.id ? null : p))} onEnded={() => setPlayingId((p) => (p === m.id ? null : p))} /> : null}
-                          <div className="flex flex-1 flex-col gap-1">
-                            <div className="flex items-center gap-[2px]">
-                              {[7, 11, 16, 9, 13, 18, 8, 12, 15, 10, 17, 7, 14, 9, 12, 16, 8, 11, 13, 7].map((h, i) => <span key={i} className="w-[2px] rounded-full" style={{ height: h, background: i < 3 ? (dark ? "#e9edef" : "#54656f") : (dark ? "#54656f" : "#c4ccce") }} />)}
-                            </div>
-                            <div className="flex items-center justify-between"><span className="text-[11px]" style={{ color: C.time }}>{m.duration}</span><Time m={m} /></div>
-                          </div>
+                          {m.url ? <audio src={m.url} preload="none" onPlay={() => setPlayingId(m.id)} onPause={() => setPlayingId((p) => (p === m.id ? null : p))} onEnded={() => { setPlayingId((p) => (p === m.id ? null : p)); setVoiceProg(0); }} onTimeUpdate={(e) => { const a = e.currentTarget; if (playingId === m.id && a.duration) { setVoiceProg(a.currentTime / a.duration); setVoiceClock(fmtSec(a.currentTime)); } }} /> : null}
+                          {(() => {
+                            const prog = playingId === m.id ? voiceProg : 0;
+                            return (
+                              <div className="flex flex-1 flex-col gap-1">
+                                <div className="relative flex items-center gap-[2px]">
+                                  {WAVE.map((h, i) => {
+                                    const played = playingId === m.id && i / (WAVE.length - 1) <= prog;
+                                    return <span key={i} className="w-[2px] rounded-full" style={{ height: h, background: played ? (dark ? "#e9edef" : "#54656f") : (dark ? "#5a6a73" : "#c4ccce") }} />;
+                                  })}
+                                  {playingId === m.id ? <span className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full shadow-sm" style={{ left: `calc(${Math.min(100, prog * 100)}% - 6px)`, background: dark ? "#e9edef" : "#54656f" }} /> : null}
+                                </div>
+                                <div className="flex items-center justify-between"><span className="text-[11px]" style={{ color: C.time }}>{playingId === m.id && voiceClock ? voiceClock : m.duration}</span><Time m={m} /></div>
+                              </div>
+                            );
+                          })()}
                           <div className="relative shrink-0">
                             {avatar ? (
                               // eslint-disable-next-line @next/next/no-img-element
