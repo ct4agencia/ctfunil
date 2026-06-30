@@ -104,8 +104,9 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
       if (b.type === "condition") { const to = matchCond(b.items) ?? g.to; if (to) { gid = to; bi = 0; continue; } return; }
       if (b.type === "redirect") {
         const url = interp(b.url);
-        if (preview) push({ side: "host", kind: "text", html: `→ <em>redirect:</em> ${url}` });
-        else if (b.newTab) window.open(url, "_blank"); else window.location.href = url;
+        if (preview) { push({ side: "host", kind: "text", html: `→ <em>redirect:</em> ${url}` }); return; }
+        fireMetaEvent("InitiateCheckout");
+        if (b.newTab) window.open(url, "_blank"); else window.location.href = url;
         return;
       }
       if (isInput(b)) { setPending({ groupId: gid, blockIdx: bi, block: b }); return; }
