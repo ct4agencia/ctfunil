@@ -21,6 +21,7 @@ const ADD_TYPES: [string, string[]][] = [
   ["WhatsApp", ["date", "voice", "call", "system", "document", "link", "location", "contact"]],
   ["Inputs", ["input-text", "input-number", "input-email", "input-phone", "input-url", "input-date", "input-time", "input-rating", "input-choice", "input-picture", "input-cards", "input-file"]],
   ["Lógica", ["wait", "set-variable", "condition", "redirect"]],
+  ["Página", ["vsl"]],
 ];
 
 function newBlock(type: string): TbBlock {
@@ -55,6 +56,7 @@ function newBlock(type: string): TbBlock {
     case "set-variable": return { id, type: "set-variable", variable: "var", expression: "" };
     case "condition": return { id, type: "condition", items: [{ id: genId(), variable: "var", op: "igual", value: "" }] };
     case "redirect": return { id, type: "redirect", url: "https://", newTab: false };
+    case "vsl": return { id, type: "vsl", title: "Assista o vídeo abaixo e veja como ativar sua Bolsa de Estudos 👇", barText: "⚠️ ATENÇÃO: ESTE VÍDEO SAI DO AR EM BREVE", embedHtml: "", checkoutUrl: "https://", ctaText: "QUERO GARANTIR MINHA VAGA", pitchRevealAt: 8, background: "#ffffff" };
     default: return { id, type: "text", richText: "" };
   }
 }
@@ -66,7 +68,7 @@ const ICON: Record<string, string> = {
   "input-text": "✏️", "input-number": "🔢", "input-email": "📧", "input-phone": "📱", "input-choice": "🔘",
   "input-url": "🌐", "input-date": "📆", "input-time": "🕐", "input-rating": "⭐",
   "input-picture": "🖼️", "input-cards": "🃏", "input-file": "📎",
-  wait: "⏲️", "set-variable": "🧮", condition: "🔀", redirect: "↗️",
+  wait: "⏲️", "set-variable": "🧮", condition: "🔀", redirect: "↗️", vsl: "📺",
 };
 
 export default function TypebotBuilder({ initial }: { initial: Funnel }) {
@@ -256,6 +258,7 @@ function blockPreview(b: TbBlock): string {
   if (b.type === "set-variable") return `{${b.variable}} = ${b.expression.slice(0, 20)}`;
   if (b.type === "condition") return `Condição (${b.items.length})`;
   if (b.type === "redirect") return `Redirect → ${b.url.slice(0, 28)}`;
+  if (b.type === "vsl") return `VSL (página) → ${(b.checkoutUrl || "").slice(0, 22)}`;
   return "Bloco";
 }
 
@@ -406,6 +409,16 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
   if (b.type === "redirect") return (<>
     <Lbl>URL de destino (checkout/VSL)</Lbl><input value={b.url} onChange={(e) => patch({ url: e.target.value })} placeholder="https://…" className={inp} />
     <label className="mt-2 flex items-center gap-2 text-xs text-neutral-600"><input type="checkbox" checked={!!b.newTab} onChange={(e) => patch({ newTab: e.target.checked })} className="h-3.5 w-3.5 accent-neutral-900" /> Abrir em nova aba</label>
+  </>);
+  if (b.type === "vsl") return (<>
+    <p className="mb-2 rounded-lg bg-violet-50 px-2.5 py-2 text-[11px] leading-snug text-violet-700">📺 Repaginação no mesmo domínio: ao chegar neste bloco, o chat é coberto pela página de VSL (banner + player + botão liberado após o pitch).</p>
+    <Lbl>Barra de escassez (topo)</Lbl><input value={b.barText || ""} onChange={(e) => patch({ barText: e.target.value })} placeholder="⚠️ ATENÇÃO: ESTE VÍDEO SAI DO AR EM BREVE" className={inp} />
+    <Lbl>Título (use **negrito** e {`{variavel}`})</Lbl><textarea value={b.title || ""} onChange={(e) => patch({ title: e.target.value })} rows={2} className={inp} />
+    <Lbl>Embed do player (cole o &lt;script&gt;/&lt;div&gt; do VTurb)</Lbl><textarea value={b.embedHtml || ""} onChange={(e) => patch({ embedHtml: e.target.value })} rows={4} placeholder="<vturb-smartplayer …></vturb-smartplayer><script …></script>" className={`${inp} font-mono text-[11px]`} />
+    <Lbl>Liberar botão após (segundos do pitch)</Lbl><input type="number" min={0} value={b.pitchRevealAt ?? 0} onChange={(e) => patch({ pitchRevealAt: Number(e.target.value) || 0 })} className={inp} />
+    <Lbl>Texto do botão</Lbl><input value={b.ctaText || ""} onChange={(e) => patch({ ctaText: e.target.value })} placeholder="QUERO GARANTIR MINHA VAGA" className={inp} />
+    <Lbl>URL do checkout (abre ao clicar no botão)</Lbl><input value={b.checkoutUrl || ""} onChange={(e) => patch({ checkoutUrl: e.target.value })} placeholder="https://…" className={inp} />
+    <Lbl>Fundo da página (CSS — ex: #ffffff)</Lbl><input value={b.background || ""} onChange={(e) => patch({ background: e.target.value })} placeholder="#ffffff" className={inp} />
   </>);
   return null;
 }

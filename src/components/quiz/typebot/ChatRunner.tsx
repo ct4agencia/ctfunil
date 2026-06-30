@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import type { Funnel } from "@/lib/quiz/types";
-import type { TbConditionItem, TbFunnel, TbInput } from "@/lib/quiz/typebot/types";
+import type { TbConditionItem, TbFunnel, TbInput, TbVsl } from "@/lib/quiz/typebot/types";
 import { isBubble, isInput, TB_DEFAULT_THEME } from "@/lib/quiz/typebot/types";
 import { getSessionId, collectTrackingParams, fireMetaEvent } from "@/lib/tracking";
 import { trackAnswer, trackStep } from "@/lib/quiz/track";
@@ -48,6 +49,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [voiceState, setVoiceState] = useState<Record<string, { prog: number; clock: string }>>({});
   const [multiSel, setMultiSel] = useState<string[]>([]);
+  const [vsl, setVsl] = useState<TbVsl | null>(null);
 
   const varsRef = useRef<Record<string, string>>({});
   const lastQRef = useRef<string>("");
@@ -135,6 +137,8 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
         if (b.newTab) window.open(url, "_blank"); else window.location.href = url;
         return;
       }
+      // VSL (página): repaginação no mesmo domínio — cobre o chat com a VSL.
+      if (b.type === "vsl") { setVsl(b); return; }
       if (isInput(b)) { setPending({ groupId: gid, blockIdx: bi, block: b }); return; }
       bi++;
     }
@@ -523,6 +527,89 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
         </div>
       </div>
       ) : null}
+
+      {/* REPAGINAÇÃO: bloco VSL cobre o chat (mesmo domínio) */}
+      {vsl ? <TypebotVsl block={vsl} interp={interp} preview={preview} /> : null}
+    </div>
+  );
+}
+
+/** Injeta o EMBED do player (VTurb/converteai) e RE-EXECUTA os <script> (innerHTML não roda script). */
+function VturbEmbed({ html }: { html: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.innerHTML = html;
+    // re-executa os <script> (innerHTML não roda script) e RASTREIA os que
+    // foram pro <head> pra removê-los no cleanup — o preview do builder remonta
+    // a cada troca de grupo/reiniciar, então sem isso o player vaza/duplica.
+    const injected: HTMLScriptElement[] = [];
+    el.querySelectorAll("script").forEach((old) => {
+      const s = document.createElement("script");
+      for (const a of Array.from(old.attributes)) s.setAttribute(a.name, a.value);
+      if (!old.src) s.textContent = old.textContent;
+      s.async = true;
+      document.head.appendChild(s);
+      injected.push(s);
+      old.remove();
+    });
+    return () => { el.innerHTML = ""; injected.forEach((s) => s.remove()); };
+  }, [html]);
+  return <div ref={ref} className="mx-auto w-full overflow-hidden rounded-2xl shadow-lg" />;
+}
+
+/**
+ * VSL como repaginação: cobre o chat com a página de VSL no MESMO domínio.
+ * Reaproveita a estrutura da lâmina VSL do inlead (banner + player + pitch reveal).
+ */
+function TypebotVsl({ block, interp, preview }: { block: TbVsl; interp: (s: string) => string; preview: boolean }) {
+  const [reveal, setReveal] = useState((block.pitchRevealAt ?? 0) <= 0);
+  useEffect(() => {
+    if (reveal) return;
+    const t = setTimeout(() => setReveal(true), (block.pitchRevealAt ?? 0) * 1000);
+    return () => clearTimeout(t);
+  }, [reveal, block.pitchRevealAt]);
+
+  const openCheckout = () => {
+    if (!preview) fireMetaEvent("InitiateCheckout");
+    const url = interp(block.checkoutUrl || "");
+    if (url) window.open(url, "_blank");
+  };
+  const titleHtml = interp(block.title || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+  return (
+    <div className="absolute inset-0 z-50 overflow-y-auto" style={{ background: block.background || "#ffffff" }}>
+      <div className="mx-auto w-full max-w-md px-5 py-6">
+        {block.barText ? (
+          <div className="mb-4 rounded-xl border-2 px-4 py-2.5 text-center text-[13px] font-extrabold uppercase leading-snug"
+            style={{ borderColor: block.barColor || "#f59e0b", background: block.barBg || "#fff7ed", color: block.barColor || "#9a3412" }}>
+            {interp(block.barText)}
+          </div>
+        ) : null}
+        {block.title ? <h2 className="mb-4 text-center text-lg font-extrabold leading-tight text-neutral-900" dangerouslySetInnerHTML={{ __html: titleHtml }} /> : null}
+        {block.embedHtml ? (
+          <VturbEmbed html={block.embedHtml} />
+        ) : (
+          <div className="grid aspect-[9/16] w-full place-items-center overflow-hidden rounded-2xl bg-neutral-900 text-center text-white/70 shadow-lg">
+            <div>
+              <span className="text-4xl">▶</span>
+              <p className="mt-3 px-6 text-sm">Cole o embed do VTurb no campo “Embed do player” (editor do bloco VSL).</p>
+            </div>
+          </div>
+        )}
+        <AnimatePresence mode="wait">
+          {reveal ? (
+            <motion.button key="cta" onClick={openCheckout}
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              className="mt-6 w-full rounded-full bg-emerald-500 px-6 py-4 text-base font-extrabold uppercase text-white shadow-lg transition active:scale-[0.99]">
+              {block.ctaText || "QUERO GARANTIR MINHA VAGA"}
+            </motion.button>
+          ) : (
+            <motion.p key="wait" exit={{ opacity: 0 }} className="mt-6 text-center text-sm text-neutral-400">⏳ Assista o vídeo para liberar o acesso...</motion.p>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

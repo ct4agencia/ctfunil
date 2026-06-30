@@ -27,6 +27,17 @@ const img = (url: string): TbBlock => ({ id: bid(), type: "image", url });
 const wait = (seconds: number): TbBlock => ({ id: bid(), type: "wait", seconds });
 /** nota de voz — sem URL (o Luca anexa o áudio depois); duration = referência do doc */
 const voice = (duration: string): TbBlock => ({ id: bid(), type: "voice", duration });
+/** VSL (página) — repaginação no mesmo domínio (embed do player anexado depois) */
+const vslBlock = (): TbBlock => ({
+  id: bid(), type: "vsl",
+  barText: "⚠️ ATENÇÃO: ESTE VÍDEO SAI DO AR EM BREVE",
+  title: "Assista o vídeo abaixo e veja como ativar sua Bolsa de Estudos 👇",
+  embedHtml: "",
+  pitchRevealAt: 8,
+  ctaText: "QUERO ATIVAR MINHA BOLSA AGORA",
+  checkoutUrl: CDB_CHECKOUT,
+  background: "#ffffff",
+});
 const inputText = (variable: string, placeholder: string): TbBlock => ({ id: bid(), type: "input-text", variable, placeholder, button: "Enviar" });
 const inputPhone = (variable: string, placeholder: string): TbBlock => ({ id: bid(), type: "input-phone", variable, placeholder, button: "Enviar" });
 const choice = (variable: string | undefined, labels: string[]): TbBlock => ({
@@ -220,13 +231,14 @@ export function cdbWhatsappTypebot(): TbFunnel {
       txt("Se você sair antes, o sistema vai cancelar sua vaga automaticamente."),
     ], "e15", i++),
 
-    // ── ETAPA 15 — CTA Final → checkout
+    // ── ETAPA 15 — CTA Final → repaginação pra VSL (mesmo domínio)
     grp("e15", "ETAPA 15 - CTA Final", [
       choice(undefined, ["QUERO ASSISTIR E ATIVAR MINHA BOLSA"]),
-    ], "checkout", i++),
+    ], "vsl", i++),
 
-    grp("checkout", "Redirect", [
-      { id: bid(), type: "redirect", url: CDB_CHECKOUT, newTab: false },
+    // ── VSL — página da VSL (banner + player VTurb + botão liberado após pitch)
+    grp("vsl", "VSL - Ativar Bolsa", [
+      vslBlock(),
     ], undefined, i++),
   ];
 

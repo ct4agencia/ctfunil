@@ -17,7 +17,7 @@ const ICON: Record<string, string> = {
   date: "📅", call: "📞", system: "🔒", document: "📄", link: "🪧", location: "📍", contact: "👤",
   "input-text": "✏️", "input-number": "🔢", "input-email": "📧", "input-phone": "📱", "input-choice": "🔘",
   "input-url": "🌐", "input-date": "📆", "input-time": "🕐", "input-rating": "⭐", "input-picture": "🖼️", "input-cards": "🃏", "input-file": "📎",
-  wait: "⏲️", "set-variable": "🧮", condition: "🔀", redirect: "↗️",
+  wait: "⏲️", "set-variable": "🧮", condition: "🔀", redirect: "↗️", vsl: "📺",
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,6 +36,7 @@ function preview(b: any): string {
     case "wait": return `Esperar ${b.seconds}s`;
     case "set-variable": return `${b.variable} = ${(b.expression || "").slice(0, 16)}`;
     case "redirect": return `→ ${(b.url || "").slice(0, 22)}`;
+    case "vsl": return "VSL (página)";
     default: return b.type?.startsWith("input-") ? `Resposta → {${b.variable || "?"}}` : b.type || "Bloco";
   }
 }

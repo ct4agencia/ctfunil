@@ -44,12 +44,36 @@ export type TbInput =
   | (Base & { type: "input-cards"; items: TbCardItem[] })
   | (Base & { type: "input-file"; variable?: string; button?: string });
 
-/** Lógica = operações de bastidor (invisíveis ao lead). */
+/** Lógica = operações de bastidor (invisíveis ao lead) + ações terminais. */
 export type TbLogic =
   | (Base & { type: "wait"; seconds: number })
   | (Base & { type: "set-variable"; variable: string; expression: string })
   | (Base & { type: "condition"; items: TbConditionItem[] })
-  | (Base & { type: "redirect"; url: string; newTab?: boolean });
+  | (Base & { type: "redirect"; url: string; newTab?: boolean })
+  /**
+   * VSL (página) — ação terminal que faz uma "repaginação": cobre o chat com
+   * uma página de VSL no MESMO domínio (banner de escassez + player VTurb +
+   * botão de checkout liberado após o pitch). Não sai do domínio.
+   */
+  | (Base & {
+      type: "vsl";
+      /** EMBED COMPLETO do player (cole o <script>+<div> do VTurb/converteai) */
+      embedHtml?: string;
+      title?: string;
+      /** barra/box de escassez no topo ("⚠️ ESTE VÍDEO SAI DO AR EM BREVE") */
+      barText?: string;
+      barBg?: string;
+      barColor?: string;
+      /** segundos até liberar o botão de checkout (pitch) */
+      pitchRevealAt?: number;
+      ctaText?: string;
+      checkoutUrl?: string;
+      /** fundo da página (CSS, ex: "#ffffff" ou gradient) */
+      background?: string;
+    });
+
+/** Bloco VSL (página) — ação terminal de repaginação. */
+export type TbVsl = Extract<TbLogic, { type: "vsl" }>;
 
 export interface TbChoiceItem { id: string; label: string; to?: string; image?: string }
 export interface TbCardItem { id: string; title?: string; desc?: string; image?: string; button?: string; to?: string }
@@ -144,6 +168,7 @@ export const TB_BLOCK_LABEL: Record<string, string> = {
   "input-date": "Data", "input-time": "Hora", "input-url": "Site/URL", "input-rating": "Avaliação",
   "input-picture": "Escolha por imagem", "input-cards": "Cards", "input-file": "Upload de arquivo",
   wait: "Esperar", "set-variable": "Definir variável", condition: "Condição", redirect: "Redirecionar",
+  vsl: "VSL (página)",
 };
 
 export const TB_DEFAULT_THEME: TbTheme = {
