@@ -301,12 +301,21 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                   </div>) : m.kind === "audio" ? (<div className="px-0.5"><audio controls src={m.url} className="h-9 w-[230px]" /><div className="text-right"><Time m={m} /></div></div>)
                     : m.kind === "video" ? (<div className="px-0.5"><video controls src={m.url} className="w-[min(250px,66vw)] rounded-[6px]" /><div className="text-right"><Time m={m} /></div></div>)
                       : m.kind === "voice" ? (
-                        <div className="flex items-center gap-2 px-1 py-0.5" style={{ minWidth: 210 }}>
-                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[15px]" style={{ background: dark ? "#ffffff14" : "#00000010", color: dark ? "#e9edef" : "#54656f" }}>▶</span>
-                          <div className="flex flex-1 items-center gap-[2px]">
-                            {[7, 11, 16, 9, 13, 18, 8, 12, 15, 10, 17, 7, 14, 9, 12, 16, 8, 11, 13, 7].map((h, i) => <span key={i} className="w-[2px] rounded-full" style={{ height: h, background: dark ? "#8696a0" : "#9aa6ac" }} />)}
+                        <div className="flex items-center gap-2.5 py-0.5 pl-0.5 pr-0.5" style={{ minWidth: 230 }}>
+                          <span className="grid h-9 w-9 shrink-0 place-items-center text-[18px]" style={{ color: dark ? "#e9edef" : "#54656f" }}>▶</span>
+                          <div className="flex flex-1 flex-col gap-1">
+                            <div className="flex items-center gap-[2px]">
+                              {[7, 11, 16, 9, 13, 18, 8, 12, 15, 10, 17, 7, 14, 9, 12, 16, 8, 11, 13, 7].map((h, i) => <span key={i} className="w-[2px] rounded-full" style={{ height: h, background: i < 3 ? (dark ? "#e9edef" : "#54656f") : (dark ? "#54656f" : "#c4ccce") }} />)}
+                            </div>
+                            <div className="flex items-center justify-between"><span className="text-[11px]" style={{ color: C.time }}>{m.duration}</span><Time m={m} /></div>
                           </div>
-                          <div className="flex flex-col items-end leading-none"><span className="text-[11px]" style={{ color: C.time }}>{m.duration}</span><Time m={m} /></div>
+                          <div className="relative shrink-0">
+                            {avatar ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={avatar} alt="" className="h-11 w-11 rounded-full object-cover" />
+                            ) : <span className="grid h-11 w-11 place-items-center rounded-full text-lg" style={{ background: dark ? "#ffffff14" : "#00000010" }}>👤</span>}
+                            <span className="absolute -bottom-0.5 -left-1 grid h-[18px] w-[18px] place-items-center rounded-full text-[9px] text-white" style={{ background: "#25d366" }}>🎤</span>
+                          </div>
                         </div>
                       ) : m.kind === "call" ? (
                         <div className="flex items-center gap-2.5 px-1 py-1" style={{ minWidth: 190 }}>
@@ -451,13 +460,19 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
               📎 {(pending?.block as { button?: string })?.button || "Anexar arquivo"}
               <input type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) submit(`📎 ${f.name}`); }} />
             </label>
-          ) : (
-            <>
-              <div className="flex flex-1 items-center rounded-full px-4 py-2.5 text-[15px] shadow-sm" style={{ background: C.inputBg, color: dark ? "#8696a0" : "#8e99a0" }}>Mensagem</div>
-              <span className="text-xl" style={{ color: dark ? "#8696a0" : "#54656f" }}>📷</span>
-              <span className="text-xl" style={{ color: dark ? "#8696a0" : "#54656f" }}>🎤</span>
-            </>
-          )}
+          ) : (() => {
+            const ic = dark ? "#8696a0" : "#54656f";
+            return (
+              <>
+                <div className="flex flex-1 items-center gap-2 rounded-full px-4 py-2 shadow-sm" style={{ background: C.inputBg }}>
+                  <span className="flex-1 text-[15px]" style={{ color: dark ? "#8696a0" : "#8e99a0" }}>Mensagem</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="6" /><path d="M8.5 14.5s1.2 1.5 3.5 1.5 3.5-1.5 3.5-1.5" /><circle cx="9" cy="10" r="0.6" fill={ic} stroke="none" /><circle cx="15" cy="10" r="0.6" fill={ic} stroke="none" /></svg>
+                </div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="1.6"><path d="M3.5 8.5a1.5 1.5 0 011.5-1.5h1.8l1.1-1.6a1 1 0 01.8-.4h4.6a1 1 0 01.8.4l1.1 1.6H19a1.5 1.5 0 011.5 1.5v8A1.5 1.5 0 0119 18H5a1.5 1.5 0 01-1.5-1.5z" /><circle cx="12" cy="12.5" r="3.4" /></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="1.7"><rect x="9" y="2.5" width="6" height="11.5" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0013 0M12 18v3.2M8.5 21.5h7" /></svg>
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>
