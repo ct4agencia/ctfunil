@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Fraunces, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import QuizRunner from "@/components/quiz/QuizRunner";
+import LayersRunner from "@/components/quiz/layers/LayersRunner";
+import ChatRunner from "@/components/quiz/typebot/ChatRunner";
 import PixelScripts from "@/components/vsl/PixelScripts";
 import { resolveFunnel } from "@/lib/quiz/funnels-db";
 import { leadGeo } from "@/lib/quiz/geo";
@@ -70,7 +72,11 @@ export default async function QuizPage({
           hotmartAccountId={funnel.hotmartAccountId ?? null}
         />
       )}
-      <QuizRunner funnel={funnel} preview={isPreview} geo={geo} />
+      {funnel.settings?.engine === "typebot"
+        ? <ChatRunner funnel={funnel} preview={isPreview} />
+        : funnel.settings?.engine === "layers"
+          ? <LayersRunner funnel={funnel} geo={geo} preview={isPreview} />
+          : <QuizRunner funnel={funnel} preview={isPreview} geo={geo} />}
     </div>
   );
 }

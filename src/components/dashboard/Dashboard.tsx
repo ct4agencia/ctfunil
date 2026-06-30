@@ -13,7 +13,9 @@ import Pagination from "@/components/ui/Pagination";
 const PER_PAGE = 6;
 
 function fmtDate(s: string): string {
-  try { return new Date(s).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }); } catch { return ""; }
+  // timeZone fixo: sem isso o server (UTC) e o client (BRT) formatam dias diferentes
+  // perto da meia-noite → hydration mismatch (React #418).
+  try { return new Date(s).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", timeZone: "America/Sao_Paulo" }); } catch { return ""; }
 }
 
 
