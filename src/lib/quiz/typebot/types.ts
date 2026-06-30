@@ -39,7 +39,10 @@ export type TbInput =
   | (Base & { type: "input-date"; variable?: string; placeholder?: string; button?: string })
   | (Base & { type: "input-time"; variable?: string; placeholder?: string; button?: string })
   | (Base & { type: "input-url"; variable?: string; placeholder?: string; button?: string })
-  | (Base & { type: "input-rating"; variable?: string; max?: number; icon?: "star" | "heart" | "number"; button?: string });
+  | (Base & { type: "input-rating"; variable?: string; max?: number; icon?: "star" | "heart" | "number"; button?: string })
+  | (Base & { type: "input-picture"; variable?: string; items: TbChoiceItem[] })
+  | (Base & { type: "input-cards"; items: TbCardItem[] })
+  | (Base & { type: "input-file"; variable?: string; button?: string });
 
 /** Lógica = operações de bastidor (invisíveis ao lead). */
 export type TbLogic =
@@ -48,7 +51,8 @@ export type TbLogic =
   | (Base & { type: "condition"; items: TbConditionItem[] })
   | (Base & { type: "redirect"; url: string; newTab?: boolean });
 
-export interface TbChoiceItem { id: string; label: string; to?: string }
+export interface TbChoiceItem { id: string; label: string; to?: string; image?: string }
+export interface TbCardItem { id: string; title?: string; desc?: string; image?: string; button?: string; to?: string }
 export interface TbConditionItem { id: string; variable: string; op: TbOp; value: string; to?: string }
 
 export type TbBlock = TbBubble | TbInput | TbLogic;
@@ -117,6 +121,7 @@ export const TB_BLOCK_LABEL: Record<string, string> = {
   "input-text": "Texto (resposta)", "input-number": "Número", "input-email": "E-mail",
   "input-phone": "Telefone/WhatsApp", "input-choice": "Botões",
   "input-date": "Data", "input-time": "Hora", "input-url": "Site/URL", "input-rating": "Avaliação",
+  "input-picture": "Escolha por imagem", "input-cards": "Cards", "input-file": "Upload de arquivo",
   wait: "Esperar", "set-variable": "Definir variável", condition: "Condição", redirect: "Redirecionar",
 };
 

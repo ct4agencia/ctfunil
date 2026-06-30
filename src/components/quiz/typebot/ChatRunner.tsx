@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Funnel } from "@/lib/quiz/types";
-import type { TbChoiceItem, TbConditionItem, TbFunnel, TbInput } from "@/lib/quiz/typebot/types";
+import type { TbConditionItem, TbFunnel, TbInput } from "@/lib/quiz/typebot/types";
 import { isBubble, isInput, TB_DEFAULT_THEME } from "@/lib/quiz/typebot/types";
 import { getSessionId, collectTrackingParams, fireMetaEvent } from "@/lib/tracking";
 import { trackAnswer, trackStep } from "@/lib/quiz/track";
@@ -163,17 +163,18 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
     } catch { /* best-effort */ }
   }
 
-  function submit(raw: string, item?: TbChoiceItem) {
+  function submit(raw: string, item?: { label?: string; to?: string }) {
     if (!pending) return;
     const b = pending.block;
     const val = (raw || "").trim();
-    if (b.type !== "input-choice" && !val) return;
+    if (b.type !== "input-choice" && !item && !val) return;
     if (b.type === "input-phone" && val.replace(/\D/g, "").length < 10) { alert("Confere seu WhatsApp com DDD 🙂"); return; }
     if (b.type === "input-number" && val && isNaN(Number(val.replace(",", ".")))) { alert("Digite um número 🙂"); return; }
     if (b.type === "input-email" && val && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) { alert("E-mail inválido 🙂"); return; }
 
     const display = item?.label ?? val;
-    if (b.variable) varsRef.current[b.variable] = b.type === "input-phone" ? val.replace(/\D/g, "") : val;
+    const bVar = (b as { variable?: string }).variable;
+    if (bVar) varsRef.current[bVar] = b.type === "input-phone" ? val.replace(/\D/g, "") : val;
     push({ side: "guest", kind: "text", html: toHtml(display) });
     if (!preview) {
       if (lastQRef.current) trackAnswer(funnel.slug, b.id, lastQRef.current, stripMd(display));
@@ -181,7 +182,7 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
     }
     const np = pending;
     setPending(null); setTextVal(""); setMultiSel([]);
-    if (b.type === "input-choice" && item?.to) runFrom(item.to, 0);
+    if (item?.to) runFrom(item.to, 0);
     else runFrom(np.groupId, np.blockIdx + 1);
   }
 
@@ -191,14 +192,19 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
   const dark = !!theme.dark;
   const avatar = theme.avatarUrl || null;
   const botName = theme.botName || funnel.name || "Chat";
-  const isChoice = pending?.block.type === "input-choice";
-  const isRating = pending?.block.type === "input-rating";
-  const isText = !!pending && !isChoice && !isRating;
   const pt = pending?.block.type;
+  const isChoice = pt === "input-choice";
+  const isRating = pt === "input-rating";
+  const isPicture = pt === "input-picture";
+  const isCards = pt === "input-cards";
+  const isFile = pt === "input-file";
+  const isText = !!pending && !isChoice && !isRating && !isPicture && !isCards && !isFile;
   const inputType = pt === "input-number" ? "number" : pt === "input-email" ? "email" : pt === "input-phone" ? "tel"
     : pt === "input-date" ? "date" : pt === "input-time" ? "time" : pt === "input-url" ? "url" : "text";
-  const choiceBlock = pending?.block.type === "input-choice" ? (pending.block as Extract<TbInput, { type: "input-choice" }>) : null;
-  const ratingBlock = pending?.block.type === "input-rating" ? (pending.block as Extract<TbInput, { type: "input-rating" }>) : null;
+  const choiceBlock = pt === "input-choice" ? (pending!.block as Extract<TbInput, { type: "input-choice" }>) : null;
+  const ratingBlock = pt === "input-rating" ? (pending!.block as Extract<TbInput, { type: "input-rating" }>) : null;
+  const pictureBlock = pt === "input-picture" ? (pending!.block as Extract<TbInput, { type: "input-picture" }>) : null;
+  const cardsBlock = pt === "input-cards" ? (pending!.block as Extract<TbInput, { type: "input-cards" }>) : null;
 
   // paleta efetiva (claro/escuro/android) + cromo do "celular"
   const chromeBg = dark ? "#1f2c34" : ios ? "#f7f7f7" : (theme.headerColor || "#008069");
@@ -391,6 +397,40 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
             </div>
           </div>
         ) : null}
+        {isPicture && pictureBlock ? (
+          <div className="mx-auto w-full max-w-[680px] px-2.5 pt-2.5">
+            <div className="grid grid-cols-2 gap-2">
+              {pictureBlock.items.map((it) => (
+                <button key={it.id} onClick={() => submit(it.label, it)} className="overflow-hidden rounded-xl border bg-white text-left shadow-sm transition active:scale-[0.99]" style={{ borderColor: theme.buttonBg }}>
+                  {it.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={it.image} alt="" className="h-24 w-full object-cover" />
+                  ) : <div className="grid h-24 w-full place-items-center text-2xl" style={{ background: "#00000008" }}>🖼️</div>}
+                  <div className="px-2.5 py-2 text-[13.5px] font-semibold" style={{ color: theme.buttonBg }}>{it.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {isCards && cardsBlock ? (
+          <div className="mx-auto w-full max-w-[680px] px-2.5 pt-2.5">
+            <div className="flex flex-col gap-2">
+              {cardsBlock.items.map((c) => (
+                <div key={c.id} className="overflow-hidden rounded-xl border bg-white shadow-sm" style={{ borderColor: "#0000001a" }}>
+                  {c.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.image} alt="" className="h-32 w-full object-cover" />
+                  ) : null}
+                  <div className="px-3 py-2">
+                    {c.title ? <div className="text-[14px] font-bold text-neutral-900">{c.title}</div> : null}
+                    {c.desc ? <div className="mt-0.5 text-[12.5px] text-neutral-500">{c.desc}</div> : null}
+                    <button onClick={() => submit(c.title || c.button || "Selecionar", c)} className="mt-2 w-full rounded-full px-4 py-2 text-[14px] font-semibold" style={{ background: theme.buttonBg, color: theme.buttonColor }}>{c.button || "Selecionar"}</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
         <div className="mx-auto flex w-full max-w-[680px] items-center gap-2 px-2.5 py-2">
           <span className="text-2xl leading-none" style={{ color: dark ? "#8696a0" : "#54656f" }}>＋</span>
           {isText ? (
@@ -401,6 +441,11 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
                 className="min-w-0 flex-1 rounded-full border-0 px-4 py-2.5 text-[15px] shadow-sm outline-none" style={{ background: C.inputBg, color: C.inputText }} />
               <button type="submit" aria-label="Enviar" className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white" style={{ background: theme.buttonBg }}>➤</button>
             </form>
+          ) : isFile ? (
+            <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[15px] font-semibold shadow-sm" style={{ background: theme.buttonBg, color: theme.buttonColor }}>
+              📎 {(pending?.block as { button?: string })?.button || "Anexar arquivo"}
+              <input type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) submit(`📎 ${f.name}`); }} />
+            </label>
           ) : (
             <>
               <div className="flex flex-1 items-center rounded-full px-4 py-2.5 text-[15px] shadow-sm" style={{ background: C.inputBg, color: dark ? "#8696a0" : "#8e99a0" }}>Mensagem</div>

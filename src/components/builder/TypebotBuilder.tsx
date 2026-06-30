@@ -19,7 +19,7 @@ const Lbl = ({ children }: { children: React.ReactNode }) => <label className="m
 const ADD_TYPES: [string, string[]][] = [
   ["Bolhas", ["text", "image", "audio", "video", "embed"]],
   ["WhatsApp", ["date", "voice", "call", "system", "document", "link", "location", "contact"]],
-  ["Inputs", ["input-text", "input-number", "input-email", "input-phone", "input-url", "input-date", "input-time", "input-rating", "input-choice"]],
+  ["Inputs", ["input-text", "input-number", "input-email", "input-phone", "input-url", "input-date", "input-time", "input-rating", "input-choice", "input-picture", "input-cards", "input-file"]],
   ["Lógica", ["wait", "set-variable", "condition", "redirect"]],
 ];
 
@@ -44,6 +44,9 @@ function newBlock(type: string): TbBlock {
     case "input-date": return { id, type: "input-date", variable: "data", button: "Enviar" };
     case "input-time": return { id, type: "input-time", variable: "hora", button: "Enviar" };
     case "input-rating": return { id, type: "input-rating", variable: "avaliacao", max: 5, icon: "star" };
+    case "input-picture": return { id, type: "input-picture", variable: "escolha", items: [{ id: genId(), label: "Opção 1", image: "" }] };
+    case "input-cards": return { id, type: "input-cards", items: [{ id: genId(), title: "Card 1", desc: "", image: "", button: "Selecionar" }] };
+    case "input-file": return { id, type: "input-file", variable: "arquivo", button: "Anexar arquivo" };
     case "input-number": return { id, type: "input-number", variable: "numero", placeholder: "Digite…", button: "Enviar" };
     case "input-email": return { id, type: "input-email", variable: "email", placeholder: "seu@email.com", button: "Enviar" };
     case "input-phone": return { id, type: "input-phone", variable: "whatsapp", placeholder: "WhatsApp com DDD", button: "Enviar" };
@@ -62,6 +65,7 @@ const ICON: Record<string, string> = {
   document: "📄", link: "🪧", location: "📍", contact: "👤",
   "input-text": "✏️", "input-number": "🔢", "input-email": "📧", "input-phone": "📱", "input-choice": "🔘",
   "input-url": "🌐", "input-date": "📆", "input-time": "🕐", "input-rating": "⭐",
+  "input-picture": "🖼️", "input-cards": "🃏", "input-file": "📎",
   wait: "⏲️", "set-variable": "🧮", condition: "🔀", redirect: "↗️",
 };
 
@@ -244,6 +248,8 @@ function blockPreview(b: TbBlock): string {
   if (b.type === "link") return `Link: ${(b.title || b.url || "").slice(0, 30)}`;
   if (b.type === "location") return `Localização: ${(b.address || "").slice(0, 26)}`;
   if (b.type === "contact") return `Contato: ${b.name || ""}`;
+  if (b.type === "input-picture") return `Escolha por imagem (${b.items.length})`;
+  if (b.type === "input-cards") return `Cards (${b.items.length})`;
   if (b.type === "input-choice") return `Botões: ${b.items.map((i) => i.label).join(" / ").slice(0, 34)}`;
   if (isInput(b)) return `${TB_BLOCK_LABEL[b.type]} → {${b.variable || "?"}}`;
   if (b.type === "wait") return `Esperar ${b.seconds}s`;
@@ -288,6 +294,41 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
     <Lbl>Quantidade</Lbl><input type="number" min={2} max={10} value={b.max ?? 5} onChange={(e) => patch({ max: Number(e.target.value) })} className={inp} />
     <Lbl>Ícone</Lbl>
     <select value={b.icon || "star"} onChange={(e) => patch({ icon: e.target.value })} className={inp}><option value="star">⭐ Estrelas</option><option value="heart">❤️ Corações</option><option value="number">🔢 Números</option></select>
+  </>);
+  if (b.type === "input-file") return (<>
+    <Lbl>Salvar na variável</Lbl><input value={b.variable || ""} onChange={(e) => patch({ variable: e.target.value })} placeholder="ex: arquivo" className={inp} />
+    <Lbl>Texto do botão</Lbl><input value={b.button || ""} onChange={(e) => patch({ button: e.target.value })} className={inp} />
+  </>);
+  if (b.type === "input-picture") return (<>
+    <Lbl>Salvar na variável</Lbl><input value={b.variable || ""} onChange={(e) => patch({ variable: e.target.value })} placeholder="ex: escolha" className={inp} />
+    <Lbl>Opções (imagem + rótulo)</Lbl>
+    {b.items.map((it) => (
+      <div key={it.id} className="mb-2 rounded-lg border border-neutral-200 p-2">
+        <input value={it.label} onChange={(e) => patch({ items: b.items.map((x) => x.id === it.id ? { ...x, label: e.target.value } : x) })} placeholder="rótulo" className={`${inp} mb-1`} />
+        <input value={it.image || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === it.id ? { ...x, image: e.target.value } : x) })} placeholder="URL da imagem" className={`${inp} mb-1`} />
+        <div className="flex items-center gap-1">
+          <select value={it.to || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === it.id ? { ...x, to: e.target.value || undefined } : x) })} className="flex-1 rounded border border-neutral-300 px-1 py-1 text-[11px]"><option value="">→ próximo grupo padrão</option>{groupOpts.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select>
+          <button onClick={() => patch({ items: b.items.filter((x) => x.id !== it.id) })} className="shrink-0 text-red-400">✕</button>
+        </div>
+      </div>
+    ))}
+    <button onClick={() => patch({ items: [...b.items, { id: genId(), label: `Opção ${b.items.length + 1}`, image: "" }] })} className="text-xs font-semibold text-violet-600">+ opção</button>
+  </>);
+  if (b.type === "input-cards") return (<>
+    <Lbl>Cards</Lbl>
+    {b.items.map((c) => (
+      <div key={c.id} className="mb-2 rounded-lg border border-neutral-200 p-2">
+        <input value={c.title || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, title: e.target.value } : x) })} placeholder="título" className={`${inp} mb-1`} />
+        <input value={c.desc || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, desc: e.target.value } : x) })} placeholder="descrição" className={`${inp} mb-1`} />
+        <input value={c.image || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, image: e.target.value } : x) })} placeholder="URL da imagem" className={`${inp} mb-1`} />
+        <div className="flex items-center gap-1">
+          <input value={c.button || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, button: e.target.value } : x) })} placeholder="botão" className="w-24 rounded border border-neutral-300 px-1.5 py-1 text-[11px]" />
+          <select value={c.to || ""} onChange={(e) => patch({ items: b.items.map((x) => x.id === c.id ? { ...x, to: e.target.value || undefined } : x) })} className="flex-1 rounded border border-neutral-300 px-1 py-1 text-[11px]"><option value="">→ padrão</option>{groupOpts.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select>
+          <button onClick={() => patch({ items: b.items.filter((x) => x.id !== c.id) })} className="shrink-0 text-red-400">✕</button>
+        </div>
+      </div>
+    ))}
+    <button onClick={() => patch({ items: [...b.items, { id: genId(), title: `Card ${b.items.length + 1}`, button: "Selecionar" }] })} className="text-xs font-semibold text-violet-600">+ card</button>
   </>);
   if (b.type === "document") return (<>
     <Lbl>Nome do arquivo</Lbl><input value={b.name || ""} onChange={(e) => patch({ name: e.target.value })} placeholder="Apostila.pdf" className={inp} />
