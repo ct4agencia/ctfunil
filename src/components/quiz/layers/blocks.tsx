@@ -194,11 +194,13 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     <div className={`flex w-full ${justifyOf(d)}`}>
       <div className="relative" style={{ width: `${basis}%` }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
+        {/* Segue a PROPORÇÃO NATURAL da imagem (sem forçar aspect-ratio/object-contain,
+            que letterboxava quando im.width/height salvos estavam errados). O slide de
+            largura (basis%) escala proporcional; o alinhamento posiciona (justifyOf). */}
         <img
           src={src} alt="" loading="lazy" decoding="async"
-          width={im?.width || undefined} height={im?.height || undefined}
-          style={{ width: "100%", height: "auto", aspectRatio: im?.width && im?.height ? `${im.width}/${im.height}` : undefined, borderRadius: radius(ctx.design) }}
-          className="block object-contain"
+          style={{ width: "100%", height: "auto", borderRadius: radius(ctx.design) }}
+          className="block"
         />
         {overlays}
       </div>
