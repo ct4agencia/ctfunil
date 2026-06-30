@@ -284,7 +284,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
         <div className="mx-auto flex w-full max-w-[680px] flex-col gap-1.5 px-3 py-3">
           {theme.encryptionBanner !== false ? (
             <div className="mx-auto my-1 max-w-[90%] rounded-lg px-3 py-1.5 text-center text-[11.5px] leading-snug shadow-sm" style={{ background: dark ? "#182229" : "#fdf3c4", color: dark ? "#ffd27d" : "#5c5638" }}>
-              🔒 As mensagens e chamadas são protegidas com criptografia de ponta a ponta.
+              🔒 {theme.encryptionText || "As mensagens e chamadas são protegidas com criptografia de ponta a ponta."}
             </div>
           ) : null}
           {feed.map((m) => {

@@ -457,6 +457,7 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
           <Toggle label="Esconder rodapé (input)" on={!!t.hideFooter} onChange={(v) => set({ hideFooter: v })} />
           <Toggle label="Ícone de silenciado no header" on={!!t.headerSilent} onChange={(v) => set({ headerSilent: v })} />
           <Toggle label="Aviso de criptografia no topo" on={t.encryptionBanner !== false} onChange={(v) => set({ encryptionBanner: v })} />
+          {t.encryptionBanner !== false ? <input value={t.encryptionText || ""} onChange={(e) => set({ encryptionText: e.target.value })} placeholder="Texto do aviso (🔒 já vem na frente)" className={`${inp} mb-1`} /> : null}
           <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-700">Tamanho do texto</span>
             <select value={t.textSize || "default"} onChange={(e) => set({ textSize: e.target.value as "small" | "default" | "large" })} className="rounded border border-neutral-300 px-2 py-1 text-xs">
               <option value="small">Pequeno</option><option value="default">Padrão</option><option value="large">Grande</option>
