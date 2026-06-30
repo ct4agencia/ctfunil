@@ -454,7 +454,14 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
           </div>
           <Toggle label="Modo escuro" on={!!t.dark} onChange={(v) => set({ dark: v })} />
           <Toggle label="Esconder header" on={!!t.hideHeader} onChange={(v) => set({ hideHeader: v })} />
+          <Toggle label="Esconder rodapé (input)" on={!!t.hideFooter} onChange={(v) => set({ hideFooter: v })} />
+          <Toggle label="Ícone de silenciado no header" on={!!t.headerSilent} onChange={(v) => set({ headerSilent: v })} />
           <Toggle label="Aviso de criptografia no topo" on={t.encryptionBanner !== false} onChange={(v) => set({ encryptionBanner: v })} />
+          <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-700">Tamanho do texto</span>
+            <select value={t.textSize || "default"} onChange={(e) => set({ textSize: e.target.value as "small" | "default" | "large" })} className="rounded border border-neutral-300 px-2 py-1 text-xs">
+              <option value="small">Pequeno</option><option value="default">Padrão</option><option value="large">Grande</option>
+            </select>
+          </div>
         </Card>
 
         <Card title="🔋 Barra de status">
@@ -464,6 +471,8 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
             <div><Lbl>Bateria %</Lbl><input type="number" min={0} max={100} value={t.battery ?? 80} onChange={(e) => set({ battery: Number(e.target.value) })} className={inp} /></div>
           </div>
           <Toggle label="Bateria carregando ⚡" on={!!t.charging} onChange={(v) => set({ charging: v })} />
+          <Toggle label="Mostrar % da bateria" on={!!t.showBatteryPct} onChange={(v) => set({ showBatteryPct: v })} />
+          <Toggle label="Dual SIM (2 sinais)" on={!!t.dualSim} onChange={(v) => set({ dualSim: v })} />
           <p className="text-[11px] text-neutral-400">A barra de status aparece só na pré-visualização.</p>
         </Card>
 

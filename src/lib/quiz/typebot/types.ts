@@ -98,6 +98,16 @@ export interface TbTheme {
   encryptionBanner?: boolean;
   /** imagem de fundo do chat (substitui o doodle padrão) — URL do upload do usuário */
   chatBgImage?: string;
+  /** tamanho do texto das bolhas */
+  textSize?: "small" | "default" | "large";
+  /** esconde a barra de input (rodapé) quando não há pergunta ativa */
+  hideFooter?: boolean;
+  /** mostra o número da % de bateria na barra de status */
+  showBatteryPct?: boolean;
+  /** Dual SIM (2 grupos de sinal na barra de status) */
+  dualSim?: boolean;
+  /** ícone de silenciado no header */
+  headerSilent?: boolean;
 }
 
 export interface TbFunnel {

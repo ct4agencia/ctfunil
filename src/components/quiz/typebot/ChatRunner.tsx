@@ -221,6 +221,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
   // padrão "doodle" AUTORAL (não é o asset do WhatsApp) — evoca o fundo da conversa
   const doodle = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='112' height='112'><g fill='none' stroke='${C.doodle}' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M20 26c-3-5-11-3-11 2 0 5 11 11 11 11s11-6 11-11c0-5-8-7-11-2z'/><path d='M84 16l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z'/><circle cx='32' cy='84' r='10'/><path d='M27 86c2 2.5 8 2.5 10 0'/><path d='M76 74v18M76 74c6-1 11 1 11 4.5s-5 5.5-11 4.5'/><path d='M100 100c-7-2-14 2-14 9 0 0 9 1 14-3 3-3 3-8 0-6z'/></g></svg>`)}`;
   const battery = Math.max(0, Math.min(100, theme.battery ?? 80));
+  const bubbleFs = theme.textSize === "small" ? 14 : theme.textSize === "large" ? 16.5 : 15;
 
   const Time = ({ m }: { m: FeedItem }) => (
     <span className="ml-1.5 inline-flex translate-y-0.5 items-center gap-0.5 text-[11.5px] leading-none" style={{ color: C.time }}>
@@ -245,8 +246,10 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
           <span>{theme.statusTime || "10:04"}</span>
           <span className="flex items-center gap-1.5">
             <span className="flex items-end gap-[2px]">{[5, 7, 9, 11].map((h, i) => <span key={i} className="w-[2.6px] rounded-sm" style={{ height: h, background: chromeText, opacity: i === 3 ? 0.4 : 1 }} />)}</span>
+            {theme.dualSim ? <span className="flex items-end gap-[2px]">{[5, 7, 9, 11].map((h, i) => <span key={i} className="w-[2.6px] rounded-sm" style={{ height: h, background: chromeText, opacity: i >= 2 ? 0.4 : 1 }} />)}</span> : null}
             <span className="text-[11px]">{theme.network || "5G"}</span>
             {theme.charging ? <span className="text-[10px] leading-none">⚡</span> : null}
+            {theme.showBatteryPct ? <span className="text-[11px]">{battery}</span> : null}
             <span className="relative inline-block h-[12px] w-[23px] rounded-[3px]" style={{ border: `1px solid ${chromeText}` }}>
               <span className="absolute bottom-[1.5px] left-[1.5px] top-[1.5px] rounded-[1px]" style={{ background: chromeText, width: `calc(${battery}% - 3px)` }} />
               <span className="absolute -right-[3px] top-1/2 h-[5px] w-[2px] -translate-y-1/2 rounded-r" style={{ background: chromeText }} />
@@ -267,6 +270,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
             <div className="truncate text-[15px] font-semibold leading-tight">{botName}</div>
             <div className="truncate text-[11px] leading-tight" style={{ opacity: 0.65 }}>{typing ? "digitando…" : (theme.online || "online")}</div>
           </div>
+          {theme.headerSilent ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d="M9 8a3 3 0 016 0v1.5M18 14v-1a6 6 0 00-.7-2.8M6 9v5l-2 2h12M10 19a2 2 0 004 0M3 3l18 18" /></svg> : null}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.7" strokeLinejoin="round"><rect x="2.5" y="6.5" width="12" height="11" rx="2.5" /><path d="M14.5 10.5l7-3.2v9.4l-7-3.2z" /></svg>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.7" strokeLinejoin="round"><path d="M6.8 10.7a13.5 13.5 0 006.5 6.5l2.1-2.1a1 1 0 011-.25 11 11 0 003.3.53 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.4a1 1 0 011 1 11 11 0 00.53 3.3 1 1 0 01-.25 1z" /></svg>
         </header>
@@ -293,8 +297,8 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
             const guest = m.side === "guest";
             return (
               <div key={m.id} className={`flex ${guest ? "justify-end" : "justify-start"}`}>
-                <div className={`wa-bubble ${guest ? "wa-guest" : "wa-host"} max-w-[82%] px-[7px] py-[5px] text-[15px] leading-snug`}
-                  style={{ background: guest ? C.guest : C.host, color: guest ? C.guestText : C.hostText, boxShadow: "0 1px 1px rgba(0,0,0,.13)" }}>
+                <div className={`wa-bubble ${guest ? "wa-guest" : "wa-host"} max-w-[82%] px-[7px] py-[5px] leading-snug`}
+                  style={{ background: guest ? C.guest : C.host, color: guest ? C.guestText : C.hostText, boxShadow: "0 1px 1px rgba(0,0,0,.13)", fontSize: bubbleFs }}>
                   {m.kind === "text" ? (
                     <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /><Time m={m} />
                       {m.reaction ? <span className="absolute -bottom-2.5 z-10 rounded-full bg-white px-1 py-0.5 text-[12px] leading-none shadow" style={{ [guest ? "left" : "right"]: 8 }}>{m.reaction}</span> : null}
@@ -392,7 +396,8 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
         </div>
       </div>
 
-      {/* input (sempre visível, estilo WhatsApp) */}
+      {/* input (estilo WhatsApp) — sempre na pergunta; rodapé ocioso some se hideFooter */}
+      {pending || !theme.hideFooter ? (
       <div style={{ background: C.inputBar }}>
         {isChoice && choiceBlock ? (
           <div className="mx-auto w-full max-w-[680px] px-2.5 pt-2.5">
@@ -492,6 +497,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
           })()}
         </div>
       </div>
+      ) : null}
     </div>
   );
 }
