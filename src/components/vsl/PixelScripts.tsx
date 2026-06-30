@@ -73,7 +73,8 @@ export default function PixelScripts({
       <link rel="preconnect" href="https://connect.facebook.net" />
       <link rel="preconnect" href="https://scripts.converteai.net" crossOrigin="" />
       <link rel="preconnect" href="https://cdn.converteai.net" crossOrigin="" />
-      <link rel="dns-prefetch" href="https://media.inlead.cloud" />
+      {/* preconnect (não só dns): abre TLS cedo pro CDN das imagens do hero (LCP) */}
+      <link rel="preconnect" href="https://media.inlead.cloud" />
       {inline.map((code, i) => (
         // eslint-disable-next-line @next/next/no-before-interactive-script-outside-document
         <script key={i} dangerouslySetInnerHTML={{ __html: code }} />

@@ -4,6 +4,8 @@ import { Fraunces, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import QuizRunner from "@/components/quiz/QuizRunner";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import ChatRunner from "@/components/quiz/typebot/ChatRunner";
+import VisitBeacon from "@/components/quiz/VisitBeacon";
+import HeroPreload from "@/components/quiz/HeroPreload";
 import PixelScripts from "@/components/vsl/PixelScripts";
 import { resolveFunnel } from "@/lib/quiz/funnels-db";
 import { leadGeo } from "@/lib/quiz/geo";
@@ -66,11 +68,15 @@ export default async function QuizPage({
       }
     >
       {isPreview ? null : (
-        <PixelScripts
-          settings={funnel.settings ?? {}}
-          utmifyPixelId={funnel.utmifyPixelId ?? null}
-          hotmartAccountId={funnel.hotmartAccountId ?? null}
-        />
+        <>
+          <VisitBeacon slug={slug} />
+          <HeroPreload funnel={funnel} />
+          <PixelScripts
+            settings={funnel.settings ?? {}}
+            utmifyPixelId={funnel.utmifyPixelId ?? null}
+            hotmartAccountId={funnel.hotmartAccountId ?? null}
+          />
+        </>
       )}
       {funnel.settings?.engine === "typebot"
         ? <ChatRunner funnel={funnel} preview={isPreview} />
