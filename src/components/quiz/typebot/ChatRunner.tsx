@@ -14,7 +14,7 @@ type FeedItem =
   | (FeedBase & { side: "host"; kind: "audio"; url: string })
   | (FeedBase & { side: "host"; kind: "video"; url: string })
   | (FeedBase & { side: "host"; kind: "embed"; html: string })
-  | (FeedBase & { side: "host"; kind: "voice"; duration: string })
+  | (FeedBase & { side: "host"; kind: "voice"; duration: string; url?: string })
   | (FeedBase & { side: "host"; kind: "call"; mode: "voice" | "video"; status?: string; duration?: string })
   | (FeedBase & { side: "host"; kind: "document"; name: string; size?: string })
   | (FeedBase & { side: "host"; kind: "link"; url: string; title?: string; desc?: string; image?: string })
@@ -111,7 +111,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
         else if (b.type === "video") push({ side: "host", kind: "video", url: b.url });
         else if (b.type === "embed") push({ side: "host", kind: "embed", html: b.html });
         else if (b.type === "date") push({ side: "center", kind: "date", label: b.label || "Hoje" });
-        else if (b.type === "voice") push({ side: "host", kind: "voice", duration: b.duration || "0:08" });
+        else if (b.type === "voice") push({ side: "host", kind: "voice", duration: b.duration || "0:08", url: b.url });
         else if (b.type === "call") push({ side: "host", kind: "call", mode: b.mode, status: b.status, duration: b.duration });
         else if (b.type === "system") push({ side: "center", kind: "system", variant: b.variant, html: b.variant === "custom" ? (b.text || "") : (SYS_TEXT[b.variant] || "") });
         else if (b.type === "document") push({ side: "host", kind: "document", name: b.name || "Documento.pdf", size: b.size });
@@ -301,8 +301,9 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                   </div>) : m.kind === "audio" ? (<div className="px-0.5"><audio controls src={m.url} className="h-9 w-[230px]" /><div className="text-right"><Time m={m} /></div></div>)
                     : m.kind === "video" ? (<div className="px-0.5"><video controls src={m.url} className="w-[min(250px,66vw)] rounded-[6px]" /><div className="text-right"><Time m={m} /></div></div>)
                       : m.kind === "voice" ? (
-                        <div className="flex items-center gap-2.5 py-0.5 pl-0.5 pr-0.5" style={{ minWidth: 230 }}>
-                          <span className="grid h-9 w-9 shrink-0 place-items-center text-[18px]" style={{ color: dark ? "#e9edef" : "#54656f" }}>▶</span>
+                        <div data-voice className="flex items-center gap-2.5 py-0.5 pl-0.5 pr-0.5" style={{ minWidth: 230 }}>
+                          <button onClick={(e) => { const a = e.currentTarget.closest("[data-voice]")?.querySelector("audio") as HTMLAudioElement | null; if (a) { if (a.paused) a.play(); else a.pause(); } }} className="grid h-9 w-9 shrink-0 place-items-center text-[18px]" style={{ color: dark ? "#e9edef" : "#54656f" }}>▶</button>
+                          {m.url ? <audio src={m.url} preload="none" /> : null}
                           <div className="flex flex-1 flex-col gap-1">
                             <div className="flex items-center gap-[2px]">
                               {[7, 11, 16, 9, 13, 18, 8, 12, 15, 10, 17, 7, 14, 9, 12, 16, 8, 11, 13, 7].map((h, i) => <span key={i} className="w-[2px] rounded-full" style={{ height: h, background: i < 3 ? (dark ? "#e9edef" : "#54656f") : (dark ? "#54656f" : "#c4ccce") }} />)}

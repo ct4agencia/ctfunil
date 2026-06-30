@@ -21,7 +21,7 @@ export type TbBubble =
   | (Base & { type: "video"; url: string })
   | (Base & { type: "embed"; html: string })
   | (Base & { type: "date"; label?: string })
-  | (Base & { type: "voice"; duration?: string })
+  | (Base & { type: "voice"; duration?: string; url?: string })
   | (Base & { type: "call"; mode: "voice" | "video"; status?: "missed" | "outgoing" | "incoming"; duration?: string })
   | (Base & { type: "system"; variant: "encrypted" | "deleted" | "disappearing" | "custom"; text?: string })
   | (Base & { type: "document"; name?: string; size?: string; url?: string })

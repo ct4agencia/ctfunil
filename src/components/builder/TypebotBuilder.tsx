@@ -277,7 +277,11 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
   </>);
   if (b.type === "embed") return (<><Lbl>HTML / iframe</Lbl><textarea value={b.html} onChange={(e) => patch({ html: e.target.value })} rows={4} className={inp} /></>);
   if (b.type === "date") return (<><Lbl>Texto do separador de data</Lbl><input value={b.label || ""} onChange={(e) => patch({ label: e.target.value })} placeholder="Hoje / Ontem / 21/06/2025" className={inp} /></>);
-  if (b.type === "voice") return (<><Lbl>Duração da nota de voz</Lbl><input value={b.duration || ""} onChange={(e) => patch({ duration: e.target.value })} placeholder="0:08" className={inp} /><p className="mt-1 text-[11px] text-neutral-400">Visual de nota de voz (waveform). O áudio real use o bloco 🎧 Áudio.</p></>);
+  if (b.type === "voice") return (<>
+    <Lbl>Áudio (upload ou URL)</Lbl><ImgUpload value={b.url} onChange={(v) => patch({ url: v })} accept="audio/*" />
+    <Lbl>Duração exibida</Lbl><input value={b.duration || ""} onChange={(e) => patch({ duration: e.target.value })} placeholder="0:08" className={inp} />
+    <p className="mt-1 text-[11px] text-neutral-400">Visual de nota de voz (waveform + foto). O ▶ toca o áudio anexado.</p>
+  </>);
   if (b.type === "call") return (<>
     <Lbl>Tipo</Lbl>
     <select value={b.mode} onChange={(e) => patch({ mode: e.target.value })} className={inp}><option value="voice">📞 Chamada de voz</option><option value="video">📹 Chamada de vídeo</option></select>
