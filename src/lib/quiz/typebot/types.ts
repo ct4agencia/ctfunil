@@ -110,6 +110,8 @@ export interface TbTheme {
   dualSim?: boolean;
   /** ícone de silenciado no header */
   headerSilent?: boolean;
+  /** relógio das mensagens em 12h (AM/PM) em vez de 24h */
+  clock12h?: boolean;
 }
 
 export interface TbFunnel {

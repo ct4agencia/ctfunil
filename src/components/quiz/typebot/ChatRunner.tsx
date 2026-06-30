@@ -223,15 +223,24 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
   const battery = Math.max(0, Math.min(100, theme.battery ?? 80));
   const bubbleFs = theme.textSize === "small" ? 14 : theme.textSize === "large" ? 16.5 : 15;
 
+  const fmtClock = (hm?: string) => {
+    if (!hm) return "";
+    if (!theme.clock12h) return hm;
+    const [h, mm] = hm.split(":").map(Number);
+    return `${h % 12 || 12}:${String(mm || 0).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+  };
   const Time = ({ m }: { m: FeedItem }) => (
-    <span className="ml-1.5 inline-flex translate-y-0.5 items-center gap-0.5 text-[11.5px] leading-none" style={{ color: C.time }}>
-      {m.time}{m.side === "guest" ? <span style={{ color: C.tick }}>✓✓</span> : null}
+    <span className="ml-1.5 inline-flex translate-y-0.5 items-center gap-1 text-[11.5px] leading-none" style={{ color: C.time }}>
+      {fmtClock(m.time)}
+      {m.side === "guest" ? (
+        <svg width="15" height="11" viewBox="0 0 18 12" fill="none" stroke={C.tick} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M1 6.4 L4.3 9.5 L9.8 2.6" /><path d="M7.2 9 L13.6 2.4" /></svg>
+      ) : null}
     </span>
   );
 
   return (
     <div className={`flex flex-col ${preview ? "h-full" : "min-h-[100dvh]"}`}
-      style={{ fontFamily: `${theme.font || "Poppins"}, system-ui, sans-serif`, ["--wa-host" as string]: C.host, ["--wa-guest" as string]: C.guest }}>
+      style={{ fontFamily: ({ system: "-apple-system,'Segoe UI',Helvetica,Arial,sans-serif", poppins: "Poppins,system-ui,sans-serif", roboto: "Roboto,system-ui,sans-serif", opensans: "'Open Sans',system-ui,sans-serif" } as Record<string, string>)[(theme.font || "poppins").toLowerCase()] || `${theme.font || "Poppins"},system-ui,sans-serif`, ["--wa-host" as string]: C.host, ["--wa-guest" as string]: C.guest }}>
       <style>{`
         .wa-bubble{position:relative;border-radius:10px}
         .wa-host{border-top-left-radius:2px}

@@ -463,6 +463,12 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
               <option value="small">Pequeno</option><option value="default">Padrão</option><option value="large">Grande</option>
             </select>
           </div>
+          <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-700">Tipografia (fonte)</span>
+            <select value={(t.font || "poppins").toLowerCase()} onChange={(e) => set({ font: e.target.value })} className="rounded border border-neutral-300 px-2 py-1 text-xs">
+              <option value="system">Sistema (WhatsApp)</option><option value="poppins">Poppins</option><option value="opensans">Open Sans</option><option value="roboto">Roboto</option>
+            </select>
+          </div>
+          <Toggle label="Relógio 12h (AM/PM)" on={!!t.clock12h} onChange={(v) => set({ clock12h: v })} />
         </Card>
 
         <Card title="🔋 Barra de status">
