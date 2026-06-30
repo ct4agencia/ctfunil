@@ -18,6 +18,7 @@ const Lbl = ({ children }: { children: React.ReactNode }) => <label className="m
 
 const ADD_TYPES: [string, string[]][] = [
   ["Bolhas", ["text", "image", "audio", "video", "embed"]],
+  ["WhatsApp", ["date", "voice", "call", "system"]],
   ["Inputs", ["input-text", "input-number", "input-email", "input-phone", "input-choice"]],
   ["Lógica", ["wait", "set-variable", "condition", "redirect"]],
 ];
@@ -30,6 +31,10 @@ function newBlock(type: string): TbBlock {
     case "audio": return { id, type: "audio", url: "" };
     case "video": return { id, type: "video", url: "" };
     case "embed": return { id, type: "embed", html: "" };
+    case "date": return { id, type: "date", label: "Hoje" };
+    case "voice": return { id, type: "voice", duration: "0:08" };
+    case "call": return { id, type: "call", mode: "voice", status: "outgoing", duration: "" };
+    case "system": return { id, type: "system", variant: "encrypted" };
     case "input-text": return { id, type: "input-text", variable: "resposta", placeholder: "Digite aqui…", button: "Enviar" };
     case "input-number": return { id, type: "input-number", variable: "numero", placeholder: "Digite…", button: "Enviar" };
     case "input-email": return { id, type: "input-email", variable: "email", placeholder: "seu@email.com", button: "Enviar" };
@@ -45,6 +50,7 @@ function newBlock(type: string): TbBlock {
 
 const ICON: Record<string, string> = {
   text: "💬", image: "🖼️", audio: "🎧", video: "🎬", embed: "🔗",
+  date: "📅", voice: "🎤", call: "📞", system: "🔒",
   "input-text": "✏️", "input-number": "🔢", "input-email": "📧", "input-phone": "📱", "input-choice": "🔘",
   wait: "⏲️", "set-variable": "🧮", condition: "🔀", redirect: "↗️",
 };
@@ -220,6 +226,10 @@ function blockPreview(b: TbBlock): string {
   if (b.type === "audio") return "Áudio";
   if (b.type === "video") return "Vídeo";
   if (b.type === "embed") return "Embed";
+  if (b.type === "date") return `Data: ${b.label || "Hoje"}`;
+  if (b.type === "voice") return `Nota de voz ${b.duration || ""}`;
+  if (b.type === "call") return `Chamada de ${b.mode === "video" ? "vídeo" : "voz"}`;
+  if (b.type === "system") return `Aviso: ${b.variant}`;
   if (b.type === "input-choice") return `Botões: ${b.items.map((i) => i.label).join(" / ").slice(0, 34)}`;
   if (isInput(b)) return `${TB_BLOCK_LABEL[b.type]} → {${b.variable || "?"}}`;
   if (b.type === "wait") return `Esperar ${b.seconds}s`;
@@ -233,6 +243,26 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
   if (b.type === "text") return (<><Lbl>Texto (use **negrito** e {`{variavel}`})</Lbl><textarea value={b.richText} onChange={(e) => patch({ richText: e.target.value })} rows={4} className={inp} /></>);
   if (b.type === "image" || b.type === "audio" || b.type === "video") return (<><Lbl>URL do arquivo</Lbl><input value={b.url} onChange={(e) => patch({ url: e.target.value })} placeholder="https://…" className={inp} />{b.type === "image" && b.url ? (/* eslint-disable-next-line @next/next/no-img-element */ <img src={b.url} alt="" className="mt-2 max-h-32 rounded" />) : null}</>);
   if (b.type === "embed") return (<><Lbl>HTML / iframe</Lbl><textarea value={b.html} onChange={(e) => patch({ html: e.target.value })} rows={4} className={inp} /></>);
+  if (b.type === "date") return (<><Lbl>Texto do separador de data</Lbl><input value={b.label || ""} onChange={(e) => patch({ label: e.target.value })} placeholder="Hoje / Ontem / 21/06/2025" className={inp} /></>);
+  if (b.type === "voice") return (<><Lbl>Duração da nota de voz</Lbl><input value={b.duration || ""} onChange={(e) => patch({ duration: e.target.value })} placeholder="0:08" className={inp} /><p className="mt-1 text-[11px] text-neutral-400">Visual de nota de voz (waveform). O áudio real use o bloco 🎧 Áudio.</p></>);
+  if (b.type === "call") return (<>
+    <Lbl>Tipo</Lbl>
+    <select value={b.mode} onChange={(e) => patch({ mode: e.target.value })} className={inp}><option value="voice">📞 Chamada de voz</option><option value="video">📹 Chamada de vídeo</option></select>
+    <Lbl>Situação</Lbl>
+    <select value={b.status || "outgoing"} onChange={(e) => patch({ status: e.target.value })} className={inp}><option value="outgoing">Realizada</option><option value="incoming">Recebida</option><option value="missed">Perdida</option></select>
+    <Lbl>Duração (vazio = &quot;Tocando…&quot;)</Lbl>
+    <input value={b.duration || ""} onChange={(e) => patch({ duration: e.target.value })} placeholder="0:42" className={inp} />
+  </>);
+  if (b.type === "system") return (<>
+    <Lbl>Tipo de aviso</Lbl>
+    <select value={b.variant} onChange={(e) => patch({ variant: e.target.value })} className={inp}>
+      <option value="encrypted">🔒 Criptografia de ponta a ponta</option>
+      <option value="deleted">🚫 Mensagem apagada</option>
+      <option value="disappearing">⏲️ Mensagens temporárias</option>
+      <option value="custom">✏️ Texto personalizado</option>
+    </select>
+    {b.variant === "custom" ? (<><Lbl>Texto</Lbl><input value={b.text || ""} onChange={(e) => patch({ text: e.target.value })} className={inp} /></>) : null}
+  </>);
   if (b.type === "input-text" || b.type === "input-number" || b.type === "input-email" || b.type === "input-phone") return (<>
     <Lbl>Salvar na variável</Lbl><input value={b.variable || ""} onChange={(e) => patch({ variable: e.target.value })} placeholder="ex: nome" className={inp} />
     <Lbl>Placeholder</Lbl><input value={b.placeholder || ""} onChange={(e) => patch({ placeholder: e.target.value })} className={inp} />
@@ -324,6 +354,10 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
             <input type="checkbox" checked={!!t.dark} onChange={(e) => set({ dark: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
           <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Esconder header</span>
             <input type="checkbox" checked={!!t.hideHeader} onChange={(e) => set({ hideHeader: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
+          <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Aviso de criptografia no topo</span>
+            <input type="checkbox" checked={t.encryptionBanner !== false} onChange={(e) => set({ encryptionBanner: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
+          <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Bateria carregando ⚡</span>
+            <input type="checkbox" checked={!!t.charging} onChange={(e) => set({ charging: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
           <Lbl>Status do contato</Lbl>
           <input value={t.online || ""} onChange={(e) => set({ online: e.target.value })} placeholder="online" className={inp} />
           <div className="mt-2 grid grid-cols-3 gap-2">

@@ -13,13 +13,17 @@ interface Base {
   id: string;
 }
 
-/** Bolhas = mensagens do bot (lado esquerdo). */
+/** Bolhas = mensagens do bot (lado esquerdo) + elementos visuais do WhatsApp. */
 export type TbBubble =
   | (Base & { type: "text"; richText: string })
   | (Base & { type: "image"; url: string })
   | (Base & { type: "audio"; url: string })
   | (Base & { type: "video"; url: string })
-  | (Base & { type: "embed"; html: string });
+  | (Base & { type: "embed"; html: string })
+  | (Base & { type: "date"; label?: string })
+  | (Base & { type: "voice"; duration?: string })
+  | (Base & { type: "call"; mode: "voice" | "video"; status?: "missed" | "outgoing" | "incoming"; duration?: string })
+  | (Base & { type: "system"; variant: "encrypted" | "deleted" | "disappearing" | "custom"; text?: string });
 
 /** Inputs = pedem resposta do lead (param a conversa). */
 export type TbInput =
@@ -77,6 +81,9 @@ export interface TbTheme {
   statusTime?: string;    // relógio da barra de status (ex: "10:04")
   network?: string;       // "5G" | "4G" | "LTE" | "Wi-Fi"
   battery?: number;       // 0–100
+  charging?: boolean;
+  /** mostra o aviso de criptografia no topo da conversa */
+  encryptionBanner?: boolean;
 }
 
 export interface TbFunnel {
@@ -88,15 +95,16 @@ export interface TbFunnel {
   typing: { enabled: boolean; speed: number; maxDelay: number };
 }
 
-/** Bolha (mensagem do bot, não pede resposta). */
-export const isBubble = (b: TbBlock): b is TbBubble =>
-  b.type === "text" || b.type === "image" || b.type === "audio" || b.type === "video" || b.type === "embed";
+const BUBBLE_TYPES = ["text", "image", "audio", "video", "embed", "date", "voice", "call", "system"];
+/** Bolha / elemento visual (não pede resposta). */
+export const isBubble = (b: TbBlock): b is TbBubble => BUBBLE_TYPES.includes(b.type);
 
 /** Input (para a conversa esperando o lead). */
 export const isInput = (b: TbBlock): b is TbInput => b.type.startsWith("input-");
 
 export const TB_BLOCK_LABEL: Record<string, string> = {
   text: "Texto", image: "Imagem", audio: "Áudio", video: "Vídeo", embed: "Embed",
+  date: "Separador de data", voice: "Nota de voz", call: "Chamada", system: "Aviso de sistema",
   "input-text": "Texto (resposta)", "input-number": "Número", "input-email": "E-mail",
   "input-phone": "Telefone/WhatsApp", "input-choice": "Botões",
   wait: "Esperar", "set-variable": "Definir variável", condition: "Condição", redirect: "Redirecionar",
@@ -121,4 +129,6 @@ export const TB_DEFAULT_THEME: TbTheme = {
   statusTime: "10:04",
   network: "5G",
   battery: 80,
+  charging: false,
+  encryptionBanner: true,
 };

@@ -13,7 +13,17 @@ type FeedItem =
   | (FeedBase & { side: "host"; kind: "image"; url: string })
   | (FeedBase & { side: "host"; kind: "audio"; url: string })
   | (FeedBase & { side: "host"; kind: "video"; url: string })
-  | (FeedBase & { side: "host"; kind: "embed"; html: string });
+  | (FeedBase & { side: "host"; kind: "embed"; html: string })
+  | (FeedBase & { side: "host"; kind: "voice"; duration: string })
+  | (FeedBase & { side: "host"; kind: "call"; mode: "voice" | "video"; status?: string; duration?: string })
+  | (FeedBase & { side: "center"; kind: "date"; label: string })
+  | (FeedBase & { side: "center"; kind: "system"; variant: string; html: string });
+
+const SYS_TEXT: Record<string, string> = {
+  encrypted: "🔒 As mensagens e chamadas são protegidas com criptografia de ponta a ponta. Ninguém fora desta conversa pode lê-las.",
+  deleted: "🚫 Você apagou esta mensagem",
+  disappearing: "⏲️ As mensagens temporárias estão ativadas",
+};
 
 const nowHM = () => { const d = new Date(); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
@@ -96,6 +106,10 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
         else if (b.type === "audio") push({ side: "host", kind: "audio", url: b.url });
         else if (b.type === "video") push({ side: "host", kind: "video", url: b.url });
         else if (b.type === "embed") push({ side: "host", kind: "embed", html: b.html });
+        else if (b.type === "date") push({ side: "center", kind: "date", label: b.label || "Hoje" });
+        else if (b.type === "voice") push({ side: "host", kind: "voice", duration: b.duration || "0:08" });
+        else if (b.type === "call") push({ side: "host", kind: "call", mode: b.mode, status: b.status, duration: b.duration });
+        else if (b.type === "system") push({ side: "center", kind: "system", variant: b.variant, html: b.variant === "custom" ? (b.text || "") : (SYS_TEXT[b.variant] || "") });
         await sleep(160);
         bi++; continue;
       }
@@ -210,6 +224,7 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
           <span className="flex items-center gap-1.5">
             <span className="flex items-end gap-[2px]">{[5, 7, 9, 11].map((h, i) => <span key={i} className="w-[2.6px] rounded-sm" style={{ height: h, background: chromeText, opacity: i === 3 ? 0.4 : 1 }} />)}</span>
             <span className="text-[11px]">{theme.network || "5G"}</span>
+            {theme.charging ? <span className="text-[10px] leading-none">⚡</span> : null}
             <span className="relative inline-block h-[12px] w-[23px] rounded-[3px]" style={{ border: `1px solid ${chromeText}` }}>
               <span className="absolute bottom-[1.5px] left-[1.5px] top-[1.5px] rounded-[1px]" style={{ background: chromeText, width: `calc(${battery}% - 3px)` }} />
               <span className="absolute -right-[3px] top-1/2 h-[5px] w-[2px] -translate-y-1/2 rounded-r" style={{ background: chromeText }} />
@@ -238,22 +253,53 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
       {/* conversa */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ background: C.bg, backgroundImage: `url("${doodle}")`, backgroundSize: "112px 112px" }}>
         <div className="mx-auto flex w-full max-w-[680px] flex-col gap-1.5 px-3 py-3">
-          {feed.map((m) => (
-            <div key={m.id} className={`flex ${m.side === "guest" ? "justify-end" : "justify-start"}`}>
-              <div className={`wa-bubble ${m.side === "guest" ? "wa-guest" : "wa-host"} max-w-[82%] px-2 py-[5px] text-[14.5px] leading-snug`}
-                style={{ background: m.side === "guest" ? C.guest : C.host, color: m.side === "guest" ? C.guestText : C.hostText, boxShadow: "0 1px 0.5px rgba(0,0,0,.13)" }}>
-                {m.kind === "text" ? (
-                  <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /><Time m={m} /></div>
-                ) : m.kind === "image" ? (<div className="px-0.5">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={m.url} alt="" className="block w-[min(250px,66vw)] rounded-[6px] object-cover" />
-                  <div className="text-right"><Time m={m} /></div>
-                </div>) : m.kind === "audio" ? (<div className="px-0.5"><audio controls src={m.url} className="h-9 w-[230px]" /><div className="text-right"><Time m={m} /></div></div>)
-                  : m.kind === "video" ? (<div className="px-0.5"><video controls src={m.url} className="w-[min(250px,66vw)] rounded-[6px]" /><div className="text-right"><Time m={m} /></div></div>)
-                    : <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /></div>}
-              </div>
+          {theme.encryptionBanner !== false ? (
+            <div className="mx-auto my-1 max-w-[90%] rounded-lg px-3 py-1.5 text-center text-[11.5px] leading-snug shadow-sm" style={{ background: dark ? "#182229" : "#fdf3c4", color: dark ? "#ffd27d" : "#5c5638" }}>
+              🔒 As mensagens e chamadas são protegidas com criptografia de ponta a ponta.
             </div>
-          ))}
+          ) : null}
+          {feed.map((m) => {
+            if (m.kind === "date") return (
+              <div key={m.id} className="my-1 flex justify-center"><span className="rounded-md px-2.5 py-1 text-[11.5px] font-medium uppercase shadow-sm" style={{ background: dark ? "#182229" : "#ffffff", color: dark ? "#8696a0" : "#54656f" }}>{m.label}</span></div>
+            );
+            if (m.kind === "system") return (
+              <div key={m.id} className="my-1 flex justify-center"><span className="mx-auto max-w-[90%] rounded-lg px-3 py-1.5 text-center text-[11.5px] leading-snug shadow-sm" style={{ background: m.variant === "encrypted" ? (dark ? "#182229" : "#fdf3c4") : (dark ? "#182229" : "#ffffff"), color: dark ? "#8696a0" : "#54656f" }}>{m.html}</span></div>
+            );
+            const guest = m.side === "guest";
+            return (
+              <div key={m.id} className={`flex ${guest ? "justify-end" : "justify-start"}`}>
+                <div className={`wa-bubble ${guest ? "wa-guest" : "wa-host"} max-w-[82%] px-2 py-[5px] text-[14.5px] leading-snug`}
+                  style={{ background: guest ? C.guest : C.host, color: guest ? C.guestText : C.hostText, boxShadow: "0 1px 0.5px rgba(0,0,0,.13)" }}>
+                  {m.kind === "text" ? (
+                    <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /><Time m={m} /></div>
+                  ) : m.kind === "image" ? (<div className="px-0.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={m.url} alt="" className="block w-[min(250px,66vw)] rounded-[6px] object-cover" />
+                    <div className="text-right"><Time m={m} /></div>
+                  </div>) : m.kind === "audio" ? (<div className="px-0.5"><audio controls src={m.url} className="h-9 w-[230px]" /><div className="text-right"><Time m={m} /></div></div>)
+                    : m.kind === "video" ? (<div className="px-0.5"><video controls src={m.url} className="w-[min(250px,66vw)] rounded-[6px]" /><div className="text-right"><Time m={m} /></div></div>)
+                      : m.kind === "voice" ? (
+                        <div className="flex items-center gap-2 px-1 py-0.5" style={{ minWidth: 210 }}>
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[15px]" style={{ background: dark ? "#ffffff14" : "#00000010", color: dark ? "#e9edef" : "#54656f" }}>▶</span>
+                          <div className="flex flex-1 items-center gap-[2px]">
+                            {[7, 11, 16, 9, 13, 18, 8, 12, 15, 10, 17, 7, 14, 9, 12, 16, 8, 11, 13, 7].map((h, i) => <span key={i} className="w-[2px] rounded-full" style={{ height: h, background: dark ? "#8696a0" : "#9aa6ac" }} />)}
+                          </div>
+                          <div className="flex flex-col items-end leading-none"><span className="text-[11px]" style={{ color: C.time }}>{m.duration}</span><Time m={m} /></div>
+                        </div>
+                      ) : m.kind === "call" ? (
+                        <div className="flex items-center gap-2.5 px-1 py-1" style={{ minWidth: 190 }}>
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[16px]" style={{ background: dark ? "#00a88433" : "#dff3ea" }}>{m.mode === "video" ? "📹" : "📞"}</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[14px] font-medium">Chamada de {m.mode === "video" ? "vídeo" : "voz"}</div>
+                            <div className="text-[11.5px]" style={{ color: C.time }}>{m.status === "missed" ? "Perdida" : (m.duration || "Tocando…")}</div>
+                          </div>
+                          <Time m={m} />
+                        </div>
+                      ) : <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /></div>}
+                </div>
+              </div>
+            );
+          })}
           {typing ? (
             <div className="flex justify-start">
               <div className="wa-bubble wa-host flex gap-1 px-3.5 py-3" style={{ background: C.host, boxShadow: "0 1px 0.5px rgba(0,0,0,.13)" }}>
