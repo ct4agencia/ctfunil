@@ -134,6 +134,7 @@ export interface InleadDesign {
   verticalAlign?: string;
   container?: string;
   logoSize?: string;
+  logoOpacity?: number | string;
   gap?: string;
   header?: { layout?: string; progress?: string };
 }

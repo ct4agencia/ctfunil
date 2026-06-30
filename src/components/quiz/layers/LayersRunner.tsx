@@ -242,7 +242,8 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
             {hdr.show_back && history.current.length ? <button onClick={back} className="self-start text-sm opacity-60">← Voltar</button> : null}
             {hdr.show_logo && design.logo?.src ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={design.logo.src} alt="" decoding="async" className="h-9 w-auto object-contain" />
+              <img src={design.logo.src} alt="" decoding="async" className="w-auto object-contain"
+                style={{ height: `${Number(design.logoSize) || 36}px`, opacity: (Number(design.logoOpacity ?? 100) || 100) / 100 }} />
             ) : null}
             {hdr.show_progress ? (
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">

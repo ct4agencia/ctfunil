@@ -512,6 +512,14 @@ function DesignTab({ funnel, setFunnel }: { funnel: Funnel; setFunnel: (fn: (f: 
       </Row>
       <Lbl>Logo (topo das lâminas, quando ativado)</Lbl>
       <ImageField value={d.logo?.src || ""} onChange={(v) => setDesign({ logo: { type: "image", src: v } })} />
+      <Row label="Tamanho da logo">
+        <input type="range" min={16} max={120} value={Number(d.logoSize) || 36} onChange={(e) => setDesign({ logoSize: e.target.value })} className="w-32 accent-neutral-900" />
+        <span className="w-12 text-right text-xs text-neutral-500">{Number(d.logoSize) || 36}px</span>
+      </Row>
+      <Row label="Opacidade da logo">
+        <input type="range" min={10} max={100} value={Number(d.logoOpacity ?? 100)} onChange={(e) => setDesign({ logoOpacity: Number(e.target.value) })} className="w-32 accent-neutral-900" />
+        <span className="w-12 text-right text-xs text-neutral-500">{Number(d.logoOpacity ?? 100)}%</span>
+      </Row>
       <div className="mt-4 border-t border-neutral-100 pt-3">
         <p className="mb-1 text-sm font-bold text-neutral-700">Header (todas as lâminas, exceto hero e VSL)</p>
         {([["show_logo", "Mostrar logo"], ["show_progress", "Mostrar barra de progresso"], ["show_back", "Mostrar botão voltar"]] as const).map(([k, label]) => (
