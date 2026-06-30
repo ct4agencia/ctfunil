@@ -49,11 +49,18 @@ export default function TypebotFlow({ tb, setGroups, onSelect }: {
   const hOf = (g?: TbGroup) => HEAD + Math.max(1, g?.blocks.length || 1) * ROW + PAD;
 
   const initial = useMemo(() => {
-    const flat = groups.length > 1 && groups.every((g) => g.y === groups[0].y);
-    const m: Record<string, Pt> = {};
-    let y = 40;
-    groups.forEach((g) => { m[g.id] = flat ? { x: 80, y } : { x: g.x ?? 80, y: g.y ?? y }; y += hOf(g) + 56; });
-    return m;
+    const auto = () => { const m: Record<string, Pt> = {}; let y = 40; groups.forEach((g) => { m[g.id] = { x: 80, y }; y += hOf(g) + 56; }); return m; };
+    // sem posições salvas → auto
+    if (groups.some((g) => typeof g.x !== "number" || typeof g.y !== "number")) return auto();
+    const saved: Record<string, Pt> = {}; groups.forEach((g) => { saved[g.id] = { x: g.x, y: g.y }; });
+    // se as posições salvas se SOBREPÕEM (layout antigo não acomoda a altura atual), re-organiza
+    const sorted = [...groups].sort((a, b) => saved[a.id].y - saved[b.id].y);
+    let overlap = false;
+    for (let i = 1; i < sorted.length && !overlap; i++) {
+      const a = saved[sorted[i - 1].id], b = saved[sorted[i].id];
+      if (Math.abs(b.x - a.x) < W && b.y < a.y + hOf(sorted[i - 1]) - 12) overlap = true;
+    }
+    return overlap ? auto() : saved;
   }, [groups]); // eslint-disable-line react-hooks/exhaustive-deps
   const [pos, setPos] = useState<Record<string, Pt>>(initial);
   const moved = useRef(false);
