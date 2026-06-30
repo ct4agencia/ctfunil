@@ -167,7 +167,7 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
     : pending?.block.type === "input-email" ? "email" : pending?.block.type === "input-phone" ? "tel" : "text";
 
   return (
-    <div className="flex min-h-[100dvh] flex-col" style={{ background: theme.bg, fontFamily: `${theme.font || "Poppins"}, system-ui, sans-serif` }}>
+    <div className={`flex flex-col ${preview ? "h-full" : "min-h-[100dvh]"}`} style={{ background: theme.bg, fontFamily: `${theme.font || "Poppins"}, system-ui, sans-serif` }}>
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-[680px] flex-col gap-2.5 px-3 py-5">
           {feed.map((m) => (
