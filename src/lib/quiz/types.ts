@@ -430,11 +430,15 @@ export interface FunnelSettings {
   };
   /** rodapé/copyright exibido na lâmina final (VSL) */
   footer?: string;
-  /** motor de renderização: "layers" = clone fiel do page-builder do inlead */
-  engine?: "layers";
+  /** motor de renderização: "layers" = clone do page-builder do inlead;
+   *  "typebot" = funil conversacional em chat (clone do Typebot) */
+  engine?: "layers" | "typebot";
   /** tokens globais de design (motor layers) — InleadDesign */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   design?: any;
+  /** dados do funil typebot (grupos/blocos/edges/variáveis/tema) quando engine="typebot" */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  typebot?: any;
 }
 
 /** Webhook do funil (inlead-compatível) — guardado em funnels.webhooks (jsonb). */

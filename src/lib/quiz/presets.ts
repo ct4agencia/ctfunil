@@ -1,6 +1,8 @@
 import type { Funnel, Step } from "./types";
 import { newStep } from "./types";
 import { clubeDasBolsas } from "./funnels/clube-das-bolsas";
+import { clubeDasBolsasTypebot } from "./typebot/clube-das-bolsas";
+import type { TbFunnel } from "./typebot/types";
 
 // Fotos + logo reais do inlead.digital/cdb01 (mesmo CDN do seed Clube das Bolsas)
 const CDB_CDN = "https://media.inlead.cloud/uploads/17937";
@@ -25,6 +27,10 @@ export interface Preset {
   build: () => Step[];
   /** modelo ainda não disponível (mostrado como [em construção]) */
   comingSoon?: boolean;
+  /** motor do funil — ausente = quiz/layers; "typebot" = chat conversacional */
+  engine?: "typebot";
+  /** monta o funil typebot (quando engine="typebot") */
+  buildTypebot?: () => TbFunnel;
 }
 
 function clone<T>(v: T): T {
@@ -85,6 +91,15 @@ export const PRESETS: Preset[] = [
     ],
   },
   {
+    id: "typebot-cdb",
+    name: "💬 Typebot — Clube das Bolsas",
+    description: "Funil conversacional em chat (estilo Typebot): abertura → captura WhatsApp → quiz → resultado 94% → VSL",
+    paletteId: "laranja-cdb",
+    engine: "typebot",
+    build: () => [],
+    buildTypebot: () => clubeDasBolsasTypebot(),
+  },
+  {
     id: "blank",
     name: "Em branco",
     description: "Comece do zero com o essencial",
@@ -99,6 +114,16 @@ export function getPreset(id: string): Preset | undefined {
 
 /** Monta um Funnel novo a partir de um preset + nome/slug. */
 export function funnelFromPreset(preset: Preset, name: string, slug: string): Funnel {
+  // Funil typebot (chat): guarda os dados em settings.typebot + engine="typebot".
+  if (preset.engine === "typebot" && preset.buildTypebot) {
+    return {
+      slug, name, niche: "",
+      paletteId: preset.paletteId,
+      steps: [],
+      font: "poppins",
+      settings: { engine: "typebot", typebot: preset.buildTypebot() },
+    };
+  }
   return {
     slug,
     name,
