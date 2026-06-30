@@ -748,7 +748,7 @@ export function LeadsTab({ slug }: { slug: string }) {
   const [search, setSearch] = useState("");
   const [hiddenQ, setHiddenQ] = useState<Set<string>>(new Set());
   const [showMeta, setShowMeta] = useState(true); // colunas Lead/Telefone/Data
-  const [hiddenTrack, setHiddenTrack] = useState<Set<string>>(new Set(TRACK_COLS.map((c) => c.key))); // tracking oculto por padrão
+  const [hiddenTrack, setHiddenTrack] = useState<Set<string>>(new Set(TRACK_COLS.filter((c) => !["utm_source", "utm_campaign", "src"].includes(c.key)).map((c) => c.key))); // origem/campanha/src visíveis; resto oculto
   const [openFilter, setOpenFilter] = useState<"etapas" | "colunas" | null>(null);
   const [page, setPage] = useState(0);
   const PER = 50;

@@ -280,8 +280,12 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
             <div className="truncate text-[11px] leading-tight" style={{ opacity: 0.65 }}>{typing ? "digitando…" : (theme.online || "online")}</div>
           </div>
           {theme.headerSilent ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d="M9 8a3 3 0 016 0v1.5M18 14v-1a6 6 0 00-.7-2.8M6 9v5l-2 2h12M10 19a2 2 0 004 0M3 3l18 18" /></svg> : null}
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.7" strokeLinejoin="round"><rect x="2.5" y="6.5" width="12" height="11" rx="2.5" /><path d="M14.5 10.5l7-3.2v9.4l-7-3.2z" /></svg>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.7" strokeLinejoin="round"><path d="M6.8 10.7a13.5 13.5 0 006.5 6.5l2.1-2.1a1 1 0 011-.25 11 11 0 003.3.53 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.4a1 1 0 011 1 11 11 0 00.53 3.3 1 1 0 01-.25 1z" /></svg>
+          <button onClick={() => push({ side: "host", kind: "call", mode: "video", status: "missed" })} aria-label="Chamada de vídeo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.7" strokeLinejoin="round"><rect x="2.5" y="6.5" width="12" height="11" rx="2.5" /><path d="M14.5 10.5l7-3.2v9.4l-7-3.2z" /></svg>
+          </button>
+          <button onClick={() => push({ side: "host", kind: "call", mode: "voice", status: "missed" })} aria-label="Chamada de voz">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.7" strokeLinejoin="round"><path d="M6.8 10.7a13.5 13.5 0 006.5 6.5l2.1-2.1a1 1 0 011-.25 11 11 0 003.3.53 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.4a1 1 0 011 1 11 11 0 00.53 3.3 1 1 0 01-.25 1z" /></svg>
+          </button>
         </header>
       ) : null}
 

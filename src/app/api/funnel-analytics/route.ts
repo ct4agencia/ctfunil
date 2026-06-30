@@ -88,16 +88,31 @@ export async function GET(request: Request) {
   const { data: leads } = await leadsQ;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const leadBy = new Map((leads ?? []).map((l: any) => [String(l.session_id ?? ""), l]));
+
+  // Tracking da SESSÃO (fallback): a campanha/origem é capturada na sessão; se o
+  // lead foi salvo sem utm, puxamos da sessão pra aparecer também nas Respostas.
+  let sessQ = sb.from("funnel_sessions").select("session_id,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,ctwa_clid,source_id").eq("funnel_slug", slug).limit(5000);
+  if (from) sessQ = sessQ.gte("created_at", from);
+  if (to) sessQ = sessQ.lte("created_at", to);
+  const { data: sessRows } = await sessQ;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const trackOf = (l: any) => l ? {
-    utm_source: l.utm_source || "", utm_medium: l.utm_medium || "", utm_campaign: l.utm_campaign || "",
-    utm_content: l.utm_content || "", utm_term: l.utm_term || "", src: l.src || "", fbclid: l.fbclid || "",
-    ctwa_clid: l.ctwa_clid || "", source_id: l.source_id || "", viewport: l.viewport || "", screen: l.screen || "",
-    platform: l.platform || "", user_agent: l.user_agent || "",
-  } : {};
+  const sessBy = new Map((sessRows ?? []).map((s: any) => [String(s.session_id ?? ""), s]));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const trackOf = (l: any, sid: string) => {
+    const s = sessBy.get(sid) || {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pick = (k: string) => (l?.[k] || (s as any)?.[k] || "");
+    return {
+      utm_source: pick("utm_source"), utm_medium: pick("utm_medium"), utm_campaign: pick("utm_campaign"),
+      utm_content: pick("utm_content"), utm_term: pick("utm_term"), src: pick("src"), fbclid: l?.fbclid || "",
+      ctwa_clid: pick("ctwa_clid"), source_id: pick("source_id"), viewport: l?.viewport || "", screen: l?.screen || "",
+      platform: l?.platform || "", user_agent: l?.user_agent || "",
+    };
+  };
   const respostas = Array.from(bySession.entries()).map(([sid, ans]) => {
     const l = leadBy.get(sid);
-    return { session: sid.slice(0, 8), name: (l?.name as string) || null, phone: (l?.phone as string) || null, when: (l?.created_at as string) || null, answers: ans, track: trackOf(l) };
+    return { session: sid.slice(0, 8), name: (l?.name as string) || null, phone: (l?.phone as string) || null, when: (l?.created_at as string) || null, answers: ans, track: trackOf(l, sid) };
   });
 
   // % de conclusão por etapa = SESSÕES distintas que responderam a etapa ÷ sessões
