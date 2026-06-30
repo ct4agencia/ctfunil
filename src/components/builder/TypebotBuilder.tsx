@@ -306,6 +306,33 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
         <input value={t.botName || ""} onChange={(e) => set({ botName: e.target.value })} placeholder="ex: Sônia 🧡" className={inp} />
         <Lbl>Avatar do bot (URL)</Lbl>
         <input value={t.avatarUrl || ""} onChange={(e) => set({ avatarUrl: e.target.value })} placeholder="https://…" className={inp} />
+
+        <div className="mt-4 border-t border-neutral-100 pt-3">
+          <p className="mb-2 text-sm font-bold text-neutral-700">Celular (estilo WhatsApp)</p>
+          <div className="mb-2 flex gap-2">
+            <button onClick={() => set({ dark: false, bg: "#efeae2", hostBubbleBg: "#ffffff", hostBubbleColor: "#111b21", guestBubbleBg: "#d9fdd3", guestBubbleColor: "#111b21", buttonBg: "#008069", buttonColor: "#ffffff" })} className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold hover:bg-neutral-50">☀️ WhatsApp Claro</button>
+            <button onClick={() => set({ dark: true })} className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold hover:bg-neutral-50">🌙 WhatsApp Escuro</button>
+          </div>
+          <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Aparelho</span>
+            <div className="flex gap-1 rounded-lg bg-neutral-100 p-1">
+              {(["ios", "android"] as const).map((d) => (
+                <button key={d} onClick={() => set({ device: d })} className={`rounded-md px-3 py-1 text-xs font-semibold ${(t.device || "ios") === d ? "bg-white shadow-sm" : "text-neutral-500"}`}>{d === "ios" ? " iOS" : "🤖 Android"}</button>
+              ))}
+            </div>
+          </div>
+          <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Modo escuro</span>
+            <input type="checkbox" checked={!!t.dark} onChange={(e) => set({ dark: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
+          <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Esconder header</span>
+            <input type="checkbox" checked={!!t.hideHeader} onChange={(e) => set({ hideHeader: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
+          <Lbl>Status do contato</Lbl>
+          <input value={t.online || ""} onChange={(e) => set({ online: e.target.value })} placeholder="online" className={inp} />
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            <div><Lbl>Hora</Lbl><input value={t.statusTime || ""} onChange={(e) => set({ statusTime: e.target.value })} placeholder="10:04" className={inp} /></div>
+            <div><Lbl>Rede</Lbl><input value={t.network || ""} onChange={(e) => set({ network: e.target.value })} placeholder="5G" className={inp} /></div>
+            <div><Lbl>Bateria %</Lbl><input type="number" min={0} max={100} value={t.battery ?? 80} onChange={(e) => set({ battery: Number(e.target.value) })} className={inp} /></div>
+          </div>
+        </div>
+
         <div className="mt-4 border-t border-neutral-100 pt-3">
           <p className="mb-1 text-sm font-bold text-neutral-700">Digitação</p>
           <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Emular digitação (indicador …)</span>

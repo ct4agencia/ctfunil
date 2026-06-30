@@ -69,6 +69,14 @@ export interface TbTheme {
   botName?: string;
   /** cor da barra de topo (WhatsApp) */
   headerColor?: string;
+  // ── cosméticos do "celular" (estilo gerador de WhatsApp) ──
+  device?: "ios" | "android";
+  dark?: boolean;
+  hideHeader?: boolean;
+  online?: string;        // texto de status ("online", "visto por último…")
+  statusTime?: string;    // relógio da barra de status (ex: "10:04")
+  network?: string;       // "5G" | "4G" | "LTE" | "Wi-Fi"
+  battery?: number;       // 0–100
 }
 
 export interface TbFunnel {
@@ -107,4 +115,10 @@ export const TB_DEFAULT_THEME: TbTheme = {
   showAvatar: true,
   font: "Poppins",
   headerColor: "#075e54",   // barra de topo WhatsApp
+  device: "ios",
+  dark: false,
+  online: "online",
+  statusTime: "10:04",
+  network: "5G",
+  battery: 80,
 };
