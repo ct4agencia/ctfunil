@@ -28,6 +28,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        {/* aplica a aparência (claro/escuro/sistema) antes do paint — evita flash e texto cinza no dark */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('ctf-theme')||'light';var d=document.documentElement;if(t==='system'){d.removeAttribute('data-theme');}else{d.setAttribute('data-theme',t);}}catch(e){}})();` }} />
+      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}
       </body>

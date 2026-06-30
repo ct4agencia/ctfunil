@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FunnelSummary } from "@/lib/quiz/funnels-db";
 import type { DashboardMetrics } from "@/lib/quiz/metrics";
@@ -83,6 +83,15 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
   const [name, setName] = useState("");
   const [presetId, setPresetId] = useState(PRESETS[0].id);
   const [page, setPage] = useState(1);
+  const [showSettings, setShowSettings] = useState(false);
+  const [theme, setThemeState] = useState<"light" | "dark" | "system">("light");
+  useEffect(() => { try { setThemeState((localStorage.getItem("ctf-theme") as "light" | "dark" | "system") || "light"); } catch { /* noop */ } }, []);
+  const setTheme = (t: "light" | "dark" | "system") => {
+    setThemeState(t);
+    try { localStorage.setItem("ctf-theme", t); } catch { /* noop */ }
+    const d = document.documentElement;
+    if (t === "system") d.removeAttribute("data-theme"); else d.setAttribute("data-theme", t);
+  };
 
   const filtered = funnels.filter((f) => f.name.toLowerCase().includes(q.toLowerCase()));
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
@@ -113,6 +122,7 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
             <div className="flex items-center gap-2">
               <a href="/analytics" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">📊 Analytics</a>
               <button onClick={() => setCreating(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Criar funil</button>
+              <button onClick={() => setShowSettings(true)} title="Configurações" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⚙ Configurações</button>
               <button onClick={() => signOut()} title="Sair" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-500 hover:bg-neutral-50">⎋ Sair</button>
             </div>
           </div>
@@ -215,6 +225,35 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
               <button onClick={() => setCreating(false)} className="rounded-lg px-4 py-2 text-sm font-semibold text-neutral-500">Cancelar</button>
               <button onClick={doCreate} disabled={busy} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Criando..." : "Criar e editar →"}</button>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showSettings ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setShowSettings(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-neutral-900">⚙ Configurações</h2>
+              <button onClick={() => setShowSettings(false)} className="text-neutral-400 hover:text-neutral-700">✕</button>
+            </div>
+
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-neutral-400">Aparência</p>
+            <div className="mb-4 grid grid-cols-3 gap-2">
+              {([["light", "☀️ Claro"], ["dark", "🌙 Escuro"], ["system", "🖥️ Sistema"]] as const).map(([k, l]) => (
+                <button key={k} onClick={() => setTheme(k)} className={`rounded-xl border-2 px-2 py-3 text-xs font-semibold transition ${theme === k ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-400"}`}>{l}</button>
+              ))}
+            </div>
+
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-neutral-400">Idioma</p>
+            <div className="mb-4 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm text-neutral-700">🇧🇷 Português (Brasil)</div>
+
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-neutral-400">Conta</p>
+            <div className="mb-4 flex items-center justify-between rounded-xl border border-neutral-200 px-3 py-2.5">
+              <span className="text-sm text-neutral-700">Admin do CTFUNNEL</span>
+              <button onClick={() => signOut()} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50">⎋ Sair</button>
+            </div>
+
+            <p className="text-center text-[11px] text-neutral-400">CTFUNNEL · construtor de funis (quiz + typebot)</p>
           </div>
         </div>
       ) : null}
