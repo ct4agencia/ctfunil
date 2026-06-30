@@ -9,7 +9,7 @@ import { trackAnswer, trackStep } from "@/lib/quiz/track";
 
 type FeedBase = { id: string; time?: string };
 type FeedItem =
-  | (FeedBase & { side: "host" | "guest"; kind: "text"; html: string })
+  | (FeedBase & { side: "host" | "guest"; kind: "text"; html: string; reaction?: string })
   | (FeedBase & { side: "host"; kind: "image"; url: string })
   | (FeedBase & { side: "host"; kind: "audio"; url: string })
   | (FeedBase & { side: "host"; kind: "video"; url: string })
@@ -105,7 +105,7 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
           const d = typeDelay(b.richText);
           if (d) { setTyping(true); await sleep(d); setTyping(false); }
           lastQRef.current = stripMd(interp(b.richText));
-          push({ side: "host", kind: "text", html: toHtml(b.richText) });
+          push({ side: "host", kind: "text", html: toHtml(b.richText), reaction: b.reaction });
         } else if (b.type === "image") push({ side: "host", kind: "image", url: b.url });
         else if (b.type === "audio") push({ side: "host", kind: "audio", url: b.url });
         else if (b.type === "video") push({ side: "host", kind: "video", url: b.url });
@@ -212,9 +212,9 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
   const accent = ios && !dark ? "#007aff" : chromeText;
   const C = dark
     ? { bg: "#0b141a", host: "#202c33", hostText: "#e9edef", guest: "#005c4b", guestText: "#e9edef", time: "rgba(233,237,239,.55)", tick: "#53bdeb", inputBar: "#1f2c34", inputBg: "#2a3942", inputText: "#e9edef", doodle: "#16222c", typing: "#8696a0" }
-    : { bg: theme.bg || "#efeae2", host: theme.hostBubbleBg || "#ffffff", hostText: theme.hostBubbleColor || "#111b21", guest: theme.guestBubbleBg || "#e6ffda", guestText: theme.guestBubbleColor || "#111b21", time: "rgba(0,0,0,.45)", tick: "#34b7f1", inputBar: ios ? "#f7f7f7" : "#f0f2f5", inputBg: "#ffffff", inputText: theme.inputColor || "#111b21", doodle: "#d8d0c2", typing: "#9aa6ac" };
+    : { bg: theme.bg || "#efeae2", host: theme.hostBubbleBg || "#ffffff", hostText: theme.hostBubbleColor || "#111b21", guest: theme.guestBubbleBg || "#e6ffda", guestText: theme.guestBubbleColor || "#111b21", time: "rgba(0,0,0,.45)", tick: "#34b7f1", inputBar: ios ? "#f7f7f7" : "#f0f2f5", inputBg: "#ffffff", inputText: theme.inputColor || "#111b21", doodle: "#e4ddce", typing: "#9aa6ac" };
   // padrão "doodle" AUTORAL (não é o asset do WhatsApp) — evoca o fundo da conversa
-  const doodle = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='112' height='112'><g fill='none' stroke='${C.doodle}' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M20 26c-3-5-11-3-11 2 0 5 11 11 11 11s11-6 11-11c0-5-8-7-11-2z'/><path d='M84 16l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z'/><circle cx='32' cy='84' r='10'/><path d='M27 86c2 2.5 8 2.5 10 0'/><path d='M76 74v18M76 74c6-1 11 1 11 4.5s-5 5.5-11 4.5'/><path d='M100 100c-7-2-14 2-14 9 0 0 9 1 14-3 3-3 3-8 0-6z'/></g></svg>`)}`;
+  const doodle = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='112' height='112'><g fill='none' stroke='${C.doodle}' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M20 26c-3-5-11-3-11 2 0 5 11 11 11 11s11-6 11-11c0-5-8-7-11-2z'/><path d='M84 16l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z'/><circle cx='32' cy='84' r='10'/><path d='M27 86c2 2.5 8 2.5 10 0'/><path d='M76 74v18M76 74c6-1 11 1 11 4.5s-5 5.5-11 4.5'/><path d='M100 100c-7-2-14 2-14 9 0 0 9 1 14-3 3-3 3-8 0-6z'/></g></svg>`)}`;
   const battery = Math.max(0, Math.min(100, theme.battery ?? 80));
 
   const Time = ({ m }: { m: FeedItem }) => (
@@ -268,7 +268,7 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
       ) : null}
 
       {/* conversa */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ background: C.bg, backgroundImage: `url("${doodle}")`, backgroundSize: "112px 112px" }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ background: C.bg, backgroundImage: `url("${doodle}")`, backgroundSize: "94px 94px" }}>
         <div className="mx-auto flex w-full max-w-[680px] flex-col gap-1.5 px-3 py-3">
           {theme.encryptionBanner !== false ? (
             <div className="mx-auto my-1 max-w-[90%] rounded-lg px-3 py-1.5 text-center text-[11.5px] leading-snug shadow-sm" style={{ background: dark ? "#182229" : "#fdf3c4", color: dark ? "#ffd27d" : "#5c5638" }}>
@@ -288,7 +288,9 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
                 <div className={`wa-bubble ${guest ? "wa-guest" : "wa-host"} max-w-[82%] px-[7px] py-[5px] text-[15px] leading-snug`}
                   style={{ background: guest ? C.guest : C.host, color: guest ? C.guestText : C.hostText, boxShadow: "0 1px 1px rgba(0,0,0,.13)" }}>
                   {m.kind === "text" ? (
-                    <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /><Time m={m} /></div>
+                    <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /><Time m={m} />
+                      {m.reaction ? <span className="absolute -bottom-2.5 z-10 rounded-full bg-white px-1 py-0.5 text-[12px] leading-none shadow" style={{ [guest ? "left" : "right"]: 8 }}>{m.reaction}</span> : null}
+                    </div>
                   ) : m.kind === "image" ? (<div className="px-0.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={m.url} alt="" className="block w-[min(250px,66vw)] rounded-[6px] object-cover" />

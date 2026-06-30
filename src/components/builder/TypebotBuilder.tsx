@@ -260,7 +260,15 @@ function blockPreview(b: TbBlock): string {
 }
 
 function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p: Record<string, unknown>) => void; groupOpts: { id: string; title: string }[] }) {
-  if (b.type === "text") return (<><Lbl>Texto (use **negrito** e {`{variavel}`})</Lbl><textarea value={b.richText} onChange={(e) => patch({ richText: e.target.value })} rows={4} className={inp} /></>);
+  if (b.type === "text") return (<>
+    <Lbl>Texto (use **negrito** e {`{variavel}`})</Lbl><textarea value={b.richText} onChange={(e) => patch({ richText: e.target.value })} rows={4} className={inp} />
+    <Lbl>Reação (emoji no canto da bolha — opcional)</Lbl>
+    <div className="flex flex-wrap items-center gap-1">
+      {["", "👍", "❤️", "😂", "😮", "😢", "🙏", "🔥"].map((e) => (
+        <button key={e || "none"} onClick={() => patch({ reaction: e || undefined })} className={`h-8 w-8 rounded-full border text-base ${(b.reaction || "") === e ? "border-violet-500 bg-violet-50" : "border-neutral-200"}`}>{e || "∅"}</button>
+      ))}
+    </div>
+  </>);
   if (b.type === "image" || b.type === "audio" || b.type === "video") return (<><Lbl>URL do arquivo</Lbl><input value={b.url} onChange={(e) => patch({ url: e.target.value })} placeholder="https://…" className={inp} />{b.type === "image" && b.url ? (/* eslint-disable-next-line @next/next/no-img-element */ <img src={b.url} alt="" className="mt-2 max-h-32 rounded" />) : null}</>);
   if (b.type === "embed") return (<><Lbl>HTML / iframe</Lbl><textarea value={b.html} onChange={(e) => patch({ html: e.target.value })} rows={4} className={inp} /></>);
   if (b.type === "date") return (<><Lbl>Texto do separador de data</Lbl><input value={b.label || ""} onChange={(e) => patch({ label: e.target.value })} placeholder="Hoje / Ontem / 21/06/2025" className={inp} /></>);

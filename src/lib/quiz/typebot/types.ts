@@ -15,7 +15,7 @@ interface Base {
 
 /** Bolhas = mensagens do bot (lado esquerdo) + elementos visuais do WhatsApp. */
 export type TbBubble =
-  | (Base & { type: "text"; richText: string })
+  | (Base & { type: "text"; richText: string; reaction?: string })
   | (Base & { type: "image"; url: string })
   | (Base & { type: "audio"; url: string })
   | (Base & { type: "video"; url: string })
