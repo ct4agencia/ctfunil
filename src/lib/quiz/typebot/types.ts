@@ -96,6 +96,8 @@ export interface TbTheme {
   charging?: boolean;
   /** mostra o aviso de criptografia no topo da conversa */
   encryptionBanner?: boolean;
+  /** imagem de fundo do chat (substitui o doodle padrão) — URL do upload do usuário */
+  chatBgImage?: string;
 }
 
 export interface TbFunnel {

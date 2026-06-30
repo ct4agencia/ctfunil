@@ -220,7 +220,7 @@ export default function TypebotBuilder({ initial }: { initial: Funnel }) {
             </div>
             <div className="h-full w-full max-w-[400px] overflow-hidden rounded-[2rem] border-8 border-neutral-800 bg-white shadow-xl">
               <div className="h-full overflow-hidden">
-                <ChatRunner key={nonce} funnel={funnel} preview />
+                <ChatRunner key={`${nonce}-${selG}`} funnel={funnel} preview startGroupId={group?.id} />
               </div>
             </div>
           </div>
@@ -401,69 +401,90 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
   return null;
 }
 
+function ImgUpload({ value, onChange, placeholder }: { value?: string; onChange: (v: string) => void; placeholder?: string }) {
+  const [busy, setBusy] = useState(false);
+  const up = async (f: File) => {
+    setBusy(true);
+    try { const fd = new FormData(); fd.append("file", f); const r = await fetch("/api/upload", { method: "POST", body: fd }); const j = await r.json(); if (j.url) onChange(j.url); else alert(j.error || "Falha no upload"); } catch { alert("Falha no upload"); }
+    setBusy(false);
+  };
+  return (
+    <div className="flex items-center gap-2">
+      <input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder || "https://… ou faça upload"} className={`${inp} flex-1`} />
+      <label className="shrink-0 cursor-pointer rounded-lg bg-neutral-900 px-3 py-2 text-xs font-bold text-white hover:bg-neutral-700">{busy ? "…" : "⭱ Upload"}<input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) up(f); e.currentTarget.value = ""; }} /></label>
+    </div>
+  );
+}
+
 function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) => void }) {
   const t = { ...TB_DEFAULT_THEME, ...tb.theme };
   const set = (p: Partial<typeof t>) => setTb({ theme: { ...t, ...p } });
   const Color = ({ label, k }: { label: string; k: keyof typeof t }) => (
-    <div className="flex items-center justify-between border-b border-neutral-100 py-2 text-sm"><span className="text-neutral-600">{label}</span>
+    <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">{label}</span>
       <input type="color" value={(t[k] as string) || "#000000"} onChange={(e) => set({ [k]: e.target.value })} className="h-8 w-12" /></div>
   );
+  const Toggle = ({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) => (
+    <label className="flex cursor-pointer items-center justify-between py-1.5 text-sm"><span className="text-neutral-700">{label}</span>
+      <input type="checkbox" checked={on} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 accent-neutral-900" /></label>
+  );
+  const Card = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div className="mb-3 rounded-xl border border-neutral-200 bg-white p-4"><p className="mb-2 text-[13px] font-bold text-neutral-800">{title}</p>{children}</div>
+  );
   return (
-    <div className="flex-1 overflow-auto p-4">
-      <div className="mx-auto max-w-xl rounded-xl border border-neutral-200 bg-white p-5">
-        <h2 className="mb-3 text-base font-bold">🎨 Tema do chat</h2>
-        <Color label="Fundo da página" k="bg" />
-        <Color label="Bolha do bot — fundo" k="hostBubbleBg" />
-        <Color label="Bolha do bot — texto" k="hostBubbleColor" />
-        <Color label="Bolha do lead — fundo" k="guestBubbleBg" />
-        <Color label="Bolha do lead — texto" k="guestBubbleColor" />
-        <Color label="Botões — fundo" k="buttonBg" />
-        <Color label="Botões — texto" k="buttonColor" />
-        <Color label="Barra de topo (WhatsApp)" k="headerColor" />
-        <Lbl>Nome do contato (topo)</Lbl>
-        <input value={t.botName || ""} onChange={(e) => set({ botName: e.target.value })} placeholder="ex: Sônia 🧡" className={inp} />
-        <Lbl>Avatar do bot (URL)</Lbl>
-        <input value={t.avatarUrl || ""} onChange={(e) => set({ avatarUrl: e.target.value })} placeholder="https://…" className={inp} />
-
-        <div className="mt-4 border-t border-neutral-100 pt-3">
-          <p className="mb-2 text-sm font-bold text-neutral-700">Celular (estilo WhatsApp)</p>
-          <div className="mb-2 flex gap-2">
+    <div className="flex-1 overflow-auto bg-neutral-50 p-4">
+      <div className="mx-auto max-w-xl">
+        <Card title="📱 Aparelho & layout">
+          <div className="mb-2 flex gap-1 rounded-lg bg-neutral-100 p-1">
+            {(["ios", "android"] as const).map((d) => (
+              <button key={d} onClick={() => set({ device: d })} className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold ${(t.device || "ios") === d ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500"}`}>{d === "ios" ? " iPhone (iOS)" : "🤖 Android"}</button>
+            ))}
+          </div>
+          <div className="mb-1 flex gap-2">
             <button onClick={() => set({ dark: false, bg: "#efeae2", hostBubbleBg: "#ffffff", hostBubbleColor: "#111b21", guestBubbleBg: "#e6ffda", guestBubbleColor: "#111b21", buttonBg: "#008069", buttonColor: "#ffffff" })} className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold hover:bg-neutral-50">☀️ WhatsApp Claro</button>
             <button onClick={() => set({ dark: true })} className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold hover:bg-neutral-50">🌙 WhatsApp Escuro</button>
           </div>
-          <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Aparelho</span>
-            <div className="flex gap-1 rounded-lg bg-neutral-100 p-1">
-              {(["ios", "android"] as const).map((d) => (
-                <button key={d} onClick={() => set({ device: d })} className={`rounded-md px-3 py-1 text-xs font-semibold ${(t.device || "ios") === d ? "bg-white shadow-sm" : "text-neutral-500"}`}>{d === "ios" ? " iOS" : "🤖 Android"}</button>
-              ))}
-            </div>
-          </div>
-          <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Modo escuro</span>
-            <input type="checkbox" checked={!!t.dark} onChange={(e) => set({ dark: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
-          <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Esconder header</span>
-            <input type="checkbox" checked={!!t.hideHeader} onChange={(e) => set({ hideHeader: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
-          <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Aviso de criptografia no topo</span>
-            <input type="checkbox" checked={t.encryptionBanner !== false} onChange={(e) => set({ encryptionBanner: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
-          <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Bateria carregando ⚡</span>
-            <input type="checkbox" checked={!!t.charging} onChange={(e) => set({ charging: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
-          <Lbl>Status do contato</Lbl>
-          <input value={t.online || ""} onChange={(e) => set({ online: e.target.value })} placeholder="online" className={inp} />
-          <div className="mt-2 grid grid-cols-3 gap-2">
+          <Toggle label="Modo escuro" on={!!t.dark} onChange={(v) => set({ dark: v })} />
+          <Toggle label="Esconder header" on={!!t.hideHeader} onChange={(v) => set({ hideHeader: v })} />
+          <Toggle label="Aviso de criptografia no topo" on={t.encryptionBanner !== false} onChange={(v) => set({ encryptionBanner: v })} />
+        </Card>
+
+        <Card title="🔋 Barra de status">
+          <div className="grid grid-cols-3 gap-2">
             <div><Lbl>Hora</Lbl><input value={t.statusTime || ""} onChange={(e) => set({ statusTime: e.target.value })} placeholder="10:04" className={inp} /></div>
             <div><Lbl>Rede</Lbl><input value={t.network || ""} onChange={(e) => set({ network: e.target.value })} placeholder="5G" className={inp} /></div>
             <div><Lbl>Bateria %</Lbl><input type="number" min={0} max={100} value={t.battery ?? 80} onChange={(e) => set({ battery: Number(e.target.value) })} className={inp} /></div>
           </div>
-        </div>
+          <Toggle label="Bateria carregando ⚡" on={!!t.charging} onChange={(v) => set({ charging: v })} />
+          <p className="text-[11px] text-neutral-400">A barra de status aparece só na pré-visualização.</p>
+        </Card>
 
-        <div className="mt-4 border-t border-neutral-100 pt-3">
-          <p className="mb-1 text-sm font-bold text-neutral-700">Digitação</p>
-          <label className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Emular digitação (indicador …)</span>
-            <input type="checkbox" checked={!!tb.typing?.enabled} onChange={(e) => setTb({ typing: { ...tb.typing, enabled: e.target.checked } })} className="h-4 w-4 accent-neutral-900" /></label>
-          <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Velocidade (caracteres/seg)</span>
-            <input type="number" min={5} max={120} value={tb.typing?.speed || 28} onChange={(e) => setTb({ typing: { ...tb.typing, speed: Number(e.target.value) } })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" /></div>
-          <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Atraso máx. por bolha (s)</span>
-            <input type="number" min={0.3} max={5} step={0.1} value={tb.typing?.maxDelay || 1.4} onChange={(e) => setTb({ typing: { ...tb.typing, maxDelay: Number(e.target.value) } })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" /></div>
-        </div>
+        <Card title="👤 Contato">
+          <Lbl>Nome no topo</Lbl><input value={t.botName || ""} onChange={(e) => set({ botName: e.target.value })} placeholder="ex: Sônia 🧡" className={inp} />
+          <Lbl>Status</Lbl><input value={t.online || ""} onChange={(e) => set({ online: e.target.value })} placeholder="online" className={inp} />
+          <Lbl>Avatar</Lbl><ImgUpload value={t.avatarUrl} onChange={(v) => set({ avatarUrl: v })} />
+        </Card>
+
+        <Card title="🖼️ Fundo do chat">
+          <ImgUpload value={t.chatBgImage} onChange={(v) => set({ chatBgImage: v })} placeholder="Faça upload da sua imagem de fundo" />
+          {t.chatBgImage ? <button onClick={() => set({ chatBgImage: undefined })} className="mt-2 text-xs font-semibold text-red-500">Remover (volta ao padrão)</button> : <p className="mt-1 text-[11px] text-neutral-400">Vazio = doodle padrão. Suba a sua imagem pra usar 1:1.</p>}
+        </Card>
+
+        <Card title="🎨 Cores das bolhas">
+          <Color label="Cor do fundo (sob a imagem)" k="bg" />
+          <Color label="Bolha do bot — fundo" k="hostBubbleBg" />
+          <Color label="Bolha do bot — texto" k="hostBubbleColor" />
+          <Color label="Bolha do lead — fundo" k="guestBubbleBg" />
+          <Color label="Bolha do lead — texto" k="guestBubbleColor" />
+          <Color label="Botões — fundo" k="buttonBg" />
+          <Color label="Botões — texto" k="buttonColor" />
+          <Color label="Barra de topo (Android)" k="headerColor" />
+        </Card>
+
+        <Card title="⌨️ Digitação">
+          <Toggle label="Emular digitação (indicador …)" on={!!tb.typing?.enabled} onChange={(v) => setTb({ typing: { ...tb.typing, enabled: v } })} />
+          <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Velocidade (car/seg)</span><input type="number" min={5} max={120} value={tb.typing?.speed || 28} onChange={(e) => setTb({ typing: { ...tb.typing, speed: Number(e.target.value) } })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" /></div>
+          <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">Atraso máx./bolha (s)</span><input type="number" min={0.3} max={5} step={0.1} value={tb.typing?.maxDelay || 1.4} onChange={(e) => setTb({ typing: { ...tb.typing, maxDelay: Number(e.target.value) } })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" /></div>
+        </Card>
       </div>
     </div>
   );

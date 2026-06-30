@@ -33,7 +33,7 @@ const nowHM = () => { const d = new Date(); return `${String(d.getHours()).padSt
 
 /** Runtime do funil typebot: reproduz a conversa (bolhas progressivas + digitação),
  *  coleta inputs, interpola {variavel}, ramifica e captura o lead. */
-export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel; preview?: boolean }) {
+export default function ChatRunner({ funnel, preview = false, startGroupId }: { funnel: Funnel; preview?: boolean; startGroupId?: string }) {
   const tb = funnel.settings?.typebot as TbFunnel | undefined;
   const theme = useMemo(() => ({ ...TB_DEFAULT_THEME, ...(tb?.theme || {}) }), [tb]);
   const groupById = useMemo(() => Object.fromEntries((tb?.groups || []).map((g) => [g.id, g])), [tb]);
@@ -139,7 +139,7 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    runFrom(tb?.startGroup || (tb?.groups?.[0]?.id ?? ""), 0);
+    runFrom(startGroupId || tb?.startGroup || (tb?.groups?.[0]?.id ?? ""), 0);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -268,7 +268,10 @@ export default function ChatRunner({ funnel, preview = false }: { funnel: Funnel
       ) : null}
 
       {/* conversa */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ background: C.bg, backgroundImage: `url("${doodle}")`, backgroundSize: "94px 94px" }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto"
+        style={theme.chatBgImage
+          ? { background: C.bg, backgroundImage: `url("${theme.chatBgImage}")`, backgroundSize: "cover", backgroundPosition: "center" }
+          : { background: C.bg, backgroundImage: `url("${doodle}")`, backgroundSize: "94px 94px" }}>
         <div className="mx-auto flex w-full max-w-[680px] flex-col gap-1.5 px-3 py-3">
           {theme.encryptionBanner !== false ? (
             <div className="mx-auto my-1 max-w-[90%] rounded-lg px-3 py-1.5 text-center text-[11.5px] leading-snug shadow-sm" style={{ background: dark ? "#182229" : "#fdf3c4", color: dark ? "#ffd27d" : "#5c5638" }}>
