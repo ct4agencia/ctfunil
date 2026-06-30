@@ -98,6 +98,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     const nome = (nameL ? fields[keyOf(nameL)] : "") || name || "";
     const email = emailL ? (fields[keyOf(emailL)] || "") : "";
 
+    // nome e telefone são OBRIGATÓRIOS pra continuar (quando os campos existem na lâmina)
+    if (nameL && nome.trim().length < 2) {
+      alert("Por favor, preencha seu nome 🙂");
+      return;
+    }
     if (phoneL && phone.length < 10) {
       alert("Confere seu número de Whatsapp com DDD 🙂");
       return;

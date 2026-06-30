@@ -175,7 +175,8 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
     if (!pending) return;
     const b = pending.block;
     const val = (raw || "").trim();
-    if (b.type !== "input-choice" && !item && !val) return;
+    // obrigatório pra continuar: input vazio avisa em vez de só não avançar
+    if (b.type !== "input-choice" && !item && !val) { alert("Por favor, preencha pra continuar 🙂"); return; }
     if (b.type === "input-phone" && val.replace(/\D/g, "").length < 10) { alert("Confere seu WhatsApp com DDD 🙂"); return; }
     if (b.type === "input-number" && val && isNaN(Number(val.replace(",", ".")))) { alert("Digite um número 🙂"); return; }
     if (b.type === "input-email" && val && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) { alert("E-mail inválido 🙂"); return; }
