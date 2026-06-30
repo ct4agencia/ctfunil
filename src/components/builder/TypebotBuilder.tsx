@@ -456,6 +456,8 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
           <Toggle label="Esconder header" on={!!t.hideHeader} onChange={(v) => set({ hideHeader: v })} />
           <Toggle label="Esconder rodapé (input)" on={!!t.hideFooter} onChange={(v) => set({ hideFooter: v })} />
           <Toggle label="Ícone de silenciado no header" on={!!t.headerSilent} onChange={(v) => set({ headerSilent: v })} />
+          <Toggle label="Ícone de chamada de vídeo (header)" on={!!t.showCallVideo} onChange={(v) => set({ showCallVideo: v })} />
+          <Toggle label="Ícone de chamada de voz (header)" on={!!t.showCallVoice} onChange={(v) => set({ showCallVoice: v })} />
           <Toggle label="Aviso de criptografia no topo" on={t.encryptionBanner !== false} onChange={(v) => set({ encryptionBanner: v })} />
           {t.encryptionBanner !== false ? <input value={t.encryptionText || ""} onChange={(e) => set({ encryptionText: e.target.value })} placeholder="Texto do aviso (🔒 já vem na frente)" className={`${inp} mb-1`} /> : null}
           <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-700">Tamanho do texto</span>

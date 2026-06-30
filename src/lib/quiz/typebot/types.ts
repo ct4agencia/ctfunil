@@ -110,6 +110,9 @@ export interface TbTheme {
   dualSim?: boolean;
   /** ícone de silenciado no header */
   headerSilent?: boolean;
+  /** ícones de chamada no header (desativados por padrão) */
+  showCallVideo?: boolean;
+  showCallVoice?: boolean;
   /** relógio das mensagens em 12h (AM/PM) em vez de 24h */
   clock12h?: boolean;
   /** mostra a barra de status (relógio/sinal/bateria) no preview */
