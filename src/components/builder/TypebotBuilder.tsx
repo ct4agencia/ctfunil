@@ -56,7 +56,7 @@ function newBlock(type: string): TbBlock {
     case "set-variable": return { id, type: "set-variable", variable: "var", expression: "" };
     case "condition": return { id, type: "condition", items: [{ id: genId(), variable: "var", op: "igual", value: "" }] };
     case "redirect": return { id, type: "redirect", url: "https://", newTab: false };
-    case "vsl": return { id, type: "vsl", title: "Assista o vídeo abaixo e veja como ativar sua Bolsa de Estudos 👇", barText: "⚠️ ATENÇÃO: ESTE VÍDEO SAI DO AR EM BREVE", embedHtml: "", checkoutUrl: "https://", ctaText: "QUERO GARANTIR MINHA VAGA", pitchRevealAt: 8, background: "#ffffff" };
+    case "vsl": return { id, type: "vsl", title: "Assista o vídeo abaixo e veja como ativar sua Bolsa de Estudos 👇", barText: "⚠️ ATENÇÃO: ESTE VÍDEO SAI DO AR EM BREVE", embedHtml: "", checkoutUrl: "https://", ctaText: "QUERO GARANTIR MINHA VAGA", pitchRevealAt: 8, effect: "shine-pulse", background: "#ffffff" };
     default: return { id, type: "text", richText: "" };
   }
 }
@@ -132,7 +132,7 @@ export default function TypebotBuilder({ initial }: { initial: Funnel }) {
           {msg ? <span className="text-xs font-semibold text-neutral-600">{msg}</span> : null}
           <button onClick={() => setShowSettings(true)} title="Configurações do funil (pixel, checkout, domínio, webhooks)" className="rounded-lg border border-neutral-300 px-2.5 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⚙</button>
           <button onClick={save} disabled={saving} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700">{saving ? "Salvando…" : "Salvar"}</button>
-          <a href={`/${funnel.slug}`} target="_blank" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white">Ver ao vivo ↗</a>
+          <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white">Ver ao vivo ↗</a>
         </div>
       </header>
 
@@ -417,6 +417,13 @@ function BlockEditor({ block: b, patch, groupOpts }: { block: TbBlock; patch: (p
     <Lbl>Embed do player (cole o &lt;script&gt;/&lt;div&gt; do VTurb)</Lbl><textarea value={b.embedHtml || ""} onChange={(e) => patch({ embedHtml: e.target.value })} rows={4} placeholder="<vturb-smartplayer …></vturb-smartplayer><script …></script>" className={`${inp} font-mono text-[11px]`} />
     <Lbl>Liberar botão após (segundos do pitch)</Lbl><input type="number" min={0} value={b.pitchRevealAt ?? 0} onChange={(e) => patch({ pitchRevealAt: Number(e.target.value) || 0 })} className={inp} />
     <Lbl>Texto do botão</Lbl><input value={b.ctaText || ""} onChange={(e) => patch({ ctaText: e.target.value })} placeholder="QUERO GARANTIR MINHA VAGA" className={inp} />
+    <Lbl>Efeito de animação do botão</Lbl>
+    <select value={b.effect || "none"} onChange={(e) => patch({ effect: e.target.value })} className={inp}>
+      <option value="none">Nenhum</option>
+      <option value="shine">✨ Brilho (varre o botão)</option>
+      <option value="pulse">💓 Pulsar</option>
+      <option value="shine-pulse">🔥 Brilho + Pulsar (igual a roleta)</option>
+    </select>
     <Lbl>URL do checkout (abre ao clicar no botão)</Lbl><input value={b.checkoutUrl || ""} onChange={(e) => patch({ checkoutUrl: e.target.value })} placeholder="https://…" className={inp} />
     <Lbl>Fundo da página (CSS — ex: #ffffff)</Lbl><input value={b.background || ""} onChange={(e) => patch({ background: e.target.value })} placeholder="#ffffff" className={inp} />
   </>);

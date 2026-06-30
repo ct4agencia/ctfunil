@@ -577,6 +577,9 @@ function TypebotVsl({ block, interp, preview }: { block: TbVsl; interp: (s: stri
     if (url) window.open(url, "_blank");
   };
   const titleHtml = interp(block.title || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  const fx = block.effect || "none";
+  const pulseCls = fx === "pulse" || fx === "shine-pulse" ? "fx-pulse" : "";
+  const shineCls = fx === "shine" || fx === "shine-pulse" ? "fx-shine" : "";
 
   return (
     <div className="absolute inset-0 z-50 overflow-y-auto" style={{ background: block.background || "#ffffff" }}>
@@ -600,11 +603,12 @@ function TypebotVsl({ block, interp, preview }: { block: TbVsl; interp: (s: stri
         )}
         <AnimatePresence mode="wait">
           {reveal ? (
-            <motion.button key="cta" onClick={openCheckout}
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              className="mt-6 w-full rounded-full bg-emerald-500 px-6 py-4 text-base font-extrabold uppercase text-white shadow-lg transition active:scale-[0.99]">
-              {block.ctaText || "QUERO GARANTIR MINHA VAGA"}
-            </motion.button>
+            <motion.div key="cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
+              <button onClick={openCheckout}
+                className={`w-full rounded-full bg-emerald-500 px-6 py-4 text-base font-extrabold uppercase text-white shadow-lg active:scale-[0.99] ${pulseCls} ${shineCls}`}>
+                {block.ctaText || "QUERO GARANTIR MINHA VAGA"}
+              </button>
+            </motion.div>
           ) : (
             <motion.p key="wait" exit={{ opacity: 0 }} className="mt-6 text-center text-sm text-neutral-400">⏳ Assista o vídeo para liberar o acesso...</motion.p>
           )}

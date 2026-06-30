@@ -68,6 +68,8 @@ export type TbLogic =
       pitchRevealAt?: number;
       ctaText?: string;
       checkoutUrl?: string;
+      /** efeito de animação do botão (igual ao inlead): none/pulse/shine/shine-pulse */
+      effect?: "none" | "pulse" | "shine" | "shine-pulse";
       /** fundo da página (CSS, ex: "#ffffff" ou gradient) */
       background?: string;
     });

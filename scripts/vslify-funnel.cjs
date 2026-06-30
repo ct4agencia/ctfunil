@@ -39,7 +39,18 @@ async function main() {
   const groups = tb.groups.map((g) => {
     const hasRedirect = g.blocks.some((b) => b.type === "redirect");
     const hasVsl = g.blocks.some((b) => b.type === "vsl");
-    if (!hasRedirect || hasVsl) return g; // só o grupo terminal com redirect (e ainda não convertido)
+
+    // upgrade: bloco vsl já existe mas sem efeito → adiciona o efeito (preserva embed/checkout)
+    if (hasVsl) {
+      let upg = false;
+      const blocks = g.blocks.map((b) => {
+        if (b.type === "vsl" && !b.effect) { upg = true; return { ...b, effect: "shine-pulse" }; }
+        return b;
+      });
+      if (upg) { changed++; console.log(`  ✓ grupo [${g.id}] "${g.title}": efeito do botão → shine-pulse`); return { ...g, blocks }; }
+      return g;
+    }
+    if (!hasRedirect) return g; // só o grupo terminal com redirect
 
     const embed = g.blocks.find((b) => b.type === "embed");
     const redirect = g.blocks.find((b) => b.type === "redirect");
@@ -55,6 +66,7 @@ async function main() {
       pitchRevealAt: 8,
       ctaText: "QUERO ATIVAR MINHA BOLSA AGORA",
       checkoutUrl,
+      effect: "shine-pulse",
       background: "#ffffff",
     };
     // mantém quaisquer blocos que não sejam embed/redirect; insere o vsl no lugar.

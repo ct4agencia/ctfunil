@@ -36,6 +36,7 @@ const vslBlock = (): TbBlock => ({
   pitchRevealAt: 8,
   ctaText: "QUERO ATIVAR MINHA BOLSA AGORA",
   checkoutUrl: CDB_CHECKOUT,
+  effect: "shine-pulse",
   background: "#ffffff",
 });
 const inputText = (variable: string, placeholder: string): TbBlock => ({ id: bid(), type: "input-text", variable, placeholder, button: "Enviar" });
