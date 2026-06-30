@@ -107,6 +107,8 @@ export interface InleadStep {
   disabled?: boolean;
   layers: Layer[];
   options?: { show_logo?: boolean; show_progress?: boolean; show_back?: boolean };
+  /** Override do header SÓ desta lâmina. Cada chave undefined = herda do global. */
+  headerOverride?: { show_logo?: boolean; show_progress?: boolean; show_back?: boolean; go_to_top?: boolean };
   design?: {
     backgroundColor?: string;
     backgroundImage?: InleadMedia;

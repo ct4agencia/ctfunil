@@ -1268,7 +1268,33 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   );
                 }
               })()}
-              <p className="rounded-lg bg-neutral-50 p-2 text-[11px] text-neutral-500">O <b>Header</b> (logo/progresso/voltar) agora é configuração <b>geral</b>, na aba <b>🎨 Design</b> — vale pra todas as lâminas (exceto hero e VSL).</p>
+              {/* Header POR LÂMINA: cada toggle herda do global (Design) até você mexer */}
+              {(() => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const g = (((funnel.settings as any)?.header) || {}) as Record<string, boolean | undefined>;
+                const ov = (step?.headerOverride || {}) as Record<string, boolean | undefined>;
+                const keys = ["show_logo", "show_progress", "show_back", "go_to_top"] as const;
+                const eff = (k: string) => (ov[k] !== undefined ? ov[k] : g[k]) || false;
+                const setOv = (k: string, v: boolean) => patchStep(selStep, { headerOverride: { ...ov, [k]: v } });
+                const touched = keys.some((k) => ov[k] !== undefined);
+                const reset = () => { const n = { ...ov }; keys.forEach((k) => delete n[k]); patchStep(selStep, { headerOverride: n }); };
+                const ROWS: [string, string][] = [["show_logo", "Mostrar logo"], ["show_progress", "Mostrar progresso"], ["show_back", "Mostrar botão voltar"], ["go_to_top", 'Ativar botão "Ir ao topo"']];
+                return (
+                  <div className="rounded-xl border border-neutral-200 p-3">
+                    <div className="mb-1 flex items-center justify-between">
+                      <p className="text-sm font-bold text-neutral-700">Header</p>
+                      {touched ? <button onClick={reset} className="text-[11px] font-semibold text-neutral-400 hover:text-neutral-700">↺ herdar do global</button> : null}
+                    </div>
+                    {ROWS.map(([k, label]) => (
+                      <label key={k} className="flex cursor-pointer items-center justify-between py-1.5 text-sm">
+                        <span className="text-neutral-600">{label}{ov[k] === undefined ? <span className="ml-1.5 text-[10px] text-neutral-400">global</span> : null}</span>
+                        <input type="checkbox" checked={eff(k)} onChange={(e) => setOv(k, e.target.checked)} className="h-4 w-4 accent-neutral-900" />
+                      </label>
+                    ))}
+                    <p className="mt-1 text-[11px] text-neutral-400">Herda do <b>🎨 Design global</b> até você mexer; aí sobrescreve só esta lâmina. (Hero/VSL ficam sem header, salvo override.)</p>
+                  </div>
+                );
+              })()}
               <p className="text-xs text-neutral-400">👆 Clique num bloco no celular pra editar.</p>
             </div>
           )}

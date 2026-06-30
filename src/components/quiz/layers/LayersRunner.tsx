@@ -228,9 +228,14 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       {/* header GLOBAL (settings.header): logo + progresso + voltar.
           Aparece em TODAS as lâminas exceto o HERO (idx 0) e a VSL (lâmina com vídeo). */}
       {(() => {
-        const hdr = (funnel.settings as { header?: { show_logo?: boolean; show_progress?: boolean; show_back?: boolean } })?.header || {};
+        const g = ((funnel.settings as { header?: Record<string, boolean> })?.header || {}) as Record<string, boolean | undefined>;
+        const ov = (step.headerOverride || {}) as Record<string, boolean | undefined>;
+        const eff = (k: string) => (ov[k] !== undefined ? ov[k] : g[k]) || false;
+        const hdr = { show_logo: eff("show_logo"), show_progress: eff("show_progress"), show_back: eff("show_back") };
+        const hasOverride = ["show_logo", "show_progress", "show_back", "go_to_top"].some((k) => ov[k] !== undefined);
         const isVslStep = (step.layers || []).some((l) => l.type === "embed" || l.type === "video");
-        if (idx === 0 || isVslStep) return null;
+        if (idx === 0) return null;                  // hero nunca tem header
+        if (isVslStep && !hasOverride) return null;   // VSL sem header por padrão (salvo override por lâmina)
         if (!hdr.show_logo && !hdr.show_progress && !hdr.show_back) return null;
         return (
           <header className="relative z-10 mx-auto flex w-full flex-col items-center gap-2 px-5 pt-5" style={{ maxWidth: containerMax(design.container) }}>
@@ -245,6 +250,18 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
               </div>
             ) : null}
           </header>
+        );
+      })()}
+
+      {/* botão "Ir ao topo" (override por lâmina ou global) */}
+      {(() => {
+        const g = ((funnel.settings as { header?: Record<string, boolean> })?.header || {}) as Record<string, boolean | undefined>;
+        const ov = (step.headerOverride || {}) as Record<string, boolean | undefined>;
+        const goTop = (ov.go_to_top !== undefined ? ov.go_to_top : g.go_to_top) || false;
+        if (!goTop || idx === 0) return null;
+        return (
+          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Ir ao topo"
+            className="fixed bottom-4 right-4 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/70 text-lg text-white shadow-lg backdrop-blur">↑</button>
         );
       })()}
 
