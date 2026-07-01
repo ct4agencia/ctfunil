@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import sharp from "sharp";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 const BUCKET = "vsl-assets";
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   // Só o admin autenticado pode subir arquivos.
@@ -21,11 +23,27 @@ export async function POST(request: Request) {
   }
 
   const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 60) || "img";
-  const path = `uploads/${Date.now()}-${safe}`;
+  let path = `uploads/${Date.now()}-${safe}`;
+  let body: File | Buffer = file;
+  let contentType = file.type || undefined;
+
+  // Imagens raster → webp otimizado (max 1080px). Mantém o funil rápido: um PNG
+  // de 1MB do ChatGPT vira ~90KB webp automaticamente. Áudio/vídeo/svg passam direto.
+  if (/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
+    try {
+      const buf = Buffer.from(await file.arrayBuffer());
+      const webp = await sharp(buf).resize({ width: 1080, withoutEnlargement: true }).webp({ quality: 75 }).toBuffer();
+      if (webp.length < buf.length) {
+        body = webp;
+        contentType = "image/webp";
+        path = `uploads/${Date.now()}-${safe.replace(/\.(png|jpe?g|webp)$/i, "")}.webp`;
+      }
+    } catch { /* fallback: sobe o original */ }
+  }
 
   const admin = createAdminClient();
-  const { error } = await admin.storage.from(BUCKET).upload(path, file, {
-    contentType: file.type || undefined,
+  const { error } = await admin.storage.from(BUCKET).upload(path, body, {
+    contentType,
     upsert: false,
   });
   if (error) {
