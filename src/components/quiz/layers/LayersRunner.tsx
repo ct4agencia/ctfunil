@@ -7,7 +7,7 @@ import type { InleadStep, InleadDesign } from "@/lib/quiz/layers/types";
 import { trackStep, trackAnswer } from "@/lib/quiz/track";
 import { getSessionId, collectTrackingParams, fireMetaEvent } from "@/lib/tracking";
 import { ScrollHint } from "../ui";
-import { RouletteStepView, type StepCtx } from "../steps";
+import { type StepCtx } from "../steps";
 import { getPalette, paletteVars } from "@/lib/quiz/theme";
 import type { RouletteStep } from "@/lib/quiz/types";
 import dynamic from "next/dynamic";
@@ -16,6 +16,11 @@ import { Block, Reveal, SliderHero, LayersEditContext, type LayersCtx, type Laye
 // Modo editor (drag & drop com dnd-kit) carregado SÓ no construtor — mantém o
 // @dnd-kit + EditBlock fora do bundle do funil público.
 const EditableBlockList = dynamic(() => import("./EditableBlocks").then((m) => m.EditableBlockList), { ssr: false });
+
+// RouletteStepView vive no steps.tsx (1270 linhas: roleta/raspadinha/gauge/quiz
+// inteiro). Só é usado em hero tipo "roleta" — lazy-load pra NÃO puxar o steps.tsx
+// pro bundle dos funis sem roleta (a maioria).
+const RouletteStepView = dynamic(() => import("../steps").then((m) => m.RouletteStepView), { ssr: false });
 
 /** rem da string container "max-w-[34rem]". */
 function containerMax(c?: string): string {
