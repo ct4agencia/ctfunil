@@ -10,7 +10,7 @@ import { createFunnel, duplicateFunnel, deleteFunnel } from "@/app/dashboard/act
 import { signOut } from "@/app/auth/actions";
 import Pagination from "@/components/ui/Pagination";
 
-const PER_PAGE = 6;
+const PER_PAGE = 20;
 
 function fmtDate(s: string): string {
   // timeZone fixo: sem isso o server (UTC) e o client (BRT) formatam dias diferentes

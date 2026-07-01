@@ -26,38 +26,71 @@ function spParts(d: Date): { day: string; month: string; hour: string } {
 }
 
 /** Métricas agregadas (overview do dashboard, estilo Datacrazy). */
+/** Índices de estágio (1ª pergunta / captura / fim) de um funil — reusável em
+ *  dashboardMetrics (batch) e funnelMetrics. Espelha a lógica: typebot usa grupos;
+ *  layers computa sobre lâminas ATIVAS (o runtime pula as desativadas). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function stageIdx(f: { steps: any; settings: any }): { firstQ: number; captureI: number; lastI: number; totalSteps: number } {
+  const steps = (f.steps as Step[]) ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tbGroups: any[] | null = f.settings?.engine === "typebot" && Array.isArray((f.settings as any)?.typebot?.groups) ? (f.settings as any).typebot.groups : null;
+  if (tbGroups) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const qi = tbGroups.findIndex((g: any) => Array.isArray(g?.blocks) && g.blocks.some((b: any) => typeof b?.type === "string" && b.type.startsWith("input-")));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ci = tbGroups.findIndex((g: any) => Array.isArray(g?.blocks) && g.blocks.some((b: any) => b?.type === "input-phone"));
+    const lastI = Math.max(0, tbGroups.length - 1);
+    return { firstQ: qi < 0 ? 1 : qi, captureI: ci < 0 ? Math.max(0, lastI - 1) : ci, lastI, totalSteps: tbGroups.length };
+  }
+  const enabled = steps.filter((s) => !(s as { disabled?: boolean }).disabled);
+  const { firstQ, captureI, lastI } = stageIndices(enabled.length ? enabled : steps);
+  return { firstQ, captureI, lastI, totalSteps: enabled.length || steps.length };
+}
+
 export async function dashboardMetrics(): Promise<DashboardMetrics> {
-  const funis = await listFunnelsDb();
+  const sb = createAdminClient();
+  // ANTES: ~5 queries POR funil (17×5 ≈ 85). AGORA: 4 queries agregadas + JS.
+  const sinceDaily = new Date(Date.now() - 7 * 86400000).toISOString();
+  const [funRes, sessRes, leadRes, dailyRes] = await Promise.all([
+    sb.from("funnels").select("slug,name,steps,settings").order("updated_at", { ascending: false }),
+    sb.from("funnel_sessions").select("funnel_slug,max_step_reached").limit(100000),
+    sb.from("funnel_leads").select("funnel_slug").limit(100000),
+    sb.from("funnel_sessions").select("created_at").gte("created_at", sinceDaily).limit(100000),
+  ]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const funis = (funRes.data ?? []) as any[];
+
+  const sessByFunnel = new Map<string, number[]>();
+  for (const s of sessRes.data ?? []) {
+    const slug = s.funnel_slug as string;
+    let arr = sessByFunnel.get(slug);
+    if (!arr) { arr = []; sessByFunnel.set(slug, arr); }
+    arr.push((s.max_step_reached as number) ?? 0);
+  }
+  const leadsByFunnel = new Map<string, number>();
+  for (const l of leadRes.data ?? []) { const slug = l.funnel_slug as string; leadsByFunnel.set(slug, (leadsByFunnel.get(slug) ?? 0) + 1); }
+
   let totalSessoes = 0, totalRespostas = 0, totalLeads = 0, totalConclusoes = 0;
   const porFunil: DashboardMetrics["porFunil"] = [];
-  // paralelo: todos os funnelMetrics ao mesmo tempo (antes era 1 por vez)
-  const metricasPorFunil = await Promise.all(funis.map((f) => funnelMetrics(f.slug)));
   funis.forEach((f, i) => {
-    const m = metricasPorFunil[i];
-    totalSessoes += m.visitantes; totalRespostas += m.respostas; totalLeads += m.leads; totalConclusoes += m.conclusoes;
-    porFunil.push({ slug: f.slug, name: f.name, sessoes: m.visitantes, pct: 0, color: DONUT_COLORS[i % DONUT_COLORS.length] });
+    const idx = stageIdx(f);
+    const ms = sessByFunnel.get(f.slug) ?? [];
+    const visitantes = ms.length;
+    const respostas = ms.filter((x) => x >= idx.firstQ).length;
+    const conclusoes = ms.filter((x) => x >= idx.lastI).length;
+    totalSessoes += visitantes; totalRespostas += respostas;
+    totalLeads += (leadsByFunnel.get(f.slug) ?? 0); totalConclusoes += conclusoes;
+    porFunil.push({ slug: f.slug, name: f.name, sessoes: visitantes, pct: 0, color: DONUT_COLORS[i % DONUT_COLORS.length] });
   });
   porFunil.forEach((p) => { p.pct = totalSessoes ? Math.round((p.sessoes / totalSessoes) * 1000) / 10 : 0; });
   porFunil.sort((a, b) => b.sessoes - a.sessoes);
 
-  // diário (últimos 7 dias) — todas as sessões
+  // diário (últimos 7 dias)
   const daily: { day: string; sessoes: number }[] = [];
-  try {
-    const sb = createAdminClient();
-    const since = new Date(Date.now() - 7 * 86400000).toISOString();
-    const { data } = await sb.from("funnel_sessions").select("created_at").gte("created_at", since).limit(20000);
-    const buckets = new Map<string, number>();
-    for (let d = 6; d >= 0; d--) {
-      const { day, month } = spParts(new Date(Date.now() - d * 86400000));
-      buckets.set(`${day}/${month}`, 0);
-    }
-    for (const r of data ?? []) {
-      const { day, month } = spParts(new Date(r.created_at as string));
-      const key = `${day}/${month}`;
-      if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
-    }
-    for (const [day, sessoes] of buckets) daily.push({ day, sessoes });
-  } catch { /* sem dados */ }
+  const buckets = new Map<string, number>();
+  for (let d = 6; d >= 0; d--) { const { day, month } = spParts(new Date(Date.now() - d * 86400000)); buckets.set(`${day}/${month}`, 0); }
+  for (const r of dailyRes.data ?? []) { const { day, month } = spParts(new Date(r.created_at as string)); const key = `${day}/${month}`; if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1); }
+  for (const [day, sessoes] of buckets) daily.push({ day, sessoes });
 
   return {
     totalFunis: funis.length, totalSessoes, totalRespostas, totalLeads, totalConclusoes,
