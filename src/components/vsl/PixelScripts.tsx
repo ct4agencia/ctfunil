@@ -38,10 +38,13 @@ export default function PixelScripts({
     );
   }
 
-  // Meta Pixel (fbq) — só se houver ID numérico configurado
+  // Meta Pixel (fbq) — só se houver ID numérico configurado.
+  // DEFERIDO (igual o vivadevelas): o stub do fbq enfileira o PageView JÁ, mas o
+  // fbevents.js (~776KB) só carrega DEPOIS do 1º paint (window load + idle) — assim
+  // não disputa banda no 4G durante o render. Ao carregar, ele drena a fila → PageView dispara.
   if (p.facebook_pixel_id) {
     inline.push(
-      `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${p.facebook_pixel_id}');fbq('track','PageView');`,
+      `!function(f,b,e,n){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window,document,'script');fbq('init','${p.facebook_pixel_id}');fbq('track','PageView');(function(){function L(){if(window.__fbLoaded)return;window.__fbLoaded=1;var t=document.createElement('script');t.async=!0;t.src='https://connect.facebook.net/en_US/fbevents.js';document.head.appendChild(t)}var run=function(){('requestIdleCallback'in window)?requestIdleCallback(L,{timeout:2500}):setTimeout(L,1500)};if(document.readyState==='complete')run();else window.addEventListener('load',run)})();`,
     );
   }
 
@@ -68,9 +71,10 @@ export default function PixelScripts({
 
   return (
     <>
-      {/* M4: abre conexão cedo com os CDNs que pesam (pixel/vídeo/imagens) */}
+      {/* abre conexão cedo com os CDNs que pesam. NÃO preconecta o facebook: o
+          Meta pixel é deferido pra depois do paint, então preconectar cedo só
+          rouba conexão no momento crítico do render (4G). */}
       <link rel="preconnect" href="https://cdn.utmify.com.br" />
-      <link rel="preconnect" href="https://connect.facebook.net" />
       <link rel="preconnect" href="https://scripts.converteai.net" crossOrigin="" />
       <link rel="preconnect" href="https://cdn.converteai.net" crossOrigin="" />
       {/* preconnect (não só dns): abre TLS cedo pro CDN das imagens do hero (LCP) */}
