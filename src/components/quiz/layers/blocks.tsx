@@ -2,8 +2,6 @@
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { fireMetaEvent } from "@/lib/tracking";
 import { interpEstado } from "@/lib/quiz/estado";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
@@ -20,7 +18,7 @@ export const LayersEditContext = createContext<LayersEdit | null>(null);
 
 /** Toolbar flutuante do bloco selecionado (⠿ arrastar · copiar · ocultar · excluir). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function BlockToolbar({ onAction, dragProps }: { onAction: (a: "copy" | "hide" | "delete") => void; dragProps?: any }) {
+export function BlockToolbar({ onAction, dragProps }: { onAction: (a: "copy" | "hide" | "delete") => void; dragProps?: any }) {
   const Btn = ({ a, title, children }: { a: "copy" | "hide" | "delete"; title: string; children: React.ReactNode }) => (
     <button title={title} onClick={(e) => { e.stopPropagation(); onAction(a); }} className="grid h-6 w-6 place-items-center rounded text-white/90 hover:bg-white/20">{children}</button>
   );
@@ -685,26 +683,5 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
 
 /** Wrapper de edição no canvas: seleção + toolbar + arrastar (sortable).
  *  Usado SÓ pelo LayersRunner em modo editor (dentro de um SortableContext). */
-export function EditBlock({ layer, ctx, question, edit }: { layer: Layer; ctx: LayersCtx; question: string; edit: LayersEdit }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: layer.id });
-  const selected = edit.selectedId === layer.id;
-  const hidden = !!layer.design?.hidden;
-  return (
-    <div
-      ref={setNodeRef}
-      onClickCapture={(e) => {
-        if ((e.target as HTMLElement).closest("[data-block-toolbar]")) return; // toolbar/⠿ funcionam
-        e.stopPropagation(); e.preventDefault(); edit.onSelect(layer.id);
-      }}
-      className="relative cursor-pointer rounded-md transition hover:outline hover:outline-1 hover:outline-blue-300"
-      style={{
-        transform: CSS.Transform.toString(transform), transition,
-        outline: selected ? "2px solid #2563eb" : undefined, outlineOffset: 3,
-        opacity: isDragging ? 0.5 : (hidden ? 0.4 : 1), zIndex: isDragging ? 40 : undefined,
-      }}
-    >
-      {selected ? <BlockToolbar onAction={(a) => edit.onAction(layer.id, a)} dragProps={{ ...attributes, ...listeners }} /> : null}
-      <Block layer={layer} ctx={ctx} question={question} />
-    </div>
-  );
-}
+// EditBlock foi movido para ./EditableBlocks (carregado só no construtor, fora
+// do bundle do funil público — junto do @dnd-kit).
