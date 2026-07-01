@@ -5,9 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import VslView from "@/components/vsl/VslView";
 import BlockRenderer from "@/components/vsl/BlockRenderer";
 import PixelScripts from "@/components/vsl/PixelScripts";
-import QuizRunner from "@/components/quiz/QuizRunner";
-import LayersRunner from "@/components/quiz/layers/LayersRunner";
-import ChatRunner from "@/components/quiz/typebot/ChatRunner";
+import FunnelRenderer from "@/components/quiz/FunnelRenderer";
 import VisitBeacon from "@/components/quiz/VisitBeacon";
 import HeroPreload from "@/components/quiz/HeroPreload";
 import { resolveFunnel } from "@/lib/quiz/funnels-db";
@@ -63,11 +61,7 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
         <VisitBeacon slug={slug} />
         <HeroPreload funnel={funnel} />
         <PixelScripts settings={funnel.settings ?? {}} utmifyPixelId={funnel.utmifyPixelId ?? null} hotmartAccountId={funnel.hotmartAccountId ?? null} />
-        {funnel.settings?.engine === "typebot"
-          ? <ChatRunner funnel={funnel} />
-          : funnel.settings?.engine === "layers"
-            ? <LayersRunner funnel={funnel} geo={geo} />
-            : <QuizRunner funnel={funnel} geo={geo} />}
+        <FunnelRenderer funnel={funnel} geo={geo} />
       </div>
     );
   }

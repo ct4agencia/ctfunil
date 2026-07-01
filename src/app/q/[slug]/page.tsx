@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Fraunces, Plus_Jakarta_Sans, Poppins } from "next/font/google";
-import QuizRunner from "@/components/quiz/QuizRunner";
-import LayersRunner from "@/components/quiz/layers/LayersRunner";
-import ChatRunner from "@/components/quiz/typebot/ChatRunner";
+import FunnelRenderer from "@/components/quiz/FunnelRenderer";
 import VisitBeacon from "@/components/quiz/VisitBeacon";
 import HeroPreload from "@/components/quiz/HeroPreload";
 import PixelScripts from "@/components/vsl/PixelScripts";
@@ -78,11 +76,7 @@ export default async function QuizPage({
           />
         </>
       )}
-      {funnel.settings?.engine === "typebot"
-        ? <ChatRunner funnel={funnel} preview={isPreview} />
-        : funnel.settings?.engine === "layers"
-          ? <LayersRunner funnel={funnel} geo={geo} preview={isPreview} />
-          : <QuizRunner funnel={funnel} preview={isPreview} geo={geo} />}
+      <FunnelRenderer funnel={funnel} geo={geo} preview={isPreview} />
     </div>
   );
 }
