@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { FunnelMetrics } from "@/lib/quiz/metrics";
 
-const COLORS = ["#3b82f6", "#ec4899", "#8b5cf6", "#f59e0b"];
+const COLORS = ["#3b82f6", "#ec4899", "#8b5cf6", "#f59e0b", "#10b981"];
 
 function fmtTime(s: number): string {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
@@ -36,7 +36,7 @@ function Funnel({ stages }: { stages: FunnelMetrics["funil"] }) {
         const th = top / 2, bh = bot / 2;
         return (
           <div key={s.label} className="flex items-center gap-3">
-            <div className="w-24 shrink-0 text-sm font-semibold text-neutral-700">{s.label}</div>
+            <div className="w-28 shrink-0 text-sm font-semibold leading-tight text-neutral-700">{s.label}</div>
             <div className="relative h-12 flex-1">
               <div className="absolute inset-0" style={{ background: COLORS[i % COLORS.length], clipPath: `polygon(${50 - th}% 0, ${50 + th}% 0, ${50 + bh}% 100%, ${50 - bh}% 100%)` }} />
             </div>
@@ -72,7 +72,7 @@ function Traffic({ data }: { data: FunnelMetrics["trafego"] }) {
 const SLIDES = [
   { t: "Score e Desempenho", b: "Uma nota de 0 a 100 que resume a saúde do funil pelo comportamento real dos leads: Crítico (0–25), Regular (26–50), Bom (51–75), Ótimo (76–100). Combina taxa de conclusão e taxa de interação." },
   { t: "Métricas", b: "Visitas e Acessos = quem entrou no funil. Respostas Iniciadas = quem interagiu (passou do hero). Média de Etapas = quanto do fluxo avançam em média. Tempo Médio = quanto tempo ficam. O indicador colorido compara com o período anterior." },
-  { t: "Desempenho (funil)", b: "A jornada do lead em 4 etapas: Visitantes → Respostas → Leads → Conclusões. Quanto mais estreita a etapa, maior a perda ali. Taxa de conclusão = conclusões ÷ respostas." },
+  { t: "Desempenho (funil)", b: "A jornada do lead em 5 etapas: Visitantes → 1ª resposta → 2ª resposta → Leads capturados → Conclusões. 1ª/2ª resposta = interação do lead no 1º/2º card. Quanto mais estreita a etapa, maior a perda ali. Taxa de conclusão = conclusões ÷ visitantes." },
   { t: "Tráfego", b: "Evolução por hora de Visitantes, Respostas, Leads e Conclusões — mostra picos e melhores horários. Taxa de interação = quem iniciou; taxa de rejeição = quem saiu sem interagir." },
 ];
 
