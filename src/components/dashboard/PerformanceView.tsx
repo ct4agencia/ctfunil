@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { FunnelMetrics } from "@/lib/quiz/metrics";
 
 const COLORS = ["#3b82f6", "#ec4899", "#8b5cf6", "#f59e0b", "#10b981"];
@@ -55,12 +55,38 @@ function Traffic({ data }: { data: FunnelMetrics["trafego"] }) {
   const y = (v: number) => H - pad - (v / max) * (H - pad * 2 - 16);
   const path = (k: "visitantes" | "respostas" | "leads" | "conclusoes") => data.map((d, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(d[k]).toFixed(1)}`).join(" ");
   const series = [{ k: "visitantes", c: COLORS[0], label: "Visitantes" }, { k: "respostas", c: COLORS[1], label: "Respostas" }, { k: "leads", c: COLORS[2], label: "Leads" }, { k: "conclusoes", c: COLORS[3], label: "Conclusões" }] as const;
+  const [hi, setHi] = useState<number | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const onMove = (e: React.MouseEvent) => {
+    const el = wrapRef.current; if (!el || data.length === 0) return;
+    const rect = el.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    setHi(Math.round(ratio * (data.length - 1)));
+  };
+  const hd = hi != null ? data[hi] : null;
+  const leftPct = hi != null ? (x(hi) / W) * 100 : 0;
+  const tx = leftPct < 14 ? "0%" : leftPct > 86 ? "-100%" : "-50%";
   return (
     <div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 200 }}>
-        {[0, 0.25, 0.5, 0.75, 1].map((g) => <line key={g} x1={pad} x2={W - pad} y1={y(max * g)} y2={y(max * g)} stroke="#0000000d" strokeDasharray="3 4" />)}
-        {series.map((s) => <path key={s.k} d={path(s.k)} fill="none" stroke={s.c} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />)}
-      </svg>
+      <div ref={wrapRef} className="relative" onMouseMove={onMove} onMouseLeave={() => setHi(null)}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 200 }}>
+          {[0, 0.25, 0.5, 0.75, 1].map((g) => <line key={g} x1={pad} x2={W - pad} y1={y(max * g)} y2={y(max * g)} stroke="#0000000d" strokeDasharray="3 4" />)}
+          {series.map((s) => <path key={s.k} d={path(s.k)} fill="none" stroke={s.c} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />)}
+          {hi != null && hd ? <line x1={x(hi)} x2={x(hi)} y1={pad} y2={H - pad} stroke="#00000022" strokeWidth={1} /> : null}
+          {hi != null && hd ? series.map((s) => <circle key={s.k} cx={x(hi)} cy={y(hd[s.k])} r={3.5} fill="#fff" stroke={s.c} strokeWidth={2} />) : null}
+        </svg>
+        {hd ? (
+          <div className="pointer-events-none absolute top-0 z-10 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[11px] shadow-lg" style={{ left: `${leftPct}%`, transform: `translateX(${tx})` }}>
+            <div className="mb-1 font-bold text-neutral-800">{hd.hour}</div>
+            {series.map((s) => (
+              <div key={s.k} className="flex items-center justify-between gap-4">
+                <span className="flex items-center gap-1.5" style={{ color: s.c }}><span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: s.c }} />{s.label}</span>
+                <span className="font-bold text-neutral-800">{hd[s.k]}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
       <div className="mt-1 flex flex-wrap gap-4 text-xs font-semibold text-neutral-500">
         {series.map((s) => <span key={s.k} className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: s.c }} />{s.label}</span>)}
       </div>
