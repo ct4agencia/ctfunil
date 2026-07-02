@@ -45,6 +45,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [pending, setPending] = useState<{ groupId: string; blockIdx: number; block: TbInput } | null>(null);
   const [typing, setTyping] = useState(false);
+  const [recording, setRecording] = useState(false);
   const [textVal, setTextVal] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [voiceState, setVoiceState] = useState<Record<string, { prog: number; clock: string }>>({});
@@ -127,7 +128,14 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
         await sleep(160);
         bi++; continue;
       }
-      if (b.type === "wait") { await sleep((Number(b.seconds) || 0) * 1000); bi++; continue; }
+      if (b.type === "wait") {
+        // se o próximo bloco é uma nota de voz, mostra "gravando áudio…" em vez do "digitando"
+        const nextVoice = g.blocks[bi + 1]?.type === "voice";
+        if (nextVoice) setRecording(true);
+        await sleep((Number(b.seconds) || 0) * 1000);
+        if (nextVoice) setRecording(false);
+        bi++; continue;
+      }
       if (b.type === "set-variable") { if (b.variable) varsRef.current[b.variable] = evalExpr(b.expression); bi++; continue; }
       if (b.type === "condition") { const to = matchCond(b.items) ?? g.to; if (to) { gid = to; bi = 0; continue; } return; }
       if (b.type === "redirect") {
@@ -285,7 +293,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
           ) : <span className="grid h-9 w-9 place-items-center rounded-full text-sm" style={{ background: "#0000001a" }}>👤</span>}
           <div className="min-w-0 flex-1">
             <div className="truncate text-[15px] font-semibold leading-tight">{botName}</div>
-            <div className="truncate text-[11px] leading-tight" style={{ opacity: 0.65 }}>{typing ? "digitando…" : (theme.online || "online")}</div>
+            <div className="truncate text-[11px] leading-tight" style={{ opacity: 0.65 }}>{recording ? "gravando áudio…" : typing ? "digitando…" : (theme.online || "online")}</div>
           </div>
           {theme.headerSilent ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d="M9 8a3 3 0 016 0v1.5M18 14v-1a6 6 0 00-.7-2.8M6 9v5l-2 2h12M10 19a2 2 0 004 0M3 3l18 18" /></svg> : null}
           {theme.showCallVideo ? (
@@ -423,7 +431,14 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
               </div>
             );
           })}
-          {typing ? (
+          {recording ? (
+            <div className="flex justify-start">
+              <div className="wa-bubble wa-host flex items-center gap-2 px-3 py-2" style={{ background: C.host, boxShadow: "0 1px 0.5px rgba(0,0,0,.13)" }}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3" fill="#ef4444" stroke="none" /><path d="M5.5 11.5a6.5 6.5 0 0013 0M12 18v3.2M8.5 21.5h7" /></svg>
+                <span className="animate-pulse text-[12.5px]" style={{ color: C.typing }}>gravando áudio…</span>
+              </div>
+            </div>
+          ) : typing ? (
             <div className="flex justify-start">
               <div className="wa-bubble wa-host flex gap-1 px-3.5 py-3" style={{ background: C.host, boxShadow: "0 1px 0.5px rgba(0,0,0,.13)" }}>
                 {[0, 1, 2].map((i) => <span key={i} className="h-2 w-2 animate-bounce rounded-full" style={{ background: C.typing, animationDelay: `${i * 0.15}s` }} />)}

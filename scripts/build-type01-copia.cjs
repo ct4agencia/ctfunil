@@ -50,7 +50,7 @@ const groups = [
     t("Amei! 🥰"), w(1.2),
     t("Deixa eu ver aqui se ainda tem vaga no seu estado…"), w(3),
     t("Achei! ✅"), w(1.2),
-    t("Consegui **reservar uma vaga** pra você no maior treinamento de bolsas do Brasil."), w(4),
+    t("Consegui **reservar uma vaga** pra você no maior treinamento de bolsas do Brasil."), w(6),
     voice("0:27", AUDIO1),
     choice(undefined, ["Pode sim! 👏"]),
   ], "b3"),
@@ -83,7 +83,7 @@ const groups = [
   ], "b14"),
 
   grp("b14", "Bloco 14 - Apresentação Sônia", [
-    voice("0:47", AUDIO2), w(6),
+    w(4), voice("0:47", AUDIO2), w(35),
     t("E pra gente começar com o pé direito, eu preparei um **presente de boas-vindas** que você vai amar 🎁"),
     choice(undefined, ["Quero meu presente! 🎁"]),
   ], "b15"),
