@@ -41,6 +41,7 @@ export async function GET(request: Request) {
       score: pct(performance.score, prev.score),
       taxaConclusao: pct(performance.taxaConclusao, prev.taxaConclusao),
       taxaInteracao: pct(performance.taxaInteracao, prev.taxaInteracao),
+      taxaRejeicao: pct(performance.taxaRejeicao, prev.taxaRejeicao),
       mediaEtapas: pct(performance.mediaEtapas, prev.mediaEtapas),
       tempoMedioSeg: pct(performance.tempoMedioSeg, prev.tempoMedioSeg),
     };
