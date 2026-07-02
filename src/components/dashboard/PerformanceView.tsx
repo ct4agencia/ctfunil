@@ -10,19 +10,49 @@ function fmtTime(s: number): string {
   return `${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m ${String(sec).padStart(2, "0")}s`;
 }
 
-/** Indicador "+X% vs período anterior" (verde sobe / vermelho desce). */
+/** Ícones inline (self-contained, sem libs externas). */
+const IC = (d: React.ReactNode) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">{d}</svg>;
+const ICONS = {
+  gauge: IC(<><path d="M12 15a2 2 0 1 0-2-2" /><path d="m13.6 10.4-1.6 2.6" /><path d="M4 19a8 8 0 1 1 16 0" /></>),
+  eye: IC(<><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></>),
+  spark: IC(<><path d="m9 9 5 12 1.6-5.4L21 14 9 9Z" /><path d="M7.5 2.5 8 5M2.5 7.5 5 8M14 2.5 13.5 5" /></>),
+  steps: IC(<><rect x="3" y="12" width="4" height="8" rx="1" /><rect x="10" y="7" width="4" height="13" rx="1" /><rect x="17" y="3" width="4" height="17" rx="1" /></>),
+  clock: IC(<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
+} as const;
+
+/** "?" de ajuda com tooltip nativo (acessível via aria-label). */
+function Help({ text }: { text: string }) {
+  return <span title={text} aria-label={text} role="img" className="grid h-4 w-4 shrink-0 cursor-help place-items-center rounded-full border border-neutral-300 text-[9px] font-bold text-neutral-400">?</span>;
+}
+
+/** Delta em pílula colorida (verde sobe / vermelho desce). Cor + sinal (não só cor). */
 function Delta({ v }: { v?: number }) {
   if (v == null || !isFinite(v)) return null;
   const up = v >= 0;
-  return <span className={`mt-1 inline-block text-[11px] font-semibold ${up ? "text-green-600" : "text-red-500"}`}>{up ? "+" : ""}{v}% <span className="font-normal text-neutral-400">vs período anterior</span></span>;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1 text-[11px]">
+      <span className={`rounded-md px-1.5 py-0.5 font-bold ${up ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"}`}>{up ? "+" : ""}{v}%</span>
+      <span className="text-neutral-400">vs período anterior</span>
+    </span>
+  );
 }
 
-function Card({ label, value, sub, delta }: { label: string; value: React.ReactNode; sub?: React.ReactNode; delta?: number }) {
+function Card({ label, value, icon, delta, progress, tier, help }: { label: string; value: React.ReactNode; icon?: React.ReactNode; delta?: number; progress?: number; tier?: "ok" | "mid" | "low"; help?: string }) {
+  const sign = delta == null ? null : delta >= 0;
+  const border = sign == null ? "border-neutral-200" : sign ? "border-green-200" : "border-red-200";
+  const bar = tier === "low" ? "bg-red-500" : tier === "mid" ? "bg-amber-500" : "bg-green-500";
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <p className="text-xs font-semibold text-neutral-500">{label}</p>
-      <div className="mt-1.5 text-2xl font-bold text-neutral-900">{value}</div>
-      {delta != null ? <Delta v={delta} /> : sub ? <div className="mt-1 text-[11px] text-neutral-400">{sub}</div> : null}
+    <div className={`rounded-xl border ${border} bg-white p-4`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold text-neutral-500">{label}</p>
+        {help ? <Help text={help} /> : null}
+      </div>
+      <div className="mt-1.5 flex items-center gap-2 text-2xl font-bold text-neutral-900">
+        {icon ? <span className="text-neutral-400">{icon}</span> : null}
+        {value}
+      </div>
+      {progress != null ? <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-neutral-100"><div className={`h-full rounded-full ${bar}`} style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} /></div> : null}
+      {delta != null ? <div className="mt-2"><Delta v={delta} /></div> : null}
     </div>
   );
 }
@@ -113,15 +143,15 @@ export default function PerformanceView({ m, deltas }: { m: FunnelMetrics; delta
         <button onClick={() => { setSi(0); setSum(true); }} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⚡ Sumário</button>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Card label="Score e Desempenho" value={<div className="flex items-baseline gap-2">{m.score.toFixed(1)}<span className={`text-xs font-bold ${m.score >= 51 ? "text-green-600" : m.score >= 26 ? "text-amber-500" : "text-red-500"}`}>{tier}</span></div>} delta={deltas?.score} />
-        <Card label="Visitas e Acessos" value={<span>👁 {m.visitantes}</span>} delta={deltas?.visitantes} sub="Sessões que entraram" />
-        <Card label="Respostas Iniciadas" value={m.respostas} delta={deltas?.respostas} sub="Viram a 1ª pergunta" />
-        <Card label="Média de Etapas" value={`${Math.round(m.mediaEtapas)}/${m.totalSteps}`} delta={deltas?.mediaEtapas} sub="Concluídas" />
-        <Card label="Tempo Médio" value={<span className="text-xl">⏱ {fmtTime(m.tempoMedioSeg)}</span>} delta={deltas?.tempoMedioSeg} />
+        <Card label="Score e Desempenho" icon={ICONS.gauge} value={<div className="flex items-baseline gap-2">{m.score.toFixed(1)}<span className={`text-xs font-bold ${m.score >= 51 ? "text-green-600" : m.score >= 26 ? "text-amber-500" : "text-red-500"}`}>{tier}</span></div>} progress={m.score} tier={m.score >= 51 ? "ok" : m.score >= 26 ? "mid" : "low"} help="Nota 0–100 que resume a saúde do funil (taxa de conclusão + interação). 76–100 = Ótimo." />
+        <Card label="Visitas e Acessos" icon={ICONS.eye} value={m.visitantes} delta={deltas?.visitantes} help="Sessões que entraram no funil." />
+        <Card label="Respostas Iniciadas" icon={ICONS.spark} value={m.respostas} delta={deltas?.respostas} help="Quem interagiu — passou do hero e viu a 1ª pergunta." />
+        <Card label="Média de Etapas" icon={ICONS.steps} value={`${Math.round(m.mediaEtapas)}/${m.totalSteps}`} delta={deltas?.mediaEtapas} help="Quantas etapas do fluxo o lead avança em média." />
+        <Card label="Tempo Médio" icon={ICONS.clock} value={<span className="text-xl">{fmtTime(m.tempoMedioSeg)}</span>} delta={deltas?.tempoMedioSeg} help="Tempo médio que o lead fica no funil." />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-xl border border-neutral-200 bg-white p-5">
-          <h2 className="text-xs font-bold uppercase tracking-wide text-neutral-400">▼ Desempenho</h2>
+          <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-neutral-400">▼ Desempenho <Help text="A jornada do lead pelo funil, com a taxa de conclusão e o total de conclusões comparados ao período anterior." /></h2>
           <div className="mt-3 flex gap-10">
             <div><p className="text-xs text-neutral-500">Taxa de conclusão</p><p className="text-2xl font-bold">{m.taxaConclusao}%</p><Delta v={deltas?.taxaConclusao} /></div>
             <div><p className="text-xs text-neutral-500">Total de conclusões</p><p className="text-2xl font-bold">{m.conclusoes}</p><Delta v={deltas?.conclusoes} /></div>
