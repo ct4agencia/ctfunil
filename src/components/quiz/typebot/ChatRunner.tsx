@@ -322,7 +322,14 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                 <div className={`wa-bubble ${guest ? "wa-guest" : "wa-host"} max-w-[82%] px-[7px] py-[5px] leading-snug`}
                   style={{ background: guest ? C.guest : C.host, color: guest ? C.guestText : C.hostText, boxShadow: "0 1px 1px rgba(0,0,0,.13)", fontSize: bubbleFs }}>
                   {m.kind === "text" ? (
-                    <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /><Time m={m} />
+                    <div className="relative px-0.5">
+                      <span dangerouslySetInnerHTML={{ __html: m.html }} />
+                      {/* espaçador na última linha p/ o horário não sobrepor o texto (truque do WhatsApp) */}
+                      <span aria-hidden className="inline-block align-bottom" style={{ width: guest ? 54 : 42 }} />
+                      <span className="absolute bottom-[1px] right-[3px] inline-flex items-center gap-1 text-[11px] leading-none" style={{ color: C.time }}>
+                        {fmtClock(m.time)}
+                        {guest ? <svg width="15" height="11" viewBox="0 0 18 12" fill="none" stroke={C.tick} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M1 6.4 L4.3 9.5 L9.8 2.6" /><path d="M7.2 9 L13.6 2.4" /></svg> : null}
+                      </span>
                       {m.reaction ? <span className="absolute -bottom-2.5 z-10 rounded-full bg-white px-1 py-0.5 text-[12px] leading-none shadow" style={{ [guest ? "left" : "right"]: 8 }}>{m.reaction}</span> : null}
                     </div>
                   ) : m.kind === "image" ? (<div className="px-0.5">
