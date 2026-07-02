@@ -949,9 +949,11 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
 
   const save = async () => {
     setSaving(true); setMsg(null);
-    const r = await saveFunnelAction(funnel);
+    const renamed = funnel.slug !== initial.slug;
+    const r = await saveFunnelAction(funnel, renamed ? initial.slug : undefined);
     setSaving(false);
     setMsg(r.ok ? "✓ Salvo" : `Erro: ${r.error ?? "falhou"}`);
+    if (r.ok && renamed) { window.location.href = `/builder/${funnel.slug}`; return; }
     setTimeout(() => setMsg(null), 4000);
     if (r.ok) setNonce((n) => n + 1);
   };

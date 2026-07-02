@@ -109,8 +109,10 @@ export default function TypebotBuilder({ initial }: { initial: Funnel }) {
 
   const save = async () => {
     setSaving(true); setMsg(null);
-    const r = await saveFunnelAction(funnel);
+    const renamed = funnel.slug !== initial.slug;
+    const r = await saveFunnelAction(funnel, renamed ? initial.slug : undefined);
     setSaving(false); setMsg(r.ok ? "Salvo ✓" : `Erro: ${r.error}`);
+    if (r.ok && renamed) { window.location.href = `/builder/${funnel.slug}`; return; }
     setTimeout(() => setMsg(null), 3000);
   };
 
