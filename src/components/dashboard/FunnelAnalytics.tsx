@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import type { FunnelMetrics } from "@/lib/quiz/metrics";
 
-const COLORS = ["#3b82f6", "#ec4899", "#8b5cf6", "#f59e0b"];
+const COLORS = ["#3b82f6", "#ec4899", "#8b5cf6", "#f59e0b", "#10b981"];
 
 function fmtTime(s: number): string {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
@@ -30,7 +30,7 @@ function Funnel({ stages }: { stages: FunnelMetrics["funil"] }) {
         const th = top / 2, bh = bot / 2;
         return (
           <div key={s.label} className="flex items-center gap-3">
-            <div className="w-24 shrink-0 text-sm font-semibold text-neutral-700">{s.label}</div>
+            <div className="w-28 shrink-0 text-sm font-semibold leading-tight text-neutral-700">{s.label}</div>
             <div className="relative h-14 flex-1">
               <div className="absolute inset-0" style={{
                 background: COLORS[i % COLORS.length],

@@ -367,8 +367,10 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
     } catch { return 0; }
   };
   // C2: "leads" = leads REAIS (funnel_leads), não "quem chegou na lâmina de captura".
-  const [visitantes, respostas, conclusoes, leads] = await Promise.all([
+  // resp1/resp2 = interação do lead no 1º / 2º card (max_step ≥ 1 / ≥ 2) — universal p/ layers e typebot.
+  const [visitantes, respostas, conclusoes, leads, resp1, resp2] = await Promise.all([
     countSessions(), countSessions(firstQ), countSessions(lastI), realLeadCount(slug, range),
+    countSessions(1), countSessions(2),
   ]);
   const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
   const taxaConclusao = pct(conclusoes, visitantes);
@@ -382,8 +384,9 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
 
   const funil = [
     { label: "Visitantes", value: visitantes, pct: 100 },
-    { label: "Respostas", value: respostas, pct: pct(respostas, visitantes) },
-    { label: "Leads", value: leads, pct: pct(leads, visitantes) },
+    { label: "1ª resposta", value: resp1, pct: pct(resp1, visitantes) },
+    { label: "2ª resposta", value: resp2, pct: pct(resp2, visitantes) },
+    { label: "Leads capturados", value: leads, pct: pct(leads, visitantes) },
     { label: "Conclusões", value: conclusoes, pct: pct(conclusoes, visitantes) },
   ];
 
