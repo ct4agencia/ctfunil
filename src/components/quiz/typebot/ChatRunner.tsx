@@ -611,7 +611,6 @@ function TypebotVsl({ block, interp, preview }: { block: TbVsl; interp: (s: stri
   };
   const titleHtml = interp(block.title || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   const fx = block.effect || "none";
-  const pulseCls = fx === "pulse" || fx === "shine-pulse" ? "fx-pulse" : "";
   const shineCls = fx === "shine" || fx === "shine-pulse" ? "fx-shine" : "";
 
   return (
@@ -638,7 +637,8 @@ function TypebotVsl({ block, interp, preview }: { block: TbVsl; interp: (s: stri
           {reveal ? (
             <motion.div key="cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
               <button onClick={openCheckout}
-                className={`w-full rounded-full bg-emerald-500 px-6 py-4 text-base font-extrabold uppercase text-white shadow-lg active:scale-[0.99] ${pulseCls} ${shineCls}`}>
+                className={`tb-cta-pulse w-full rounded-full bg-emerald-500 px-6 py-4 text-[17px] font-extrabold uppercase text-white active:scale-[0.97] ${shineCls}`}
+                style={{ ["--tb-cta-glow" as string]: "color-mix(in srgb, #10b981 55%, transparent)" } as CSSProperties}>
                 {block.ctaText || "QUERO GARANTIR MINHA VAGA"}
               </button>
             </motion.div>
