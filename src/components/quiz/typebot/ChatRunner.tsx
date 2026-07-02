@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import type { Funnel } from "@/lib/quiz/types";
 import type { TbConditionItem, TbFunnel, TbInput, TbVsl } from "@/lib/quiz/typebot/types";
@@ -454,8 +454,18 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
         {isChoice && choiceBlock ? (
           <div className="mx-auto w-full max-w-[680px] px-2.5 pt-2.5">
             <div className="flex flex-col gap-2">
-              {choiceBlock.items.map((it) => {
+              {/* botão ÚNICO (1 opção, sem múltipla escolha): maior, preenchido e pulsando pra chamar o clique */}
+              {(() => { const single = !choiceBlock.multiple && choiceBlock.items.length === 1; return choiceBlock.items.map((it) => {
                 const sel = multiSel.includes(it.id);
+                if (single) {
+                  return (
+                    <button key={it.id} onClick={() => submit(it.label, it)}
+                      className="tb-cta-pulse rounded-full px-5 py-4 text-[17px] font-extrabold leading-tight transition active:scale-[0.97]"
+                      style={{ background: theme.buttonBg, color: theme.buttonColor, ["--tb-cta-glow" as string]: `color-mix(in srgb, ${theme.buttonBg} 45%, transparent)` } as CSSProperties}>
+                      {it.label}
+                    </button>
+                  );
+                }
                 return (
                   <button key={it.id}
                     onClick={() => choiceBlock.multiple ? setMultiSel((s) => sel ? s.filter((x) => x !== it.id) : [...s, it.id]) : submit(it.label, it)}
@@ -464,7 +474,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                     {it.label}
                   </button>
                 );
-              })}
+              }); })()}
               {choiceBlock.multiple ? (
                 <button onClick={() => { const items = choiceBlock.items.filter((x) => multiSel.includes(x.id)); submit(items.map((x) => x.label).join(", "), items[0]); }}
                   className="mt-1 rounded-full px-4 py-2.5 font-bold" style={{ background: theme.buttonBg, color: theme.buttonColor }}>Enviar</button>

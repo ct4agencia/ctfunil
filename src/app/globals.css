@@ -151,6 +151,13 @@ body.vsl-bg-dark {
 .fx-pulse {
   animation: fx-pulse-kf 1.3s ease-in-out infinite;
 }
+/* CTA único do chat (typebot): pulso mais forte + glow temático via --tb-cta-glow */
+@keyframes tb-cta-kf {
+  0%, 100% { transform: scale(1); box-shadow: 0 8px 22px var(--tb-cta-glow, rgba(0,0,0,0.18)); }
+  50% { transform: scale(1.045); box-shadow: 0 16px 40px var(--tb-cta-glow, rgba(0,0,0,0.32)); }
+}
+.tb-cta-pulse { animation: tb-cta-kf 1.15s ease-in-out infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .tb-cta-pulse { animation: none; } }
 .fx-shine {
   position: relative;
   overflow: hidden;
