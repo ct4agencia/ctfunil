@@ -12,6 +12,7 @@
  * code-split por engine continua igual.
  */
 import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import type { Funnel } from "@/lib/quiz/types";
 
 const QuizRunner = dynamic(() => import("./QuizRunner"));
@@ -27,8 +28,20 @@ export default function FunnelRenderer({
   geo?: { estado?: string; cidade?: string };
   preview?: boolean;
 }) {
+  // Geo no CLIENT: com leadGeo() no server a página era force-dynamic e nunca
+  // cacheava na borda. O {estado} chega ~200ms depois do paint — antes de
+  // qualquer lâmina que o use ser lida.
+  const [clientGeo, setClientGeo] = useState(geo);
+  useEffect(() => {
+    if (preview || geo?.estado) return;
+    fetch("/api/geo")
+      .then((r) => r.json())
+      .then((g) => setClientGeo((prev) => ({ ...g, ...prev })))
+      .catch(() => {});
+  }, [preview, geo?.estado]);
+
   const engine = funnel.settings?.engine;
   if (engine === "typebot") return <ChatRunner funnel={funnel} preview={preview} />;
-  if (engine === "layers") return <LayersRunner funnel={funnel} geo={geo} preview={preview} />;
-  return <QuizRunner funnel={funnel} geo={geo} preview={preview} />;
+  if (engine === "layers") return <LayersRunner funnel={funnel} geo={clientGeo} preview={preview} />;
+  return <QuizRunner funnel={funnel} geo={clientGeo} preview={preview} />;
 }

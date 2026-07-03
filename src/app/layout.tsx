@@ -4,10 +4,13 @@ import "./globals.css";
 
 // Fonte única do admin (Inter). Geist/Geist_Mono foram removidas: carregavam
 // com preload em TODAS as páginas (inclusive funis públicos) sem uso algum.
+// preload:false: o preload da Inter entrava até nos funis públicos (que nem
+// usam a fonte) e competia com o LCP no 4G. Admin pinta com fallback e troca.
 const inter = Inter({
   variable: "--font-admin",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {

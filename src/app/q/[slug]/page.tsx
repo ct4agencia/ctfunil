@@ -8,10 +8,12 @@ import PixelScripts from "@/components/vsl/PixelScripts";
 import { resolveFunnel } from "@/lib/quiz/funnels-db";
 import { leadGeo } from "@/lib/quiz/geo";
 
-const display = Fraunces({ subsets: ["latin"], weight: ["600", "700", "900"], variable: "--font-display" });
-const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans-q" });
+// preload:false: fontes com display:swap pintam com fallback e não competem
+// com o texto do LCP no 4G (mesma otimização da rota /[slug]).
+const display = Fraunces({ subsets: ["latin"], weight: ["600", "700", "900"], variable: "--font-display", preload: false });
+const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans-q", preload: false });
 // Poppins (vivadevelas) — display + corpo alternativos
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700", "800", "900"], variable: "--font-poppins" });
+const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700", "800", "900"], variable: "--font-poppins", preload: false });
 
 export async function generateMetadata({
   params,
