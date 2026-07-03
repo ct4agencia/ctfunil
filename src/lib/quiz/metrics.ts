@@ -118,7 +118,7 @@ export interface GlobalAnalytics {
     conclusoes: number; taxaConclusao: number; score: number;
   }[];
   /** criativos/anúncios: leads e cliques por utm_content (fallback campanha/src) */
-  creatives: { content: string; campaign: string; source: string; clicks: number; leads: number; conv: number }[];
+  creatives: { content: string; campaign: string; source: string; clicks: number; leads: number; conv: number; funnels: string[] }[];
   leads: { total: number; recent: { name: string; phone: string; funnel: string; when: string }[] };
 }
 
@@ -134,8 +134,8 @@ function topN(map: Map<string, number>, n: number) {
 }
 
 export async function globalAnalytics(): Promise<GlobalAnalytics> {
-  const overview = await dashboardMetrics();
-  const funis = await listFunnelsDb();
+  // PERF: independentes — rodam em paralelo (antes eram 2 awaits em série).
+  const [overview, funis] = await Promise.all([dashboardMetrics(), listFunnelsDb()]);
 
   // operação: KPIs por funil (paralelo)
   const ms = await Promise.all(funis.map((f) => funnelMetrics(f.slug)));
@@ -152,11 +152,18 @@ export async function globalAnalytics(): Promise<GlobalAnalytics> {
   const quiz: GlobalAnalytics["quiz"] = [];
   const sources = new Map<string, number>();
   const campaigns = new Map<string, number>();
-  const creativeMap = new Map<string, { clicks: number; leads: number; campaign: string; source: string }>();
+  const creativeMap = new Map<string, { clicks: number; leads: number; campaign: string; source: string; funis: Map<string, number> }>();
   const leadsOut: GlobalAnalytics["leads"] = { total: 0, recent: [] };
   try {
     const sb = createAdminClient();
-    const { data: answers } = await sb.from("quiz_answers").select("question,answer").limit(20000);
+    // PERF: os 5 fetches são independentes — paralelizados (antes: em série).
+    const [{ data: answers }, { data: sess }, { data: leadsC }, { count: leadTotal }, leadRowsRes] = await Promise.all([
+      sb.from("quiz_answers").select("question,answer").limit(20000),
+      sb.from("funnel_sessions").select("utm_source,utm_campaign,utm_content,src,funnel_slug").limit(20000),
+      sb.from("funnel_leads").select("utm_source,utm_campaign,utm_content,src,funnel_slug").limit(20000),
+      sb.from("funnel_leads").select("*", { count: "exact", head: true }),
+      sb.from("funnel_leads").select("name,phone,funnel_slug,created_at").order("created_at", { ascending: false }).limit(50),
+    ]);
     const qMap = new Map<string, Map<string, number>>();
     for (const a of answers ?? []) {
       const q = (a.question as string) || "—";
@@ -174,7 +181,6 @@ export async function globalAnalytics(): Promise<GlobalAnalytics> {
     }
 
     // tráfego global (funnel_sessions) — M9: src como fallback de origem (CTWA)
-    const { data: sess } = await sb.from("funnel_sessions").select("utm_source,utm_campaign,utm_content,src").limit(20000);
     for (const s of sess ?? []) {
       const srcVal = (((s.utm_source as string) || (s.src as string)) || "").trim();
       const camp = (((s.utm_campaign as string) || (s.utm_source as string) || (s.src as string)) || "").trim();
@@ -183,30 +189,28 @@ export async function globalAnalytics(): Promise<GlobalAnalytics> {
       // criativo = utm_content (fallback campanha/origem) → conta CLIQUES (sessões)
       const content = (((s.utm_content as string) || (s.utm_campaign as string) || (s.src as string)) || "").trim();
       if (content) {
-        const e = creativeMap.get(content) || { clicks: 0, leads: 0, campaign: camp, source: srcVal };
+        const e = creativeMap.get(content) || { clicks: 0, leads: 0, campaign: camp, source: srcVal, funis: new Map<string, number>() };
         e.clicks++; if (!e.campaign) e.campaign = camp; if (!e.source) e.source = srcVal;
+        const fs = ((s as Record<string, unknown>).funnel_slug as string) || "";
+        if (fs) e.funis.set(fs, (e.funis.get(fs) ?? 0) + 1);
         creativeMap.set(content, e);
       }
     }
     // leads por criativo (utm_content) — dados existentes em funnel_leads
-    const { data: leadsC } = await sb.from("funnel_leads").select("utm_source,utm_campaign,utm_content,src").limit(20000);
     for (const l of leadsC ?? []) {
       const content = (((l.utm_content as string) || (l.utm_campaign as string) || (l.src as string)) || "").trim();
       if (!content) continue;
       const camp = (((l.utm_campaign as string) || (l.utm_source as string) || (l.src as string)) || "").trim();
       const srcVal = (((l.utm_source as string) || (l.src as string)) || "").trim();
-      const e = creativeMap.get(content) || { clicks: 0, leads: 0, campaign: camp, source: srcVal };
+      const e = creativeMap.get(content) || { clicks: 0, leads: 0, campaign: camp, source: srcVal, funis: new Map<string, number>() };
       e.leads++; if (!e.campaign) e.campaign = camp; if (!e.source) e.source = srcVal;
+      const fs = ((l as Record<string, unknown>).funnel_slug as string) || "";
+      if (fs) e.funis.set(fs, (e.funis.get(fs) ?? 0) + 1);
       creativeMap.set(content, e);
     }
 
     // A6: total de leads = contagem EXATA (não o tamanho da página de 50)
-    const { count: leadTotal } = await sb.from("funnel_leads").select("*", { count: "exact", head: true });
-    const { data: leadRows, error: leadErr } = await sb
-      .from("funnel_leads")
-      .select("name,phone,funnel_slug,created_at")
-      .order("created_at", { ascending: false })
-      .limit(50);
+    const { data: leadRows, error: leadErr } = leadRowsRes;
     if (!leadErr && leadRows) {
       leadsOut.total = leadTotal ?? leadRows.length;
       leadsOut.recent = leadRows.slice(0, 12).map((l) => ({
@@ -223,7 +227,12 @@ export async function globalAnalytics(): Promise<GlobalAnalytics> {
   const src = topN(sources, 8);
   const camp = topN(campaigns, 8);
   const creatives = Array.from(creativeMap.entries())
-    .map(([content, v]) => ({ content, campaign: v.campaign, source: v.source, clicks: v.clicks, leads: v.leads, conv: v.clicks ? Math.round((v.leads / v.clicks) * 1000) / 10 : 0 }))
+    .map(([content, v]) => ({
+      content, campaign: v.campaign, source: v.source, clicks: v.clicks, leads: v.leads,
+      conv: v.clicks ? Math.round((v.leads / v.clicks) * 1000) / 10 : 0,
+      // funis onde o criativo rodou (mais tráfego primeiro), por SLUG (pedido do Luca)
+      funnels: Array.from(v.funis.entries()).sort((a, b) => b[1] - a[1]).map(([slug]) => slug),
+    }))
     .sort((a, b) => b.leads - a.leads || b.clicks - a.clicks)
     .slice(0, 50);
   return {

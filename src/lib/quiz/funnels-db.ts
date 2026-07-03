@@ -13,6 +13,8 @@ export interface FunnelSummary {
   status: string;
   updated_at: string;
   domain?: string | null;
+  /** Motor do funil (steps/layers/typebot) — badge informativo no card. */
+  engine?: string | null;
 }
 
 function slugify(s: string): string {
@@ -185,9 +187,9 @@ export async function listFunnelsDb(): Promise<FunnelSummary[]> {
     const sb = createAdminClient();
     const { data } = await sb
       .from("funnels")
-      .select("slug,name,niche,palette_id,status,updated_at,domain")
+      .select("slug,name,niche,palette_id,status,updated_at,domain,engine:settings->>engine")
       .order("updated_at", { ascending: false });
-    return (data as FunnelSummary[]) ?? [];
+    return (data as unknown as FunnelSummary[]) ?? [];
   } catch {
     return [];
   }
