@@ -141,6 +141,8 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
   interface VtData { vsls: VtRow[]; allPlayers: { id: string; name: string; linked: boolean }[] }
   const [vturb, setVturb] = useState<VtData | "idle" | "loading" | "error" | "no_token">("idle");
   const [detailPlayer, setDetailPlayer] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerQuery, setPickerQuery] = useState("");
   const [extraPlayers, setExtraPlayers] = useState<string[]>([]);
   const loadVturb = (extras: string[]) => {
     setVturb("loading");
@@ -456,27 +458,52 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                     <h2 className="text-sm font-bold text-neutral-800">▶️ Métricas do vídeo (VTurb) <span className="ml-1 text-xs font-normal text-neutral-400">últimos 30 dias</span></h2>
                     <div className="flex items-center gap-2">
                       {typeof vturb === "object" && vturb.allPlayers.some((p) => !p.linked) ? (
-                        <select defaultValue="" onChange={(e) => { const id = e.target.value; if (!id) return; const next = [...extraPlayers, id]; setExtraPlayers(next); loadVturb(next); e.currentTarget.value = ""; }}
-                          className="max-w-[240px] rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-600 outline-none focus:border-blue-500" aria-label="Adicionar player">
-                          <option value="">+ adicionar player da conta…</option>
-                          {/* agrupado por prefixo do nome (a API do VTurb não expõe as pastas) */}
-                          {(() => {
-                            const avail = vturb.allPlayers.filter((p) => !p.linked && !extraPlayers.includes(p.id));
-                            const groups = new Map<string, typeof avail>();
-                            for (const p of avail) {
-                              const g = (p.name.split(/\s[-–|]\s|\s-\s?|-\s/)[0] || p.name).trim().toUpperCase().slice(0, 28) || "OUTROS";
-                              if (!groups.has(g)) groups.set(g, []);
-                              groups.get(g)!.push(p);
-                            }
-                            return [...groups.entries()]
-                              .sort((a, b) => a[0].localeCompare(b[0], "pt-BR"))
-                              .map(([g, ps]) => (
-                                <optgroup key={g} label={`📁 ${g} (${ps.length})`}>
-                                  {ps.sort((a, b) => a.name.localeCompare(b.name, "pt-BR")).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                </optgroup>
-                              ));
-                          })()}
-                        </select>
+                        <div className="relative">
+                          <button onClick={() => { setPickerOpen((o) => !o); setPickerQuery(""); }}
+                            className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">
+                            + adicionar player da conta… ▾
+                          </button>
+                          {pickerOpen ? (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setPickerOpen(false)} />
+                              <div className="absolute right-0 z-50 mt-1 w-[340px] rounded-xl border border-neutral-200 bg-white shadow-xl">
+                                <div className="border-b border-neutral-100 p-2">
+                                  <input autoFocus value={pickerQuery} onChange={(e) => setPickerQuery(e.target.value)}
+                                    placeholder="🔎 Buscar VSL pelo nome…"
+                                    className="w-full rounded-lg border border-neutral-200 px-3 py-1.5 text-xs outline-none focus:border-blue-500" />
+                                </div>
+                                <div className="max-h-72 overflow-auto p-1">
+                                  {(() => {
+                                    // agrupado por prefixo do nome (a API do VTurb não expõe as pastas)
+                                    const q = pickerQuery.trim().toLowerCase();
+                                    const avail = vturb.allPlayers.filter((p) => !p.linked && !extraPlayers.includes(p.id) && (!q || p.name.toLowerCase().includes(q)));
+                                    if (!avail.length) return <p className="px-3 py-4 text-center text-xs text-neutral-400">Nenhuma VSL bate com &quot;{pickerQuery}&quot;.</p>;
+                                    const groups = new Map<string, typeof avail>();
+                                    for (const p of avail) {
+                                      const g = (p.name.split(/\s[-–|]\s|\s-\s?|-\s/)[0] || p.name).trim().toUpperCase().slice(0, 28) || "OUTROS";
+                                      if (!groups.has(g)) groups.set(g, []);
+                                      groups.get(g)!.push(p);
+                                    }
+                                    return [...groups.entries()]
+                                      .sort((a, b) => a[0].localeCompare(b[0], "pt-BR"))
+                                      .map(([g, ps]) => (
+                                        <div key={g}>
+                                          <p className="sticky top-0 bg-white px-2 pb-0.5 pt-2 text-[10px] font-bold uppercase tracking-wide text-neutral-400">📁 {g} ({ps.length})</p>
+                                          {ps.sort((a, b) => a.name.localeCompare(b.name, "pt-BR")).map((p) => (
+                                            <button key={p.id}
+                                              onClick={() => { const next = [...extraPlayers, p.id]; setExtraPlayers(next); loadVturb(next); setPickerOpen(false); }}
+                                              className="block w-full truncate rounded-lg px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-blue-50" title={p.name}>
+                                              {p.name}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      ));
+                                  })()}
+                                </div>
+                              </div>
+                            </>
+                          ) : null}
+                        </div>
                       ) : null}
                       <button onClick={() => loadVturb(extraPlayers)} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">↻ Atualizar</button>
                     </div>
