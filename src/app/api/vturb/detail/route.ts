@@ -33,14 +33,15 @@ export async function GET(request: Request) {
   const player = players?.find((p) => p.id === playerId);
   if (!player) return NextResponse.json({ error: "player_not_found" }, { status: 404 });
 
-  // tudo em paralelo (6 chamadas, todas com cache de 300s no fetch)
+  // lite=1 (comparação de VSLs): só a curva — pula as 5 chamadas de segmentação
+  const lite = params.get("lite") === "1";
   const [engagement, country, device, os, browser, traffic] = await Promise.all([
     vturbUserEngagement(player, range),
-    vturbStatsByField(player, "country", range),
-    vturbStatsByField(player, "device_type", range),
-    vturbStatsByField(player, "os", range),
-    vturbStatsByField(player, "browser", range),
-    vturbTrafficOrigin(player, range),
+    lite ? null : vturbStatsByField(player, "country", range),
+    lite ? null : vturbStatsByField(player, "device_type", range),
+    lite ? null : vturbStatsByField(player, "os", range),
+    lite ? null : vturbStatsByField(player, "browser", range),
+    lite ? null : vturbTrafficOrigin(player, range),
   ]);
 
   // ── Curva de retenção: grouped_timed é histograma de SAÍDA (bucket 5s onde o

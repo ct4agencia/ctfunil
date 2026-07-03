@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { GlobalAnalytics } from "@/lib/quiz/metrics";
 import ContainerScroll from "@/components/ui/ContainerScroll";
 import VslDetail from "@/components/dashboard/VslDetail";
+import VslCompare from "@/components/dashboard/VslCompare";
 
 const ACCENT = "#3b82f6";
 
@@ -143,6 +144,7 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
   const [detailPlayer, setDetailPlayer] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
+  const [cmpPlayers, setCmpPlayers] = useState<string[]>([]);
   const [extraPlayers, setExtraPlayers] = useState<string[]>([]);
   const loadVturb = (extras: string[]) => {
     setVturb("loading");
@@ -265,10 +267,10 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                         <tbody>
                           {([
                             ["Visitantes", (r: typeof cmpRows[number]) => r.visitantes, (v: number) => String(v)],
-                            ["Respostas", (r: typeof cmpRows[number]) => r.respostas, (v: number) => String(v)],
-                            ["Resposta / visitante", (r: typeof cmpRows[number]) => (r.visitantes ? Math.round((r.respostas / r.visitantes) * 1000) / 10 : 0), (v: number) => `${v}%`],
-                            ["Leads", (r: typeof cmpRows[number]) => r.leads, (v: number) => String(v)],
-                            ["Lead / visitante", (r: typeof cmpRows[number]) => (r.visitantes ? Math.round((r.leads / r.visitantes) * 1000) / 10 : 0), (v: number) => `${v}%`],
+                            ["Respostas (volume)", (r: typeof cmpRows[number]) => r.respostas, (v: number) => String(v)],
+                            ["% que respondem (respostas ÷ visitantes)", (r: typeof cmpRows[number]) => (r.visitantes ? Math.round((r.respostas / r.visitantes) * 1000) / 10 : 0), (v: number) => `${v}%`],
+                            ["Leads (volume)", (r: typeof cmpRows[number]) => r.leads, (v: number) => String(v)],
+                            ["% que viram lead (leads ÷ visitantes)", (r: typeof cmpRows[number]) => (r.visitantes ? Math.round((r.leads / r.visitantes) * 1000) / 10 : 0), (v: number) => `${v}%`],
                             ["Conclusões (VSL)", (r: typeof cmpRows[number]) => r.conclusoes, (v: number) => String(v)],
                             ["Taxa de conclusão", (r: typeof cmpRows[number]) => r.taxaConclusao, (v: number) => `${v}%`],
                             ["Score", (r: typeof cmpRows[number]) => r.score, (v: number) => String(v)],
@@ -518,13 +520,17 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead className="text-left text-xs text-neutral-400">
-                          <tr><th className="px-3 py-2 font-semibold">VSL / Player</th><th className="px-3 py-2 font-semibold">Funil</th><th className="px-3 py-2 text-right font-semibold">Views</th><th className="px-3 py-2 text-right font-semibold">Plays</th><th className="px-3 py-2 text-right font-semibold">Play Rate</th><th className="px-3 py-2 text-right font-semibold">Engajamento</th><th className="px-3 py-2 text-right font-semibold">Aud. Pitch</th><th className="px-3 py-2 text-right font-semibold">Ret. Pitch</th><th className="px-3 py-2 text-right font-semibold">Cliques</th><th className="px-3 py-2 text-right font-semibold">Conv.</th></tr>
+                          <tr><th className="w-8 px-2 py-2" title="Marque 2+ pra comparar">⚖️</th><th className="px-3 py-2 font-semibold">VSL / Player</th><th className="px-3 py-2 font-semibold">Funil</th><th className="px-3 py-2 text-right font-semibold">Views</th><th className="px-3 py-2 text-right font-semibold">Plays</th><th className="px-3 py-2 text-right font-semibold">Play Rate</th><th className="px-3 py-2 text-right font-semibold">Engajamento</th><th className="px-3 py-2 text-right font-semibold">Aud. Pitch</th><th className="px-3 py-2 text-right font-semibold">Ret. Pitch</th><th className="px-3 py-2 text-right font-semibold">Cliques</th><th className="px-3 py-2 text-right font-semibold">Conv.</th></tr>
                         </thead>
                         <tbody>
                           {vturb.vsls.map((v) => (
                             <tr key={v.playerId} onClick={() => setDetailPlayer(detailPlayer === v.playerId ? null : v.playerId)}
                               className={`cursor-pointer border-t border-neutral-100 transition hover:bg-neutral-50 ${detailPlayer === v.playerId ? "bg-sky-50/60" : ""}`}
                               title="Clique pra abrir a curva de retenção e segmentações">
+                              <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
+                                <input type="checkbox" checked={cmpPlayers.includes(v.playerId)} aria-label={`Comparar ${v.playerName}`}
+                                  onChange={(e) => setCmpPlayers((prev) => e.target.checked ? [...prev, v.playerId] : prev.filter((id) => id !== v.playerId))} />
+                              </td>
                               <td className="max-w-[220px] truncate px-3 py-2.5 font-medium text-neutral-800" title={v.playerName}>📈 {v.playerName}</td>
                               <td className="max-w-[160px] truncate px-3 py-2.5 font-mono text-xs text-neutral-600" title={v.funnels.map((f) => `/${f.slug}`).join(", ")}>{v.funnels.length ? v.funnels.map((f) => `/${f.slug}`).join(", ") : "— (manual)"}</td>
                               <td className="px-3 py-2.5 text-right text-neutral-600">{v.stats.views.toLocaleString("pt-BR")}</td>
@@ -543,6 +549,9 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                   ) : (
                     <p className="py-4 text-center text-sm text-neutral-400">Nenhum player VTurb detectado nos embeds das VSLs. Usa o seletor acima pra adicionar um player da conta.</p>
                   )}
+                  {typeof vturb === "object" && cmpPlayers.length >= 2 ? (
+                    <VslCompare rows={vturb.vsls.filter((v) => cmpPlayers.includes(v.playerId)).map((v) => ({ playerId: v.playerId, playerName: v.playerName, stats: v.stats }))} />
+                  ) : null}
                   {detailPlayer ? <VslDetail playerId={detailPlayer} onClose={() => setDetailPlayer(null)} /> : null}
                   <p className="mt-3 text-[11px] text-neutral-400">Fonte: VTurb Analytics API (players detectados automaticamente no embed de cada funil). Play Rate = plays ÷ views · Ret. Pitch = % que passa do pitch. Clique numa linha pra ver retenção minuto a minuto e segmentações.</p>
                 </section>
