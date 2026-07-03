@@ -6,6 +6,7 @@ import type { Funnel } from "@/lib/quiz/types";
 import type { TbConditionItem, TbFunnel, TbInput, TbVsl } from "@/lib/quiz/typebot/types";
 import { isBubble, isInput, TB_DEFAULT_THEME } from "@/lib/quiz/typebot/types";
 import { getSessionId, collectTrackingParams, fireMetaEvent } from "@/lib/tracking";
+import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { trackAnswer, trackStep } from "@/lib/quiz/track";
 
 type FeedBase = { id: string; time?: string };
@@ -562,13 +563,13 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
       ) : null}
 
       {/* REPAGINAÇÃO: bloco VSL cobre o chat (mesmo domínio) */}
-      {vsl ? <TypebotVsl block={vsl} interp={interp} preview={preview} /> : null}
+      {vsl ? <TypebotVsl block={vsl} interp={interp} preview={preview} slug={funnel.slug} /> : null}
     </div>
   );
 }
 
 /** Injeta o EMBED do player (VTurb/converteai) e RE-EXECUTA os <script> (innerHTML não roda script). */
-function VturbEmbed({ html }: { html: string }) {
+function VturbEmbed({ html, slug, preview }: { html: string; slug: string; preview?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -587,8 +588,9 @@ function VturbEmbed({ html }: { html: string }) {
       injected.push(s);
       old.remove();
     });
-    return () => { el.innerHTML = ""; injected.forEach((s) => s.remove()); };
-  }, [html]);
+    const detach = attachVslWatch({ funnelSlug: slug, html, disabled: preview });
+    return () => { el.innerHTML = ""; injected.forEach((s) => s.remove()); detach(); };
+  }, [html, slug, preview]);
   return <div ref={ref} className="mx-auto w-full overflow-hidden rounded-2xl shadow-lg" />;
 }
 
@@ -596,7 +598,7 @@ function VturbEmbed({ html }: { html: string }) {
  * VSL como repaginação: cobre o chat com a página de VSL no MESMO domínio.
  * Reaproveita a estrutura da lâmina VSL do inlead (banner + player + pitch reveal).
  */
-function TypebotVsl({ block, interp, preview }: { block: TbVsl; interp: (s: string) => string; preview: boolean }) {
+function TypebotVsl({ block, interp, preview, slug }: { block: TbVsl; interp: (s: string) => string; preview: boolean; slug: string }) {
   const [reveal, setReveal] = useState((block.pitchRevealAt ?? 0) <= 0);
   useEffect(() => {
     if (reveal) return;
@@ -624,7 +626,7 @@ function TypebotVsl({ block, interp, preview }: { block: TbVsl; interp: (s: stri
         ) : null}
         {block.title ? <h2 className="mb-4 text-center text-lg font-extrabold leading-tight text-neutral-900" dangerouslySetInnerHTML={{ __html: titleHtml }} /> : null}
         {block.embedHtml ? (
-          <VturbEmbed html={block.embedHtml} />
+          <VturbEmbed html={block.embedHtml} slug={slug} preview={preview} />
         ) : (
           <div className="grid aspect-[9/16] w-full place-items-center overflow-hidden rounded-2xl bg-neutral-900 text-center text-white/70 shadow-lg">
             <div>

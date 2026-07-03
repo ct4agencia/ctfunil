@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createSbClient } from "@supabase/supabase-js";
+import { fireWebhook, phoneToIntl, dataHoraBr } from "@/lib/quiz/webhooks";
 import type { FunnelWebhook } from "@/lib/quiz/types";
 
 const URL_ENV = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -24,32 +25,6 @@ type Body = {
   cidade?: string;
   tracking?: Record<string, string>;
 };
-
-/** Dispara um webhook no MESMO formato do inlead (Datacrazy mapeia os campos). */
-async function fireWebhook(wh: FunnelWebhook, payload: Record<string, unknown>) {
-  try {
-    const headers: Record<string, string> = {};
-    if (wh.token) headers["Authorization"] = `Bearer ${wh.token}`;
-
-    if (wh.method === "GET") {
-      const url = new URL(wh.api_url);
-      Object.entries(payload).forEach(([k, v]) => url.searchParams.set(k, String(v ?? "")));
-      await fetch(url.toString(), { method: "GET", headers });
-      return;
-    }
-    if (wh.content_type === "json") {
-      headers["Content-Type"] = "application/json";
-      await fetch(wh.api_url, { method: "POST", headers, body: JSON.stringify(payload) });
-    } else {
-      const params = new URLSearchParams();
-      Object.entries(payload).forEach(([k, v]) => params.append(k, String(v ?? "")));
-      headers["Content-Type"] = "application/x-www-form-urlencoded";
-      await fetch(wh.api_url, { method: "POST", headers, body: params });
-    }
-  } catch {
-    /* best-effort: falha de webhook não quebra a captura */
-  }
-}
 
 export async function POST(request: Request) {
   let body: Body;
@@ -109,9 +84,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const dataHora = new Intl.DateTimeFormat("pt-BR", {
-      dateStyle: "short", timeStyle: "medium", timeZone: "America/Sao_Paulo",
-    }).format(new Date());
+    const dataHora = dataHoraBr();
 
     const componentId = body.componentId ?? "";
     const webhooks = ((funnel?.webhooks ?? []) as FunnelWebhook[]).filter(
@@ -123,8 +96,7 @@ export async function POST(request: Request) {
 
     // Telefone p/ webhook (Datacrazy): +55 + número limpo (E.164). No banco fica
     // só dígitos; aqui formatamos só na hora de enviar pro webhook, quando ativado.
-    const phoneDigits = String(body.phone ?? "").replace(/\D/g, "");
-    const phoneIntl = phoneDigits ? "+55" + phoneDigits.replace(/^55/, "") : "";
+    const phoneIntl = phoneToIntl(body.phone);
 
     // Respostas do quiz (pra Datacrazy): busca quiz_answers desta sessão e monta
     // pergunta_N / resposta_N (1 por pergunta, última prevalece) + um campo único
@@ -153,6 +125,18 @@ export async function POST(request: Request) {
       respostasStr = order.map((q) => `${q}: ${ansByQ.get(q)}`).join(" | ");
     }
 
+    // REQ-3 (spec vturb): % da VSL já assistida até a captura — campo ADITIVO,
+    // o formato existente não muda (Datacrazy só ganha mais um campo mapeável).
+    let vslWatchPct = 0;
+    if (body.session_id) {
+      const { data: s } = await sb
+        .from("funnel_sessions")
+        .select("vsl_watch_pct")
+        .eq("session_id", body.session_id)
+        .maybeSingle();
+      vslWatchPct = Number(s?.vsl_watch_pct ?? 0);
+    }
+
     const payload: Record<string, unknown> = {
       code: body.session_id ?? "",
       nome: body.name ?? "",
@@ -164,6 +148,7 @@ export async function POST(request: Request) {
       produto,
       data: dataHora,
       respostas: respostasStr,
+      vsl_watch_pct: vslWatchPct,
       ...respFields,
       utm_source: t.utm_source ?? "",
       utm_medium: t.utm_medium ?? "",

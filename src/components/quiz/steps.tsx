@@ -8,6 +8,7 @@ import type {
 } from "@/lib/quiz/types";
 import { CtaButton, OptionButton, StepShell, StickyCta, RichText, RICH_RE, useEdit } from "./ui";
 import { submitLead, submitFunnelLead, fireMetaEvent } from "@/lib/tracking";
+import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { trackAnswer } from "@/lib/quiz/track";
 import { interpEstado } from "@/lib/quiz/estado";
 import { playSpinTicks, playWin, playUrl } from "@/lib/quiz/sound";
@@ -1222,7 +1223,7 @@ export function VslStepView({ step, ctx }: { step: VslStep; ctx: StepCtx }) {
       <div className="mx-auto w-full max-w-md px-5 py-6">
         {step.title ? <h2 className="mb-4 text-center text-xl font-bold text-white"><RichText text={interp(step.title, ctx)} /></h2> : null}
         {step.embedHtml ? (
-          <VturbEmbed html={step.embedHtml} />
+          <VturbEmbed html={step.embedHtml} slug={ctx.funnelSlug} preview={ctx.preview} />
         ) : (
           <div className="aspect-[9/16] w-full overflow-hidden rounded-2xl bg-black/60 shadow-2xl">
             <div className="flex h-full w-full flex-col items-center justify-center text-center text-white/70">
@@ -1250,7 +1251,7 @@ export function VslStepView({ step, ctx }: { step: VslStep; ctx: StepCtx }) {
  * onload inline dispara sozinho) e RE-EXECUTA os <script> (innerHTML não roda
  * script). Funciona com o embed v4 do smartplayer.
  */
-function VturbEmbed({ html }: { html: string }) {
+function VturbEmbed({ html, slug, preview }: { html: string; slug: string; preview?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -1264,7 +1265,8 @@ function VturbEmbed({ html }: { html: string }) {
       document.head.appendChild(s);
       old.remove();
     });
-    return () => { el.innerHTML = ""; };
-  }, [html]);
+    const detach = attachVslWatch({ funnelSlug: slug, html, disabled: preview });
+    return () => { el.innerHTML = ""; detach(); };
+  }, [html, slug, preview]);
   return <div ref={ref} className="vturb-embed mx-auto w-full overflow-hidden rounded-2xl shadow-2xl" />;
 }

@@ -155,7 +155,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     design, name, setName,
     fields, setField: (k, v) => setFields((p) => ({ ...p, [k]: v })),
     estado: geo?.estado, cidade: geo?.cidade,
-    funnelSlug: funnel.slug, stepId: step.id,
+    funnelSlug: funnel.slug, stepId: step.id, preview,
     hasFields, submitting, submitFields,
     navigate,
     trackAnswer: (stepId, q, a) => trackAnswer(funnel.slug, stepId, q, a),

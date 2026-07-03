@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { fireMetaEvent } from "@/lib/tracking";
+import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { interpEstado } from "@/lib/quiz/estado";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
 
@@ -43,6 +44,7 @@ export interface LayersCtx {
   cidade?: string;
   funnelSlug: string;
   stepId: string;
+  preview?: boolean;
   hasFields: boolean;
   submitting: boolean;
   submitFields: () => void;
@@ -323,7 +325,7 @@ function CarouselBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 
 // ─────────────────────── EMBED / VÍDEO (VTurb) ──────────────────────
 /** Injeta o embed do player (seta innerHTML + RE-EXECUTA os <script>). */
-function EmbedBlock({ layer }: { layer: Layer }) {
+function EmbedBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const html = layer.content.embedHtml || layer.content.html || layer.content.text || "";
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -338,8 +340,9 @@ function EmbedBlock({ layer }: { layer: Layer }) {
       document.head.appendChild(s);
       old.remove();
     });
-    return () => { el.innerHTML = ""; };
-  }, [html]);
+    const detach = attachVslWatch({ funnelSlug: ctx.funnelSlug, html, disabled: ctx.preview });
+    return () => { el.innerHTML = ""; detach(); };
+  }, [html, ctx.funnelSlug, ctx.preview]);
   return <div ref={ref} className="mx-auto w-full overflow-hidden rounded-2xl shadow-2xl" />;
 }
 
@@ -663,7 +666,7 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
       case "timer": return <TimerBlock layer={layer} ctx={ctx} />;
       case "notification": return <NotificationBlock layer={layer} ctx={ctx} />;
       case "graphics": return <GraphicsBlock layer={layer} ctx={ctx} />;
-      case "embed": case "video": return <EmbedBlock layer={layer} />;
+      case "embed": case "video": return <EmbedBlock layer={layer} ctx={ctx} />;
       case "carousel": return <CarouselBlock layer={layer} ctx={ctx} />;
       default: return null;
     }
