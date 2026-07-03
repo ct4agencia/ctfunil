@@ -2,7 +2,8 @@
 
 ## Status
 - Criada: 2026-07-03
-- Sessão: spec dirigida por entrevista (prints do painel VTurb + 2 planilhas lidas)
+- **Aprovada pelo Luca: 2026-07-03** ("aprovo a spec do vturb")
+- Sessão: spec dirigida por entrevista (prints do painel VTurb + 2 planilhas + print da aba de dia)
 
 ## Objetivo
 Trazer para o CTFUNNEL tudo que hoje vive em 2 lugares manuais: o painel do VTurb (retenção, segmentação, métricas de player) e as planilhas de acompanhamento (diária de 37 colunas GASTO→LUCRO e a de retenção minuto a minuto por produto). O app vira a fonte única, auto-calculada — eliminando erros manuais de fórmula (ex.: linha 14/01/2025 da planilha tem PITCH=5674 copiado de VISU PV e %CONV=449%). Além disso, o webhook de lead passa a carregar a % da VSL que o lead assistiu.
@@ -67,6 +68,7 @@ Trazer para o CTFUNNEL tudo que hoje vive em 2 lugares manuais: o painel do VTur
 - [ ] REQ-16: Linha TOTAL do período com agregação correta (somas para valores, médias ponderadas para %).
 - [ ] REQ-17: Evento IC: clique no botão de checkout da VSL grava evento na sessão (mesma infra de tracking atual) → coluna IC.
 - [ ] REQ-18: Export CSV do mês.
+- [ ] REQ-21: Drill-down do dia (replica as abas diárias da planilha ABR QUIZ 2.1): clicar numa linha do Diário abre o detalhe do dia quebrado por **PERFIL de anúncio + VSL** (colunas PERFIL | VIDEO VTURB | mesmas métricas do Diário | linha TOTAL). MVP: PERFIL vem de input manual ou do utm (utm_source/utm_campaign) quando presente na sessão; VSL vem do player detectado no funil.
 
 ### E — Performance (restrição transversal)
 - [ ] REQ-19: ZERO peso novo nas rotas públicas do funil além do tracker do REQ-4 (≤2 KB). Todo o resto é admin-only, code-split por rota (já validado: analytics não entra no bundle do funil).
@@ -81,6 +83,7 @@ Trazer para o CTFUNNEL tudo que hoje vive em 2 lugares manuais: o painel do VTur
 - EDGE-6: GASTO não informado no dia → colunas de custo mostram "—" e TOTAL ignora o dia nos custos médios.
 - EDGE-7: Funil com 2 players (VSL A/B) → cada player rastreado separado; `vsl_progress` leva `player_id`.
 - EDGE-8: adblock bloqueia beacon → falha silenciosa, funil segue normal.
+- EDGE-9: Dia com sessões sem PERFIL identificável (sem utm e sem input manual) → agrupadas em linha "(sem perfil)" no drill-down; TOTAL do dia continua batendo com a linha do Diário.
 
 ## Fora de escopo
 - Integração Hotmart/UTMify automática para VENDAS/RECEITA (fase 2 — MVP usa input manual no Diário).
