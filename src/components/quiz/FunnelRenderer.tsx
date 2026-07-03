@@ -5,13 +5,18 @@
  * next/dynamic. Antes o page.tsx importava os 3 runners estaticamente → TODO
  * funil baixava Quiz + Layers + Typebot + steps.tsx (1270 linhas). Agora cada
  * funil baixa só o seu motor → bundle bem menor no 4G.
+ *
+ * SSR LIGADO (sem ssr:false): com ssr:false a página pública saía VAZIA do
+ * servidor e o lead via TELA BRANCA até a hidratação (~6s de FCP em celular
+ * 4G/CPU 4x — medido). Com SSR o HTML da 1ª lâmina pinta imediatamente e o
+ * code-split por engine continua igual.
  */
 import dynamic from "next/dynamic";
 import type { Funnel } from "@/lib/quiz/types";
 
-const QuizRunner = dynamic(() => import("./QuizRunner"), { ssr: false });
-const LayersRunner = dynamic(() => import("./layers/LayersRunner"), { ssr: false });
-const ChatRunner = dynamic(() => import("./typebot/ChatRunner"), { ssr: false });
+const QuizRunner = dynamic(() => import("./QuizRunner"));
+const LayersRunner = dynamic(() => import("./layers/LayersRunner"));
+const ChatRunner = dynamic(() => import("./typebot/ChatRunner"));
 
 export default function FunnelRenderer({
   funnel,
