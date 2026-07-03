@@ -23,15 +23,48 @@ export async function GET(request: Request) {
   const to = params.get("to") || undefined;
   const range = { from, to };
 
-  const performance = await funnelMetrics(slug, range);
+  // PERF: tudo paralelizável roda junto — antes eram ~9 round trips EM SÉRIE
+  // (funnelMetrics atual → funnelMetrics anterior → answers → leads → sessions).
+  const sb = createAdminClient();
 
-  // deltas vs PERÍODO ANTERIOR (mesma duração imediatamente antes do início)
+  // Resultados: por pergunta → opções com contagem/%
+  let answersQ = sb.from("quiz_answers").select("session_id,question,answer").eq("funnel_slug", slug).limit(50000);
+  if (from) answersQ = answersQ.gte("created_at", from);
+  if (to) answersQ = answersQ.lte("created_at", to);
+
+  // Respostas: por lead (sessão → respostas + dados do lead capturado)
+  let leadsQ = sb.from("funnel_leads")
+    .select("session_id,name,phone,created_at,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,fbclid,ctwa_clid,source_id,viewport,screen,platform,user_agent")
+    .eq("funnel_slug", slug).order("created_at", { ascending: false }).limit(5000);
+  if (from) leadsQ = leadsQ.gte("created_at", from);
+  if (to) leadsQ = leadsQ.lte("created_at", to);
+
+  // Tracking da SESSÃO (fallback): a campanha/origem é capturada na sessão; se o
+  // lead foi salvo sem utm, puxamos da sessão pra aparecer também nas Respostas.
+  let sessQ = sb.from("funnel_sessions").select("session_id,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,ctwa_clid,source_id").eq("funnel_slug", slug).limit(5000);
+  if (from) sessQ = sessQ.gte("created_at", from);
+  if (to) sessQ = sessQ.lte("created_at", to);
+
+  // Período anterior (deltas): mesma duração imediatamente antes do início.
+  const prevRange = from
+    ? (() => {
+        const fromMs = new Date(from).getTime();
+        const toMs = to ? new Date(to).getTime() : Date.now();
+        const len = Math.max(1, toMs - fromMs);
+        return { from: new Date(fromMs - len).toISOString(), to: new Date(fromMs).toISOString() };
+      })()
+    : null;
+
+  const [performance, prev, { data: answers }, { data: leads }, { data: sessRows }] = await Promise.all([
+    funnelMetrics(slug, range),
+    prevRange ? funnelMetrics(slug, prevRange) : Promise.resolve(null),
+    answersQ,
+    leadsQ,
+    sessQ,
+  ]);
+
   let deltas: Record<string, number> | null = null;
-  if (from) {
-    const fromMs = new Date(from).getTime();
-    const toMs = to ? new Date(to).getTime() : Date.now();
-    const len = Math.max(1, toMs - fromMs);
-    const prev = await funnelMetrics(slug, { from: new Date(fromMs - len).toISOString(), to: new Date(fromMs).toISOString() });
+  if (prev) {
     const pct = (cur: number, prv: number) => (prv > 0 ? Math.round(((cur - prv) / prv) * 1000) / 10 : cur > 0 ? 100 : 0);
     deltas = {
       visitantes: pct(performance.visitantes, prev.visitantes),
@@ -46,13 +79,6 @@ export async function GET(request: Request) {
       tempoMedioSeg: pct(performance.tempoMedioSeg, prev.tempoMedioSeg),
     };
   }
-  const sb = createAdminClient();
-
-  // Resultados: por pergunta → opções com contagem/%
-  let answersQ = sb.from("quiz_answers").select("session_id,question,answer").eq("funnel_slug", slug).limit(50000);
-  if (from) answersQ = answersQ.gte("created_at", from);
-  if (to) answersQ = answersQ.lte("created_at", to);
-  const { data: answers } = await answersQ;
   const qMap = new Map<string, Map<string, number>>();
   const qOrder: string[] = [];
   const bySession = new Map<string, Record<string, string>>();
@@ -80,22 +106,8 @@ export async function GET(request: Request) {
     };
   });
 
-  // Respostas: por lead (sessão → respostas + dados do lead capturado)
-  let leadsQ = sb.from("funnel_leads")
-    .select("session_id,name,phone,created_at,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,fbclid,ctwa_clid,source_id,viewport,screen,platform,user_agent")
-    .eq("funnel_slug", slug).order("created_at", { ascending: false }).limit(5000);
-  if (from) leadsQ = leadsQ.gte("created_at", from);
-  if (to) leadsQ = leadsQ.lte("created_at", to);
-  const { data: leads } = await leadsQ;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const leadBy = new Map((leads ?? []).map((l: any) => [String(l.session_id ?? ""), l]));
-
-  // Tracking da SESSÃO (fallback): a campanha/origem é capturada na sessão; se o
-  // lead foi salvo sem utm, puxamos da sessão pra aparecer também nas Respostas.
-  let sessQ = sb.from("funnel_sessions").select("session_id,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,ctwa_clid,source_id").eq("funnel_slug", slug).limit(5000);
-  if (from) sessQ = sessQ.gte("created_at", from);
-  if (to) sessQ = sessQ.lte("created_at", to);
-  const { data: sessRows } = await sessQ;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sessBy = new Map((sessRows ?? []).map((s: any) => [String(s.session_id ?? ""), s]));
 
