@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { GlobalAnalytics } from "@/lib/quiz/metrics";
 import ContainerScroll from "@/components/ui/ContainerScroll";
+import VslDetail from "@/components/dashboard/VslDetail";
 
 const ACCENT = "#3b82f6";
 
@@ -139,6 +140,7 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
   interface VtRow { playerId: string; playerName: string; funnels: { slug: string; name: string }[]; stats: { views: number; plays: number; playRate: number; engagement: number; pitchAudience: number; pitchRetention: number; clicks: number; conversions: number; convRate: number; amountBrl: number } }
   interface VtData { vsls: VtRow[]; allPlayers: { id: string; name: string; linked: boolean }[] }
   const [vturb, setVturb] = useState<VtData | "idle" | "loading" | "error" | "no_token">("idle");
+  const [detailPlayer, setDetailPlayer] = useState<string | null>(null);
   const [extraPlayers, setExtraPlayers] = useState<string[]>([]);
   const loadVturb = (extras: string[]) => {
     setVturb("loading");
@@ -457,7 +459,23 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                         <select defaultValue="" onChange={(e) => { const id = e.target.value; if (!id) return; const next = [...extraPlayers, id]; setExtraPlayers(next); loadVturb(next); e.currentTarget.value = ""; }}
                           className="max-w-[240px] rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-600 outline-none focus:border-blue-500" aria-label="Adicionar player">
                           <option value="">+ adicionar player da conta…</option>
-                          {vturb.allPlayers.filter((p) => !p.linked && !extraPlayers.includes(p.id)).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                          {/* agrupado por prefixo do nome (a API do VTurb não expõe as pastas) */}
+                          {(() => {
+                            const avail = vturb.allPlayers.filter((p) => !p.linked && !extraPlayers.includes(p.id));
+                            const groups = new Map<string, typeof avail>();
+                            for (const p of avail) {
+                              const g = (p.name.split(/\s[-–|]\s|\s-\s?|-\s/)[0] || p.name).trim().toUpperCase().slice(0, 28) || "OUTROS";
+                              if (!groups.has(g)) groups.set(g, []);
+                              groups.get(g)!.push(p);
+                            }
+                            return [...groups.entries()]
+                              .sort((a, b) => a[0].localeCompare(b[0], "pt-BR"))
+                              .map(([g, ps]) => (
+                                <optgroup key={g} label={`📁 ${g} (${ps.length})`}>
+                                  {ps.sort((a, b) => a.name.localeCompare(b.name, "pt-BR")).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                </optgroup>
+                              ));
+                          })()}
                         </select>
                       ) : null}
                       <button onClick={() => loadVturb(extraPlayers)} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">↻ Atualizar</button>
@@ -477,8 +495,10 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                         </thead>
                         <tbody>
                           {vturb.vsls.map((v) => (
-                            <tr key={v.playerId} className="border-t border-neutral-100">
-                              <td className="max-w-[220px] truncate px-3 py-2.5 font-medium text-neutral-800" title={v.playerName}>{v.playerName}</td>
+                            <tr key={v.playerId} onClick={() => setDetailPlayer(detailPlayer === v.playerId ? null : v.playerId)}
+                              className={`cursor-pointer border-t border-neutral-100 transition hover:bg-neutral-50 ${detailPlayer === v.playerId ? "bg-sky-50/60" : ""}`}
+                              title="Clique pra abrir a curva de retenção e segmentações">
+                              <td className="max-w-[220px] truncate px-3 py-2.5 font-medium text-neutral-800" title={v.playerName}>📈 {v.playerName}</td>
                               <td className="max-w-[160px] truncate px-3 py-2.5 font-mono text-xs text-neutral-600" title={v.funnels.map((f) => `/${f.slug}`).join(", ")}>{v.funnels.length ? v.funnels.map((f) => `/${f.slug}`).join(", ") : "— (manual)"}</td>
                               <td className="px-3 py-2.5 text-right text-neutral-600">{v.stats.views.toLocaleString("pt-BR")}</td>
                               <td className="px-3 py-2.5 text-right text-neutral-600">{v.stats.plays.toLocaleString("pt-BR")}</td>
@@ -496,7 +516,8 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                   ) : (
                     <p className="py-4 text-center text-sm text-neutral-400">Nenhum player VTurb detectado nos embeds das VSLs. Usa o seletor acima pra adicionar um player da conta.</p>
                   )}
-                  <p className="mt-3 text-[11px] text-neutral-400">Fonte: VTurb Analytics API (players detectados automaticamente no embed de cada funil). Play Rate = plays ÷ views · Ret. Pitch = % que passa do pitch.</p>
+                  {detailPlayer ? <VslDetail playerId={detailPlayer} onClose={() => setDetailPlayer(null)} /> : null}
+                  <p className="mt-3 text-[11px] text-neutral-400">Fonte: VTurb Analytics API (players detectados automaticamente no embed de cada funil). Play Rate = plays ÷ views · Ret. Pitch = % que passa do pitch. Clique numa linha pra ver retenção minuto a minuto e segmentações.</p>
                 </section>
                 {cmpVsl.length >= 2 ? (
                   <section className="rounded-2xl border border-blue-200 bg-blue-50/40 p-5">
