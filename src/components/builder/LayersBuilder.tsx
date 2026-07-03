@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -1046,7 +1047,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
     <div className="min-h-screen bg-neutral-100 text-neutral-900">
       <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
         <div className="flex items-center gap-3">
-          <a href="/dashboard" className="rounded-md border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">← Funis</a>
+          <Link href="/dashboard" className="rounded-md border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">← Funis</Link>
           <div>
             <h1 className="text-sm font-bold">Construtor · {funnel.name} <span className="ml-1 rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-700">LAYERS</span></h1>
             <p className="text-xs text-neutral-500">/{funnel.slug} · {steps.length} lâminas</p>
@@ -1108,11 +1109,16 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
             <div key={cat.name} className="mb-2.5">
               <p className="px-1 pb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">{cat.name}</p>
               <div className="space-y-0.5">
-                {cat.items.map(([key, label]) => (
-                  <button key={key} onClick={() => addPaletteItem(key, label)} className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-white hover:shadow-sm ${ADDABLE.has(key) ? "text-neutral-700" : "text-neutral-400"}`}>
-                    <span>{PALETTE_ICON[key] || "▫️"}</span><span className="truncate">{label}</span>
-                  </button>
-                ))}
+                {cat.items.map(([key, label]) => {
+                  const soon = !ADDABLE.has(key);
+                  return (
+                    <button key={key} onClick={() => addPaletteItem(key, label)} disabled={soon} title={soon ? "Em breve — ativa sob demanda" : undefined}
+                      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs ${soon ? "cursor-not-allowed text-neutral-300" : "text-neutral-700 hover:bg-white hover:shadow-sm"}`}>
+                      <span className={soon ? "opacity-40" : ""}>{PALETTE_ICON[key] || "▫️"}</span><span className="truncate">{label}</span>
+                      {soon ? <span className="ml-auto rounded bg-neutral-200/70 px-1 text-[8px] font-bold uppercase text-neutral-500">breve</span> : null}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}

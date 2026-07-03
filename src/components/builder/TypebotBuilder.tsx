@@ -126,12 +126,12 @@ export default function TypebotBuilder({ initial }: { initial: Funnel }) {
           <span className="text-xs text-neutral-500">/{funnel.slug}</span>
         </div>
         <nav className="flex gap-1 rounded-lg bg-neutral-100 p-1">
-          {([["chat", "💬 Construtor"], ["fluxo", "🔀 Fluxo"], ["tema", "🎨 Tema"], ["leads", "👥 Leads"]] as const).map(([k, l]) => (
+          {([["chat", "💬 Construtor"], ["fluxo", "🔀 Fluxo"], ["tema", "🎨 Design"], ["leads", "👥 Leads"]] as const).map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold ${tab === k ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500"}`}>{l}</button>
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          {msg ? <span className="text-xs font-semibold text-neutral-600">{msg}</span> : null}
+          {msg ? <span className={`text-xs font-semibold ${msg.startsWith("Erro") ? "text-red-600" : "text-green-600"}`}>{msg}</span> : null}
           <button onClick={() => setShowSettings(true)} title="Configurações do funil (pixel, checkout, domínio, webhooks)" className="rounded-lg border border-neutral-300 px-2.5 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⚙</button>
           <button onClick={save} disabled={saving} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700">{saving ? "Salvando…" : "Salvar"}</button>
           <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white">Ver ao vivo ↗</a>

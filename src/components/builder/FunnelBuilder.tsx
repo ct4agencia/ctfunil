@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
 } from "@dnd-kit/core";
@@ -159,7 +160,7 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
     <div className="min-h-screen bg-neutral-100 text-neutral-900">
       <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
         <div className="flex items-center gap-3">
-          <a href="/dashboard" className="rounded-md border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">← Funis</a>
+          <Link href="/dashboard" className="rounded-md border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">← Funis</Link>
           <div>
             <h1 className="text-sm font-bold">Construtor · {funnel.name}</h1>
             <p className="text-xs text-neutral-500">/{funnel.slug} · {steps.length} lâminas</p>

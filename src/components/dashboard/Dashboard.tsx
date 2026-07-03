@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FunnelSummary } from "@/lib/quiz/funnels-db";
 import type { DashboardMetrics } from "@/lib/quiz/metrics";
@@ -95,12 +96,14 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
     if (t === "system") d.removeAttribute("data-theme"); else d.setAttribute("data-theme", t);
   };
 
-  const filtered = funnels.filter((f) => f.name.toLowerCase().includes(q.toLowerCase()));
+  // Busca por nome + slug + nicho (funis são citados pelo slug em URLs/relatórios).
+  const filtered = funnels.filter((f) => `${f.name} ${f.slug} ${f.niche ?? ""}`.toLowerCase().includes(q.toLowerCase()));
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const curPage = Math.min(page, totalPages);
   const paged = filtered.slice((curPage - 1) * PER_PAGE, curPage * PER_PAGE);
   const doCreate = async () => { if (busy) return; setBusy(true); const r = await createFunnel(name.trim() || "Novo funil", presetId); setBusy(false); if (r.ok && r.slug) router.push(`/builder/${r.slug}`); else alert(r.error ?? "Erro"); };
-  const doDuplicate = async (slug: string) => { setMenu(null); setBusy(true); const r = await duplicateFunnel(slug); setBusy(false); if (r.ok) router.refresh(); else alert(r.error ?? "Erro"); };
+  // Duplicou → abre direto o builder da cópia (antes: só refresh, tinha que achar o card).
+  const doDuplicate = async (slug: string) => { setMenu(null); setBusy(true); const r = await duplicateFunnel(slug); setBusy(false); if (r.ok && r.slug) router.push(`/builder/${r.slug}`); else if (r.ok) router.refresh(); else alert(r.error ?? "Erro"); };
   const doDelete = async (slug: string) => { setMenu(null); if (!confirm(`Excluir "${slug}"?`)) return; setBusy(true); const r = await deleteFunnel(slug); setBusy(false); if (r.ok) router.refresh(); else alert(r.error ?? "Erro"); };
 
   const cards = [
@@ -122,7 +125,7 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
               <p className="text-sm text-neutral-500">Visão geral do desempenho dos seus funis</p>
             </div>
             <div className="flex items-center gap-2">
-              <a href="/analytics" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">📊 Analytics</a>
+              <Link href="/analytics" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">📊 Analytics</Link>
               <button onClick={() => setCreating(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Criar funil</button>
               <button onClick={() => setShowSettings(true)} title="Configurações" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⚙ Configurações</button>
               <button onClick={() => signOut()} title="Sair" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-500 hover:bg-neutral-50">⎋ Sair</button>
@@ -177,7 +180,8 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
                           {menu === f.slug ? (
                             <div onClick={(e) => e.stopPropagation()} className="absolute right-0 z-40 mt-1 w-40 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 text-sm shadow-xl">
                               <button onClick={() => router.push(`/builder/${f.slug}`)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">✏️ Editar</button>
-                              <button onClick={() => router.push(`/dashboard/${f.slug}`)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">📊 Métricas</button>
+                              <button onClick={() => router.push(`/dashboard/${f.slug}`)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">📈 Performance</button>
+                              <a href={`/api/export-leads?slug=${encodeURIComponent(f.slug)}`} className="block px-3 py-1.5 hover:bg-neutral-50">⬇ Exportar leads</a>
                               <a href={f.domain ? `https://${f.domain}/${f.slug}` : `/${f.slug}`} target="_blank" rel="noreferrer" className="block px-3 py-1.5 hover:bg-neutral-50">👁 Visualizar</a>
                               <button onClick={() => doDuplicate(f.slug)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">⧉ Duplicar</button>
                               <button onClick={() => doDelete(f.slug)} className="block w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50">🗑 Excluir</button>
@@ -187,6 +191,8 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
                       </div>
                       <div className="mt-4 flex items-center gap-2">
                         <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold capitalize" style={{ background: pal.bgSoft, color: pal.primaryDark }}>{f.status}</span>
+                        {/* Badge do motor — antes só se descobria abrindo o builder */}
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${f.engine === "typebot" ? "bg-violet-100 text-violet-700" : f.engine === "layers" ? "bg-orange-100 text-orange-700" : "bg-sky-100 text-sky-700"}`}>{f.engine === "typebot" ? "typebot" : f.engine === "layers" ? "layers" : "steps"}</span>
                         <span className="text-[11px] text-neutral-400">/{f.slug}</span>
                       </div>
                     </div>
@@ -240,9 +246,14 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
             </div>
 
             <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-neutral-400">Aparência</p>
+            {/* dark/system desativados: o admin usa cores fixas (bg-white etc.) — oferecer
+                um dark que não funciona parece bug. Reativar após o design pass de tokens. */}
             <div className="mb-4 grid grid-cols-3 gap-2">
-              {([["light", "☀️ Claro"], ["dark", "🌙 Escuro"], ["system", "🖥️ Sistema"]] as const).map(([k, l]) => (
-                <button key={k} onClick={() => setTheme(k)} className={`rounded-xl border-2 px-2 py-3 text-xs font-semibold transition ${theme === k ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-400"}`}>{l}</button>
+              {([["light", "☀️ Claro", false], ["dark", "🌙 Escuro", true], ["system", "🖥️ Sistema", true]] as const).map(([k, l, soon]) => (
+                <button key={k} disabled={soon} onClick={() => setTheme(k)} className={`relative rounded-xl border-2 px-2 py-3 text-xs font-semibold transition ${soon ? "cursor-not-allowed border-neutral-200 text-neutral-400 opacity-60" : theme === k ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-400"}`}>
+                  {l}
+                  {soon ? <span className="absolute -top-1.5 right-1 rounded-full bg-amber-100 px-1.5 text-[9px] font-bold uppercase text-amber-700">em breve</span> : null}
+                </button>
               ))}
             </div>
 
