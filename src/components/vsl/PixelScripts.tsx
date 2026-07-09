@@ -39,12 +39,13 @@ export default function PixelScripts({
   }
 
   // Meta Pixel (fbq) — só se houver ID numérico configurado.
-  // DEFERIDO (igual o vivadevelas): o stub do fbq enfileira o PageView JÁ, mas o
-  // fbevents.js (~776KB) só carrega DEPOIS do 1º paint (window load + idle) — assim
-  // não disputa banda no 4G durante o render. Ao carregar, ele drena a fila → PageView dispara.
+  // O stub inline enfileira init+PageView no 1º milissegundo. O fbevents.js
+  // (~776KB) baixa LOGO APÓS O 1º PAINT (DOMContentLoaded + 2x rAF) — antes era
+  // window load + idle (~2,5s a mais) e lead que saía rápido não contava o
+  // PageView pra Meta. Pós-paint não disputa banda no momento crítico do render.
   if (p.facebook_pixel_id) {
     inline.push(
-      `!function(f,b,e,n){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window,document,'script');fbq('init','${p.facebook_pixel_id}');fbq('track','PageView');(function(){function L(){if(window.__fbLoaded)return;window.__fbLoaded=1;var t=document.createElement('script');t.async=!0;t.src='https://connect.facebook.net/en_US/fbevents.js';document.head.appendChild(t)}var run=function(){('requestIdleCallback'in window)?requestIdleCallback(L,{timeout:2500}):setTimeout(L,1500)};if(document.readyState==='complete')run();else window.addEventListener('load',run)})();`,
+      `!function(f,b,e,n){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window,document,'script');fbq('init','${p.facebook_pixel_id}');fbq('track','PageView');(function(){function L(){if(window.__fbLoaded)return;window.__fbLoaded=1;var t=document.createElement('script');t.async=!0;t.src='https://connect.facebook.net/en_US/fbevents.js';document.head.appendChild(t)}var run=function(){('requestAnimationFrame'in window)?requestAnimationFrame(function(){requestAnimationFrame(L)}):setTimeout(L,300)};if(document.readyState!=='loading')run();else document.addEventListener('DOMContentLoaded',run)})();`,
     );
   }
 
