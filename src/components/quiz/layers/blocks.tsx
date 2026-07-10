@@ -436,7 +436,11 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
 
 // ─────────────────────────────── FIELD ──────────────────────────────
 function maskPhoneBr(v: string): string {
-  const d = v.replace(/\D/g, "").slice(0, 11);
+  let raw = v.replace(/\D/g, "");
+  // o +55 já é fixo no campo: se o lead digitou 55 de novo (total 12-13 díg.),
+  // tira o país duplicado. DDD 55 (RS) tem só 10-11 díg. → não é afetado.
+  if (raw.length >= 12 && raw.startsWith("55")) raw = raw.slice(2);
+  const d = raw.slice(0, 11);
   if (d.length <= 2) return d.length ? `(${d}` : d;
   if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
@@ -444,21 +448,37 @@ function maskPhoneBr(v: string): string {
 function FieldBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const c = layer.content;
   const key = c.name || c.id || "campo";
+  const isPhone = c.mask === "phone_br" || c.type === "phone";
   const val = ctx.fields[key] || "";
   const onChange = (raw: string) => {
-    const v = c.mask === "phone_br" || c.type === "phone" ? maskPhoneBr(raw) : raw;
+    const v = isPhone ? maskPhoneBr(raw) : raw;
     ctx.setField(key, v);
     if (key === "nome") ctx.setName(v);
   };
+  const boxStyle = { borderRadius: radius(ctx.design), borderColor: "#e5e7eb", fontSize: `${remContent(ctx)}px` };
   return (
     <div className="mx-auto w-full text-left">
       {c.title ? <label className="mb-1.5 block text-sm font-semibold" style={{ color: ctx.design.contentColor || "#000" }}>{c.title}</label> : null}
-      <input
-        value={val} onChange={(e) => onChange(e.target.value)}
-        placeholder={c.placeholder} inputMode={c.type === "phone" ? "tel" : "text"}
-        className="w-full border bg-white px-4 py-3.5 outline-none focus:ring-2"
-        style={{ borderRadius: radius(ctx.design), borderColor: "#e5e7eb", fontSize: `${remContent(ctx)}px` }}
-      />
+      {isPhone ? (
+        // +55 FIXO (o lead digita só DDD+número). Guardamos o valor nacional; o
+        // +55 é colado no webhook — assim o lead nunca soma um 55 a mais.
+        <div className="flex w-full items-stretch overflow-hidden border bg-white focus-within:ring-2" style={boxStyle}>
+          <span className="flex select-none items-center border-r border-neutral-200 bg-neutral-50 px-3 font-semibold text-neutral-500" style={{ fontSize: `${remContent(ctx)}px` }}>+55</span>
+          <input
+            value={val} onChange={(e) => onChange(e.target.value)}
+            placeholder={c.placeholder || "(00) 00000-0000"} inputMode="tel" type="tel"
+            className="w-full border-0 bg-transparent px-4 py-3.5 outline-none"
+            style={{ fontSize: `${remContent(ctx)}px` }}
+          />
+        </div>
+      ) : (
+        <input
+          value={val} onChange={(e) => onChange(e.target.value)}
+          placeholder={c.placeholder} inputMode="text"
+          className="w-full border bg-white px-4 py-3.5 outline-none focus:ring-2"
+          style={boxStyle}
+        />
+      )}
     </div>
   );
 }

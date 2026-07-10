@@ -30,10 +30,13 @@ export async function fireWebhook(wh: FunnelWebhook, payload: Record<string, unk
   }
 }
 
-/** Telefone p/ webhook (Datacrazy): +55 + número limpo (E.164). */
+/** Telefone p/ webhook (Datacrazy): +55 + número limpo (E.164).
+ * Tira o país só quando veio junto (12-13 díg. começando com 55) — assim não
+ * remove o DDD 55 (RS), que tem 10-11 díg. Evita o "55" duplicado. */
 export function phoneToIntl(phone: string | null | undefined): string {
-  const digits = String(phone ?? "").replace(/\D/g, "");
-  return digits ? "+55" + digits.replace(/^55/, "") : "";
+  let d = String(phone ?? "").replace(/\D/g, "");
+  if (d.length >= 12 && d.startsWith("55")) d = d.slice(2);
+  return d ? "+55" + d : "";
 }
 
 /** Data/hora pt-BR (America/Sao_Paulo) no formato que o Datacrazy já recebe. */
