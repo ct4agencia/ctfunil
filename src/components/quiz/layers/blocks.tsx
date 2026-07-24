@@ -251,6 +251,23 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const effect = (d.effect as string) || "none";
   const pulseCls = effect === "pulse" || effect === "shine-pulse" ? "fx-pulse" : "";
   const shineCls = effect === "shine" || effect === "shine-pulse" ? "fx-shine" : "";
+  // Botão-IMAGEM (estilo inlead: o CTA é um PNG clicável, ex. botão verde "INICIAR").
+  // Se content.imageSrc estiver setado, renderiza a imagem no lugar do botão estilizado.
+  const imgSrc = (c as { imageSrc?: string }).imageSrc || null;
+  if (imgSrc) {
+    return (
+      <div className={`${hAlign(d)} w-full ${pulseCls}`} style={{ maxWidth: `${basis}%` }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <motion.img
+          src={imgSrc} alt={c.label || ""} onClick={ctx.submitting ? undefined : onClick}
+          initial={revealAt > 0 ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }}
+          whileTap={{ scale: 0.97 }} decoding="async"
+          className={`mx-auto block w-full cursor-pointer select-none ${shineCls}`}
+          style={{ maxWidth: "100%" }}
+        />
+      </div>
+    );
+  }
   return (
     <div className={`${hAlign(d)} w-full ${pulseCls}`} style={{ maxWidth: `${basis}%` }}>
       <motion.button
