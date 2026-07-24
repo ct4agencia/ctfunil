@@ -71,7 +71,7 @@ export async function POST(request: Request) {
   if (SERVICE) {
     const { data: funnel } = await sb
       .from("funnels")
-      .select("name, slug, hotmart_product_id, checkout_url, webhooks")
+      .select("name, slug, hotmart_product_id, checkout_url, webhooks, settings, steps")
       .eq("slug", body.funnelSlug)
       .maybeSingle();
 
@@ -83,6 +83,19 @@ export async function POST(request: Request) {
         produto = "";
       }
     }
+    // Nome legível do produto p/ Datacrazy (campo "Produto"): settings.produto_nome
+    // (ex.: "Clube das Bolsas") ou o nome do funil como fallback.
+    const produtoNome = (funnel?.settings as { produto_nome?: string } | null)?.produto_nome || funnel?.name || "";
+    // Fonte de tráfego derivada do utm_source (FB/Instagram → Meta, etc.) — igual inlead.
+    const fonteTrafego = (() => {
+      const s = (t.utm_source || "").toLowerCase();
+      if (!s) return "";
+      if (/fb|face|meta|insta|ig\b/.test(s)) return "Meta";
+      if (/goog|gads|google/.test(s)) return "Google";
+      if (/tiktok|^tt$/.test(s)) return "TikTok";
+      if (/kwai/.test(s)) return "Kwai";
+      return t.utm_source || "";
+    })();
 
     const dataHora = dataHoraBr();
 
@@ -102,11 +115,12 @@ export async function POST(request: Request) {
     // pergunta_N / resposta_N (1 por pergunta, última prevalece) + um campo único
     // "respostas" legível. Best-effort: se a tabela/sessão não tiver, segue vazio.
     const respFields: Record<string, string> = {};
+    const namedFields: Record<string, string> = {}; // campos NOMEADOS (Faixa_Etaria, Filhos…) p/ Datacrazy
     let respostasStr = "";
     if (body.session_id) {
       const { data: qa } = await sb
         .from("quiz_answers")
-        .select("question, answer, created_at")
+        .select("question, answer, created_at, step_id")
         .eq("session_id", body.session_id)
         .order("created_at", { ascending: true });
       const order: string[] = [];
@@ -123,6 +137,18 @@ export async function POST(request: Request) {
         respFields[`resposta_${i + 1}`] = ansByQ.get(q)!;
       });
       respostasStr = order.map((q) => `${q}: ${ansByQ.get(q)}`).join(" | ");
+
+      // Campos NOMEADOS por pergunta (igual inlead): cada lâmina de pergunta tem
+      // uma `webhookKey` (ex.: Idade→"Faixa_Etaria"); casa por step_id, última prevalece.
+      const stepKey = new Map<string, string>();
+      for (const st of (funnel?.steps as { id?: string; webhookKey?: string }[] | null) ?? []) {
+        if (st?.id && st?.webhookKey) stepKey.set(st.id, st.webhookKey);
+      }
+      for (const row of qa ?? []) {
+        const key = stepKey.get(String((row as { step_id?: string }).step_id ?? ""));
+        const a = String(row.answer ?? "").trim();
+        if (key && a) namedFields[key] = a; // ordem asc → última resposta prevalece
+      }
     }
 
     // REQ-3 (spec vturb): % da VSL já assistida até a captura — campo ADITIVO,
@@ -146,15 +172,19 @@ export async function POST(request: Request) {
       pagina: funnel?.name ?? "",
       slug: funnel?.slug ?? body.funnelSlug,
       produto,
+      Produto: produtoNome,               // nome legível (Datacrazy)
+      Fonte_de_Trafego: fonteTrafego,     // Meta/Google/… derivado do utm_source
       data: dataHora,
       respostas: respostasStr,
       vsl_watch_pct: vslWatchPct,
       ...respFields,
+      ...namedFields,                     // Faixa_Etaria, Filhos, Ocupacao, …
       utm_source: t.utm_source ?? "",
       utm_medium: t.utm_medium ?? "",
       utm_campaign: t.utm_campaign ?? "",
       utm_content: t.utm_content ?? "",
       utm_term: t.utm_term ?? "",
+      utm_id: t.utm_id ?? "",             // ID do anúncio (Meta)
       src: t.src ?? "",
       xcod: t.xcod ?? "",
       fbclid: t.fbclid ?? "",

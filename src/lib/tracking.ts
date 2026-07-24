@@ -34,6 +34,7 @@ const UTM_KEYS = [
   "utm_campaign",
   "utm_content",
   "utm_term",
+  "utm_id", // ID do anúncio no Meta (atribuição por anúncio na Datacrazy)
   "fbclid",
   "src",
   "xcod",

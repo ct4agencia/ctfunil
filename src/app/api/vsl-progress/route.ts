@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import { createClient as createSbClient } from "@supabase/supabase-js";
-import { fireWebhook, phoneToIntl, dataHoraBr } from "@/lib/quiz/webhooks";
 import { vturbListPlayers } from "@/lib/vturb";
-import type { FunnelWebhook } from "@/lib/quiz/types";
 
 const URL_ENV = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Marcos de % que disparam webhook (REQ-2). "pitch" é derivado do tempo real
-// vs pitch_time do player (VTurb). Dedup via funnel_sessions.vsl_milestones.
-const PCT_MILESTONES = [25, 50, 75, 100];
+// Marcos de retenção da VSL gravados na sessão (10%,20%…100%) + "pitch" (passou
+// do pitch_time do player). SÓ GRAVA NO BANCO — não dispara 2º webhook (evita
+// re-entrada do lead no fluxo da Datacrazy / duplicação). A % vai pro webhook de
+// captura (vsl_watch_pct) e fica no nosso analytics; update na Datacrazy só via
+// endpoint de atualizar-campo-por-telefone (quando tivermos o token da API).
+const PCT_MILESTONES = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 
 type Body = {
   session_id?: string;
@@ -72,53 +73,15 @@ export async function POST(request: Request) {
       .update({
         vsl_watch_pct: newPct,
         vsl_player_id: player_id,
+        // marcos legíveis: "10%","20%"… e "Pitch" quando passa do pitch_time
         vsl_milestones: [...fired, ...fresh],
         last_seen_at: new Date().toISOString(),
       })
       .eq("session_id", session_id);
   }
 
-  // Webhook vsl_progress: só APÓS captura (EDGE-1: sem telefone não dispara —
-  // o marco fica gravado e o webhook de captura leva o vsl_watch_pct atual).
-  if (fresh.length) {
-    const { data: lead } = await sb
-      .from("funnel_leads")
-      .select("name, phone")
-      .eq("session_id", session_id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (lead?.phone) {
-      const { data: funnel } = await sb
-        .from("funnels")
-        .select("name, slug, webhooks")
-        .eq("slug", funnel_slug)
-        .maybeSingle();
-
-      const webhooks = ((funnel?.webhooks ?? []) as FunnelWebhook[]).filter(
-        (wh) => wh.enabled && wh.trigger_event === "lead_capture",
-      );
-
-      if (webhooks.length) {
-        const base = {
-          event: "vsl_progress",
-          code: session_id,
-          nome: lead.name ?? "",
-          telefone: phoneToIntl(lead.phone),
-          pagina: funnel?.name ?? "",
-          slug: funnel?.slug ?? funnel_slug,
-          player_id,
-          watch_pct: newPct,
-          passou_pitch: passedPitch ? "sim" : "nao",
-          data: dataHoraBr(),
-        };
-        await Promise.allSettled(
-          fresh.flatMap((marco) => webhooks.map((wh) => fireWebhook(wh, { ...base, marco }))),
-        );
-      }
-    }
-  }
-
+  // NÃO dispara webhook aqui (evita re-entrada do lead no fluxo da Datacrazy).
+  // A retenção fica no banco (vsl_watch_pct/vsl_milestones) → aparece no nosso
+  // analytics; push pra Datacrazy só via update-de-campo-por-telefone no futuro.
   return NextResponse.json({ ok: true });
 }
