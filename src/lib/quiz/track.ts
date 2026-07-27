@@ -12,7 +12,10 @@ import { getSessionId, collectTrackingParams } from "@/lib/tracking";
  * quebra a página (igual lib/tracking.ts do vsl-platform).
  */
 
-const ensured = new Set<string>();
+// Promise em cache por funil: garante 1 upsert só, mas sem marcar como "feito"
+// antes do await (o Set marcava antes e, se o upsert falhasse, não havia retry
+// e um upsert atrasado podia aterrissar DEPOIS do update, travando a sessão).
+const ensured = new Map<string, Promise<void>>();
 
 /** session_id POR FUNIL: o mesmo navegador pode passar por vários funis; sem isso,
  *  a sessão (chaveada por session_id) se mistura entre funis e a análise por funil
@@ -22,31 +25,37 @@ function sid(funnelSlug: string): string {
 }
 
 /** Garante a linha da sessão (1x por funil). */
-async function ensureSession(funnelSlug: string): Promise<void> {
-  if (ensured.has(funnelSlug)) return;
-  ensured.add(funnelSlug);
-  try {
-    const supabase = createClient();
-    const t = collectTrackingParams();
-    await supabase.from("funnel_sessions").upsert(
-      {
+function ensureSession(funnelSlug: string): Promise<void> {
+  const cached = ensured.get(funnelSlug);
+  if (cached) return cached;
+
+  const run = (async () => {
+    try {
+      const supabase = createClient();
+      const t = collectTrackingParams();
+      const row: Record<string, unknown> = {
         session_id: sid(funnelSlug),
         funnel_slug: funnelSlug,
-        max_step_reached: 0,
-        utm_source: t.utm_source ?? null,
-        utm_medium: t.utm_medium ?? null,
-        utm_campaign: t.utm_campaign ?? null,
-        utm_content: t.utm_content ?? null,
-        utm_term: t.utm_term ?? null,
-        src: t.src ?? null,
-        ctwa_clid: t.ctwa_clid ?? null,
-        source_id: t.source_id ?? null,
-      },
-      { onConflict: "session_id" },
-    );
-  } catch {
-    /* best-effort */
-  }
+        // hidratação: o app montou no browser. É ISSO que conta como "Visitante"
+        // (o VisitBeacon cria a linha antes, mas sem hydrated_at não é visitante).
+        hydrated_at: new Date().toISOString(),
+      };
+      // NUNCA mandar max_step_reached aqui: o upsert vira UPDATE no conflito e
+      // zerava o progresso a cada F5/retorno (lead que chegou na última lâmina
+      // voltava pra 0 e sumia do funil). A coluna já tem DEFAULT 0 no insert.
+      // UTM só quando tem valor — sobrescrever com null apagava a atribuição de
+      // 1º toque que o VisitBeacon já tinha gravado certo.
+      for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "src", "ctwa_clid", "source_id"] as const) {
+        if (t[k]) row[k] = t[k];
+      }
+      await supabase.from("funnel_sessions").upsert(row, { onConflict: "session_id" });
+    } catch {
+      /* best-effort */
+    }
+  })();
+
+  ensured.set(funnelSlug, run);
+  return run;
 }
 
 /** Registra o avanço para uma etapa (índice + tipo) e atualiza max_step. */
@@ -61,19 +70,28 @@ export async function trackStep(
     await ensureSession(funnelSlug);
     const supabase = createClient();
     const session_id = sid(funnelSlug);
-    await supabase.from("step_events").insert({
-      session_id,
-      funnel_slug: funnelSlug,
-      step_index: stepIndex,
-      step_id: stepId,
-      step_type: stepType,
-      meta: meta ?? null,
-    });
-    await supabase
-      .from("funnel_sessions")
-      .update({ max_step_reached: stepIndex, last_seen_at: new Date().toISOString() })
-      .eq("session_id", session_id)
-      .lt("max_step_reached", stepIndex);
+    // Em PARALELO: eram 3 round-trips sequenciais e o update (que alimenta o
+    // funil do painel) era o último — se o lead clicava no CTA/fechava a aba,
+    // o fetch morria no unload e o progresso não subia, embora o step_event
+    // já tivesse entrado. Dava max_step=0 com evento na última lâmina.
+    await Promise.allSettled([
+      supabase.from("step_events").insert({
+        session_id,
+        funnel_slug: funnelSlug,
+        step_index: stepIndex,
+        step_id: stepId,
+        step_type: stepType,
+        meta: meta ?? null,
+      }),
+      supabase
+        .from("funnel_sessions")
+        .update({ max_step_reached: stepIndex, last_seen_at: new Date().toISOString() })
+        .eq("session_id", session_id)
+        // Guarda de monotonicidade: só sobe, nunca regride (voltar lâmina não
+        // rebaixa o progresso). O piso 1 existe porque na 1ª lâmina stepIndex=0
+        // e `.lt(max, 0)` nunca casa — o last_seen_at nunca era gravado ali.
+        .lt("max_step_reached", Math.max(stepIndex, 1)),
+    ]);
   } catch {
     /* best-effort */
   }
