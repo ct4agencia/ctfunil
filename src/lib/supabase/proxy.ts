@@ -50,8 +50,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Allowlist: só o dono (ADMIN_EMAIL) conta como logado, se a env existir.
-  const allowed = !!user && (!process.env.ADMIN_EMAIL || user.email === process.env.ADMIN_EMAIL);
+  // Allowlist FAIL-CLOSED: só o dono (ADMIN_EMAIL) conta como logado. Sem a env
+  // ninguém passa — antes (`!ADMIN_EMAIL || ...`) a ausência liberava QUALQUER
+  // usuário autenticado, e o signup do Supabase está aberto.
+  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
+  const allowed = !!user && !!adminEmail && user.email?.toLowerCase() === adminEmail;
 
   // 1) Sem login tentando acessar o painel (menos o login) → vai pro login
   if (isProtected && !isLoginRoute && !allowed) {

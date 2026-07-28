@@ -1,0 +1,172 @@
+/**
+ * GATE DE REGRESSÃO do CTFUNNEL.
+ *
+ * O projeto não tem suíte de testes: `npm run build` só pega erro de tipo/compilação,
+ * não pega "quebrei uma lâmina". Este script é o gate de comportamento do loop-squad.
+ *
+ *   node scripts/regressao.cjs snapshot   → grava o baseline (rodar ANTES da onda)
+ *   node scripts/regressao.cjs check      → compara com o baseline (rodar DEPOIS)
+ *
+ * O que compara (coisas que NÃO podem mudar sem eu mandar):
+ *   - todo funil publicado responde HTTP 200 e continua servindo conteúdo
+ *   - o número de lâminas (totais e ativas) de cada funil
+ *   - as rotas do painel continuam exigindo login (redirect p/ /admin/login)
+ *   - as colunas que as métricas leem continuam existindo
+ *
+ * O que NÃO compara: valor de métrica (sobe com tráfego real — comparar daria
+ * falso positivo todo dia). Regressão de NÚMERO se valida contra a fonte externa
+ * (VTurb / Datacrazy / Hotmart), não contra snapshot.
+ */
+const { createClient } = require("@supabase/supabase-js");
+const { readFileSync, writeFileSync, existsSync } = require("node:fs");
+const { join } = require("node:path");
+
+const BASELINE = join(__dirname, ".regressao-baseline.json");
+const BASE_URL = process.env.REGRESSAO_BASE_URL || "https://viverdebolsas.com.br";
+
+/** Mesmo loadEnv dos outros scripts do repo. */
+function loadEnv() {
+  const raw = readFileSync(join(__dirname, "..", ".env.local"), "utf8");
+  const env = {};
+  for (const line of raw.split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
+    if (!m) continue;
+    let v = m[2].trim();
+    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+    env[m[1]] = v;
+  }
+  return env;
+}
+
+/** Rotas do painel que TÊM que continuar protegidas por login. */
+const ROTAS_PROTEGIDAS = ["/dashboard", "/analytics", "/builder/cdb-01"];
+
+/** Colunas que as métricas leem — se sumirem, o painel zera em silêncio. */
+const COLUNAS_CRITICAS = {
+  funnel_sessions: ["session_id", "funnel_slug", "max_step_reached", "last_seen_at", "utm_source"],
+  funnel_leads: ["funnel_slug", "session_id", "phone"],
+  quiz_answers: ["session_id", "funnel_slug", "step_id", "question", "answer"],
+  step_events: ["session_id", "funnel_slug", "step_index", "step_id"],
+};
+
+async function coletar(sb) {
+  const { data: funnels, error } = await sb.from("funnels").select("slug, status, steps").limit(200);
+  if (error) throw new Error("nao consegui ler funnels: " + error.message);
+
+  const funis = [];
+  for (const f of funnels || []) {
+    const steps = Array.isArray(f.steps) ? f.steps : [];
+    const row = {
+      slug: f.slug,
+      status: f.status,
+      laminas: steps.length,
+      laminasAtivas: steps.filter((s) => !(s && s.disabled)).length,
+    };
+    if (f.status === "published") {
+      try {
+        const r = await fetch(`${BASE_URL}/${f.slug}`, { redirect: "manual" });
+        const html = await r.text();
+        row.http = r.status;
+        row.bytes = html.length;
+        row.temConteudo = html.length > 5000; // SSR real; tela branca despenca
+      } catch (e) {
+        row.http = 0;
+        row.erro = String(e.message).slice(0, 80);
+      }
+    }
+    funis.push(row);
+  }
+  funis.sort((a, b) => a.slug.localeCompare(b.slug));
+
+  const protegidas = [];
+  for (const p of ROTAS_PROTEGIDAS) {
+    try {
+      const r = await fetch(`${BASE_URL}${p}`, { redirect: "manual" });
+      protegidas.push({
+        rota: p,
+        http: r.status,
+        redirecionaLogin: String(r.headers.get("location") || "").includes("/admin/login"),
+      });
+    } catch {
+      protegidas.push({ rota: p, http: 0, redirecionaLogin: false });
+    }
+  }
+
+  const colunas = {};
+  for (const [tabela, cols] of Object.entries(COLUNAS_CRITICAS)) {
+    const { error: e } = await sb.from(tabela).select(cols.join(",")).limit(1);
+    colunas[tabela] = e ? `ERRO: ${e.message}` : "ok";
+  }
+
+  return { gerado: new Date().toISOString(), baseUrl: BASE_URL, funis, protegidas, colunas };
+}
+
+function comparar(base, novo) {
+  const probs = [];
+  const byslug = new Map(base.funis.map((f) => [f.slug, f]));
+
+  for (const n of novo.funis) {
+    const b = byslug.get(n.slug);
+    if (!b) { probs.push(`NOVO funil "${n.slug}" apareceu (nao estava no baseline)`); continue; }
+    byslug.delete(n.slug);
+    if (b.status !== n.status) probs.push(`${n.slug}: status ${b.status} -> ${n.status}`);
+    if (b.laminasAtivas !== n.laminasAtivas) probs.push(`${n.slug}: laminas ATIVAS ${b.laminasAtivas} -> ${n.laminasAtivas}`);
+    if (b.laminas !== n.laminas) probs.push(`${n.slug}: total de laminas ${b.laminas} -> ${n.laminas}`);
+    if (b.http !== undefined) {
+      if (b.http === 200 && n.http !== 200) probs.push(`${n.slug}: FUNIL FORA DO AR — HTTP ${b.http} -> ${n.http}${n.erro ? " (" + n.erro + ")" : ""}`);
+      if (b.temConteudo && !n.temConteudo) probs.push(`${n.slug}: pagina ficou VAZIA (${b.bytes} -> ${n.bytes} bytes)`);
+      if (b.bytes && n.bytes && n.bytes < b.bytes * 0.5) probs.push(`${n.slug}: HTML encolheu >50% (${b.bytes} -> ${n.bytes} bytes)`);
+    }
+  }
+  for (const sumiu of byslug.keys()) probs.push(`funil "${sumiu}" SUMIU do banco`);
+
+  const pbase = new Map(base.protegidas.map((p) => [p.rota, p]));
+  for (const n of novo.protegidas) {
+    const b = pbase.get(n.rota);
+    if (b && b.redirecionaLogin && !n.redirecionaLogin) {
+      probs.push(`SEGURANCA: ${n.rota} parou de exigir login (HTTP ${n.http})`);
+    }
+  }
+
+  for (const [tabela, estado] of Object.entries(novo.colunas)) {
+    if (estado !== "ok") probs.push(`BANCO: ${tabela} -> ${estado}`);
+  }
+  return probs;
+}
+
+async function main() {
+  const modo = process.argv[2];
+  if (modo !== "snapshot" && modo !== "check") {
+    console.error("uso: node scripts/regressao.cjs snapshot|check");
+    process.exit(2);
+  }
+  const env = loadEnv();
+  const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+  const dados = await coletar(sb);
+
+  if (modo === "snapshot") {
+    writeFileSync(BASELINE, JSON.stringify(dados, null, 2), "utf8");
+    const pub = dados.funis.filter((f) => f.status === "published");
+    console.log(`baseline gravado: ${dados.funis.length} funis (${pub.length} publicados), ${dados.protegidas.length} rotas protegidas`);
+    const fora = pub.filter((f) => f.http !== 200);
+    if (fora.length) console.log("AVISO — ja estavam fora do ar no baseline: " + fora.map((f) => `${f.slug}(${f.http})`).join(", "));
+    for (const [t, e] of Object.entries(dados.colunas)) if (e !== "ok") console.log(`AVISO — ${t}: ${e}`);
+    return;
+  }
+
+  if (!existsSync(BASELINE)) {
+    console.error("sem baseline. rode: node scripts/regressao.cjs snapshot");
+    process.exit(2);
+  }
+  const base = JSON.parse(readFileSync(BASELINE, "utf8"));
+  const probs = comparar(base, dados);
+  if (!probs.length) {
+    console.log(`OK — nenhuma regressao. ${dados.funis.length} funis conferidos (baseline de ${base.gerado}).`);
+    return;
+  }
+  console.error(`REGRESSAO DETECTADA (${probs.length}):`);
+  for (const p of probs) console.error("  - " + p);
+  process.exit(1);
+}
+
+main().catch((e) => { console.error("erro:", e.message || e); process.exit(1); });

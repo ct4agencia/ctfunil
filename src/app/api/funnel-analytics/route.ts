@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
-  if (!user || (adminEmail && user.email?.toLowerCase() !== adminEmail)) {
+  if (!user || (!adminEmail || user.email?.toLowerCase() !== adminEmail)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const params = new URL(request.url).searchParams;

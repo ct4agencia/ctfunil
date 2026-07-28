@@ -11,10 +11,18 @@ export async function requireAdmin(): Promise<{ ok: true } | { ok: false; error:
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "unauthorized" };
+
+    // FAIL-CLOSED: sem ADMIN_EMAIL, NEGA. A regra antiga era
+    // `adminEmail && email !== adminEmail`, que liberava QUALQUER usuário
+    // autenticado quando a env sumia — e o signup do Supabase está aberto,
+    // então bastava criar conta pra alcançar /api/reset-funnel-data.
     const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
-    if (!user || (adminEmail && user.email?.toLowerCase() !== adminEmail)) {
-      return { ok: false, error: "unauthorized" };
+    if (!adminEmail) {
+      console.error("[admin-guard] ADMIN_EMAIL nao configurada — negando acesso admin");
+      return { ok: false, error: "admin nao configurado" };
     }
+    if (user.email?.toLowerCase() !== adminEmail) return { ok: false, error: "unauthorized" };
     return { ok: true };
   } catch {
     return { ok: false, error: "unauthorized" };

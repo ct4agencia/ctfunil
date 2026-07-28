@@ -23,8 +23,10 @@ export default async function PanelLayout({
 
   if (!user) redirect("/admin/login");
 
+  // FAIL-CLOSED: sem ADMIN_EMAIL ninguém entra (antes a env ausente liberava
+  // qualquer usuário autenticado).
   const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
-  if (adminEmail && user.email?.toLowerCase() !== adminEmail) {
+  if (!adminEmail || user.email?.toLowerCase() !== adminEmail) {
     // Logado, mas não é o email autorizado.
     await supabase.auth.signOut();
     redirect("/admin/login");

@@ -158,7 +158,9 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     funnelSlug: funnel.slug, stepId: step.id, preview,
     hasFields, submitting, submitFields,
     navigate,
-    trackAnswer: (stepId, q, a) => trackAnswer(funnel.slug, stepId, q, a),
+    // guarda de preview: sem isso, editar/testar no construtor gravava resposta
+    // real em quiz_answers e contaminava a aba Resultados.
+    trackAnswer: (stepId, q, a) => { if (!preview) trackAnswer(funnel.slug, stepId, q, a); },
   };
 
   const bgImg = step.design?.backgroundImage?.src || null;
@@ -182,7 +184,9 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     // ROLETA hero: tela cheia escura, reaproveita o RouletteStepView do /cdb-r.
     const stepCtx: StepCtx = {
       name, setName, advance: () => navigate("next"),
-      funnelSlug: funnel.slug, palette, preview: false,
+      // `preview` da prop (era `false` fixo): no construtor o hero de roleta
+      // gravava resposta REAL em quiz_answers a cada teste interno.
+      funnelSlug: funnel.slug, palette, preview,
       estado: geo?.estado, cidade: geo?.cidade,
     };
     const rbg = (hero.content.background as string) ||

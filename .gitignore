@@ -42,3 +42,6 @@ next-env.d.ts
 backups/
 
 scripts/.tmp/
+
+# baseline local do gate de regressao (volatil, por ambiente)
+scripts/.regressao-baseline.json

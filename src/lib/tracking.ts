@@ -141,7 +141,10 @@ export async function submitFunnelLead(payload: {
       ...payload,
       ...collectDevice(),
       tracking: collectTrackingParams(),
-      session_id: getSessionId(),
+      // session_id POR FUNIL (mesma regra do sid() em lib/quiz/track.ts e do
+      // LayersRunner): funnel_sessions grava "<id>::<slug>", então gravar só
+      // "<id>" aqui fazia TODO cruzamento lead↔sessão falhar em silêncio.
+      session_id: `${getSessionId()}::${payload.funnelSlug}`,
     };
     const res = await fetch("/api/funnel-lead", {
       method: "POST",
