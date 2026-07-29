@@ -36,9 +36,6 @@ function ensureSession(funnelSlug: string): Promise<void> {
       const row: Record<string, unknown> = {
         session_id: sid(funnelSlug),
         funnel_slug: funnelSlug,
-        // hidratação: o app montou no browser. É ISSO que conta como "Visitante"
-        // (o VisitBeacon cria a linha antes, mas sem hydrated_at não é visitante).
-        hydrated_at: new Date().toISOString(),
       };
       // NUNCA mandar max_step_reached aqui: o upsert vira UPDATE no conflito e
       // zerava o progresso a cada F5/retorno (lead que chegou na última lâmina
@@ -49,6 +46,18 @@ function ensureSession(funnelSlug: string): Promise<void> {
         if (t[k]) row[k] = t[k];
       }
       await supabase.from("funnel_sessions").upsert(row, { onConflict: "session_id" });
+
+      // Hidratação (o app montou no browser) — é ISSO que conta como "Visitante":
+      // o VisitBeacon cria a linha antes, mas sem hydrated_at não é visitante.
+      // Vai numa chamada SEPARADA de propósito: a coluna só existe depois da
+      // migration 0014 e, dentro do upsert, sua ausência derrubava a gravação
+      // INTEIRA da sessão (PGRST204). Aqui ela falha sozinha, sem levar nada junto.
+      // `.is(null)` mantém a PRIMEIRA hidratação (não reescreve a cada F5).
+      await supabase
+        .from("funnel_sessions")
+        .update({ hydrated_at: new Date().toISOString() })
+        .eq("session_id", sid(funnelSlug))
+        .is("hydrated_at", null);
     } catch {
       /* best-effort */
     }

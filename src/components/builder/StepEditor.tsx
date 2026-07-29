@@ -212,6 +212,27 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             </Grid>
           </div>
 
+          <div className="rounded-xl bg-neutral-50 p-3">
+            <span className="mb-1 block text-xs font-semibold text-neutral-500">Card do prêmio ganho (destaque)</span>
+            <span className="mb-2 block text-[11px] text-neutral-400">
+              Deixe o fundo vazio para usar a cor do próprio prêmio.
+            </span>
+            <Grid>
+              <Field label="Fundo do card em destaque">
+                <div className="flex items-center gap-2">
+                  <input type="color" value={s.destaqueBg ?? "#16a34a"} onChange={(e) => p({ destaqueBg: e.target.value } as Partial<Step>)} className="h-9 w-12 shrink-0 rounded-lg border border-neutral-300" />
+                  <button type="button" onClick={() => p({ destaqueBg: "" } as Partial<Step>)}
+                    className="rounded-md border border-neutral-300 px-2 py-1.5 text-[11px] font-semibold text-neutral-500">
+                    usar cor do prêmio
+                  </button>
+                </div>
+              </Field>
+              <Field label="Texto do card em destaque">
+                <input type="color" value={s.destaqueText ?? "#ffffff"} onChange={(e) => p({ destaqueText: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+              </Field>
+            </Grid>
+          </div>
+
           <Grid>
             <Field label="Link do botão (WhatsApp)" full>
               <Text value={s.ctaUrl} onChange={(v) => p({ ctaUrl: v } as Partial<Step>)} />

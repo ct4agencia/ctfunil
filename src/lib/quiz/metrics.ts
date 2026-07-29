@@ -47,16 +47,34 @@ function stageIdx(f: { steps: any; settings: any }): { firstQ: number; captureI:
   return { firstQ, captureI, lastI, totalSteps: enabled.length || steps.length };
 }
 
+/**
+ * A coluna `hydrated_at` só passa a existir depois da migration 0014. Enquanto
+ * ela não roda, filtrar por ela faz o PostgREST devolver 42703 e TODA contagem
+ * virar 0 — o painel exibe "funil morto" em vez de erro. Detectamos uma vez e,
+ * sem a coluna, contamos como antes (todas as sessões). Assim o deploy pode ir
+ * ao ar antes da migration e passa a excluir beacon-only assim que ela rodar.
+ */
+let _hydratedAt: boolean | null = null;
+async function hydratedAtDisponivel(): Promise<boolean> {
+  if (_hydratedAt !== null) return _hydratedAt;
+  const { error } = await createAdminClient().from("funnel_sessions").select("hydrated_at").limit(1);
+  _hydratedAt = !error;
+  if (error) console.warn("[metrics] hydrated_at ausente (migration 0014 pendente) — Visitante conta TODAS as sessões");
+  return _hydratedAt;
+}
+
 export async function dashboardMetrics(): Promise<DashboardMetrics> {
   const sb = createAdminClient();
+  const usaHidratacao = await hydratedAtDisponivel();
+  const soHidratadas = <T>(q: T): T => (usaHidratacao ? (q as { not: (a: string, b: string, c: null) => T }).not("hydrated_at", "is", null) : q);
   // ANTES: ~5 queries POR funil (17×5 ≈ 85). AGORA: 4 queries agregadas + JS.
   const sinceDaily = new Date(Date.now() - 7 * 86400000).toISOString();
   const [funRes, sessRes, leadRes, dailyRes] = await Promise.all([
     sb.from("funnels").select("slug,name,steps,settings").order("updated_at", { ascending: false }),
     // Visitante = hidratou (hydrated_at not null) — mesma regra do funnelMetrics.
-    sb.from("funnel_sessions").select("funnel_slug,max_step_reached").not("hydrated_at", "is", null).limit(100000),
+    soHidratadas(sb.from("funnel_sessions").select("funnel_slug,max_step_reached")).limit(100000),
     sb.from("funnel_leads").select("funnel_slug").limit(100000),
-    sb.from("funnel_sessions").select("created_at").not("hydrated_at", "is", null).gte("created_at", sinceDaily).limit(100000),
+    soHidratadas(sb.from("funnel_sessions").select("created_at")).gte("created_at", sinceDaily).limit(100000),
   ]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const funis = (funRes.data ?? []) as any[];
@@ -346,6 +364,8 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
     totalSteps = enabled.length || steps.length;
   }
 
+  const usaHidratacao = await hydratedAtDisponivel();
+
   let sessions: { max_step_reached: number; created_at: string; last_seen_at: string; utm_source: string | null; utm_campaign: string | null; src: string | null }[] = [];
   try {
     const sb = createAdminClient();
@@ -353,9 +373,10 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
       .from("funnel_sessions")
       .select("max_step_reached,created_at,last_seen_at,utm_source,utm_campaign,src")
       .eq("funnel_slug", slug)
-      .not("hydrated_at", "is", null) // só visitantes que hidrataram (amostra p/ média/tempo/tráfego)
       .order("created_at", { ascending: false })
       .limit(5000);
+    // só visitantes que hidrataram (amostra p/ média/tempo/tráfego)
+    if (usaHidratacao) q = q.not("hydrated_at", "is", null);
     if (range?.from) q = q.gte("created_at", range.from);
     if (range?.to) q = q.lte("created_at", range.to);
     const { data } = await q;
@@ -369,10 +390,11 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
   const sbCount = createAdminClient();
   const countSessions = async (minStep?: number): Promise<number> => {
     try {
+      let q = sbCount.from("funnel_sessions").select("*", { count: "exact", head: true })
+        .eq("funnel_slug", slug);
       // Visitante = HIDRATOU (app montou). hydrated_at not null exclui o beacon-only
       // (carregou mas nunca renderizou). Alinha a contagem com o inlead.
-      let q = sbCount.from("funnel_sessions").select("*", { count: "exact", head: true })
-        .eq("funnel_slug", slug).not("hydrated_at", "is", null);
+      if (usaHidratacao) q = q.not("hydrated_at", "is", null);
       if (range?.from) q = q.gte("created_at", range.from);
       if (range?.to) q = q.lte("created_at", range.to);
       if (minStep !== undefined) q = q.gte("max_step_reached", minStep);

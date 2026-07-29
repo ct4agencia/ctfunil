@@ -65,7 +65,7 @@ function BotaoWhats({ onClick, children }: { onClick: () => void; children: Reac
 
 /** Um card raspável. Avisa o pai quando passa do limiar. */
 function Card({
-  card, cover, coverText, revealPct, revealed, disabled, destaque, onReveal,
+  card, cover, coverText, revealPct, revealed, disabled, destaque, destaqueBg, destaqueText, onReveal,
 }: {
   card: ScratchCard;
   cover: string;
@@ -73,10 +73,15 @@ function Card({
   revealPct: number;
   revealed: boolean;
   disabled: boolean;
-  /** é o prêmio que ela ganhou: fundo sólido na cor + pulso */
+  /** é o prêmio que ela ganhou: fundo sólido + pulso */
   destaque: boolean;
+  /** cor do card em destaque (vazio = cor do próprio prêmio) */
+  destaqueBg?: string;
+  destaqueText?: string;
   onReveal: () => void;
 }) {
+  const corDestaque = destaqueBg || card.color || "var(--q-primary)";
+  const corTexto = destaqueText || "#ffffff";
   const ref = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const cells = useRef<Set<number>>(new Set());
@@ -150,10 +155,10 @@ function Card({
         style={
           destaque
             ? {
-                // vencedor: cor SÓLIDA, texto branco, brilho na própria cor
-                background: card.color || "var(--q-primary)",
-                border: `3px solid ${card.color || "var(--q-primary)"}`,
-                boxShadow: `0 0 0 4px ${card.color || "var(--q-primary)"}33, 0 12px 32px ${card.color || "var(--q-primary)"}66`,
+                // vencedor: cor SÓLIDA (configurável) + brilho na mesma cor
+                background: corDestaque,
+                border: `3px solid ${corDestaque}`,
+                boxShadow: `0 0 0 4px ${corDestaque}33, 0 12px 32px ${corDestaque}66`,
               }
             : {
                 background: "var(--q-bg-soft)",
@@ -167,12 +172,15 @@ function Card({
         {card.emoji ? <span className="text-2xl leading-none">{card.emoji}</span> : null}
         <span
           className={`mt-0.5 leading-tight font-black ${destaque ? "text-lg" : "text-base"}`}
-          style={{ color: destaque ? "#ffffff" : card.color || "var(--q-primary)" }}
+          style={{ color: destaque ? corTexto : card.color || "var(--q-primary)" }}
         >
           {card.label}
         </span>
         {destaque ? (
-          <span className="mt-1 rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
+          <span
+            className="mt-1 rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide"
+            style={{ color: corTexto }}
+          >
             seu prêmio
           </span>
         ) : null}
@@ -295,6 +303,8 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               disabled={openedPos !== null}
               // o card que ela raspou carrega o prêmio sorteado → é o destaque
               destaque={pos === openedPos}
+              destaqueBg={step.destaqueBg}
+              destaqueText={step.destaqueText}
               onReveal={() => onReveal(pos)}
             />
           ))}

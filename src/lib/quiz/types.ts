@@ -182,6 +182,9 @@ export interface ScratchStep extends BaseStep {
   popupBg?: string;
   popupText?: string;
   popupBtnBg?: string;
+  /** cor do card do prêmio GANHO quando revela (vazio = usa a cor do próprio card) */
+  destaqueBg?: string;
+  destaqueText?: string;
   /** legado (lâmina de 1 card) — mantido pra não quebrar funis já salvos */
   prize?: string;
   prizeEmoji?: string;
