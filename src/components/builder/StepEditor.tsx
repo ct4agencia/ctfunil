@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type {
-  Step, RouletteStep, ScratchStep, MeasureStep, SliderStep, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep,
+  Step, RouletteStep, ScratchStep, ScratchCard, MeasureStep, SliderStep, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep,
   ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint, ScarcityBar, StepAppearance,
 } from "@/lib/quiz/types";
 import { ROULETTE_STYLES } from "@/lib/quiz/types";
@@ -117,23 +117,111 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
     case "scratch": {
       const s = step as ScratchStep;
       const sound = s.sound ?? { enabled: false };
+      // migra a lâmina legada (1 card em prize/prizeEmoji) pra grade, sem perder conteúdo
+      const cards: ScratchCard[] = s.cards?.length
+        ? s.cards
+        : [{ label: s.prize ?? "PRÊMIO", emoji: s.prizeEmoji, weight: 100, popupTitle: s.winTitle, popupBody: s.winBody }];
+      const setCards = (next: ScratchCard[]) => p({ cards: next } as Partial<Step>);
+      const patchCard = (i: number, patch: Partial<ScratchCard>) =>
+        setCards(cards.map((c, k) => (k === i ? { ...c, ...patch } : c)));
+      /** peso 100 no escolhido e 0 nos demais = "viciado" (sempre cai nele) */
+      const viciar = (i: number) => setCards(cards.map((c, k) => ({ ...c, weight: k === i ? 100 : 0 })));
+      const somaPesos = cards.reduce((a, c) => a + Math.max(0, Number(c.weight ?? 0)), 0);
+
       return (
         <div className="space-y-4">
           <Grid>
             <Field label="Título" full><VisualRichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
             <Field label="Subtítulo" full><Text value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
-            <Field label="Prêmio (revelado)"><Text value={s.prize} onChange={(v) => p({ prize: v } as Partial<Step>)} /></Field>
-            <Field label="Emoji do prêmio"><Text value={s.prizeEmoji} onChange={(v) => p({ prizeEmoji: v } as Partial<Step>)} /></Field>
             <Field label="Texto da capa"><Text value={s.coverText} onChange={(v) => p({ coverText: v } as Partial<Step>)} /></Field>
             <Field label="Cor da capa">
               <input type="color" value={s.coverColor ?? "#b8b8b8"} onChange={(e) => p({ coverColor: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
             </Field>
-            <Field label="Título da vitória"><Text value={s.winTitle} onChange={(v) => p({ winTitle: v } as Partial<Step>)} /></Field>
-            <Field label="Texto da vitória"><Text value={s.winBody} onChange={(v) => p({ winBody: v } as Partial<Step>)} /></Field>
-            <Field label="Botão pós-revelação" full><Text value={s.winCta} onChange={(v) => p({ winCta: v } as Partial<Step>)} /></Field>
+            <Field label="Colunas na grade">
+              <Select value={String(s.columns ?? 2)} onChange={(v) => p({ columns: Number(v) } as Partial<Step>)}
+                options={[{ value: "1", label: "1" }, { value: "2", label: "2" }, { value: "3", label: "3" }]} />
+            </Field>
+            <Field label="Raspar quanto p/ revelar (%)">
+              <input type="number" min={5} max={90} value={s.revealPct ?? 25}
+                onChange={(e) => p({ revealPct: Number(e.target.value) } as Partial<Step>)}
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
+            </Field>
           </Grid>
+
+          {/* ── Prêmios (cards) ─────────────────────────────────────── */}
+          <div>
+            <div className="mb-1 flex items-center justify-between">
+              <div>
+                <span className="block text-xs font-semibold text-neutral-500">Prêmios da raspadinha</span>
+                <span className="block text-[11px] text-neutral-400">
+                  Soma dos pesos: {somaPesos} · peso <strong>100</strong> = sempre cai nele (viciado)
+                </span>
+              </div>
+              <button type="button"
+                onClick={() => setCards([...cards, { label: "NOVO PRÊMIO", color: "#a855f7", weight: 0, popupTitle: "Parabéns!", popupBody: "Você ganhou..." }])}
+                className="rounded-md bg-neutral-900 px-2.5 py-1.5 text-xs font-semibold text-white">
+                + Adicionar prêmio
+              </button>
+            </div>
+            <div className="space-y-2">
+              {cards.map((c, i) => (
+                <div key={i} className="rounded-lg border border-neutral-200 p-2">
+                  <div className="flex items-center gap-2">
+                    <input type="radio" name="scratch-winner" title="Sempre cair neste (peso 100)"
+                      checked={Number(c.weight ?? 0) >= 100} onChange={() => viciar(i)}
+                      className="h-4 w-4 shrink-0 accent-neutral-900" />
+                    <input className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                      value={c.label} onChange={(e) => patchCard(i, { label: e.target.value })} placeholder="Copy do prêmio" />
+                    <input type="color" value={c.color ?? "#a855f7"} onChange={(e) => patchCard(i, { color: e.target.value })}
+                      className="h-8 w-9 shrink-0 rounded border border-neutral-300" />
+                    <input type="number" min={0} max={100} title="Peso (100 = viciado)" value={c.weight ?? 0}
+                      onChange={(e) => patchCard(i, { weight: Number(e.target.value) })}
+                      className="w-16 shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-sm" />
+                    <button type="button" onClick={() => setCards(cards.filter((_, k) => k !== i))}
+                      disabled={cards.length <= 1} className="shrink-0 text-sm text-red-500 disabled:opacity-30">✕</button>
+                  </div>
+                  <div className="mt-2 space-y-1.5 rounded-md bg-neutral-50 p-2">
+                    <span className="block text-[10px] font-semibold uppercase tracking-wide text-neutral-400">Popup de premiação</span>
+                    <input className="w-full rounded-lg border border-neutral-300 px-3 py-1.5 text-sm"
+                      value={c.popupTitle ?? ""} onChange={(e) => patchCard(i, { popupTitle: e.target.value })} placeholder="Título do popup" />
+                    <textarea rows={2} className="w-full rounded-lg border border-neutral-300 px-3 py-1.5 text-sm"
+                      value={c.popupBody ?? ""} onChange={(e) => patchCard(i, { popupBody: e.target.value })} placeholder="Mensagem do popup" />
+                    <input className="w-full rounded-lg border border-neutral-300 px-3 py-1.5 text-sm"
+                      value={c.redeemUrl ?? ""} onChange={(e) => patchCard(i, { redeemUrl: e.target.value })}
+                      placeholder="Link de resgate deste prêmio (opcional — sobrepõe o link geral)" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Popup + botão ───────────────────────────────────────── */}
           <div className="rounded-xl bg-neutral-50 p-3">
+            <span className="mb-2 block text-xs font-semibold text-neutral-500">Cores do popup de premiação</span>
+            <Grid>
+              <Field label="Fundo do popup">
+                <input type="color" value={s.popupBg ?? "#16a34a"} onChange={(e) => p({ popupBg: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+              </Field>
+              <Field label="Botão do popup">
+                <input type="color" value={s.popupBtnBg ?? "#ffffff"} onChange={(e) => p({ popupBtnBg: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+              </Field>
+              <Field label="Textos do popup">
+                <input type="color" value={s.popupText ?? "#ffffff"} onChange={(e) => p({ popupText: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+              </Field>
+              <Field label="Botão dentro do popup"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
+            </Grid>
+          </div>
+
+          <Grid>
+            <Field label="Link do botão (WhatsApp)" full>
+              <Text value={s.ctaUrl} onChange={(v) => p({ ctaUrl: v } as Partial<Step>)} />
+            </Field>
+            <Field label="Texto do botão final" full><Text value={s.winCta} onChange={(v) => p({ winCta: v } as Partial<Step>)} /></Field>
+          </Grid>
+
+          <div className="space-y-2 rounded-xl bg-neutral-50 p-3">
             <Toggle label="🔊 Som na revelação" value={sound.enabled} onChange={(v) => p({ sound: { ...sound, enabled: v } } as Partial<Step>)} />
+            <Toggle label="🔒 Permitir apenas 1 raspagem por dispositivo" value={s.oncePerDevice ?? false} onChange={(v) => p({ oncePerDevice: v } as Partial<Step>)} />
           </div>
         </div>
       );

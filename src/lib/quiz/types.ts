@@ -145,12 +145,45 @@ export interface RouletteStep extends BaseStep {
   lockReplay?: boolean;
 }
 
-/** Raspadinha (scratch-card) — variante da roleta p/ revelar o prêmio. */
+/** Um card da grade de raspadinha. Espelha o painel de prêmios da roleta:
+ *  copy + cor + PESO (100 = viciado, sempre cai nele; 0 = nunca) + popup próprio. */
+export interface ScratchCard {
+  /** copy revelada ao raspar (ex.: "50% OFF 🔥") */
+  label: string;
+  /** cor da capa DESTE card; sem valor, usa coverColor da lâmina */
+  color?: string;
+  /** peso do sorteio. 100 = sempre cai neste; 0 = nunca. Normalizado na hora. */
+  weight?: number;
+  /** popup de premiação DESTE prêmio (cada card tem o seu, igual à roleta) */
+  popupTitle?: string;
+  popupBody?: string;
+  /** link de resgate específico deste prêmio (sobrepõe o ctaUrl da lâmina) */
+  redeemUrl?: string;
+  emoji?: string;
+}
+
+/** Raspadinha (scratch-card) — variante da roleta p/ revelar o prêmio.
+ *  Grade de N cards: a lead raspa UM, vê o popup e os demais se revelam. */
 export interface ScratchStep extends BaseStep {
   type: "scratch";
   title: string;
   subtitle?: string;
-  prize: string;
+  /** Grade de cards. Ausente = lâmina legada de 1 card (usa prize/prizeEmoji). */
+  cards?: ScratchCard[];
+  /** colunas da grade no mobile (padrão 2) */
+  columns?: number;
+  /** % da capa que precisa ser raspada pra revelar (padrão 25) */
+  revealPct?: number;
+  /** trava 1 raspagem por dispositivo (localStorage), igual lockReplay da roleta */
+  oncePerDevice?: boolean;
+  /** destino do botão final (WhatsApp). Vazio = avança a lâmina. */
+  ctaUrl?: string;
+  /** cores do popup de premiação */
+  popupBg?: string;
+  popupText?: string;
+  popupBtnBg?: string;
+  /** legado (lâmina de 1 card) — mantido pra não quebrar funis já salvos */
+  prize?: string;
   prizeEmoji?: string;
   coverText?: string;
   coverColor?: string;
@@ -497,8 +530,21 @@ export function newStep(type: StepType, id: string): Step {
     case "scratch":
       return {
         id, type, title: "Raspe e descubra seu prêmio!", subtitle: "Use o dedo para raspar.",
-        prize: "50% OFF", prizeEmoji: "🎁", coverText: "RASPE AQUI", coverColor: "#b8b8b8",
-        winTitle: "🎉 Você ganhou 50% OFF!", winBody: "", winCta: "Quero garantir agora →",
+        // 6 cards; o de peso 100 é o "viciado" (sempre cai nele). Cada um tem
+        // o próprio popup de premiação, igual ao painel de prêmios da roleta.
+        cards: [
+          { label: "BÔNUS SURPRESA", color: "#a855f7", weight: 0, popupTitle: "Parabéns!", popupBody: "Você ganhou um BÔNUS SURPRESA!" },
+          { label: "50% OFF 🔥", color: "#444444", weight: 100, popupTitle: "Parabéns!", popupBody: "Você ganhou 50% OFF!" },
+          { label: "APOSTILA VIP", color: "#3b82f6", weight: 0, popupTitle: "Parabéns!", popupBody: "Você ganhou a APOSTILA VIP!" },
+          { label: "MATERIAL EXCLUSIVO", color: "#22c55e", weight: 0, popupTitle: "Parabéns!", popupBody: "Você ganhou MATERIAL EXCLUSIVO!" },
+          { label: "20% OFF", color: "#eab308", weight: 0, popupTitle: "Parabéns!", popupBody: "Você ganhou 20% OFF!" },
+          { label: "10% OFF", color: "#ec4899", weight: 0, popupTitle: "Parabéns!", popupBody: "Você ganhou 10% OFF!" },
+        ],
+        columns: 2, revealPct: 25, oncePerDevice: true,
+        ctaUrl: "https://app.goredirect.com.br/fd61/alunas-sorteadas-mn",
+        coverText: "RASPE AQUI", coverColor: "#b8b8b8",
+        popupBg: "#16a34a", popupText: "#ffffff", popupBtnBg: "#ffffff",
+        winTitle: "🎉 Você ganhou!", winBody: "", winCta: "DESBLOQUEAR PRÊMIO 🎁",
         sound: { enabled: true },
       };
     case "hero":

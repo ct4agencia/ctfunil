@@ -9,10 +9,11 @@ import { playClick, startMusic, stopMusic } from "@/lib/quiz/sound";
 import { TopBar, ScrollHint, EditContext } from "./ui";
 import {
   wheelChrome,
-  RouletteStepView, ScratchStepView, MeasureStepView, SliderStepView, HeroStepView, NameStepView, ConfirmStepView, QuestionStepView, LoadingStepView, GaugeStepView,
+  RouletteStepView, MeasureStepView, SliderStepView, HeroStepView, NameStepView, ConfirmStepView, QuestionStepView, LoadingStepView, GaugeStepView,
   ResultStepView, OfferStepView, CaptureStepView, PostStepView, BridgeStepView,
   VslStepView, type StepCtx,
 } from "./steps";
+import ScratchGrid from "./ScratchGrid";
 
 const SHOW_BAR: Record<Step["type"], boolean> = {
   roulette: false, scratch: false, measure: true, slider: true, hero: false, name: true, confirm: true, question: true, loading: false, gauge: true,
@@ -89,7 +90,8 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
   const render = (s: Step) => {
     switch (s.type) {
       case "roulette": return <RouletteStepView step={s} ctx={ctx} />;
-      case "scratch": return <ScratchStepView step={s} ctx={ctx} />;
+      // grade de N cards + popup por prêmio (ScratchStepView era 1 card fixo)
+      case "scratch": return <ScratchGrid step={s} ctx={ctx} />;
       case "measure": return <MeasureStepView step={s} ctx={ctx} />;
       case "slider": return <SliderStepView step={s} ctx={ctx} />;
       case "hero": return <HeroStepView step={s} ctx={ctx} />;
