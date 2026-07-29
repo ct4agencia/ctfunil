@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import type { ScratchStep, ScratchCard } from "@/lib/quiz/types";
-import { StepShell, StickyCta, CtaButton, RichText } from "./ui";
+import { StepShell, RichText } from "./ui";
 import { interp, type StepCtx } from "./steps";
 import { playWin, playUrl } from "@/lib/quiz/sound";
 
@@ -36,9 +36,36 @@ function pickByWeight(cards: ScratchCard[]): number {
   return w.findIndex((x) => x > 0);
 }
 
+/** Logo do WhatsApp (inline: sem request externo, não depende de CDN). */
+function WhatsIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+      <path d="M16.04 4C9.96 4 5.02 8.94 5.02 15.02c0 1.94.51 3.83 1.47 5.5L5 27.2l6.85-1.8a11 11 0 0 0 4.19.83h.01c6.07 0 11.01-4.94 11.01-11.02C27.06 8.94 22.12 4 16.04 4Zm0 20.2h-.01a9.1 9.1 0 0 1-4.64-1.27l-.33-.2-3.44.9.92-3.35-.22-.34a9.15 9.15 0 0 1-1.4-4.88c0-5.05 4.11-9.16 9.17-9.16 2.45 0 4.75.96 6.48 2.69a9.1 9.1 0 0 1 2.68 6.48c0 5.05-4.11 9.13-9.16 9.13Zm5.03-6.84c-.28-.14-1.63-.8-1.88-.9-.25-.09-.44-.13-.62.14-.18.28-.71.9-.87 1.08-.16.18-.32.2-.6.07-.28-.14-1.16-.43-2.21-1.37-.82-.73-1.37-1.62-1.53-1.9-.16-.27-.02-.42.12-.56.13-.13.28-.32.42-.49.14-.16.18-.28.28-.46.09-.18.05-.35-.02-.49-.07-.14-.62-1.5-.85-2.05-.22-.53-.45-.46-.62-.47l-.53-.01c-.18 0-.48.07-.73.35-.25.28-.96.94-.96 2.29s.98 2.66 1.12 2.84c.14.18 1.93 2.95 4.68 4.14.65.28 1.16.45 1.56.58.66.21 1.25.18 1.72.11.53-.08 1.63-.66 1.86-1.31.23-.65.23-1.2.16-1.31-.07-.12-.25-.19-.53-.33Z" />
+    </svg>
+  );
+}
+
+/** Botão de resgate: verde WhatsApp, com a logo e pulsando pra puxar o clique. */
+function BotaoWhats({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-center gap-2.5 rounded-full px-6 py-4 text-base font-extrabold text-white shadow-lg"
+      style={{ background: "#25D366", boxShadow: "0 10px 30px rgba(37,211,102,.45)" }}
+      animate={{ scale: [1, 1.035, 1] }}
+      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <WhatsIcon />
+      <span>{children}</span>
+    </motion.button>
+  );
+}
+
 /** Um card raspável. Avisa o pai quando passa do limiar. */
 function Card({
-  card, cover, coverText, revealPct, revealed, disabled, onReveal,
+  card, cover, coverText, revealPct, revealed, disabled, destaque, onReveal,
 }: {
   card: ScratchCard;
   cover: string;
@@ -46,6 +73,8 @@ function Card({
   revealPct: number;
   revealed: boolean;
   disabled: boolean;
+  /** é o prêmio que ela ganhou: fundo sólido na cor + pulso */
+  destaque: boolean;
   onReveal: () => void;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -109,15 +138,44 @@ function Card({
   const up = () => { drawing.current = false; };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: `${CW} / ${CH}` }}>
+    <motion.div
+      className="relative w-full rounded-xl"
+      style={{ aspectRatio: `${CW} / ${CH}`, zIndex: destaque ? 2 : 1 }}
+      // o prêmio ganho pulsa e cresce; os outros recuam pra dar contraste
+      animate={destaque ? { scale: [1, 1.06, 1] } : { scale: 1 }}
+      transition={destaque ? { duration: 1.3, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
+    >
       <div
-        className="absolute inset-0 flex flex-col items-center justify-center px-2 text-center"
-        style={{ background: "var(--q-bg-soft)", border: `2px solid ${card.color || "var(--q-primary)"}` }}
+        className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-xl px-2 text-center"
+        style={
+          destaque
+            ? {
+                // vencedor: cor SÓLIDA, texto branco, brilho na própria cor
+                background: card.color || "var(--q-primary)",
+                border: `3px solid ${card.color || "var(--q-primary)"}`,
+                boxShadow: `0 0 0 4px ${card.color || "var(--q-primary)"}33, 0 12px 32px ${card.color || "var(--q-primary)"}66`,
+              }
+            : {
+                background: "var(--q-bg-soft)",
+                border: `2px solid ${card.color || "var(--q-primary)"}`,
+                // perdedores desbotam pra o ganho saltar aos olhos
+                opacity: revealed ? 0.45 : 1,
+                filter: revealed ? "saturate(.6)" : "none",
+              }
+        }
       >
         {card.emoji ? <span className="text-2xl leading-none">{card.emoji}</span> : null}
-        <span className="mt-0.5 text-base font-black leading-tight" style={{ color: card.color || "var(--q-primary)" }}>
+        <span
+          className={`mt-0.5 leading-tight font-black ${destaque ? "text-lg" : "text-base"}`}
+          style={{ color: destaque ? "#ffffff" : card.color || "var(--q-primary)" }}
+        >
           {card.label}
         </span>
+        {destaque ? (
+          <span className="mt-1 rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
+            seu prêmio
+          </span>
+        ) : null}
       </div>
       {!revealed ? (
         <canvas
@@ -130,7 +188,7 @@ function Card({
           onTouchStart={down} onTouchMove={move} onTouchEnd={up}
         />
       ) : null}
-    </div>
+    </motion.div>
   );
 }
 
@@ -235,21 +293,24 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               revealPct={revealPct}
               revealed={revealAll || pos === openedPos}
               disabled={openedPos !== null}
+              // o card que ela raspou carrega o prêmio sorteado → é o destaque
+              destaque={pos === openedPos}
               onReveal={() => onReveal(pos)}
             />
           ))}
         </div>
+        {/* CTA logo ABAIXO da grade (não no rodapé): o botão precisa ficar
+            colado nos cards, no campo de visão de quem acabou de raspar. */}
+        <div className="mx-auto mt-5 w-full" style={{ maxWidth: 460 }}>
+          {openedPos !== null ? (
+            <BotaoWhats onClick={seguir}>{step.winCta}</BotaoWhats>
+          ) : (
+            <p className="text-center text-sm font-medium text-[var(--q-text-muted)]">
+              👆 Raspe um card para revelar seu prêmio
+            </p>
+          )}
+        </div>
       </StepShell>
-
-      <StickyCta bare>
-        {openedPos !== null ? (
-          <CtaButton onClick={seguir}>{step.winCta}</CtaButton>
-        ) : (
-          <p className="text-center text-sm font-medium text-[var(--q-text-muted)]">
-            👆 Raspe um card para revelar seu prêmio
-          </p>
-        )}
-      </StickyCta>
 
       {/* POPUP de premiação — cores configuráveis, copy própria do prêmio */}
       <AnimatePresence>
@@ -268,20 +329,22 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-5xl">{premio.emoji || "🎉"}</div>
-              <p className="mt-2 text-2xl font-black leading-tight">
+              <p className="mt-1 text-3xl font-black uppercase leading-tight tracking-tight">
                 <RichText text={interp(premio.popupTitle || step.winTitle || "Parabéns!", ctx)} />
               </p>
-              <p className="mt-2 text-base font-semibold opacity-95">
-                <RichText text={interp(premio.popupBody || step.winBody || premio.label, ctx)} />
+              <p className="mt-1 text-sm font-medium opacity-90">
+                <RichText text={interp(premio.popupBody || step.winBody || "Você ganhou...", ctx)} />
               </p>
-              <button
-                type="button"
-                onClick={fecharPopup}
-                className="mt-6 w-full rounded-full px-6 py-3.5 text-base font-extrabold shadow-lg"
+              {/* prêmio em destaque no card branco (igual ao popup da roleta) */}
+              <div
+                className="mt-4 rounded-2xl px-5 py-3.5 text-xl font-black shadow-md"
                 style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "#16a34a" }}
               >
-                {step.cta || "Resgatar"}
-              </button>
+                {premio.label}
+              </div>
+              <div className="mt-3">
+                <BotaoWhats onClick={fecharPopup}>{step.cta || "DESBLOQUEAR PRÊMIO 🎁"}</BotaoWhats>
+              </div>
             </motion.div>
           </motion.div>
         ) : null}
