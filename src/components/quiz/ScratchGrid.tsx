@@ -65,11 +65,15 @@ function BotaoWhats({ onClick, children }: { onClick: () => void; children: Reac
 
 /** Um card raspável. Avisa o pai quando passa do limiar. */
 function Card({
-  card, cover, coverText, revealPct, revealed, disabled, destaque, destaqueBg, destaqueText, onReveal,
+  card, cover, cover2, coverGradiente, coverText, coverTextColor, revealPct, revealed, disabled, destaque, destaqueBg, destaqueText, onReveal,
 }: {
   card: ScratchCard;
   cover: string;
+  /** 2ª cor do degradê (só quando coverGradiente) */
+  cover2: string;
+  coverGradiente: boolean;
   coverText: string;
+  coverTextColor: string;
   revealPct: number;
   revealed: boolean;
   disabled: boolean;
@@ -92,18 +96,24 @@ function Card({
     if (!cv) return;
     const g = cv.getContext("2d");
     if (!g) return;
-    const grad = g.createLinearGradient(0, 0, CW, CH);
-    grad.addColorStop(0, cover);
-    grad.addColorStop(1, "#9c9c9c");
-    g.fillStyle = grad;
+    // capa: SÓLIDA por padrão. O degradê fixo pra cinza fazia a cor escolhida
+    // no construtor nunca aparecer como ela é.
+    if (coverGradiente) {
+      const grad = g.createLinearGradient(0, 0, CW, CH);
+      grad.addColorStop(0, cover);
+      grad.addColorStop(1, cover2);
+      g.fillStyle = grad;
+    } else {
+      g.fillStyle = cover;
+    }
     g.fillRect(0, 0, CW, CH);
-    g.fillStyle = "rgba(0,0,0,.38)";
+    g.fillStyle = coverTextColor;
     g.textAlign = "center";
     g.font = "26px serif";
     g.fillText("👆", CW / 2, CH / 2 - 14);
     g.font = "bold 15px Poppins, system-ui, sans-serif";
     g.fillText(coverText, CW / 2, CH / 2 + 20);
-  }, [cover, coverText]);
+  }, [cover, cover2, coverGradiente, coverText, coverTextColor]);
 
   // revelado por fora (os "outros" cards, depois do popup): limpa a capa
   useEffect(() => {
@@ -277,13 +287,25 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
   return (
     <>
       <StepShell center>
-        <div className="text-center">
-          <h1 className="text-[26px] font-extrabold leading-tight text-[var(--q-text)]">
-            <RichText text={interp(step.title, ctx)} />
-          </h1>
-        </div>
+        {/* Título respeita a aba Aparência: o QuizRunner publica --q-title-*
+            a partir de step.appearance (cor, tamanho, peso, alinhamento).
+            Antes eu fixava tamanho/cor aqui e esses campos não faziam nada. */}
+        <h1
+          className="font-[var(--q-display)] leading-tight tracking-tight"
+          style={{
+            fontSize: "var(--q-title-size, 26px)",
+            fontWeight: "var(--q-title-weight, 800)" as React.CSSProperties["fontWeight"],
+            color: "var(--q-title-color, var(--q-text))",
+            textAlign: "var(--q-title-align, center)" as React.CSSProperties["textAlign"],
+          }}
+        >
+          <RichText text={interp(step.title, ctx)} />
+        </h1>
         {step.subtitle ? (
-          <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]">
+          <p
+            className="mt-2 text-sm text-[var(--q-text-muted)]"
+            style={{ textAlign: "var(--q-title-align, center)" as React.CSSProperties["textAlign"] }}
+          >
             <RichText text={interp(step.subtitle, ctx)} />
           </p>
         ) : null}
@@ -297,7 +319,10 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               key={pos}
               card={cardAt(pos)}
               cover={step.coverColor ?? "#b8b8b8"}
+              cover2={step.coverColor2 ?? "#9c9c9c"}
+              coverGradiente={step.coverStyle === "gradient"}
               coverText={step.coverText ?? "RASPE AQUI"}
+              coverTextColor={step.coverTextColor ?? "rgba(0,0,0,.38)"}
               revealPct={revealPct}
               revealed={revealAll || pos === openedPos}
               disabled={openedPos !== null}

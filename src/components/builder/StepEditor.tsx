@@ -134,8 +134,20 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             <Field label="Título" full><VisualRichField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
             <Field label="Subtítulo" full><Text value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
             <Field label="Texto da capa"><Text value={s.coverText} onChange={(v) => p({ coverText: v } as Partial<Step>)} /></Field>
-            <Field label="Cor da capa">
+            <Field label="Estilo da capa">
+              <Select value={s.coverStyle ?? "solid"} onChange={(v) => p({ coverStyle: v } as Partial<Step>)}
+                options={[{ value: "solid", label: "Cor sólida" }, { value: "gradient", label: "Degradê" }]} />
+            </Field>
+            <Field label={s.coverStyle === "gradient" ? "Cor da capa (início)" : "Cor da capa"}>
               <input type="color" value={s.coverColor ?? "#b8b8b8"} onChange={(e) => p({ coverColor: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+            </Field>
+            {s.coverStyle === "gradient" ? (
+              <Field label="Cor da capa (fim)">
+                <input type="color" value={s.coverColor2 ?? "#9c9c9c"} onChange={(e) => p({ coverColor2: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+              </Field>
+            ) : null}
+            <Field label="Cor do texto da capa">
+              <input type="color" value={s.coverTextColor ?? "#000000"} onChange={(e) => p({ coverTextColor: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
             </Field>
             <Field label="Colunas na grade">
               <Select value={String(s.columns ?? 2)} onChange={(v) => p({ columns: Number(v) } as Partial<Step>)}

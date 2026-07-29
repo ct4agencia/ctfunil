@@ -190,6 +190,12 @@ export interface ScratchStep extends BaseStep {
   prizeEmoji?: string;
   coverText?: string;
   coverColor?: string;
+  /** capa: cor sólida ou degradê entre coverColor e coverColor2 (padrão: sólida) */
+  coverStyle?: "solid" | "gradient";
+  /** 2ª cor do degradê da capa (só usada quando coverStyle = "gradient") */
+  coverColor2?: string;
+  /** cor do texto "RASPE AQUI" na capa */
+  coverTextColor?: string;
   cta?: string;
   winTitle?: string;
   winBody?: string;
