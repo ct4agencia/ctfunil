@@ -16,10 +16,48 @@ export function extractPlayerId(html: string | null | undefined): string | null 
   return m ? m[1].toLowerCase() : null;
 }
 
+/**
+ * Formato REAL da instância do player v4 (inspecionado no browser em 31/07):
+ *   instances[0] = { on(ev, cb), video: { currentTime }, instance: { duration }, analytics }
+ * Repare que `video` tem SÓ currentTime — NÃO tem duration. O código antigo lia
+ * `video.duration`, recebia undefined, caía no guard `dur <= 0` e nunca enviava
+ * nada: por isso 0 de 394 sessões tinham retenção gravada desde 03/07.
+ * A duração fica em `instance.duration` (e também no elemento <vturb-smartplayer>).
+ */
 type SmartInstance = {
   on: (ev: string, cb: () => void) => void;
-  video: { currentTime: number; duration: number };
+  video?: { currentTime?: number; duration?: number };
+  instance?: { duration?: number; config?: { duration?: number } };
 };
+
+/** Duração do vídeo, procurando em cascata (o v4 mudou de lugar). */
+function duracaoDoPlayer(p: SmartInstance): number {
+  const cand = [
+    p.instance?.duration,
+    p.video?.duration,
+    p.instance?.config?.duration,
+    // o próprio web component expõe o getter `duration`
+    (document.querySelector("vturb-smartplayer") as unknown as { duration?: number } | null)?.duration,
+  ];
+  for (const v of cand) {
+    const n = Number(v);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  return 0;
+}
+
+/** Tempo assistido, idem. */
+function tempoDoPlayer(p: SmartInstance): number {
+  const cand = [
+    p.video?.currentTime,
+    (document.querySelector("vturb-smartplayer") as unknown as { currentTime?: number } | null)?.currentTime,
+  ];
+  for (const v of cand) {
+    const n = Number(v);
+    if (Number.isFinite(n) && n >= 0) return n;
+  }
+  return 0;
+}
 
 // Window.smartplayer já é declarado globalmente em components/vsl/BlockRenderer.tsx;
 // aqui acessamos de forma estrutural pra não conflitar com aquela declaração.
@@ -69,8 +107,8 @@ export function attachVslWatch(opts: { funnelSlug: string; html?: string | null;
       return;
     }
     player.on("timeupdate", () => {
-      const t = player.video.currentTime;
-      const d = player.video.duration || 0;
+      const t = tempoDoPlayer(player);
+      const d = duracaoDoPlayer(player);
       if (d > 0) dur = d;
       if (t > maxT) { maxT = t; send(false); }
     });
