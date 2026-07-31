@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import type { ScratchStep, ScratchCard } from "@/lib/quiz/types";
-import { StepShell, RichText } from "./ui";
+import { StepShell, RichText, useEdit } from "./ui";
 import { interp, type StepCtx } from "./steps";
 import { playWin, playUrl } from "@/lib/quiz/sound";
 
@@ -211,6 +211,14 @@ function Card({
 }
 
 export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: StepCtx }) {
+  // Clique-para-editar do construtor: as outras lâminas usam isso via <Title>
+  // (steps.tsx:79). Sem isso, clicar no título/subtítulo no preview não abria o
+  // campo no painel — parecia que a lâmina "não dava pra editar".
+  const { editing, onEdit } = useEdit();
+  const edit = (campo: string) =>
+    editing ? (e: React.MouseEvent) => { e.stopPropagation(); onEdit?.(campo); } : undefined;
+  const editavel = editing ? "cursor-pointer rounded-md ring-2 ring-transparent transition hover:bg-blue-50/40 hover:ring-blue-400/60" : "";
+
   // Lâmina legada (sem `cards`) continua funcionando com prize/prizeEmoji.
   const cards = useMemo<ScratchCard[]>(() => {
     if (step.cards?.length) return step.cards;
@@ -291,7 +299,9 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
             a partir de step.appearance (cor, tamanho, peso, alinhamento).
             Antes eu fixava tamanho/cor aqui e esses campos não faziam nada. */}
         <h1
-          className="font-[var(--q-display)] leading-tight tracking-tight"
+          className={`font-[var(--q-display)] leading-tight tracking-tight ${editavel}`}
+          onClick={edit("title")}
+          title={editing ? "Clique para editar no painel" : undefined}
           style={{
             fontSize: "var(--q-title-size, 26px)",
             fontWeight: "var(--q-title-weight, 800)" as React.CSSProperties["fontWeight"],
@@ -303,7 +313,9 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
         </h1>
         {step.subtitle ? (
           <p
-            className="mt-2 text-sm text-[var(--q-text-muted)]"
+            className={`mt-2 text-sm text-[var(--q-text-muted)] ${editavel}`}
+            onClick={edit("subtitle")}
+            title={editing ? "Clique para editar no painel" : undefined}
             style={{ textAlign: "var(--q-title-align, center)" as React.CSSProperties["textAlign"] }}
           >
             <RichText text={interp(step.subtitle, ctx)} />
