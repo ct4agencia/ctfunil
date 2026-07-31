@@ -18,8 +18,29 @@
 -- de step_events/quiz_answers e UPDATE do progresso) continua funcionando — só
 -- fica restrito às colunas de tracking.
 --
--- Incorpora a 0013 (que nunca foi aplicada): rodar SÓ ESTA já resolve as duas.
--- Idempotente: pode rodar mais de uma vez sem efeito colateral.
+-- Incorpora a 0013 E a 0014 (nenhuma das duas foi aplicada): rodar SÓ ESTA
+-- resolve as três. Idempotente: pode rodar mais de uma vez sem efeito colateral.
+
+-- ─────────────────────────────────────────────────────────────
+-- 0) hydrated_at (da 0014) — precisa existir ANTES do grant e do trigger
+--    abaixo, que referenciam a coluna. "Visitante" = sessão que hidratou
+--    (o app montou no browser), não o beacon cru que dispara antes de tudo.
+-- ─────────────────────────────────────────────────────────────
+alter table public.funnel_sessions
+  add column if not exists hydrated_at timestamptz;
+
+-- Backfill: toda sessão que já tem step_event definitivamente hidratou.
+-- Usa created_at como carimbo (aproximação boa o bastante p/ histórico).
+update public.funnel_sessions s
+   set hydrated_at = s.created_at
+ where s.hydrated_at is null
+   and exists (select 1 from public.step_events e where e.session_id = s.session_id);
+
+create index if not exists idx_fsessions_hydrated
+  on public.funnel_sessions (funnel_slug, hydrated_at);
+
+comment on column public.funnel_sessions.hydrated_at is
+  'quando o app do funil montou no browser (hidratacao). NULL = beacon disparou mas o app nunca carregou (bounce pre-render). Visitante = hydrated_at IS NOT NULL.';
 
 -- ─────────────────────────────────────────────────────────────
 -- 1) SELECT anônimo: derruba em funnels e funnel_sessions
