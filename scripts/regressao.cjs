@@ -122,17 +122,32 @@ async function checarPermissoes(svc) {
     const valor = async () => (await svc.from("funnel_sessions").select("max_step_reached,funnel_slug").eq("session_id", SID).maybeSingle()).data;
 
     // --- tracking legítimo (tem que FUNCIONAR) ---
-    await anon.from("funnel_sessions").update({ max_step_reached: 9 }).eq("session_id", SID).lt("max_step_reached", 9);
-    r.trackingProgresso = (await valor())?.max_step_reached === 9 ? "ok" : "QUEBRADO";
+    // O progresso passou a ser gravado pelo SERVIDOR (/api/step). Testamos o
+    // caminho REAL, não o antigo (escrita direta pelo browser, removida na 0018).
+    try {
+      const res = await fetch(`${BASE_URL}/api/step`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: SID, funnel_slug: "cdb-01", step_index: 9, step_id: "gate", step_type: "options" }),
+      });
+      r.trackingProgresso = res.ok && (await valor())?.max_step_reached === 9 ? "ok" : "QUEBRADO";
+    } catch (e) {
+      r.trackingProgresso = `QUEBRADO (${String(e.message).slice(0, 40)})`;
+    }
     r.trackingEvento = (await anon.from("step_events").insert({ session_id: SID, funnel_slug: "cdb-01", step_index: 9, step_id: "x", step_type: "t" })).error ? "QUEBRADO" : "ok";
     r.trackingResposta = (await anon.from("quiz_answers").insert({ session_id: SID, funnel_slug: "cdb-01", step_id: "x", question: "t", answer: "t" })).error ? "QUEBRADO" : "ok";
     r.trackingLead = (await anon.from("funnel_leads").insert({ funnel_slug: "cdb-01", session_id: SID, phone: "11999999999", name: "t" })).error ? "QUEBRADO" : "ok";
 
     // --- brechas (têm que continuar FECHADAS) ---
-    await anon.from("funnel_sessions").update({ max_step_reached: 0 }).eq("session_id", SID);
-    r.brechaZerarProgresso = (await valor())?.max_step_reached === 9 ? "fechada" : "ABERTA";
+    // Escrita anônima em funnel_sessions foi removida na 0018: o browser não
+    // grava mais direto. Se voltar a funcionar, é regressão de segurança.
+    const antes = (await valor())?.max_step_reached;
+    await anon.from("funnel_sessions").update({ max_step_reached: 99 }).eq("session_id", SID);
+    r.brechaEscritaAnonima = (await valor())?.max_step_reached === antes ? "fechada" : "ABERTA";
     await anon.from("funnel_sessions").update({ funnel_slug: "hack" }).eq("session_id", SID);
     r.brechaTrocarFunil = (await valor())?.funnel_slug === "cdb-01" ? "fechada" : "ABERTA";
+    const rs = await anon.from("funnel_sessions").select("session_id").limit(1);
+    r.brechaLerSessoes = rs.error || !(rs.data || []).length ? "fechada" : "ABERTA";
     const del = await anon.from("funnel_leads").delete().eq("session_id", SID).select();
     r.brechaApagarLeads = del.error || !(del.data || []).length ? "fechada" : "ABERTA";
     const rl = await anon.from("funnel_leads").select("name,phone").limit(1);
