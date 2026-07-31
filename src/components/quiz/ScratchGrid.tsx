@@ -255,7 +255,11 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
   const prizeIdx = estado?.prize ?? null;
   const openedPos = estado?.pos ?? null;
   const popup = estado?.fase === "popup";
-  const revealAll = estado?.fase === "todos" || estado?.fase === "popup";
+  /** Só revela DEPOIS de raspar de verdade. Na fase "raspando" o card escolhido
+   *  continua coberto — a lead precisa raspar pra revelar. (Bug: como openedPos
+   *  passou a ser definido já no 1º toque, usar `pos === openedPos` aqui fazia
+   *  o card limpar inteiro no clique, sem sensação de raspagem.) */
+  const revelado = estado !== null && estado.fase !== "raspando";
 
   // 1 raspagem por dispositivo: restaura o estado já revelado (nunca no preview).
   // Precisa ser em effect (ler localStorage no render divergiria do SSR e
@@ -362,12 +366,12 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               coverText={step.coverText ?? "RASPE AQUI"}
               coverTextColor={step.coverTextColor ?? "rgba(0,0,0,.38)"}
               revealPct={revealPct}
-              revealed={revealAll || pos === openedPos}
+              revealed={revelado}
               // trava a partir do 1º toque em QUALQUER card (openedPos já
               // definido na fase "raspando") — é o que impede o spoiler
               disabled={openedPos !== null && pos !== openedPos}
               // o card que ela raspou carrega o prêmio sorteado → é o destaque
-              destaque={pos === openedPos && estado?.fase !== "raspando"}
+              destaque={pos === openedPos && revelado}
               destaqueBg={step.destaqueBg}
               destaqueText={step.destaqueText}
               onFirstTouch={() => onFirstTouch(pos)}
@@ -378,7 +382,7 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
         {/* CTA logo ABAIXO da grade (não no rodapé): o botão precisa ficar
             colado nos cards, no campo de visão de quem acabou de raspar. */}
         <div className="mx-auto mt-5 w-full" style={{ maxWidth: 460 }}>
-          {estado && estado.fase !== "raspando" ? (
+          {revelado ? (
             <BotaoWhats onClick={seguir}>{step.winCta}</BotaoWhats>
           ) : (
             <p className="text-center text-sm font-medium text-[var(--q-text-muted)]">
