@@ -65,7 +65,7 @@ function BotaoWhats({ onClick, children }: { onClick: () => void; children: Reac
 
 /** Um card raspável. Avisa o pai quando passa do limiar. */
 function Card({
-  card, cover, cover2, coverGradiente, coverText, coverTextColor, revealPct, revealed, disabled, destaque, destaqueBg, destaqueText, onReveal,
+  card, cover, cover2, coverGradiente, coverText, coverTextColor, revealPct, revealed, disabled, destaque, destaqueBg, destaqueText, onFirstTouch, onReveal,
 }: {
   card: ScratchCard;
   cover: string;
@@ -82,6 +82,8 @@ function Card({
   /** cor do card em destaque (vazio = cor do próprio prêmio) */
   destaqueBg?: string;
   destaqueText?: string;
+  /** 1º toque neste card: trava a escolha ANTES de revelar qualquer coisa */
+  onFirstTouch: () => void;
   onReveal: () => void;
 }) {
   const corDestaque = destaqueBg || card.color || "var(--q-primary)";
@@ -148,7 +150,17 @@ function Card({
     }
   };
 
-  const down = (e: React.MouseEvent | React.TouchEvent) => { drawing.current = true; const [x, y] = at(e); erase(x, y); };
+  const down = (e: React.MouseEvent | React.TouchEvent) => {
+    if (disabled) return;
+    // ESCOLHA no 1º toque: o prêmio é sorteado e fixado AQUI, antes de raspar.
+    // Antes a escolha só acontecia ao completar a raspagem, então dava pra
+    // raspar um pouco de vários cards, ver os prêmios nas posições originais
+    // e depois ver tudo trocar de lugar — spoiler + contradição.
+    onFirstTouch();
+    drawing.current = true;
+    const [x, y] = at(e);
+    erase(x, y);
+  };
   const move = (e: React.MouseEvent | React.TouchEvent) => { if (!drawing.current) return; const [x, y] = at(e); erase(x, y); };
   const up = () => { drawing.current = false; };
 
@@ -235,13 +247,15 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
   const lockKey = `ctf_scratch_${ctx.funnelSlug}_${step.id}`;
 
   /** Estado único da lâmina: qual prêmio saiu, em qual card, e em que fase.
-   *  Consolidado num state só pra não disparar setStates em cascata. */
-  type Estado = { prize: number; pos: number; fase: "popup" | "todos" };
+   *  raspando = já escolheu o card (1º toque) e está raspando; os outros travam
+   *  popup    = atingiu o limiar, prêmio revelado
+   *  todos    = os demais cards também aparecem (por baixo do popup) */
+  type Estado = { prize: number; pos: number; fase: "raspando" | "popup" | "todos" };
   const [estado, setEstado] = useState<Estado | null>(null);
   const prizeIdx = estado?.prize ?? null;
   const openedPos = estado?.pos ?? null;
   const popup = estado?.fase === "popup";
-  const revealAll = estado?.fase === "todos";
+  const revealAll = estado?.fase === "todos" || estado?.fase === "popup";
 
   // 1 raspagem por dispositivo: restaura o estado já revelado (nunca no preview).
   // Precisa ser em effect (ler localStorage no render divergiria do SSR e
@@ -259,18 +273,30 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
     } catch { /* storage bloqueado: segue normal */ }
   }, [lockKey, step.oncePerDevice, ctx.preview]);
 
+  /** 1º toque: fixa o card escolhido e SORTEIA o prêmio na hora. A partir daqui
+   *  os outros cards ficam travados — é isso que elimina o spoiler. */
+  const onFirstTouch = useCallback((pos: number) => {
+    setEstado((e) => (e ? e : { prize: pickByWeight(cards), pos, fase: "raspando" }));
+  }, [cards]);
+
   const onReveal = useCallback((pos: number) => {
-    if (openedPos !== null) return;
-    const idx = pickByWeight(cards);
-    setEstado({ prize: idx, pos, fase: "popup" });
+    // usa a forma funcional pra ler o estado atual sem depender dele nas deps
+    let idx = -1;
+    setEstado((e) => {
+      if (e && e.fase !== "raspando") return e; // já revelou: ignora
+      idx = e?.prize ?? pickByWeight(cards);
+      return { prize: idx, pos, fase: "popup" };
+    });
+    if (idx < 0) return;
     if (!ctx.preview) {
       if (step.sound?.enabled) { if (step.sound.winUrl) playUrl(step.sound.winUrl); else playWin(); }
-      import("canvas-confetti").then((m) => m.default({ particleCount: 160, spread: 90, origin: { y: 0.4 } })).catch(() => {});
+      // confete a partir do topo, onde o popup aparece
+      import("canvas-confetti").then((m) => m.default({ particleCount: 200, spread: 100, origin: { y: 0.2 } })).catch(() => {});
       if (step.oncePerDevice) {
         try { localStorage.setItem(lockKey, JSON.stringify({ prize: idx, pos })); } catch { /* noop */ }
       }
     }
-  }, [openedPos, cards, ctx.preview, step.sound, step.oncePerDevice, lockKey]);
+  }, [cards, ctx.preview, step.sound, step.oncePerDevice, lockKey]);
 
   /** O card raspado mostra o prêmio SORTEADO; os demais, os prêmios restantes. */
   const cardAt = useCallback((pos: number): ScratchCard => {
@@ -289,8 +315,8 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
     ctx.advance();
   };
 
-  /** fecha o popup e revela o que tinha nos OUTROS cards */
-  const fecharPopup = () => setEstado((e) => (e ? { ...e, fase: "todos" } : e));
+  /** dispensa o popup sem redirecionar (clique fora / tecla Esc) */
+  const dispensar = () => setEstado((e) => (e ? { ...e, fase: "todos" } : e));
 
   return (
     <>
@@ -337,11 +363,14 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               coverTextColor={step.coverTextColor ?? "rgba(0,0,0,.38)"}
               revealPct={revealPct}
               revealed={revealAll || pos === openedPos}
-              disabled={openedPos !== null}
+              // trava a partir do 1º toque em QUALQUER card (openedPos já
+              // definido na fase "raspando") — é o que impede o spoiler
+              disabled={openedPos !== null && pos !== openedPos}
               // o card que ela raspou carrega o prêmio sorteado → é o destaque
-              destaque={pos === openedPos}
+              destaque={pos === openedPos && estado?.fase !== "raspando"}
               destaqueBg={step.destaqueBg}
               destaqueText={step.destaqueText}
+              onFirstTouch={() => onFirstTouch(pos)}
               onReveal={() => onReveal(pos)}
             />
           ))}
@@ -349,7 +378,7 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
         {/* CTA logo ABAIXO da grade (não no rodapé): o botão precisa ficar
             colado nos cards, no campo de visão de quem acabou de raspar. */}
         <div className="mx-auto mt-5 w-full" style={{ maxWidth: 460 }}>
-          {openedPos !== null ? (
+          {estado && estado.fase !== "raspando" ? (
             <BotaoWhats onClick={seguir}>{step.winCta}</BotaoWhats>
           ) : (
             <p className="text-center text-sm font-medium text-[var(--q-text-muted)]">
@@ -359,19 +388,21 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
         </div>
       </StepShell>
 
-      {/* POPUP de premiação — cores configuráveis, copy própria do prêmio */}
+      {/* POPUP de premiação — no TOPO da página (não centralizado): o prêmio
+          aparece no campo de visão imediato e os cards revelados ficam
+          visíveis por baixo. Cores e copy configuráveis por prêmio. */}
       <AnimatePresence>
         {popup && premio ? (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-6"
             style={{ background: "rgba(0,0,0,.6)" }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={fecharPopup}
+            onClick={dispensar}
           >
             <motion.div
-              className="w-full max-w-sm rounded-3xl p-7 text-center shadow-2xl"
+              className="w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl"
               style={{ background: step.popupBg || "#16a34a", color: step.popupText || "#ffffff" }}
-              initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.85, y: -24 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 22 }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -382,15 +413,19 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               <p className="mt-1 text-sm font-medium opacity-90">
                 <RichText text={interp(premio.popupBody || step.winBody || "Você ganhou...", ctx)} />
               </p>
-              {/* prêmio em destaque no card branco (igual ao popup da roleta) */}
-              <div
-                className="mt-4 rounded-2xl px-5 py-3.5 text-xl font-black shadow-md"
+              {/* PRÊMIO em destaque, pulsando junto com o botão */}
+              <motion.div
+                className="mt-4 rounded-2xl px-5 py-4 text-2xl font-black shadow-lg"
                 style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "#16a34a" }}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
               >
                 {premio.label}
-              </div>
-              <div className="mt-3">
-                <BotaoWhats onClick={fecharPopup}>{step.cta || "DESBLOQUEAR PRÊMIO 🎁"}</BotaoWhats>
+              </motion.div>
+              {/* CLIQUE ÚNICO: este botão JÁ redireciona (antes só fechava o
+                  popup e exigia um 2º clique no botão de baixo). */}
+              <div className="mt-4">
+                <BotaoWhats onClick={seguir}>{step.cta || step.winCta || "DESBLOQUEAR PRÊMIO 🎁"}</BotaoWhats>
               </div>
             </motion.div>
           </motion.div>
