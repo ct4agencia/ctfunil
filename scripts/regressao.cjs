@@ -98,7 +98,57 @@ async function coletar(sb) {
     colunas[tabela] = e ? `ERRO: ${e.message}` : "ok";
   }
 
-  return { gerado: new Date().toISOString(), baseUrl: BASE_URL, funis, protegidas, colunas };
+  const permissoes = await checarPermissoes(sb);
+
+  return { gerado: new Date().toISOString(), baseUrl: BASE_URL, funis, protegidas, colunas, permissoes };
+}
+
+/**
+ * Testa as PERMISSÕES do banco com a chave pública (a que vai no HTML da lead).
+ * Existe porque em 30/07 uma migration de segurança derrubou junto a permissão
+ * de atualizar o progresso: o tracking parou em produção e o gate não viu nada,
+ * porque só testava as páginas por HTTP. Aqui cobrimos os dois lados:
+ *   - o tracking legítimo AINDA grava?
+ *   - as brechas continuam fechadas?
+ * Usa uma linha de teste própria (session_id "regressao-<ts>"), apagada no fim.
+ */
+async function checarPermissoes(svc) {
+  const env = loadEnv();
+  const anon = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+  const SID = `regressao-${Date.now()}`;
+  const r = {};
+  try {
+    await svc.from("funnel_sessions").insert({ session_id: SID, funnel_slug: "cdb-01", max_step_reached: 5 });
+    const valor = async () => (await svc.from("funnel_sessions").select("max_step_reached,funnel_slug").eq("session_id", SID).maybeSingle()).data;
+
+    // --- tracking legítimo (tem que FUNCIONAR) ---
+    await anon.from("funnel_sessions").update({ max_step_reached: 9 }).eq("session_id", SID).lt("max_step_reached", 9);
+    r.trackingProgresso = (await valor())?.max_step_reached === 9 ? "ok" : "QUEBRADO";
+    r.trackingEvento = (await anon.from("step_events").insert({ session_id: SID, funnel_slug: "cdb-01", step_index: 9, step_id: "x", step_type: "t" })).error ? "QUEBRADO" : "ok";
+    r.trackingResposta = (await anon.from("quiz_answers").insert({ session_id: SID, funnel_slug: "cdb-01", step_id: "x", question: "t", answer: "t" })).error ? "QUEBRADO" : "ok";
+    r.trackingLead = (await anon.from("funnel_leads").insert({ funnel_slug: "cdb-01", session_id: SID, phone: "11999999999", name: "t" })).error ? "QUEBRADO" : "ok";
+
+    // --- brechas (têm que continuar FECHADAS) ---
+    await anon.from("funnel_sessions").update({ max_step_reached: 0 }).eq("session_id", SID);
+    r.brechaZerarProgresso = (await valor())?.max_step_reached === 9 ? "fechada" : "ABERTA";
+    await anon.from("funnel_sessions").update({ funnel_slug: "hack" }).eq("session_id", SID);
+    r.brechaTrocarFunil = (await valor())?.funnel_slug === "cdb-01" ? "fechada" : "ABERTA";
+    const del = await anon.from("funnel_leads").delete().eq("session_id", SID).select();
+    r.brechaApagarLeads = del.error || !(del.data || []).length ? "fechada" : "ABERTA";
+    const rl = await anon.from("funnel_leads").select("name,phone").limit(1);
+    r.brechaLerLeads = rl.error || !(rl.data || []).length ? "fechada" : "ABERTA";
+    const rq = await anon.from("quiz_answers").select("answer").limit(1);
+    r.brechaLerRespostas = rq.error || !(rq.data || []).length ? "fechada" : "ABERTA";
+    const rw = await anon.from("funnels").select("webhooks").limit(1);
+    r.brechaLerWebhooks = rw.error || !(rw.data || []).length ? "fechada" : "ABERTA";
+  } catch (e) {
+    r.erro = String(e.message).slice(0, 80);
+  } finally {
+    for (const t of ["step_events", "quiz_answers", "funnel_leads", "funnel_sessions"]) {
+      try { await svc.from(t).delete().eq("session_id", SID); } catch { /* noop */ }
+    }
+  }
+  return r;
 }
 
 function comparar(base, novo) {
@@ -130,6 +180,15 @@ function comparar(base, novo) {
 
   for (const [tabela, estado] of Object.entries(novo.colunas)) {
     if (estado !== "ok") probs.push(`BANCO: ${tabela} -> ${estado}`);
+  }
+
+  // Permissões: independem do baseline — o esperado é sempre o mesmo.
+  // "tracking* = ok" e "brecha* = fechada". Foi o buraco que deixou o tracking
+  // cair em produção sem o gate perceber (30/07).
+  for (const [k, v] of Object.entries(novo.permissoes || {})) {
+    if (k === "erro") { probs.push(`PERMISSOES: erro ao checar -> ${v}`); continue; }
+    if (k.startsWith("tracking") && v !== "ok") probs.push(`TRACKING QUEBRADO: ${k} -> ${v}`);
+    if (k.startsWith("brecha") && v !== "fechada") probs.push(`SEGURANCA: ${k} -> ${v}`);
   }
   return probs;
 }
