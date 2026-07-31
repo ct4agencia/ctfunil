@@ -319,8 +319,6 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
     ctx.advance();
   };
 
-  /** dispensa o popup sem redirecionar (clique fora / tecla Esc) */
-  const dispensar = () => setEstado((e) => (e ? { ...e, fase: "todos" } : e));
 
   return (
     <>
@@ -381,7 +379,9 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
         </div>
         {/* CTA logo ABAIXO da grade (não no rodapé): o botão precisa ficar
             colado nos cards, no campo de visão de quem acabou de raspar. */}
-        <div className="mx-auto mt-5 w-full" style={{ maxWidth: 460 }}>
+        {/* z-50 > z-40 do painel informativo: este é o ÚNICO clique da tela
+            depois que o prêmio é revelado, e precisa ficar por cima do fundo. */}
+        <div className="relative z-50 mx-auto mt-5 w-full" style={{ maxWidth: 460 }}>
           {revelado ? (
             <BotaoWhats onClick={seguir}>{step.winCta}</BotaoWhats>
           ) : (
@@ -392,23 +392,22 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
         </div>
       </StepShell>
 
-      {/* POPUP de premiação — no TOPO da página (não centralizado): o prêmio
-          aparece no campo de visão imediato e os cards revelados ficam
-          visíveis por baixo. Cores e copy configuráveis por prêmio. */}
+      {/* PAINEL de premiação — no TOPO da página, apenas INFORMATIVO.
+          pointer-events-none: não intercepta clique, então o único elemento
+          clicável da tela segue sendo o botão de redirect (z-50, acima deste
+          fundo z-40). Cores e copy configuráveis por prêmio. */}
       <AnimatePresence>
         {popup && premio ? (
           <motion.div
-            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-6"
-            style={{ background: "rgba(0,0,0,.6)" }}
+            className="pointer-events-none fixed inset-0 z-40 flex items-start justify-center p-4 pt-6"
+            style={{ background: "rgba(0,0,0,.55)" }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={dispensar}
           >
             <motion.div
               className="w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl"
               style={{ background: step.popupBg || "#16a34a", color: step.popupText || "#ffffff" }}
               initial={{ scale: 0.85, y: -24 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 22 }}
-              onClick={(e) => e.stopPropagation()}
             >
               <div className="text-5xl">{premio.emoji || "🎉"}</div>
               <p className="mt-1 text-3xl font-black uppercase leading-tight tracking-tight">
@@ -417,7 +416,9 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               <p className="mt-1 text-sm font-medium opacity-90">
                 <RichText text={interp(premio.popupBody || step.winBody || "Você ganhou...", ctx)} />
               </p>
-              {/* PRÊMIO em destaque, pulsando junto com o botão */}
+              {/* PRÊMIO em destaque, pulsando. O popup é INFORMATIVO e não tem
+                  botão: o único clique da tela é o de redirect, logo abaixo da
+                  grade (antes exigia fechar o popup e depois clicar). */}
               <motion.div
                 className="mt-4 rounded-2xl px-5 py-4 text-2xl font-black shadow-lg"
                 style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "#16a34a" }}
@@ -426,11 +427,6 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               >
                 {premio.label}
               </motion.div>
-              {/* CLIQUE ÚNICO: este botão JÁ redireciona (antes só fechava o
-                  popup e exigia um 2º clique no botão de baixo). */}
-              <div className="mt-4">
-                <BotaoWhats onClick={seguir}>{step.cta || step.winCta || "DESBLOQUEAR PRÊMIO 🎁"}</BotaoWhats>
-              </div>
             </motion.div>
           </motion.div>
         ) : null}
