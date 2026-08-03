@@ -149,6 +149,14 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             <Field label="Cor do texto da capa">
               <input type="color" value={s.coverTextColor ?? "#000000"} onChange={(e) => p({ coverTextColor: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
             </Field>
+            <Field label="Emoji da capa (vazio = sem)">
+              <Text value={s.coverEmoji ?? "👆"} onChange={(v) => p({ coverEmoji: v } as Partial<Step>)} />
+            </Field>
+            <Field label="Tamanho do texto da capa (px)">
+              <input type="number" min={10} max={32} value={s.coverTextSize ?? 15}
+                onChange={(e) => p({ coverTextSize: Number(e.target.value) } as Partial<Step>)}
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
+            </Field>
             <Field label="Colunas na grade">
               <Select value={String(s.columns ?? 2)} onChange={(v) => p({ columns: Number(v) } as Partial<Step>)}
                 options={[{ value: "1", label: "1" }, { value: "2", label: "2" }, { value: "3", label: "3" }]} />
@@ -208,8 +216,18 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           </div>
 
           {/* ── Popup + botão ───────────────────────────────────────── */}
+          <Field label="Fundo da lâmina (full-screen)" full>
+            <BgField value={s.background} onChange={(v) => p({ background: v } as Partial<Step>)} />
+          </Field>
+
           <div className="rounded-xl bg-neutral-50 p-3">
-            <span className="mb-2 block text-xs font-semibold text-neutral-500">Cores do popup de premiação</span>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-semibold text-neutral-500">Popup de premiação</span>
+              <Toggle label="Ativar popup" value={s.popupEnabled ?? true} onChange={(v) => p({ popupEnabled: v } as Partial<Step>)} />
+            </div>
+            <span className="mb-2 block text-[11px] text-neutral-400">
+              Desligado: os cards revelam, o prêmio fica em destaque com confete e som — só não aparece o painel.
+            </span>
             <Grid>
               <Field label="Fundo do popup">
                 <input type="color" value={s.popupBg ?? "#16a34a"} onChange={(e) => p({ popupBg: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
@@ -242,6 +260,12 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               <Field label="Texto do card em destaque">
                 <input type="color" value={s.destaqueText ?? "#ffffff"} onChange={(e) => p({ destaqueText: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
               </Field>
+              <Field label={`Opacidade dos outros cards: ${s.perdedoresOpacidade ?? 45}%`} full>
+                <input type="range" min={0} max={100} value={s.perdedoresOpacidade ?? 45}
+                  onChange={(e) => p({ perdedoresOpacidade: Number(e.target.value) } as Partial<Step>)}
+                  className="w-full accent-neutral-900" />
+                <span className="mt-0.5 block text-[11px] text-neutral-400">Quanto menor, mais o prêmio ganho se destaca.</span>
+              </Field>
             </Grid>
           </div>
 
@@ -254,6 +278,21 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
 
           <div className="space-y-2 rounded-xl bg-neutral-50 p-3">
             <Toggle label="🔊 Som na revelação" value={sound.enabled} onChange={(v) => p({ sound: { ...sound, enabled: v } } as Partial<Step>)} />
+            {sound.enabled ? (
+              <div className="space-y-1">
+                <span className="block text-[11px] font-semibold text-neutral-500">Som: cole a URL de um .mp3 (vazio = som padrão)</span>
+                <div className="flex items-center gap-2">
+                  <input className="w-full rounded-lg border border-neutral-300 px-3 py-1.5 text-sm"
+                    value={sound.winUrl ?? ""} onChange={(e) => p({ sound: { ...sound, winUrl: e.target.value || undefined } } as Partial<Step>)}
+                    placeholder="https://.../premiacao.mp3" />
+                  <button type="button" title="Ouvir"
+                    onClick={() => { try { new Audio(sound.winUrl || "").play(); } catch { /* noop */ } }}
+                    disabled={!sound.winUrl}
+                    className="shrink-0 rounded-md bg-neutral-900 px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-30">▶ Testar</button>
+                </div>
+              </div>
+            ) : null}
+            <Toggle label="🎉 Confete ao revelar" value={s.confete ?? true} onChange={(v) => p({ confete: v } as Partial<Step>)} />
             <Toggle label="🔒 Permitir apenas 1 raspagem por dispositivo" value={s.oncePerDevice ?? false} onChange={(v) => p({ oncePerDevice: v } as Partial<Step>)} />
           </div>
         </div>

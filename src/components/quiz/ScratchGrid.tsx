@@ -65,7 +65,9 @@ function BotaoWhats({ onClick, children }: { onClick: () => void; children: Reac
 
 /** Um card raspável. Avisa o pai quando passa do limiar. */
 function Card({
-  card, cover, cover2, coverGradiente, coverText, coverTextColor, revealPct, revealed, disabled, destaque, destaqueBg, destaqueText, onFirstTouch, onReveal,
+  card, cover, cover2, coverGradiente, coverText, coverTextColor, coverEmoji, coverTextSize,
+  revealPct, revealed, disabled, destaque, destaqueBg, destaqueText, opacidadePerdedor, pulsarAntes,
+  onFirstTouch, onReveal,
 }: {
   card: ScratchCard;
   cover: string;
@@ -74,6 +76,9 @@ function Card({
   coverGradiente: boolean;
   coverText: string;
   coverTextColor: string;
+  /** emoji acima do texto da capa (vazio = sem emoji) */
+  coverEmoji: string;
+  coverTextSize: number;
   revealPct: number;
   revealed: boolean;
   disabled: boolean;
@@ -82,6 +87,10 @@ function Card({
   /** cor do card em destaque (vazio = cor do próprio prêmio) */
   destaqueBg?: string;
   destaqueText?: string;
+  /** opacidade (0-1) dos cards NÃO premiados depois da revelação */
+  opacidadePerdedor: number;
+  /** antes de raspar TODOS pulsam (chama pro toque); depois só o premiado */
+  pulsarAntes: boolean;
   /** 1º toque neste card: trava a escolha ANTES de revelar qualquer coisa */
   onFirstTouch: () => void;
   onReveal: () => void;
@@ -111,11 +120,14 @@ function Card({
     g.fillRect(0, 0, CW, CH);
     g.fillStyle = coverTextColor;
     g.textAlign = "center";
-    g.font = "26px serif";
-    g.fillText("👆", CW / 2, CH / 2 - 14);
-    g.font = "bold 15px Poppins, system-ui, sans-serif";
-    g.fillText(coverText, CW / 2, CH / 2 + 20);
-  }, [cover, cover2, coverGradiente, coverText, coverTextColor]);
+    const temEmoji = !!coverEmoji;
+    if (temEmoji) {
+      g.font = "26px serif";
+      g.fillText(coverEmoji, CW / 2, CH / 2 - 14);
+    }
+    g.font = `bold ${coverTextSize}px Poppins, system-ui, sans-serif`;
+    g.fillText(coverText, CW / 2, CH / 2 + (temEmoji ? 20 : 6));
+  }, [cover, cover2, coverGradiente, coverText, coverTextColor, coverEmoji, coverTextSize]);
 
   // revelado por fora (os "outros" cards, depois do popup): limpa a capa
   useEffect(() => {
@@ -168,9 +180,10 @@ function Card({
     <motion.div
       className="relative w-full rounded-xl"
       style={{ aspectRatio: `${CW} / ${CH}`, zIndex: destaque ? 2 : 1 }}
-      // o prêmio ganho pulsa e cresce; os outros recuam pra dar contraste
-      animate={destaque ? { scale: [1, 1.06, 1] } : { scale: 1 }}
-      transition={destaque ? { duration: 1.3, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
+      // ANTES de raspar: todos pulsam (convida ao toque).
+      // DEPOIS: só o premiado continua pulsando; os outros param e recuam.
+      animate={destaque || pulsarAntes ? { scale: [1, 1.06, 1] } : { scale: 1 }}
+      transition={destaque || pulsarAntes ? { duration: 1.3, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
     >
       <div
         className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-xl px-2 text-center"
@@ -185,8 +198,8 @@ function Card({
             : {
                 background: "var(--q-bg-soft)",
                 border: `2px solid ${card.color || "var(--q-primary)"}`,
-                // perdedores desbotam pra o ganho saltar aos olhos
-                opacity: revealed ? 0.45 : 1,
+                // perdedores desbotam pra o ganho saltar aos olhos (% configurável)
+                opacity: revealed ? opacidadePerdedor : 1,
                 filter: revealed ? "saturate(.6)" : "none",
               }
         }
@@ -254,7 +267,9 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
   const [estado, setEstado] = useState<Estado | null>(null);
   const prizeIdx = estado?.prize ?? null;
   const openedPos = estado?.pos ?? null;
-  const popup = estado?.fase === "popup";
+  // popupEnabled desligado: revela os cards, destaca o prêmio, solta confete e
+  // som do mesmo jeito — só não mostra o painel flutuante.
+  const popup = estado?.fase === "popup" && (step.popupEnabled ?? true);
   /** Só revela DEPOIS de raspar de verdade. Na fase "raspando" o card escolhido
    *  continua coberto — a lead precisa raspar pra revelar. (Bug: como openedPos
    *  passou a ser definido já no 1º toque, usar `pos === openedPos` aqui fazia
@@ -293,14 +308,17 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
     });
     if (idx < 0) return;
     if (!ctx.preview) {
+      // som: .mp3 do construtor, ou o padrão sintetizado
       if (step.sound?.enabled) { if (step.sound.winUrl) playUrl(step.sound.winUrl); else playWin(); }
-      // confete a partir do topo, onde o popup aparece
-      import("canvas-confetti").then((m) => m.default({ particleCount: 200, spread: 100, origin: { y: 0.2 } })).catch(() => {});
+      // confete a partir do topo, onde o painel aparece
+      if (step.confete ?? true) {
+        import("canvas-confetti").then((m) => m.default({ particleCount: 200, spread: 100, origin: { y: 0.2 } })).catch(() => {});
+      }
       if (step.oncePerDevice) {
         try { localStorage.setItem(lockKey, JSON.stringify({ prize: idx, pos })); } catch { /* noop */ }
       }
     }
-  }, [cards, ctx.preview, step.sound, step.oncePerDevice, lockKey]);
+  }, [cards, ctx.preview, step.sound, step.oncePerDevice, step.confete, lockKey]);
 
   /** O card raspado mostra o prêmio SORTEADO; os demais, os prêmios restantes. */
   const cardAt = useCallback((pos: number): ScratchCard => {
@@ -322,6 +340,15 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
 
   return (
     <>
+      {/* Fundo full-screen da lâmina: aceita cor chapada, linear-gradient,
+          radial-gradient ou url(imagem) — mesmo campo que a roleta usa. */}
+      {step.background ? (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 -z-10"
+          style={{ background: step.background, backgroundSize: "cover", backgroundPosition: "center" }}
+        />
+      ) : null}
       <StepShell center>
         {/* Título respeita a aba Aparência: o QuizRunner publica --q-title-*
             a partir de step.appearance (cor, tamanho, peso, alinhamento).
@@ -363,6 +390,11 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               coverGradiente={step.coverStyle === "gradient"}
               coverText={step.coverText ?? "RASPE AQUI"}
               coverTextColor={step.coverTextColor ?? "rgba(0,0,0,.38)"}
+              coverEmoji={step.coverEmoji ?? "👆"}
+              coverTextSize={Number(step.coverTextSize ?? 15)}
+              opacidadePerdedor={Math.min(1, Math.max(0, Number(step.perdedoresOpacidade ?? 45) / 100))}
+              // enquanto ninguém tocou, todos pulsam chamando pro toque
+              pulsarAntes={estado === null}
               revealPct={revealPct}
               revealed={revelado}
               // trava a partir do 1º toque em QUALQUER card (openedPos já
