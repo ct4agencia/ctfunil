@@ -19,7 +19,7 @@ function Grid({ children }: { children: React.ReactNode }) {
 }
 
 /** Editor de fundo full-screen: 2 cores → gradiente + campo CSS livre + presets. */
-function BgField({ value, onChange }: { value?: string; onChange: (v: string | undefined) => void }) {
+function BgField({ value, onChange, onImagem }: { value?: string; onChange: (v: string | undefined) => void; onImagem?: (css: string) => void }) {
   const [c1, setC1] = useState("#1a1340");
   const [c2, setC2] = useState("#0a0a1a");
   const PRESETS = [
@@ -41,6 +41,34 @@ function BgField({ value, onChange }: { value?: string; onChange: (v: string | u
           <button key={p.name} type="button" onClick={() => onChange(p.css)} className="rounded-md border border-neutral-200 px-2 py-1 text-[11px] hover:border-neutral-400" style={{ background: p.css, color: "#fff", textShadow: "0 1px 2px #000" }}>{p.name}</button>
         ))}
       </div>
+      {/* IMAGEM de fundo: sobe pro storage e vira url(...) no mesmo campo CSS */}
+      <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-2.5 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">
+        🖼️ Anexar imagem de fundo
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            try {
+              const fd = new FormData();
+              fd.append("file", f);
+              const r = await fetch("/api/upload", { method: "POST", body: fd });
+              const j = await r.json();
+              if (j.url) {
+                const css = `url("${j.url}")`;
+                // UM patch só: a url e o enquadramento saem juntos. Separá-los
+                // gerava um render intermediário com a arte sem enquadramento
+                // (texto escuro sobre a imagem, logo cortada, conteúdo por cima).
+                if (onImagem) onImagem(css);
+                else onChange(css);
+              } else alert(j.error || "Falha no upload");
+            } catch { alert("Falha no upload"); }
+            e.target.value = "";
+          }}
+        />
+      </label>
       <input className="w-full rounded-lg border border-neutral-300 px-3 py-2 font-mono text-xs" value={value ?? ""} onChange={(e) => onChange(e.target.value || undefined)} placeholder="linear-gradient(180deg, #f3c969, #e89b3a) ou uma cor" />
       {value ? <div className="h-10 w-full rounded-lg border border-neutral-200" style={{ background: value }} /> : null}
     </div>
@@ -149,13 +177,11 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             <Field label="Cor do texto da capa">
               <input type="color" value={s.coverTextColor ?? "#000000"} onChange={(e) => p({ coverTextColor: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
             </Field>
-            <Field label="Emoji da capa (vazio = sem)">
-              <Text value={s.coverEmoji ?? "👆"} onChange={(v) => p({ coverEmoji: v } as Partial<Step>)} />
-            </Field>
             <Field label="Tamanho do texto da capa (px)">
-              <input type="number" min={10} max={32} value={s.coverTextSize ?? 15}
+              <input type="number" min={10} max={72} value={s.coverTextSize ?? 15}
                 onChange={(e) => p({ coverTextSize: Number(e.target.value) } as Partial<Step>)}
                 className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
+              <span className="mt-0.5 block text-[11px] text-neutral-400">O texto (com emoji) quebra linha sozinho.</span>
             </Field>
             <Field label="Colunas na grade">
               <Select value={String(s.columns ?? 2)} onChange={(v) => p({ columns: Number(v) } as Partial<Step>)}
@@ -217,8 +243,57 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
 
           {/* ── Popup + botão ───────────────────────────────────────── */}
           <Field label="Fundo da lâmina (full-screen)" full>
-            <BgField value={s.background} onChange={(v) => p({ background: v } as Partial<Step>)} />
+            <BgField
+              value={s.background}
+              onChange={(v) => p({ background: v } as Partial<Step>)}
+              onImagem={(css) => p({
+                background: css,
+                bgSize: "cover",
+                bgPosition: "top center",  // mantém a arte de cima (logo) visível
+                topSpacing: 170,           // desce o conteúdo pra não cobri-la
+                titleShadow: true,         // texto legível sobre a imagem
+                // texto claro: sobre arte escura o preto padrão some
+                appearance: { ...(s.appearance ?? {}), titleColor: "#ffffff" },
+              } as Partial<Step>)}
+            />
           </Field>
+
+          {s.background ? (
+            <div className="rounded-xl bg-neutral-50 p-3">
+              <span className="mb-1 block text-xs font-semibold text-neutral-500">Ajuste do fundo e do conteúdo</span>
+              <span className="mb-2 block text-[11px] text-neutral-400">
+                Imagem 16:9 numa tela 9:16 (celular): ancore no <strong>topo</strong> pra manter a arte de cima
+                (logo) visível, e use o espaço no topo pra o conteúdo não cobri-la.
+              </span>
+              <Grid>
+                <Field label="Encaixe da imagem">
+                  <Select value={s.bgSize ?? "cover"} onChange={(v) => p({ bgSize: v } as Partial<Step>)}
+                    options={[
+                      { value: "cover", label: "Preencher (corta sobras)" },
+                      { value: "contain", label: "Caber inteira" },
+                      { value: "auto", label: "Tamanho original" },
+                    ]} />
+                </Field>
+                <Field label="Ancorar em">
+                  <Select value={s.bgPosition ?? "center"} onChange={(v) => p({ bgPosition: v } as Partial<Step>)}
+                    options={[
+                      { value: "top center", label: "Topo" },
+                      { value: "center", label: "Centro" },
+                      { value: "bottom center", label: "Rodapé" },
+                    ]} />
+                </Field>
+                <Field label={`Espaço no topo: ${s.topSpacing ?? 0}px`} full>
+                  <input type="range" min={0} max={400} step={10} value={s.topSpacing ?? 0}
+                    onChange={(e) => p({ topSpacing: Number(e.target.value) } as Partial<Step>)}
+                    className="w-full accent-neutral-900" />
+                  <span className="mt-0.5 block text-[11px] text-neutral-400">Desce título, cards e botão.</span>
+                </Field>
+              </Grid>
+              <div className="mt-2">
+                <Toggle label="🌑 Sombra no texto (legibilidade sobre imagem)" value={s.titleShadow ?? false} onChange={(v) => p({ titleShadow: v } as Partial<Step>)} />
+              </div>
+            </div>
+          ) : null}
 
           <div className="rounded-xl bg-neutral-50 p-3">
             <div className="mb-2 flex items-center justify-between">
@@ -265,6 +340,12 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                   onChange={(e) => p({ perdedoresOpacidade: Number(e.target.value) } as Partial<Step>)}
                   className="w-full accent-neutral-900" />
                 <span className="mt-0.5 block text-[11px] text-neutral-400">Quanto menor, mais o prêmio ganho se destaca.</span>
+              </Field>
+              <Field label={`Escurecimento da tela ao revelar: ${s.escurecimento ?? 68}%`} full>
+                <input type="range" min={0} max={100} value={s.escurecimento ?? 68}
+                  onChange={(e) => p({ escurecimento: Number(e.target.value) } as Partial<Step>)}
+                  className="w-full accent-neutral-900" />
+                <span className="mt-0.5 block text-[11px] text-neutral-400">Efeito holofote: só o prêmio e o botão de redirect ficam iluminados. 0% desliga.</span>
               </Field>
             </Grid>
           </div>

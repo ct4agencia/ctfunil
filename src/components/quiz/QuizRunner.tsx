@@ -56,6 +56,7 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
       : dark
         ? "radial-gradient(120% 80% at 50% 35%, #2a1d4d 0%, #150f29 55%, #0a0a1a 100%)"
         : "var(--q-bg)";
+  const bgImagem = /\burl\(/i.test(rootBg);
   // texto adapta ao fundo: se o fundo aplicado for escuro, texto claro
   const effectiveDark = dark || bgIsDark(rootBg);
   const ap = step.appearance;
@@ -121,6 +122,16 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
         ...(ap?.titleWeight ? { ["--q-title-weight"]: String(ap.titleWeight) } : {}),
         ...(ap?.titleColor ? { ["--q-title-color"]: ap.titleColor } : {}),
         background: rootBg,
+        // Imagem de fundo precisa das opções de enquadramento junto: sem elas o
+        // CSS assume `auto` + `repeat` e a arte vira mosaico (a foto 16:9 se
+        // repetia na tela 9:16). Só entra quando o fundo é imagem.
+        ...(bgImagem
+          ? {
+              backgroundSize: (step as { bgSize?: string }).bgSize ?? "cover",
+              backgroundPosition: (step as { bgPosition?: string }).bgPosition ?? "center",
+              backgroundRepeat: "no-repeat",
+            }
+          : {}),
         color: "var(--q-text)",
       } as React.CSSProperties}
     >

@@ -196,12 +196,21 @@ export interface ScratchStep extends BaseStep {
   coverColor2?: string;
   /** cor do texto "RASPE AQUI" na capa */
   coverTextColor?: string;
-  /** emoji acima do texto da capa (padrão 👆; vazio esconde) */
-  coverEmoji?: string;
-  /** tamanho em px do texto da capa (padrão 15) */
+  /** tamanho em px do texto da capa (padrão 15). O texto quebra linha sozinho. */
   coverTextSize?: number;
+  /** escurecimento (0-100) da tela ao revelar; o prêmio e o botão ficam acima */
+  escurecimento?: number;
   /** fundo full-screen da lâmina: cor, gradiente (linear/radial) ou url(imagem) */
   background?: string;
+  /** como a imagem de fundo se encaixa (padrão cover) */
+  bgSize?: "cover" | "contain" | "auto";
+  /** ancoragem da imagem de fundo (padrão "center") */
+  bgPosition?: string;
+  /** espaço em px no topo do conteúdo — desce texto/cards/botão pra não cobrir
+   *  a arte do fundo (ex.: logo no topo de uma imagem 16:9 exibida em 9:16) */
+  topSpacing?: number;
+  /** sombra atrás do título/subtítulo, pra ler sobre fundo com imagem */
+  titleShadow?: boolean;
   /** liga/desliga o painel de premiação (quando off, só o card em destaque) */
   popupEnabled?: boolean;
   /** opacidade (0-100) dos cards NÃO premiados depois da revelação (padrão 45) */

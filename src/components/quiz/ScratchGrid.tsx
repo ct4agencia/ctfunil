@@ -65,7 +65,7 @@ function BotaoWhats({ onClick, children }: { onClick: () => void; children: Reac
 
 /** Um card raspável. Avisa o pai quando passa do limiar. */
 function Card({
-  card, cover, cover2, coverGradiente, coverText, coverTextColor, coverEmoji, coverTextSize,
+  card, cover, cover2, coverGradiente, coverText, coverTextColor, coverTextSize,
   revealPct, revealed, disabled, destaque, destaqueBg, destaqueText, opacidadePerdedor, pulsarAntes,
   onFirstTouch, onReveal,
 }: {
@@ -76,8 +76,6 @@ function Card({
   coverGradiente: boolean;
   coverText: string;
   coverTextColor: string;
-  /** emoji acima do texto da capa (vazio = sem emoji) */
-  coverEmoji: string;
   coverTextSize: number;
   revealPct: number;
   revealed: boolean;
@@ -120,14 +118,29 @@ function Card({
     g.fillRect(0, 0, CW, CH);
     g.fillStyle = coverTextColor;
     g.textAlign = "center";
-    const temEmoji = !!coverEmoji;
-    if (temEmoji) {
-      g.font = "26px serif";
-      g.fillText(coverEmoji, CW / 2, CH / 2 - 14);
-    }
     g.font = `bold ${coverTextSize}px Poppins, system-ui, sans-serif`;
-    g.fillText(coverText, CW / 2, CH / 2 + (temEmoji ? 20 : 6));
-  }, [cover, cover2, coverGradiente, coverText, coverTextColor, coverEmoji, coverTextSize]);
+
+    // QUEBRA DE LINHA automática: com fonte grande (ex.: 50px) o texto estourava
+    // a largura do card e era cortado ("ASPE AQUI"). Emoji entra no próprio
+    // texto e quebra junto, como qualquer palavra.
+    const maxW = CW * 0.86;
+    const linhas: string[] = [];
+    let atual = "";
+    for (const palavra of coverText.split(/\s+/).filter(Boolean)) {
+      const teste = atual ? `${atual} ${palavra}` : palavra;
+      if (g.measureText(teste).width > maxW && atual) {
+        linhas.push(atual);
+        atual = palavra;
+      } else {
+        atual = teste;
+      }
+    }
+    if (atual) linhas.push(atual);
+
+    const alturaLinha = coverTextSize * 1.15;
+    const topo = CH / 2 - ((linhas.length - 1) * alturaLinha) / 2 + coverTextSize * 0.35;
+    linhas.forEach((l, i) => g.fillText(l, CW / 2, topo + i * alturaLinha));
+  }, [cover, cover2, coverGradiente, coverText, coverTextColor, coverTextSize]);
 
   // revelado por fora (os "outros" cards, depois do popup): limpa a capa
   useEffect(() => {
@@ -179,7 +192,9 @@ function Card({
   return (
     <motion.div
       className="relative w-full rounded-xl"
-      style={{ aspectRatio: `${CW} / ${CH}`, zIndex: destaque ? 2 : 1 }}
+      // z-50 no premiado: fica ACIMA do escurecimento da tela (z-40), criando o
+      // efeito de holofote — só ele e o botão de redirect ficam iluminados.
+      style={{ aspectRatio: `${CW} / ${CH}`, zIndex: destaque ? 50 : 1 }}
       // ANTES de raspar: todos pulsam (convida ao toque).
       // DEPOIS: só o premiado continua pulsando; os outros param e recuam.
       animate={destaque || pulsarAntes ? { scale: [1, 1.06, 1] } : { scale: 1 }}
@@ -265,6 +280,9 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
    *  todos    = os demais cards também aparecem (por baixo do popup) */
   type Estado = { prize: number; pos: number; fase: "raspando" | "popup" | "todos" };
   const [estado, setEstado] = useState<Estado | null>(null);
+  /** espelho síncrono do estado: o updater do setEstado roda depois, e o
+   *  onReveal precisa saber o prêmio NA HORA pra disparar som/confete/trava. */
+  const estadoRef = useRef<Estado | null>(null);
   const prizeIdx = estado?.prize ?? null;
   const openedPos = estado?.pos ?? null;
   // popupEnabled desligado: revela os cards, destaca o prêmio, solta confete e
@@ -286,8 +304,10 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
       if (!raw) return;
       const s = JSON.parse(raw) as { prize: number; pos: number };
       if (typeof s?.prize === "number" && typeof s?.pos === "number") {
+        const novo = { prize: s.prize, pos: s.pos, fase: "todos" as const };
+        estadoRef.current = novo;
         // eslint-disable-next-line react-hooks/set-state-in-effect -- restaurar estado persistido; roda 1x
-        setEstado({ prize: s.prize, pos: s.pos, fase: "todos" });
+        setEstado(novo);
       }
     } catch { /* storage bloqueado: segue normal */ }
   }, [lockKey, step.oncePerDevice, ctx.preview]);
@@ -295,28 +315,39 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
   /** 1º toque: fixa o card escolhido e SORTEIA o prêmio na hora. A partir daqui
    *  os outros cards ficam travados — é isso que elimina o spoiler. */
   const onFirstTouch = useCallback((pos: number) => {
-    setEstado((e) => (e ? e : { prize: pickByWeight(cards), pos, fase: "raspando" }));
+    if (estadoRef.current) return; // já escolheu: ignora toque nos outros
+    const novo = { prize: pickByWeight(cards), pos, fase: "raspando" as const };
+    estadoRef.current = novo;
+    setEstado(novo);
   }, [cards]);
 
   const onReveal = useCallback((pos: number) => {
-    // usa a forma funcional pra ler o estado atual sem depender dele nas deps
-    let idx = -1;
-    setEstado((e) => {
-      if (e && e.fase !== "raspando") return e; // já revelou: ignora
-      idx = e?.prize ?? pickByWeight(cards);
-      return { prize: idx, pos, fase: "popup" };
-    });
-    if (idx < 0) return;
-    if (!ctx.preview) {
-      // som: .mp3 do construtor, ou o padrão sintetizado
-      if (step.sound?.enabled) { if (step.sound.winUrl) playUrl(step.sound.winUrl); else playWin(); }
-      // confete a partir do topo, onde o painel aparece
-      if (step.confete ?? true) {
-        import("canvas-confetti").then((m) => m.default({ particleCount: 200, spread: 100, origin: { y: 0.2 } })).catch(() => {});
-      }
-      if (step.oncePerDevice) {
-        try { localStorage.setItem(lockKey, JSON.stringify({ prize: idx, pos })); } catch { /* noop */ }
-      }
+    // `ref` em vez do updater do setEstado: o callback do setEstado roda DEPOIS
+    // (é assíncrono), então ler `idx` na linha seguinte devolvia -1 e o guard
+    // abortava som, confete e trava. O ref é lido na hora.
+    const jaRevelou = estadoRef.current && estadoRef.current.fase !== "raspando";
+    if (jaRevelou) return;
+    const idx = estadoRef.current?.prize ?? pickByWeight(cards);
+    const novo = { prize: idx, pos, fase: "popup" as const };
+    estadoRef.current = novo;
+    setEstado(novo);
+
+    // Som e confete RODAM no preview: são justamente o que se ajusta no
+    // construtor, e não deixam rastro. Só a trava por dispositivo fica de fora
+    // (senão o 1º teste no construtor queimaria a raspagem do próprio editor).
+    if (step.sound?.enabled) { if (step.sound.winUrl) playUrl(step.sound.winUrl); else playWin(); }
+    // CONFETE acima de tudo. A própria lib aceita `zIndex` — tentei criar um
+    // canvas manual com create() e o confete parou de aparecer; esta é a
+    // chamada simples, que funciona, com o z-index no topo da pilha.
+    if (step.confete ?? true) {
+      import("canvas-confetti").then((m) => {
+        const opts = { zIndex: 2147483647, disableForReducedMotion: true };
+        m.default({ ...opts, particleCount: 160, spread: 100, origin: { y: 0.25 } });
+        setTimeout(() => m.default({ ...opts, particleCount: 120, spread: 120, origin: { y: 0.35 } }), 250);
+      }).catch(() => {});
+    }
+    if (!ctx.preview && step.oncePerDevice) {
+      try { localStorage.setItem(lockKey, JSON.stringify({ prize: idx, pos })); } catch { /* noop */ }
     }
   }, [cards, ctx.preview, step.sound, step.oncePerDevice, step.confete, lockKey]);
 
@@ -346,10 +377,35 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
         <div
           aria-hidden
           className="pointer-events-none fixed inset-0 -z-10"
-          style={{ background: step.background, backgroundSize: "cover", backgroundPosition: "center" }}
+          style={{
+            background: step.background,
+            // imagem 16:9 exibida em tela 9:16: "cover" + âncora no topo mantém
+            // a arte de cima (ex.: a logo) visível em vez de cortá-la.
+            backgroundSize: step.bgSize ?? "cover",
+            backgroundPosition: step.bgPosition ?? "center",
+            backgroundRepeat: "no-repeat",
+          }}
         />
       ) : null}
+
+      {/* HOLOFOTE: escurece a tela inteira ao revelar. O card premiado e o botão
+          de redirect sobem pra z-50 e ficam iluminados. Vale mesmo com o painel
+          desligado — é escurecimento de cena, não fundo de modal. */}
+      <AnimatePresence>
+        {revelado ? (
+          <motion.div
+            aria-hidden
+            className="pointer-events-none fixed inset-0 z-40"
+            style={{ background: `rgba(0,0,0,${Math.min(1, Math.max(0, Number(step.escurecimento ?? 68) / 100))})` }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+          />
+        ) : null}
+      </AnimatePresence>
       <StepShell center>
+        {/* Espaço no topo: desce texto/cards/botão pra não cobrir a arte do
+            fundo (ex.: logo no topo de uma imagem 16:9 exibida em 9:16). */}
+        {step.topSpacing ? <div aria-hidden style={{ height: Number(step.topSpacing) }} /> : null}
         {/* Título respeita a aba Aparência: o QuizRunner publica --q-title-*
             a partir de step.appearance (cor, tamanho, peso, alinhamento).
             Antes eu fixava tamanho/cor aqui e esses campos não faziam nada. */}
@@ -362,6 +418,8 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
             fontWeight: "var(--q-title-weight, 800)" as React.CSSProperties["fontWeight"],
             color: "var(--q-title-color, var(--q-text))",
             textAlign: "var(--q-title-align, center)" as React.CSSProperties["textAlign"],
+            // sombra pra o texto continuar legível sobre imagem de fundo
+            textShadow: step.titleShadow ? "0 2px 12px rgba(0,0,0,.75), 0 1px 3px rgba(0,0,0,.9)" : undefined,
           }}
         >
           <RichText text={interp(step.title, ctx)} />
@@ -371,7 +429,14 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
             className={`mt-2 text-sm text-[var(--q-text-muted)] ${editavel}`}
             onClick={edit("subtitle")}
             title={editing ? "Clique para editar no painel" : undefined}
-            style={{ textAlign: "var(--q-title-align, center)" as React.CSSProperties["textAlign"] }}
+            style={{
+              textAlign: "var(--q-title-align, center)" as React.CSSProperties["textAlign"],
+              // com sombra ligada há imagem de fundo: o cinza padrão some, então
+              // o subtítulo passa a branco translúcido.
+              ...(step.titleShadow
+                ? { color: "rgba(255,255,255,.92)", textShadow: "0 1px 8px rgba(0,0,0,.85)" }
+                : {}),
+            }}
           >
             <RichText text={interp(step.subtitle, ctx)} />
           </p>
@@ -390,7 +455,6 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               coverGradiente={step.coverStyle === "gradient"}
               coverText={step.coverText ?? "RASPE AQUI"}
               coverTextColor={step.coverTextColor ?? "rgba(0,0,0,.38)"}
-              coverEmoji={step.coverEmoji ?? "👆"}
               coverTextSize={Number(step.coverTextSize ?? 15)}
               opacidadePerdedor={Math.min(1, Math.max(0, Number(step.perdedoresOpacidade ?? 45) / 100))}
               // enquanto ninguém tocou, todos pulsam chamando pro toque
@@ -431,30 +495,32 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
       <AnimatePresence>
         {popup && premio ? (
           <motion.div
-            className="pointer-events-none fixed inset-0 z-40 flex items-start justify-center p-4 pt-6"
-            style={{ background: "rgba(0,0,0,.55)" }}
+            className="pointer-events-none fixed inset-0 z-50 flex items-start justify-center p-4 pt-6"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           >
+            {/* COMPACTO: faixa no topo, não um card grande — antes cobria os
+                dois primeiros cards da grade. */}
             <motion.div
-              className="w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl"
+              className="w-full max-w-[300px] rounded-2xl px-4 py-3 text-center shadow-xl"
               style={{ background: step.popupBg || "#16a34a", color: step.popupText || "#ffffff" }}
               initial={{ scale: 0.85, y: -24 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 22 }}
             >
-              <div className="text-5xl">{premio.emoji || "🎉"}</div>
-              <p className="mt-1 text-3xl font-black uppercase leading-tight tracking-tight">
-                <RichText text={interp(premio.popupTitle || step.winTitle || "Parabéns!", ctx)} />
-              </p>
-              <p className="mt-1 text-sm font-medium opacity-90">
+              <div className="flex items-center justify-center gap-1.5">
+                <span className="text-xl leading-none">{premio.emoji || "🎉"}</span>
+                <p className="text-base font-black uppercase leading-none tracking-tight">
+                  <RichText text={interp(premio.popupTitle || step.winTitle || "Parabéns!", ctx)} />
+                </p>
+              </div>
+              <p className="mt-0.5 text-[11px] font-medium opacity-90">
                 <RichText text={interp(premio.popupBody || step.winBody || "Você ganhou...", ctx)} />
               </p>
-              {/* PRÊMIO em destaque, pulsando. O popup é INFORMATIVO e não tem
-                  botão: o único clique da tela é o de redirect, logo abaixo da
-                  grade (antes exigia fechar o popup e depois clicar). */}
+              {/* PRÊMIO em destaque, pulsando. O painel é INFORMATIVO e não tem
+                  botão: o único clique da tela é o de redirect, abaixo da grade. */}
               <motion.div
-                className="mt-4 rounded-2xl px-5 py-4 text-2xl font-black shadow-lg"
+                className="mt-2 rounded-xl px-3 py-2 text-base font-black leading-tight shadow-md"
                 style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "#16a34a" }}
-                animate={{ scale: [1, 1.05, 1] }}
+                animate={{ scale: [1, 1.04, 1] }}
                 transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
               >
                 {premio.label}
