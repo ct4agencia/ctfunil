@@ -52,6 +52,26 @@ export default function PixelScripts({
    * contrato de antes; a diferença é que a fila espera a página pintar.
    *
    * `once:true` em cada listener mais a trava `feito`: a fila roda UMA vez só.
+   *
+   * POR QUE NÃO `next/script strategy="lazyOnload"` (a opção nativa)
+   * Fonte: node_modules/next/dist/docs/01-app/03-api-reference/02-components/
+   * script.md:188 — Next 16.2.7, a versão instalada aqui: "injected into the
+   * HTML client-side during browser idle time and will load after all
+   * resources on the page have been fetched".
+   *
+   * Duas lacunas para este caso:
+   *  1. `lazyOnload` espera TODOS os recursos da página + idle. Num funil em 4G
+   *     ruim, o lead que toca no botão do hero aos 3 s ainda não teria o pixel
+   *     carregado. `__ct4defer` dispara na PRIMEIRA INTERAÇÃO — exatamente
+   *     quem se quer atribuir. As outras estratégias também não servem:
+   *     `beforeInteractive` carrega antes da hidratação (é o defeito que
+   *     estamos consertando), `afterInteractive` é o default e carrega cedo
+   *     demais, e `worker` é experimental — pela mesma doc (scripts.md:128),
+   *     "does not yet work with the App Router".
+   *  2. Ela adia o DOWNLOAD, não substitui o stub. Quem garante que o
+   *     `fbq('track','PageView')` existe desde o milissegundo zero é o script
+   *     inline do SSR abaixo, que continua igual — `next/script` não resolve
+   *     essa metade.
    */
   const AGENDADOR = `(function(){if(window.__ct4defer)return;var fila=[],feito=false,t=0,obs=null;
 var evs=['pointerdown','touchstart','keydown','wheel','scroll'];
