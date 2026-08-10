@@ -55,6 +55,18 @@ export interface InleadVariable { id: string; name: string; values: string[] }
 export interface Layer {
   id: string;
   type: LayerType;
+  /**
+   * ID/Nome legível deste bloco — vira o chip na aba Leads e o cabeçalho no CSV
+   * (padrão inlead: "options: Faixa_Etaria" em vez de "options: XMMdV8").
+   *
+   * `id` é gerado aleatório e NÃO pode mudar: é a chave que liga a resposta
+   * gravada à coluna. Este campo é só o rótulo, por isso renomear aqui nunca
+   * órfã o histórico — é a regra de ouro de `lib/quiz/colunas.ts`.
+   *
+   * `colunas.ts` já lia este campo, mas não existia UI para preenchê-lo: em
+   * todos os funis ele está null e a coluna caía no id opaco.
+   */
+  webhookKey?: string;
   title?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   design?: any;
@@ -112,6 +124,16 @@ export interface Layer {
 export interface InleadStep {
   id: string;
   title: string;
+  /**
+   * ID/Nome legível da LÂMINA. Nomeia a coluna quando a lâmina não tem bloco
+   * respondível (slider, raspadinha, medidor, roleta, texto): essas viram a
+   * coluna "Passou", cuja chave era o `id` aleatório da lâmina.
+   *
+   * Também é o fallback do bloco — é daqui que vêm os "Faixa_Etaria" e
+   * "Fez_Curso" que já aparecem no cdb-01, gravados por script antes de existir
+   * campo na tela.
+   */
+  webhookKey?: string;
   /** false/true: lâmina desativada é PULADA no funil publicado (sem deletar). */
   disabled?: boolean;
   /**

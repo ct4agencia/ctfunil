@@ -16,6 +16,9 @@ import DevicePreview, { DEFAULT_DEVICE, type Zoom } from "@/components/builder/D
 // viram dois comportamentos diferentes na primeira mudança.
 import StepEditor from "@/components/builder/StepEditor";
 import { HtmlField } from "@/components/builder/fields";
+// Mesma normalização que gera o cabeçalho do CSV — se o construtor tivesse a
+// dele, o nome digitado e o nome exportado divergiriam no primeiro acento.
+import { normalizarChave } from "@/lib/quiz/colunas";
 import dynamic from "next/dynamic";
 // Mapa do funil: só carrega ao abrir a aba Fluxo (SVG + animação ficam fora do
 // chunk de quem só usa o construtor).
@@ -201,6 +204,56 @@ function ImageField({ value, onChange }: { value?: string; onChange: (v: string)
 
 const Lbl = ({ children }: { children: React.ReactNode }) => <label className="mb-1 mt-2 block text-[11px] font-semibold text-neutral-500">{children}</label>;
 const inp = "w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs";
+
+/** Tipos de bloco que viram coluna na aba Leads — espelha `lib/quiz/colunas.ts`. */
+const GERA_COLUNA = new Set<string>(["options", "button", "field"]);
+
+/**
+ * ID/Nome de um bloco ou de uma lâmina: o rótulo que vira chip na aba Leads e
+ * cabeçalho no CSV ("options: Faixa_Etaria" em vez de "options: XMMdV8").
+ *
+ * Grava em `webhookKey`, NUNCA em `id`. O `id` é a chave que liga a resposta já
+ * gravada à coluna — trocá-lo orfanaria todo o histórico do funil. É por isso
+ * que renomear aqui é sempre seguro.
+ *
+ * Commit no blur e no Enter, nunca a cada tecla: normalizar durante a digitação
+ * trocaria o espaço de "Faixa Etaria" por "_" no instante em que ele é digitado,
+ * e o cursor saltaria.
+ */
+function CampoId({ valor, aoSalvar, automatico, ajuda }: {
+  valor?: string;
+  aoSalvar: (v: string | undefined) => void;
+  automatico: string;
+  ajuda: string;
+}) {
+  const [txt, setTxt] = useState(valor ?? "");
+  const commit = () => {
+    const limpo = normalizarChave(txt);
+    setTxt(limpo);
+    // vazio vira undefined: some do JSON e o fallback automático volta a valer
+    if (limpo !== (valor ?? "")) aoSalvar(limpo || undefined);
+  };
+  return (
+    <div className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 p-2.5">
+      <Lbl>ID / Nome</Lbl>
+      <input
+        value={txt}
+        onChange={(e) => setTxt(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }}
+        placeholder={automatico}
+        spellCheck={false}
+        className={inp}
+      />
+      <p className="mt-1 text-[10px] leading-snug text-neutral-500">{ajuda}</p>
+      {!txt ? (
+        <p className="mt-0.5 text-[10px] leading-snug text-neutral-400">
+          Vazio = usa o código automático <code className="rounded bg-neutral-200 px-1">{automatico}</code>.
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 /** Lê/escreve o alinhamento (classe ql-align-*) no HTML do bloco. */
 function htmlAlign(html?: string): "left" | "center" | "right" {
@@ -462,7 +515,25 @@ function RightPanel({ layer, steps, onChange }: { layer: Layer; steps: InleadSte
         ))}
       </div>
       <div className="p-3">
-        {t === "componente" ? <LayerFields layer={layer} steps={steps} onChange={onChange} /> : null}
+        {t === "componente" ? (
+          <>
+            {GERA_COLUNA.has(layer.type) ? (
+              <CampoId
+                valor={layer.webhookKey}
+                aoSalvar={(v) => onChange({ ...layer, webhookKey: v })}
+                automatico={layer.id}
+                ajuda="Nomeia a coluna deste bloco na aba Leads e no CSV exportado."
+              />
+            ) : (
+              <p className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 p-2.5 text-[10px] leading-snug text-neutral-500">
+                Este bloco não gera coluna própria na aba Leads. Quem nomeia a
+                coluna da lâmina é o <b>ID / Nome</b> da <b>Etapa</b> — clique no
+                fundo do celular para desselecionar o bloco e o painel aparece.
+              </p>
+            )}
+            <LayerFields layer={layer} steps={steps} onChange={onChange} />
+          </>
+        ) : null}
         {t === "aparencia" ? <Appearance layer={layer} onChange={onChange} /> : null}
         {t === "exibicao" ? <Exibicao layer={layer} onChange={onChange} /> : null}
       </div>
@@ -1179,6 +1250,17 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
               </label>
               {step?.disabled ? <p className="-mt-1 text-[11px] text-amber-600">Esta lâmina é PULADA no funil publicado (continua aqui pra reativar).</p> : null}
               <div><Lbl>Título</Lbl><input value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className={inp} /></div>
+
+              {/* `key` obrigatório: este painel NÃO remonta ao trocar de lâmina
+                  (diferente do RightPanel, que tem key={sel.id}), então sem ele
+                  o campo continuaria mostrando o ID da lâmina anterior. */}
+              <CampoId
+                key={selStep}
+                valor={step?.webhookKey}
+                aoSalvar={(v) => patchStep(selStep, { webhookKey: v })}
+                automatico={step?.id || ""}
+                ajuda="Nomeia a coluna desta lâmina quando ela não tem pergunta — slider, raspadinha, medidor, roleta, texto. Vale também como nome padrão dos blocos dela."
+              />
 
               {/* Imagem de fundo da lâmina (estilo inlead: ajuste + posição + opacidade) */}
               {(() => {

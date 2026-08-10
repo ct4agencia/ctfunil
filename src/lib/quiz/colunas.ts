@@ -54,6 +54,24 @@ export interface FunnelColGroup {
 
 const LABEL: Record<ColKind, string> = { options: "Opções", button: "Botão", field: "Campo", passou: "Passou" };
 
+/**
+ * Normaliza o ID/Nome digitado no construtor.
+ *
+ * O valor vira chave de webhook e cabeçalho de CSV, então acento e espaço
+ * atrapalham quem consome do outro lado. "Faixa Etária" -> "Faixa_Etaria",
+ * o mesmo padrão do inlead e dos nomes que já existem no cdb-01.
+ *
+ * Devolve "" para entrada só de símbolos — aí `keyOf` cai no próximo fallback
+ * em vez de criar uma coluna sem nome.
+ */
+export function normalizarChave(v: string): string {
+  return (v || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")    // á -> a
+    .replace(/[^A-Za-z0-9_-]+/g, "_")                    // espaço, ç, pontuação
+    .replace(/^_+|_+$/g, "")                             // sem _ nas pontas
+    .slice(0, 40);
+}
+
 /** Remove HTML do Quill e normaliza espaços. */
 const semTags = (h?: unknown): string =>
   String(h ?? "").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
@@ -123,7 +141,11 @@ export function colunasDoFunil(steps: any[]): FunnelCol[] {
     // TODA lâmina ativa precisa de pelo menos uma coluna. As puramente
     // informativas (VAGAS, Pós-Captura, Carregando…) não têm o que responder,
     // mas mostram se a lead chegou até ali — que é como se vê onde ela parou.
-    if (cols.length === antes) push("passou", stepId, stepId);
+    //
+    // A chave vem do `webhookKey` da LÂMINA porque aqui não há bloco para
+    // nomear: é o único jeito de a coluna de um slider, raspadinha ou medidor
+    // deixar de se chamar "zSikDv" na planilha.
+    if (cols.length === antes) push("passou", String(step?.webhookKey || stepId), stepId);
   });
   return cols;
 }
