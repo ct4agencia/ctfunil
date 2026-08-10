@@ -45,6 +45,11 @@ export async function POST(request: Request) {
   const { error } = await admin.storage.from(BUCKET).upload(path, body, {
     contentType,
     upsert: false,
+    // Sem isto o Storage serve `cache-control: no-cache` e o navegador revalida
+    // a imagem do hero em TODA visita — medido em produção no cdb-01
+    // (cdb01-bolsas-bg.webp, 124 KB, no-cache). O caminho embute `Date.now()`,
+    // então o conteúdo nunca muda sob o mesmo nome: cache de um ano é seguro.
+    cacheControl: "31536000",
   });
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
