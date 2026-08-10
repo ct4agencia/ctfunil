@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateVsl, deleteVsl } from "@/app/admin/actions";
+import ColorField from "@/components/ui/ColorField";
 import { type VslInput } from "@/lib/types";
 
 // ── Campos reutilizáveis ──────────────────────────────────────
@@ -180,11 +181,11 @@ export default function VslForm({
       >
         <Field label="Cor primária da marca">
           <div className="flex items-center gap-3">
-            <input
-              type="color"
-              className="h-10 w-14 cursor-pointer rounded border border-slate-300"
+            <ColorField
+              className="h-10 w-14"
+              label="Cor primária da marca"
               value={form.primary_color}
-              onChange={(e) => set("primary_color", e.target.value)}
+              onChange={(v) => set("primary_color", v)}
             />
             <input
               className={inputCls}
