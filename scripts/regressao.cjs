@@ -168,11 +168,22 @@ async function checarPermissoes(svc) {
 
 function comparar(base, novo) {
   const probs = [];
+  const avisos = [];
   const byslug = new Map(base.funis.map((f) => [f.slug, f]));
 
   for (const n of novo.funis) {
     const b = byslug.get(n.slug);
-    if (!b) { probs.push(`NOVO funil "${n.slug}" apareceu (nao estava no baseline)`); continue; }
+    if (!b) {
+      // Funil NOVO não é regressão — criar funil é o uso normal do app. Vira
+      // aviso. Só reprova se já nascer fora do ar, o que aí sim indica que
+      // alguma coisa quebrou no caminho de publicação.
+      if (n.status === "published" && n.http !== undefined && n.http !== 200) {
+        probs.push(`funil novo "${n.slug}" nasceu FORA DO AR — HTTP ${n.http}${n.erro ? " (" + n.erro + ")" : ""}`);
+      } else {
+        avisos.push(`funil novo: "${n.slug}" (${n.laminasAtivas} laminas ativas)`);
+      }
+      continue;
+    }
     byslug.delete(n.slug);
     if (b.status !== n.status) probs.push(`${n.slug}: status ${b.status} -> ${n.status}`);
     if (b.laminasAtivas !== n.laminasAtivas) probs.push(`${n.slug}: laminas ATIVAS ${b.laminasAtivas} -> ${n.laminasAtivas}`);
@@ -205,7 +216,7 @@ function comparar(base, novo) {
     if (k.startsWith("tracking") && v !== "ok") probs.push(`TRACKING QUEBRADO: ${k} -> ${v}`);
     if (k.startsWith("brecha") && v !== "fechada") probs.push(`SEGURANCA: ${k} -> ${v}`);
   }
-  return probs;
+  return { probs, avisos };
 }
 
 async function main() {
@@ -233,7 +244,14 @@ async function main() {
     process.exit(2);
   }
   const base = JSON.parse(readFileSync(BASELINE, "utf8"));
-  const probs = comparar(base, dados);
+  const { probs, avisos } = comparar(base, dados);
+  // Avisos NÃO reprovam: são novidades esperadas (funil criado pelo Luca).
+  // Aparecem sempre, pra ninguém confundir "novo" com "quebrado".
+  if (avisos.length) {
+    console.log(`avisos (${avisos.length}) — nao reprovam o gate:`);
+    for (const a of avisos) console.log("  · " + a);
+    console.log("  rode `snapshot` pra incorporar ao baseline.\n");
+  }
   if (!probs.length) {
     console.log(`OK — nenhuma regressao. ${dados.funis.length} funis conferidos (baseline de ${base.gerado}).`);
     return;
