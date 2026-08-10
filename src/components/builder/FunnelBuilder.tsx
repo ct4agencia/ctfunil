@@ -13,6 +13,7 @@ import type { Funnel, Step, StepType } from "@/lib/quiz/types";
 import { STEP_LABELS, newStep } from "@/lib/quiz/types";
 import { PALETTES, getPalette } from "@/lib/quiz/theme";
 import QuizRunner from "@/components/quiz/QuizRunner";
+import DevicePreview, { DEFAULT_DEVICE } from "@/components/builder/DevicePreview";
 import StepEditor from "./StepEditor";
 import FunnelSettingsPanel from "./FunnelSettingsPanel";
 import { LeadsTab } from "./LayersBuilder";
@@ -23,21 +24,6 @@ const TYPE_ICON: Record<StepType, string> = {
   result: "🎯", offer: "🎁", capture: "📱", post_capture: "✅", bridge: "🌉", vsl: "▶️",
 };
 
-/**
- * Aparelhos do preview, em pixels REAIS de viewport (mesmos valores do device
- * toolbar do DevTools). A moldura antiga era 340x680 — proporção 1:2, que não
- * existe em celular nenhum. Isso fazia `background-size: cover` escalar a arte
- * diferente do aparelho de verdade, e o que se ajustava no construtor não batia
- * com o que a lead via. Agora o runner recebe a largura/altura de verdade e a
- * moldura só encolhe visualmente via transform.
- */
-const DEVICES = [
-  { id: "iphone-se", nome: "iPhone SE", w: 375, h: 667 },
-  { id: "iphone-14", nome: "iPhone 14 / 13 / 12", w: 390, h: 844 },
-  { id: "iphone-15-pro-max", nome: "iPhone 15 Pro Max", w: 430, h: 932 },
-  { id: "galaxy-s20", nome: "Galaxy S20", w: 360, h: 800 },
-  { id: "pixel-7", nome: "Pixel 7", w: 412, h: 915 },
-] as const;
 /** Largura que a coluna do preview reserva na tela do construtor. */
 const PREVIEW_W = 340;
 
@@ -116,8 +102,7 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">("construtor");
-  const [deviceId, setDeviceId] = useState<string>("iphone-14");
-  const device = DEVICES.find((d) => d.id === deviceId) ?? DEVICES[1];
+  const [deviceId, setDeviceId] = useState<string>(DEFAULT_DEVICE);
   const editorRef = useRef<HTMLElement>(null);
   const [flashEditor, setFlashEditor] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -316,52 +301,19 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
 
         {/* PREVIEW ao vivo (pula pra lâmina selecionada) */}
         <div className="lg:sticky lg:top-4 lg:h-fit">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="shrink-0 text-xs font-semibold text-neutral-500">Preview · lâmina {selIdx + 1}</span>
-            <div className="flex items-center gap-1.5">
-              <select
-                value={deviceId}
-                onChange={(e) => setDeviceId(e.target.value)}
-                title="Aparelho — o preview usa os pixels reais deste modelo"
-                className="rounded-md border border-neutral-300 bg-white px-1.5 py-1 text-xs font-semibold"
-              >
-                {DEVICES.map((d) => (
-                  <option key={d.id} value={d.id}>{d.nome} · {d.w}×{d.h}</option>
-                ))}
-              </select>
-              <button onClick={() => setNonce((n) => n + 1)} className="shrink-0 rounded-md border border-neutral-300 bg-white px-2 py-1 text-xs font-semibold">↻ Reiniciar</button>
-            </div>
-          </div>
-          {/* A moldura ocupa o tamanho JÁ ESCALADO; o miolo renderiza nos pixels
-              reais do aparelho e encolhe via transform. Assim `cover`, dvh e
-              media queries se comportam igual ao celular — 1:1 com o DevTools. */}
-          <div
-            className="mx-auto max-w-full overflow-hidden rounded-[2rem] border-[10px] border-neutral-900 bg-white shadow-xl"
-            style={{ width: PREVIEW_W, height: Math.round(device.h * (PREVIEW_W / device.w)) }}
+          <div className="mb-2 text-xs font-semibold text-neutral-500">Preview · lâmina {selIdx + 1}</div>
+          <DevicePreview
+            deviceId={deviceId}
+            onDeviceChange={setDeviceId}
+            fitWidth={PREVIEW_W}
+            onRestart={() => setNonce((n) => n + 1)}
+            scrollStyle={{
+              ["--q-display" as string]: (funnel.font === "poppins" || funnel.paletteId === "ambar-velas") ? "'Poppins', system-ui, sans-serif" : "Georgia, serif",
+              fontFamily: (funnel.font === "poppins" || funnel.paletteId === "ambar-velas") ? "'Poppins', system-ui, sans-serif" : undefined,
+            }}
           >
-            <div
-              className="qf-device origin-top-left"
-              style={{ width: device.w, height: device.h, transform: `scale(${PREVIEW_W / device.w})` }}
-            >
-              {/* Dentro do preview, 100dvh mediria a JANELA do construtor, não o
-                  aparelho — a lâmina ficaria mais alta que o celular real. Os 3
-                  motores usam esta mesma classe do Tailwind, então um override
-                  escopado alinha todos de uma vez. */}
-              <style>{`.qf-device .min-h-\\[100dvh\\]{min-height:${device.h}px}`}</style>
-              <div
-                className="h-full overflow-y-auto transform-gpu"
-                style={{
-                  ["--q-display" as string]: (funnel.font === "poppins" || funnel.paletteId === "ambar-velas") ? "'Poppins', system-ui, sans-serif" : "Georgia, serif",
-                  fontFamily: (funnel.font === "poppins" || funnel.paletteId === "ambar-velas") ? "'Poppins', system-ui, sans-serif" : undefined,
-                }}
-              >
-                <QuizRunner key={`${selectedId}-${funnel.paletteId}-${nonce}-${deviceId}`} funnel={funnel} startIndex={selIdx} preview onEdit={handleEditFromPreview} />
-              </div>
-            </div>
-          </div>
-          <p className="mt-1.5 text-center text-[11px] text-neutral-400">
-            {device.w}×{device.h} reais · exibido a {Math.round((PREVIEW_W / device.w) * 100)}%
-          </p>
+            <QuizRunner key={`${selectedId}-${funnel.paletteId}-${nonce}-${deviceId}`} funnel={funnel} startIndex={selIdx} preview onEdit={handleEditFromPreview} />
+          </DevicePreview>
         </div>
       </div>
       )}

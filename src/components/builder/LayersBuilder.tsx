@@ -10,6 +10,16 @@ import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
 import PerformanceView from "@/components/dashboard/PerformanceView";
+import DevicePreview, { DEFAULT_DEVICE, type Zoom } from "@/components/builder/DevicePreview";
+// Editor dos blocos-hero herdados do motor tipado (raspadinha, pedida, medidor,
+// VSL, parabéns). Reusado em vez de duplicado: dois editores do mesmo bloco
+// viram dois comportamentos diferentes na primeira mudança.
+import StepEditor from "@/components/builder/StepEditor";
+import { HtmlField } from "@/components/builder/fields";
+import dynamic from "next/dynamic";
+// Mapa do funil: só carrega ao abrir a aba Fluxo (SVG + animação ficam fora do
+// chunk de quem só usa o construtor).
+const LayersFlow = dynamic(() => import("@/components/builder/flow/LayersFlow"), { ssr: false });
 import { saveFunnelAction } from "@/app/builder/[slug]/actions";
 
 function genId() {
@@ -29,36 +39,35 @@ const BLOCK_META: Record<string, { icon: string; label: string }> = {
 const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Formulário", items: [["field", "Campo"], ["email", "E-mail"], ["phone", "Telefone"], ["button", "Botão"], ["number", "Número"], ["textarea", "Textarea"], ["date", "Data"], ["height", "Altura"], ["weight", "Peso"]] },
   { name: "Quiz", items: [["options", "Opções"], ["multi", "Múltipla Escolha"], ["single", "Escolha Única"], ["yesno", "Sim/Não"], ["videoanswer", "Vídeo Resposta"]] },
-  { name: "Jogos (hero)", items: [["roulette", "Roleta"], ["slider", "Slider 0–10"]] },
+  // Blocos-hero: ocupam a lâmina inteira. Vêm do motor tipado e nascem com
+  // preset pronto — adicionar e já funciona.
+  { name: "Jogos (hero)", items: [["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
+  { name: "Conversão (hero)", items: [["vsl", "VSL (vídeo + CTA)"], ["confirm", "Parabéns"]] },
   { name: "Mídia e conteúdo", items: [["text", "Texto"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
   { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"]] },
   { name: "Argumentação", items: [["arguments", "Argumentos"], ["testimonials", "Depoimentos"], ["faq", "FAQ"], ["price", "Preço"], ["checklist", "Checklist"], ["beforeafter", "Antes/Depois"], ["carousel", "Carrossel"]] },
   { name: "Gráficos", items: [["graphics", "Métricas"], ["charts", "Gráficos"]] },
   { name: "Personalização", items: [["clear", "Espaço"], ["html", "HTML/Script"]] },
 ];
+/** Blocos-hero que vieram do motor tipado — editados pelo StepEditor de lá. */
+const HERO_DO_TIPADO = new Set(["scratch", "measure", "gauge", "vsl", "confirm"]);
+/** Todos os heros com painel dedicado (os do tipado + slider/roleta nativos). */
+const HERO_EDITAVEL = new Set([...HERO_DO_TIPADO, "slider", "roulette"]);
+const ROTULO_HERO: Record<string, string> = {
+  scratch: "Raspadinha", measure: "Pedida (régua)", gauge: "Medidor",
+  vsl: "VSL", confirm: "Parabéns",
+};
 const PALETTE_ICON: Record<string, string> = {
   field: "📝", email: "✉️", phone: "📞", button: "🔘", number: "🔢", textarea: "📄", date: "📅", height: "📏", weight: "⚖️",
   options: "☑️", multi: "🗂️", single: "⚪", yesno: "🔀", videoanswer: "🎬", text: "🔤", image: "🖼️", video: "▶️", audio: "🔊",
   alert: "⚠️", notification: "🔔", timer: "⏱️", loading: "⏳", level: "📶", arguments: "💬", testimonials: "⭐", faq: "❓",
   price: "💲", checklist: "✅", beforeafter: "🔁", carousel: "🎠", graphics: "📊", charts: "📈", clear: "↕️", html: "▟",
-  roulette: "🎡", slider: "🎚️",
+  roulette: "🎡", slider: "🎚️", scratch: "🎟️", measure: "📐", gauge: "🎯", vsl: "🎥", confirm: "🎉",
 };
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
-const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed", "email", "phone", "video", "carousel", "roulette", "slider"]);
-
-/** Dispositivos do preview (mesmas dimensões CSS do DevTools) — validação 1:1. */
-const PREVIEW_DEVICES: { name: string; w: number; h: number }[] = [
-  { name: "iPhone 12/13/14", w: 390, h: 844 },
-  { name: "iPhone SE", w: 375, h: 667 },
-  { name: "iPhone XR / 11", w: 414, h: 896 },
-  { name: "iPhone 14 Pro Max", w: 430, h: 932 },
-  { name: "Pixel 7", w: 412, h: 915 },
-  { name: "Galaxy S8+", w: 360, h: 740 },
-  { name: "Galaxy S20 Ultra", w: 412, h: 915 },
-  { name: "Galaxy A51/71", w: 412, h: 914 },
-  { name: "Compacto (360×640)", w: 360, h: 640 },
-  { name: "iPad Mini", w: 768, h: 1024 },
-];
+const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
+  // blocos-hero herdados do motor tipado (todos com preset pronto)
+  "scratch", "measure", "gauge", "vsl", "confirm"]);
 
 function newLayer(type: LayerType): Layer {
   const id = genId();
@@ -77,120 +86,91 @@ function newLayer(type: LayerType): Layer {
     case "embed": case "video": return { ...base, content: { id, embedHtml: "" } };
     case "roulette": return { ...base, content: { id, type: "roulette", style: "soft", mode: "always", title: "Gire a roleta e descubra sua condição especial.", subtitle: "Você tem uma chance de liberar um benefício exclusivo agora.", cta: "Girar", initialIndex: 0, winningIndex: 0, winTitle: "🎉 Você ganhou!", winBody: "", winCta: "Continuar →", background: "#0b1f3a", segments: [{ label: "ACESSO GRÁTIS", color: "#008516", value: "" }, { label: "25% OFF", color: "#67c57a", value: "" }, { label: "Não foi dessa vez", color: "#f56161", value: "" }, { label: "15% OFF", color: "#9af4b9", value: "" }, { label: "Tente de novo", color: "#4a4845", value: "" }] } } as unknown as Layer;
     case "slider": return { ...base, content: { id, type: "slider", question: "De 0 a 10, o quanto você quer isso?", help: "Arraste o seletor para responder", min: 0, max: 10, step: 1 } } as unknown as Layer;
+
+    // ── blocos-hero herdados do motor tipado ──────────────────────────────────
+    // Todos nascem PRONTOS: adicionar e já funciona no preview, sem configurar
+    // nada. Era a diferença que fazia o motor tipado parecer mais completo — os
+    // blocos de lá vinham com preset e os daqui vinham vazios.
+    // Espelha a raspadinha que RODA em produção (premio-sonia), campo a campo —
+    // sem isso o construtor abria metade dos controles vazios e o bloco novo não
+    // se parecia com o que já está no ar. `ctaUrl` nasce vazio de propósito: o
+    // link de resgate é de cada funil.
+    case "scratch": return { ...base, content: {
+      id, type: "scratch",
+      title: "Raspe e descubra seu prêmio!",
+      subtitle: "Escolha um card e use o dedo para raspar.",
+      columns: 2, revealPct: 80, oncePerDevice: true,
+      coverText: "RASPE AQUI 🔥", coverStyle: "gradient",
+      coverColor: "#f7e08a", coverColor2: "#c08c1e", coverTextColor: "#4a1c05", coverTextSize: 50,
+      escurecimento: 68, perdedoresOpacidade: 45, confete: true, popupEnabled: false,
+      sound: { enabled: true },
+      titleShadow: true,
+      appearance: { titleColor: "#ffffff" },
+      // cores do painel de prêmio (o construtor já edita todas)
+      popupBg: "#16a34a", popupText: "#ffffff", popupBtnBg: "#ffffff",
+      destaqueBg: "", destaqueText: "#ffffff",
+      ctaUrl: "",
+      cta: "DESBLOQUEAR PRÊMIO 🎁", winCta: "DESBLOQUEAR PRÊMIO 🎁",
+      winTitle: "PARABÉNS!", winBody: "Você ganhou…",
+      cards: [
+        { label: "50% OFF", weight: 100, color: "#16a34a", popupTitle: "PARABÉNS!", popupBody: "Você ganhou…" },
+        { label: "TENTE NOVAMENTE", weight: 0, color: "#919191", popupTitle: "PARABÉNS!", popupBody: "Você ganhou…" },
+        { label: "10% OFF", weight: 0, color: "#919191", popupTitle: "PARABÉNS!", popupBody: "Você ganhou…" },
+        { label: "BÔNUS EXCLUSIVO", weight: 0, color: "#919191", popupTitle: "PARABÉNS!", popupBody: "Você ganhou…" },
+        { label: "FRETE GRÁTIS", weight: 0, color: "#919191", popupTitle: "PARABÉNS!", popupBody: "Você ganhou…" },
+        { label: "25% OFF", weight: 0, color: "#919191", popupTitle: "PARABÉNS!", popupBody: "Você ganhou…" },
+      ],
+    } } as unknown as Layer;
+
+    // "pedida": régua horizontal arrastável (a trena). O efeito de rolagem
+    // lateral já vem do MeasureStepView.
+    // `suffix` (não `unit`) — é o nome que MeasureStepView lê. `majorEvery`
+    // controla de quantos em quantos passos aparece o número na fita.
+    case "measure": return { ...base, content: {
+      id, type: "measure",
+      title: "Arraste para marcar a sua medida",
+      subtitle: "Deslize a régua para o lado",
+      min: 34, max: 48, step: 1, value: 40,
+      majorEvery: 5, suffix: "", units: [], haptic: true,
+      cta: "Continuar →",
+    } } as unknown as Layer;
+
+    // O rótulo do velocímetro vem da ZONA em que o ponteiro cai — um `label`
+    // solto no step nunca aparecia na tela.
+    case "gauge": return { ...base, content: {
+      id, type: "gauge",
+      title: "Seu potencial de resultado",
+      subtitle: "Calculado a partir das suas respostas",
+      mode: "fixed", value: 82,
+      scaleMin: 0, scaleMax: 100, ticks: 5, showValue: true, suffix: "%",
+      zones: [
+        { label: "BAIXO", color: "#ef4444", upTo: 40 },
+        { label: "MÉDIO", color: "#f59e0b", upTo: 70 },
+        { label: "ALTO", color: "#16a34a", upTo: 100 },
+      ],
+      cta: "Ver meu resultado →",
+    } } as unknown as Layer;
+
+    case "vsl": return { ...base, content: {
+      id, type: "vsl",
+      title: "Assista até o final",
+      embedHtml: "",
+      ctaDelaySec: 0, cta: "QUERO GARANTIR MINHA VAGA",
+    } } as unknown as Layer;
+
+    // "parabéns": celebração com confete
+    case "confirm": return { ...base, content: {
+      id, type: "confirm",
+      title: "🎉 Parabéns, {nome}!",
+      subtitle: "Você deu o primeiro passo. Continue para ver o que preparamos.",
+      cta: "Continuar →",
+    } } as unknown as Layer;
+
     default: return base;
   }
 }
 
-/** contentEditable WYSIWYG simples (negrito + cor) que devolve o HTML. */
-const EDITOR_FONTS = ["Poppins", "Arial", "Georgia", "Times New Roman", "Verdana", "Courier New"];
-const EDITOR_SIZES = [12, 14, 16, 18, 20, 24, 28, 34, 40, 48];
-const EDITOR_VARS: [string, string][] = [["{nome}", "Nome"], ["{cidade}", "Cidade"], ["{estado}", "Estado"]];
-
-function HtmlField({ value, onChange, theme = "#ea580c" }: { value?: string; onChange: (v: string) => void; theme?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const saved = useRef<Range | null>(null);
-  const [menu, setMenu] = useState<"para" | "var" | null>(null);
-  // contentEditable NÃO-controlado: re-sincroniza só quando a mudança vem de fora E o
-  // campo não está focado → enquanto digita nunca re-seta (não pula o cursor).
-  useEffect(() => {
-    const el = ref.current;
-    if (el && document.activeElement !== el && el.innerHTML !== (value || "")) el.innerHTML = value || "";
-  }, [value]);
-  const push = () => { if (ref.current) onChange(ref.current.innerHTML); };
-  const cmd = (c: string, v?: string) => { ref.current?.focus(); document.execCommand(c, false, v); push(); };
-  // salva/restaura a seleção (pros color pickers, que tiram o foco do campo)
-  const saveSel = () => { const s = window.getSelection(); if (s && s.rangeCount && ref.current?.contains(s.anchorNode)) saved.current = s.getRangeAt(0).cloneRange(); };
-  const withSel = (fn: () => void) => { ref.current?.focus(); const s = window.getSelection(); if (saved.current && s) { s.removeAllRanges(); s.addRange(saved.current); } fn(); push(); };
-  const setSize = (px: string) => {
-    const el = ref.current; if (!el) return; el.focus();
-    document.execCommand("fontSize", false, "7");
-    el.querySelectorAll('font[size="7"]').forEach((f) => { f.removeAttribute("size"); (f as HTMLElement).style.fontSize = `${px}px`; });
-    push();
-  };
-  const insHtml = (html: string) => { ref.current?.focus(); document.execCommand("insertHTML", false, html); push(); };
-  const wrapPill = () => {
-    const txt = window.getSelection()?.toString() || "destaque";
-    insHtml(`<span style="display:inline-block;margin:0 2px;border-radius:0.75rem;padding:0.1rem 0.6rem;font-weight:800;color:#fff;background:linear-gradient(95deg, #ea580c, #f28947);box-shadow:0 6px 16px -6px rgba(234,88,12,.55);">${txt}</span>&nbsp;`);
-  };
-  // entrelinhas: aplica line-height nos parágrafos do bloco (ou envolve o texto solto)
-  const setLineHeight = (lh: string) => {
-    const el = ref.current; if (!el) return; el.focus();
-    const blocks = el.querySelectorAll("p,h1,h2,h3,div,li");
-    if (blocks.length) blocks.forEach((bl) => { (bl as HTMLElement).style.lineHeight = lh; });
-    else el.innerHTML = `<div style="line-height:${lh}">${el.innerHTML}</div>`;
-    push();
-  };
-  const b = "grid h-7 min-w-[28px] place-items-center rounded border border-neutral-300 px-1.5 text-xs hover:bg-neutral-50";
-  const sel = "rounded border border-neutral-300 px-1 py-0.5 text-xs";
-  return (
-    <div>
-      <div className="mb-1 flex flex-wrap items-center gap-1">
-        <select title="Fonte" value="" onMouseDown={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.value) cmd("fontName", e.target.value); }} className={`${sel} max-w-[80px]`}>
-          <option value="">Fonte</option>{EDITOR_FONTS.map((f) => <option key={f} value={f}>{f}</option>)}
-        </select>
-        <select title="Tamanho do trecho" value="" onMouseDown={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.value) setSize(e.target.value); }} className={sel}>
-          <option value="">Tam ↕</option>{EDITOR_SIZES.map((s) => <option key={s} value={s}>{s}px</option>)}
-        </select>
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("bold"); }} className={`${b} font-bold`}>B</button>
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("italic"); }} className={`${b} italic`}>I</button>
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("underline"); }} className={`${b} underline`}>U</button>
-        <label className={`${b} relative cursor-pointer font-bold`} title="Cor da fonte" onMouseDown={saveSel}><span style={{ color: theme }}>A</span>
-          <input type="color" onChange={(e) => withSel(() => document.execCommand("foreColor", false, e.target.value))} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" /></label>
-        <label className={`${b} relative cursor-pointer`} title="Cor de fundo (grifado)" onMouseDown={saveSel}>🖊
-          <input type="color" onChange={(e) => withSel(() => document.execCommand("hiliteColor", false, e.target.value))} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" /></label>
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); wrapPill(); }} className={b} title="Caixa de destaque (pílula)">▭</button>
-        <button type="button" onClick={() => setMenu(menu === "para" ? null : "para")} className={b} title="Parágrafo / alinhamento">⋮</button>
-        <button type="button" onClick={() => setMenu(menu === "var" ? null : "var")} className={b} title="Inserir variável">{"{}"}</button>
-      </div>
-      {menu === "para" ? (
-        <div className="mb-1 space-y-1 rounded border border-neutral-200 bg-white p-1.5">
-          <div className="flex gap-1">
-            <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyLeft"); }} className={b} title="Esquerda">⬅</button>
-            <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyCenter"); }} className={b} title="Centro">↔</button>
-            <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyRight"); }} className={b} title="Direita">➡</button>
-          </div>
-          <div className="flex flex-wrap items-center gap-1">
-            <span className="text-[10px] font-semibold text-neutral-400">Entrelinhas:</span>
-            {([["1", "Simples"], ["1.15", "1,15"], ["1.5", "1,5"], ["2", "Duplo"]] as const).map(([lh, lbl]) => (
-              <button key={lh} type="button" onMouseDown={(e) => { e.preventDefault(); setLineHeight(lh); }} className={b}>{lbl}</button>
-            ))}
-          </div>
-        </div>
-      ) : null}
-      {menu === "var" ? (
-        <div className="mb-1 flex flex-wrap gap-1 rounded border border-neutral-200 bg-white p-1">
-          {EDITOR_VARS.map(([tok, lbl]) => (
-            <button key={tok} type="button" onMouseDown={(e) => { e.preventDefault(); insHtml(tok); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs hover:bg-neutral-50">{lbl}</button>
-          ))}
-        </div>
-      ) : null}
-      <div ref={ref} contentEditable suppressContentEditableWarning
-        onInput={() => onChange(ref.current?.innerHTML || "")}
-        className="min-h-[44px] rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900" />
-    </div>
-  );
-}
-
-/** Input de texto da roleta/slider (markup ==destaque== / **negrito**) com botões
- *  que envolvem o trecho selecionado — casa com o RichText que a roleta renderiza. */
-function MarkupField({ value, onChange, placeholder }: { value?: string; onChange: (v: string) => void; placeholder?: string }) {
-  const ref = useRef<HTMLInputElement>(null);
-  const wrap = (mark: string) => {
-    const el = ref.current; const v = value || "";
-    const s = el?.selectionStart ?? v.length, e = el?.selectionEnd ?? v.length;
-    const sel = v.slice(s, e) || "texto";
-    onChange(v.slice(0, s) + mark + sel + mark + v.slice(e));
-  };
-  return (
-    <div>
-      <div className="mb-1 flex gap-1">
-        <button type="button" onMouseDown={(ev) => { ev.preventDefault(); wrap("=="); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs font-bold text-orange-600">Destaque</button>
-        <button type="button" onMouseDown={(ev) => { ev.preventDefault(); wrap("**"); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs font-bold">Negrito</button>
-      </div>
-      <input ref={ref} value={value || ""} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={inp} />
-    </div>
-  );
-}
+/** Editor rico do construtor — agora compartilhado em builder/fields.tsx. */
 
 function ImageField({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
   const [busy, setBusy] = useState(false);
@@ -538,150 +518,15 @@ function DesignTab({ funnel, setFunnel }: { funnel: Funnel; setFunnel: (fn: (f: 
           <label key={k} className="flex cursor-pointer items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">{label}</span>
             <input type="checkbox" checked={!!hdr[k]} onChange={(e) => setHeader({ [k]: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
         ))}
-      </div>
-    </div>
-  );
-}
-
-// ───────────────────────── C — FLUXO (canvas de nós, estilo typebot) ─────────────────────────
-interface FlowExit { layerId: string; optId: string | null; label: string; dest?: string }
-const FLOW = { W: 250, HEAD: 42, ROW: 30, GAPY: 64, COLX: 96, PADB: 14 } as const;
-const flowExits = (s: InleadStep): FlowExit[] => {
-  const exits: FlowExit[] = [];
-  (s.layers || []).forEach((l) => {
-    if (l.type === "button") exits.push({ layerId: l.id, optId: null, label: `🔘 ${strip(l.content.label) || "Botão"}`, dest: l.content.destination });
-    if (l.type === "options") (l.content.options || []).forEach((o) => exits.push({ layerId: l.id, optId: o.id, label: `☑️ ${strip(o.label) || "Opção"}`, dest: o.destination }));
-  });
-  return exits;
-};
-const nodeH = (nExits: number) => FLOW.HEAD + Math.max(1, nExits) * FLOW.ROW + FLOW.PADB;
-
-function FluxoTab({ steps, setSteps }: { steps: InleadStep[]; setSteps: (s: InleadStep[]) => void }) {
-  const setDest = (si: number, layerId: string, optId: string | null, dest: string) =>
-    setSteps(steps.map((s, i) => i !== si ? s : {
-      ...s, layers: (s.layers || []).map((l) => {
-        if (l.id !== layerId) return l;
-        if (optId) return { ...l, content: { ...l.content, options: (l.content.options || []).map((o) => o.id === optId ? { ...o, destination: dest } : o) } };
-        return { ...l, content: { ...l.content, destination: dest } };
-      }),
-    }));
-
-  // layout automático: espinha vertical, cada nó abaixo do anterior
-  const autoLayout = (): Record<string, { x: number; y: number }> => {
-    const pos: Record<string, { x: number; y: number }> = {};
-    let y = 32;
-    steps.forEach((s) => { pos[s.id] = { x: FLOW.COLX, y }; y += nodeH(flowExits(s).length) + FLOW.GAPY; });
-    return pos;
-  };
-  const [pos, setPos] = useState<Record<string, { x: number; y: number }>>(autoLayout);
-  // re-encaixa nós novos/removidos sem perder os já arrastados
-  useEffect(() => {
-    setPos((prev) => {
-      const auto = autoLayout(); const next = { ...auto };
-      for (const id of Object.keys(auto)) if (prev[id]) next[id] = prev[id];
-      return next;
-    });
-  }, [steps.length]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const ids = new Set(steps.map((s) => s.id));
-  const targetId = (dest: string | undefined, fromIdx: number): string | null | undefined => {
-    if (!dest || dest === "next") return steps[fromIdx + 1]?.id;        // sequência
-    if (/^https?:/.test(dest)) return null;                              // link externo
-    return ids.has(dest) ? dest : steps[fromIdx + 1]?.id;               // destino inválido → próxima
-  };
-
-  // arrastar nó (pointer capture, sem libs)
-  const startDrag = (id: string) => (e: React.PointerEvent) => {
-    e.preventDefault();
-    const o = pos[id] || { x: FLOW.COLX, y: 32 };
-    const sx = e.clientX, sy = e.clientY;
-    const el = e.currentTarget as HTMLElement;
-    el.setPointerCapture(e.pointerId);
-    const move = (ev: PointerEvent) => setPos((p) => ({ ...p, [id]: { x: Math.max(8, o.x + (ev.clientX - sx)), y: Math.max(8, o.y + (ev.clientY - sy)) } }));
-    const up = () => { el.releasePointerCapture(e.pointerId); el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); };
-    el.addEventListener("pointermove", move); el.addEventListener("pointerup", up);
-  };
-
-  // arestas (setas) a partir das saídas
-  type Edge = { id: string; x1: number; y1: number; x2: number; y2: number; kind: "seq" | "jump" };
-  const edges: Edge[] = [];
-  steps.forEach((s, i) => {
-    const np = pos[s.id]; if (!np) return;
-    const exits = flowExits(s);
-    if (exits.length === 0) {
-      const t = steps[i + 1]; const tp = t && pos[t.id];
-      if (tp) edges.push({ id: `${s.id}-seq`, x1: np.x + FLOW.W / 2, y1: np.y + nodeH(0), x2: tp.x + FLOW.W / 2, y2: tp.y, kind: "seq" });
-      return;
-    }
-    exits.forEach((x, k) => {
-      const tid = targetId(x.dest, i); if (tid === null || tid === undefined) return; // externo/sem destino: sem seta
-      const tp = pos[tid]; if (!tp) return;
-      const y1 = np.y + FLOW.HEAD + k * FLOW.ROW + FLOW.ROW / 2;
-      const seq = (!x.dest || x.dest === "next") && tid === steps[i + 1]?.id;
-      edges.push({ id: `${s.id}-${x.layerId}-${k}`, x1: np.x + FLOW.W, y1, x2: tp.x + FLOW.W / 2, y2: tp.y, kind: seq ? "seq" : "jump" });
-    });
-  });
-
-  const canvasW = Math.max(820, ...steps.map((s) => (pos[s.id]?.x ?? 0) + FLOW.W)) + 220;
-  const canvasH = Math.max(360, ...steps.map((s) => (pos[s.id]?.y ?? 0) + nodeH(flowExits(s).length))) + 60;
-  const curve = (e: Edge) => {
-    const dx = Math.max(50, Math.abs(e.x2 - e.x1) * 0.5);
-    const dy = Math.max(40, Math.abs(e.y2 - e.y1) * 0.4);
-    return `M ${e.x1} ${e.y1} C ${e.x1 + dx} ${e.y1}, ${e.x2} ${e.y2 - dy}, ${e.x2} ${e.y2}`;
-  };
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between px-1">
-        <p className="text-xs text-neutral-500">Arraste os nós. As setas mostram para onde cada botão/opção leva.</p>
-        <button onClick={() => setPos(autoLayout())} className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⤢ Auto-organizar</button>
-      </div>
-      <div className="relative h-[68vh] overflow-auto rounded-xl border border-neutral-200"
-        style={{ backgroundColor: "#fafafa", backgroundImage: "radial-gradient(#d4d4d4 1px, transparent 1px)", backgroundSize: "22px 22px" }}>
-        <div className="relative" style={{ width: canvasW, height: canvasH }}>
-          {/* setas */}
-          <svg className="pointer-events-none absolute inset-0" width={canvasW} height={canvasH}>
-            <defs>
-              <marker id="fl-seq" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8" /></marker>
-              <marker id="fl-jump" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ea580c" /></marker>
-            </defs>
-            {edges.map((e) => (
-              <path key={e.id} d={curve(e)} fill="none" strokeWidth={2}
-                stroke={e.kind === "seq" ? "#94a3b8" : "#ea580c"} strokeDasharray={e.kind === "seq" ? "5 5" : undefined}
-                markerEnd={`url(#${e.kind === "seq" ? "fl-seq" : "fl-jump"})`} />
-            ))}
-          </svg>
-          {/* nós */}
-          {steps.map((s, i) => {
-            const np = pos[s.id]; if (!np) return null;
-            const exits = flowExits(s);
-            return (
-              <div key={s.id} className="absolute rounded-xl border border-neutral-200 bg-white shadow-sm" style={{ left: np.x, top: np.y, width: FLOW.W }}>
-                <div onPointerDown={startDrag(s.id)} className="flex cursor-grab items-center gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-3 py-2.5 active:cursor-grabbing select-none">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-[10px] font-bold text-white">{i + 1}</span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-neutral-800">{s.title || s.id}</span>
-                  <span className="text-neutral-300">⠿</span>
-                </div>
-                <div className="px-2.5 py-2" style={{ minHeight: Math.max(1, exits.length) * FLOW.ROW }}>
-                  {exits.length ? exits.map((x, k) => (
-                    <div key={k} className="flex items-center justify-between gap-2 py-0.5 text-xs" style={{ height: FLOW.ROW }}>
-                      <span className="min-w-0 flex-1 truncate text-neutral-600">{x.label}</span>
-                      <div className="flex items-center gap-1">
-                        <select value={/^https?:/.test(x.dest || "") ? "__url" : (x.dest || "next")} onChange={(ev) => setDest(i, x.layerId, x.optId, ev.target.value)}
-                          className="max-w-[110px] truncate rounded border border-neutral-300 px-1 py-0.5 text-[11px]">
-                          <option value="next">→ próxima</option>
-                          {steps.map((t, ti) => <option key={t.id} value={t.id}>↪ {ti + 1}. {strip(t.title) || t.id}</option>)}
-                          {/^https?:/.test(x.dest || "") ? <option value="__url">🔗 link</option> : null}
-                        </select>
-                        <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: /^https?:/.test(x.dest || "") ? "#a3a3a3" : "#ea580c" }} />
-                      </div>
-                    </div>
-                  )) : <p className="flex items-center text-[11px] text-neutral-400" style={{ height: FLOW.ROW }}>segue → próxima lâmina</p>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {/* Setinha: default LIGADA. Por isso o estado é `!== false` — funil que
+            nunca abriu esta tela não tem a chave e continua com a setinha. */}
+        <label className="flex cursor-pointer items-center justify-between py-1.5 text-sm">
+          <span className="text-neutral-600">Setinha “role para baixo”
+            <span className="ml-1 text-[11px] text-neutral-400">(aparece sozinha quando a lâmina não cabe)</span>
+          </span>
+          <input type="checkbox" checked={hdr.show_scroll_hint !== false}
+            onChange={(e) => setHeader({ show_scroll_hint: e.target.checked })} className="h-4 w-4 accent-neutral-900" />
+        </label>
       </div>
     </div>
   );
@@ -689,7 +534,38 @@ function FluxoTab({ steps, setSteps }: { steps: InleadStep[]; setSteps: (s: Inle
 
 // ───────────────────────── D — LEADS ─────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface Analytics { performance: any; deltas?: Record<string, number> | null; resultados: { question: string; total: number; options: { label: string; value: number; pct: number }[] }[]; questions: string[]; questionStats?: { question: string; total: number; pct: number }[]; respostas: { session: string; name: string | null; phone: string | null; when: string | null; answers: Record<string, string>; track?: Record<string, string> }[] }
+// espelha FunnelCol de lib/quiz/colunas.ts (o mesmo módulo que gera o CSV) —
+// "passou" é a lâmina sem bloco interativo, que só registra se a lead a viu
+interface ColunaFunil { key: string; header: string; kind: "options" | "button" | "field" | "passou"; label: string; stepId: string; stepIdx: number; stepTitle: string; layerId: string; fieldName?: string }
+interface GrupoFunil { stepId: string; stepIdx: number; stepTitle: string; span: number }
+interface LinhaResposta {
+  /** mesmo code do CSV — permite conferir linha a linha entre tela e planilha */
+  code: string;
+  session: string;
+  name: string | null;
+  phone: string | null;
+  /** data da SESSÃO (a linha é a sessão, como no inlead) */
+  when: string | null;
+  temResposta: boolean;
+  virouLead: boolean;
+  /** valor por coluna, chaveado por `col.key` */
+  cells: Record<string, string>;
+  /** legado: respostas por texto de pergunta */
+  answers: Record<string, string>;
+  track?: Record<string, string>;
+}
+interface Analytics {
+  performance: any; deltas?: Record<string, number> | null;
+  resultados: { question: string; total: number; options: { label: string; value: number; pct: number }[] }[];
+  questions: string[];
+  questionStats?: { question: string; total: number; pct: number }[];
+  respostas: LinhaResposta[];
+  cols?: ColunaFunil[];
+  grupos?: GrupoFunil[];
+  totais?: { sessoes: number; comResposta: number; leads: number };
+  degraded?: boolean;
+  issues?: { code: string; msg: string; campos: string[]; detalhe?: string }[];
+}
 /** Colunas de tracking (Onda B) — exibidas na tabela de Respostas, estilo inlead. */
 const TRACK_COLS: { key: string; label: string }[] = [
   { key: "utm_source", label: "utm_source" }, { key: "utm_medium", label: "utm_medium" },
@@ -747,10 +623,20 @@ export function LeadsTab({ slug }: { slug: string }) {
   const [day, setDay] = useState("");
   // Onda A: busca, filtros (etapas/colunas), paginação
   const [search, setSearch] = useState("");
-  const [hiddenQ, setHiddenQ] = useState<Set<string>>(new Set());
+  // TODAS as colunas nascem visíveis; o que o usuário desmarcar fica salvo por
+  // funil e volta na próxima visita. Antes só 3 colunas de tracking apareciam
+  // por padrão, então parecia que o resto não existia.
+  const CHAVE_PREF = `ctf_leads_cols_${slug}`;
+  const prefSalva = (): { track?: string[]; etapas?: string[] } => {
+    try { return JSON.parse(localStorage.getItem(CHAVE_PREF) || "{}"); } catch { return {}; }
+  };
+  const [hiddenQ, setHiddenQ] = useState<Set<string>>(() => new Set(prefSalva().etapas ?? []));
   const [showMeta, setShowMeta] = useState(true); // colunas Lead/Telefone/Data
-  const [hiddenTrack, setHiddenTrack] = useState<Set<string>>(new Set(TRACK_COLS.filter((c) => !["utm_source", "utm_campaign", "src"].includes(c.key)).map((c) => c.key))); // origem/campanha/src visíveis; resto oculto
+  const [hiddenTrack, setHiddenTrack] = useState<Set<string>>(() => new Set(prefSalva().track ?? []));
   const [openFilter, setOpenFilter] = useState<"etapas" | "colunas" | null>(null);
+  // A linha virou a SESSÃO (igual ao inlead), então a contagem sobe bastante.
+  // Este filtro deixa voltar à visão antiga sem perder o abandono de vista.
+  const [filtroLinha, setFiltroLinha] = useState<"todos" | "resposta" | "lead">("todos");
   const [page, setPage] = useState(0);
   const PER = 50;
   const load = () => {
@@ -761,6 +647,19 @@ export function LeadsTab({ slug }: { slug: string }) {
     fetch(`/api/funnel-analytics?${qs.toString()}`).then((r) => r.json()).then(setD).catch(() => { }).finally(() => setLoading(false));
   };
   useEffect(load, [slug, range.from, range.to]); // eslint-disable-line react-hooks/exhaustive-deps
+  /** Grava a escolha de colunas no ato do clique. Fazer isso num useEffect
+   *  provocaria render em cascata a cada troca de estado. */
+  const salvarPref = (track: Set<string>, etapas: Set<string>) => {
+    try { localStorage.setItem(CHAVE_PREF, JSON.stringify({ track: [...track], etapas: [...etapas] })); } catch { /* storage bloqueado */ }
+  };
+  const alternarEtapa = (stepId: string) => setHiddenQ((s) => {
+    const n = new Set(s); if (n.has(stepId)) n.delete(stepId); else n.add(stepId);
+    salvarPref(hiddenTrack, n); return n;
+  });
+  const alternarColuna = (chave: string) => setHiddenTrack((s) => {
+    const n = new Set(s); if (n.has(chave)) n.delete(chave); else n.add(chave);
+    salvarPref(n, hiddenQ); return n;
+  });
   const reset = async () => {
     if (!window.confirm("Tem certeza? Isso apaga TODOS os dados (respostas, sessões e leads) DESTE funil. Extraia o CSV antes!")) return;
     setResetting(true);
@@ -778,7 +677,17 @@ export function LeadsTab({ slug }: { slug: string }) {
           ))}
         </nav>
         <div className="flex items-center gap-4 pb-2">
-          <a href={`/api/export-leads?slug=${encodeURIComponent(slug)}`} className="text-xs font-semibold text-neutral-600 hover:text-neutral-900">⬇ Exportar leads</a>
+          {/* o export segue o MESMO período do seletor acima — antes exportava
+              sempre tudo, e o CSV nunca batia com o que estava na tela */}
+          <a
+            href={`/api/export-leads?slug=${encodeURIComponent(slug)}`
+              + (range.from ? `&from=${encodeURIComponent(range.from)}` : "")
+              + (range.to ? `&to=${encodeURIComponent(range.to)}` : "")}
+            className="text-xs font-semibold text-neutral-600 hover:text-neutral-900"
+            title={range.from ? "Exporta apenas o período selecionado" : "Exporta todas as sessões"}
+          >
+            ⬇ Exportar leads{range.from ? " (período)" : ""}
+          </a>
           <button onClick={reset} disabled={resetting} className="text-xs font-semibold text-red-500 hover:text-red-700">{resetting ? "Limpando…" : "♻ Resetar dados"}</button>
         </div>
       </div>
@@ -806,11 +715,31 @@ export function LeadsTab({ slug }: { slug: string }) {
         <>
           {/* RESPOSTAS — tabela por lead (colunas = etapas com %) + busca + filtros + paginação */}
           {sub === "respostas" ? (() => {
+            const cols = d.cols ?? [];
+            const grupos = d.grupos ?? [];
+            // "Etapas" agora alterna a LÂMINA inteira (é o que a palavra significa
+            // no inlead); "Colunas" segue alternando coluna a coluna.
+            const colsVis = cols.filter((c) => !hiddenQ.has(c.stepId) && !hiddenTrack.has(`col:${c.key}`));
+            const gruposVis = grupos
+              .filter((g) => !hiddenQ.has(g.stepId))
+              .map((g) => ({ ...g, span: colsVis.filter((c) => c.stepId === g.stepId).length }))
+              .filter((g) => g.span > 0);
+            // retenção por lâmina: reaproveita o questionStats casando pela ordem
+            // das perguntas (o texto continua sendo a chave daquele endpoint)
             const statById = new Map((d.questionStats || []).map((s) => [s.question, s.pct]));
-            const visQ = d.questions.filter((q) => !hiddenQ.has(q));
+            const pctPorStep = new Map<string, number>();
+            {
+              const comOpcoes = cols.filter((c) => c.kind === "options");
+              comOpcoes.forEach((c, i) => {
+                const q = d.questions[i];
+                if (q !== undefined) pctPorStep.set(c.stepId, statById.get(q) ?? 0);
+              });
+            }
             const visTrack = TRACK_COLS.filter((c) => !hiddenTrack.has(c.key));
             const term = search.trim().toLowerCase();
-            const rows = d.respostas.filter((r) => !term || [r.name, r.phone, ...Object.values(r.answers)].join(" ").toLowerCase().includes(term));
+            const rows = d.respostas
+              .filter((r) => filtroLinha === "todos" || (filtroLinha === "resposta" ? r.temResposta : r.virouLead))
+              .filter((r) => !term || [r.code, r.name, r.phone, ...Object.values(r.cells ?? {})].join(" ").toLowerCase().includes(term));
             const pages = Math.max(1, Math.ceil(rows.length / PER));
             const pg = Math.min(page, pages - 1);
             const slice = rows.slice(pg * PER, pg * PER + PER);
@@ -826,12 +755,16 @@ export function LeadsTab({ slug }: { slug: string }) {
                     <button onClick={() => setOpenFilter(openFilter === "etapas" ? null : "etapas")} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">▦ Etapas ▾</button>
                     {openFilter === "etapas" ? (
                       <div className="absolute z-20 mt-1 max-h-72 w-64 overflow-y-auto rounded-xl border border-neutral-200 bg-white p-2 shadow-lg">
-                        {d.questions.map((q, i) => (
-                          <label key={q} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
-                            <span className="min-w-0 flex-1 truncate text-neutral-700">{i + 1}. {strip(q)}</span>
-                            <input type="checkbox" checked={!hiddenQ.has(q)} onChange={() => setHiddenQ((s) => { const n = new Set(s); if (n.has(q)) n.delete(q); else n.add(q); return n; })} className="h-3.5 w-3.5 accent-neutral-900" />
+                        {/* "Etapas" alterna a LÂMINA inteira — é o que a palavra
+                            significa no inlead. Antes listava texto de pergunta,
+                            que é outro modelo (e some ao renomear a pergunta). */}
+                        {grupos.map((g) => (
+                          <label key={g.stepId} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
+                            <span className="min-w-0 flex-1 truncate text-neutral-700">{g.stepIdx + 1}. {g.stepTitle}</span>
+                            <input type="checkbox" checked={!hiddenQ.has(g.stepId)} onChange={() => alternarEtapa(g.stepId)} className="h-3.5 w-3.5 accent-neutral-900" />
                           </label>
                         ))}
+                        {!grupos.length ? <p className="px-2 py-3 text-center text-[11px] text-neutral-400">Este funil ainda não tem blocos de resposta.</p> : null}
                       </div>
                     ) : null}
                   </div>
@@ -843,49 +776,109 @@ export function LeadsTab({ slug }: { slug: string }) {
                           <span className="font-semibold text-neutral-700">Lead / Telefone / Data</span>
                           <input type="checkbox" checked={showMeta} onChange={() => setShowMeta((v) => !v)} className="h-3.5 w-3.5 accent-neutral-900" />
                         </label>
+                        {cols.length ? (<>
+                          <p className="mt-1 px-2 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">Blocos</p>
+                          {cols.map((c) => (
+                            <label key={c.key} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
+                              <span className="min-w-0 flex-1 truncate text-neutral-700" title={c.header}>{c.label} <span className="font-mono text-[10px] text-neutral-400">{c.key}</span></span>
+                              <input type="checkbox" checked={!hiddenTrack.has(`col:${c.key}`)} onChange={() => alternarColuna(`col:${c.key}`)} className="h-3.5 w-3.5 accent-neutral-900" />
+                            </label>
+                          ))}
+                        </>) : null}
                         <p className="mt-1 px-2 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">Tracking</p>
                         {TRACK_COLS.map((c) => (
                           <label key={c.key} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
                             <span className="text-neutral-700">{c.label}</span>
-                            <input type="checkbox" checked={!hiddenTrack.has(c.key)} onChange={() => setHiddenTrack((s) => { const n = new Set(s); if (n.has(c.key)) n.delete(c.key); else n.add(c.key); return n; })} className="h-3.5 w-3.5 accent-neutral-900" />
+                            <input type="checkbox" checked={!hiddenTrack.has(c.key)} onChange={() => alternarColuna(c.key)} className="h-3.5 w-3.5 accent-neutral-900" />
                           </label>
                         ))}
                       </div>
                     ) : null}
                   </div>
-                  <span className="ml-auto text-xs text-neutral-400">{rows.length} resposta{rows.length === 1 ? "" : "s"}</span>
+                  {/* A linha passou a ser a SESSÃO (igual ao inlead), então a
+                      contagem sobe. Sem esses contadores, parece bug. */}
+                  <div className="ml-auto flex items-center gap-1">
+                    {([["todos", `${d.totais?.sessoes ?? rows.length} sessões`], ["resposta", `${d.totais?.comResposta ?? 0} com resposta`], ["lead", `${d.totais?.leads ?? 0} leads`]] as const).map(([k, label]) => (
+                      <button key={k} onClick={() => { setFiltroLinha(k); setPage(0); }}
+                        className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${filtroLinha === k ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-500 hover:bg-neutral-50"}`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {slice.length ? (
                   <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-                    <table className="w-full text-xs">
-                      <thead className="bg-neutral-50 text-left text-neutral-500">
-                        <tr>
-                          {showMeta ? (<><th className="whitespace-nowrap px-3 py-2.5 font-semibold">Lead</th><th className="whitespace-nowrap px-3 py-2.5 font-semibold">Telefone</th><th className="whitespace-nowrap px-3 py-2.5 font-semibold">Data</th></>) : null}
-                          {visQ.map((q, i) => (
-                            <th key={q} className="whitespace-nowrap px-3 py-2.5">
-                              <div className="flex items-center gap-1.5"><PctRing pct={statById.get(q) ?? 0} /><span className="font-semibold text-neutral-700">{i + 1}. {strip(q).slice(0, 26)}</span></div>
+                    <table className="w-full border-separate border-spacing-0 text-xs">
+                      {/* DOIS cabeçalhos, como no inlead (print 20):
+                          linha 1 = a LÂMINA (+ % de retenção)
+                          linha 2 = o BLOCO, com o chip da CHAVE — e esse chip é
+                                    literalmente o header da planilha exportada. */}
+                      <thead className="text-left text-neutral-500">
+                        <tr className="bg-neutral-50">
+                          {/* o grupo "Entrada" precisa da MESMA largura somada das
+                              3 colunas fixas de baixo (44+116+96=256), senão o
+                              cabeçalho desalinha do corpo ao rolar na horizontal */}
+                          {showMeta ? <th colSpan={3} className="sticky left-0 z-30 w-[256px] border-b border-r border-neutral-200 bg-neutral-50 px-3 py-2 text-left text-[11px] font-semibold text-neutral-400">– Entrada</th> : null}
+                          {gruposVis.map((g) => (
+                            <th key={g.stepId} colSpan={g.span} className="whitespace-nowrap border-b border-r border-neutral-200 bg-neutral-50 px-3 py-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-neutral-400">{g.stepIdx + 1}</span>
+                                <span className="font-semibold text-neutral-700">{g.stepTitle.slice(0, 24)}</span>
+                                <PctRing pct={pctPorStep.get(g.stepId) ?? 0} />
+                              </div>
                             </th>
                           ))}
-                          {visTrack.map((c) => <th key={c.key} className="whitespace-nowrap px-3 py-2.5 font-semibold text-violet-500">{c.label}</th>)}
+                          {visTrack.length ? <th colSpan={visTrack.length} className="border-b border-neutral-200 bg-neutral-50 px-3 py-2 text-[11px] font-semibold text-violet-400">Tracking</th> : null}
+                        </tr>
+                        <tr className="bg-white">
+                          {showMeta ? (<>
+                            <th className="sticky left-0 z-30 w-[44px] min-w-[44px] border-b border-neutral-200 bg-white px-2 py-2 font-semibold">#</th>
+                            <th className="sticky left-[44px] z-30 w-[116px] min-w-[116px] border-b border-neutral-200 bg-white px-3 py-2 font-semibold">[ID] Lead</th>
+                            <th className="sticky left-[160px] z-30 w-[96px] min-w-[96px] border-b border-r border-neutral-200 bg-white px-3 py-2 font-semibold">Data</th>
+                          </>) : null}
+                          {colsVis.map((c) => (
+                            <th key={c.key} className="whitespace-nowrap border-b border-neutral-200 px-3 py-2">
+                              <span className="flex items-center gap-1.5">
+                                <span className="text-neutral-400">{c.kind === "options" ? "☰" : c.kind === "button" ? "▭" : c.kind === "passou" ? "👁" : "📝"}</span>
+                                <span className="font-semibold text-neutral-600">{c.label}</span>
+                                <span className="rounded bg-neutral-100 px-1 py-0.5 font-mono text-[9px] font-normal text-neutral-400" title="chave usada no CSV exportado">{c.key.slice(0, 14)}</span>
+                              </span>
+                            </th>
+                          ))}
+                          {visTrack.map((c) => <th key={c.key} className="whitespace-nowrap border-b border-neutral-200 px-3 py-2 font-semibold text-violet-500">{c.label}</th>)}
                         </tr>
                       </thead>
                       <tbody>
                         {slice.map((r, i) => (
-                          <tr key={i} className="border-t border-neutral-100 hover:bg-neutral-50">
+                          <tr key={r.code || i} className="hover:bg-neutral-50">
                             {showMeta ? (<>
-                              <td className="whitespace-nowrap px-3 py-2 font-semibold text-neutral-800">{r.name || `#${r.session}`}</td>
-                              <td className="whitespace-nowrap px-3 py-2 text-neutral-600">{r.phone || "—"}</td>
-                              <td className="whitespace-nowrap px-3 py-2 text-neutral-400">{r.when ? new Date(r.when).toLocaleDateString("pt-BR") : "—"}</td>
+                              <td className="sticky left-0 z-10 w-[44px] min-w-[44px] border-b border-neutral-100 bg-white px-2 py-1.5 tabular-nums text-neutral-400">{pg * PER + i + 1}</td>
+                              <td className="sticky left-[44px] z-10 w-[116px] min-w-[116px] max-w-[116px] truncate whitespace-nowrap border-b border-neutral-100 bg-white px-3 py-1.5 font-semibold text-neutral-800" title={r.name || r.code}>
+                                {r.name || <span className="font-mono text-[11px] font-normal text-blue-600">{r.code}</span>}
+                              </td>
+                              <td className="sticky left-[160px] z-10 w-[96px] min-w-[96px] whitespace-nowrap border-b border-r border-neutral-100 bg-white px-3 py-1.5 text-neutral-400">{r.when ? new Date(r.when).toLocaleDateString("pt-BR") : "—"}</td>
                             </>) : null}
-                            {visQ.map((q) => <td key={q} className="whitespace-nowrap px-3 py-2 text-neutral-600">{r.answers[q] || "—"}</td>)}
-                            {visTrack.map((c) => <td key={c.key} className="max-w-[160px] truncate whitespace-nowrap px-3 py-2 text-neutral-400" title={r.track?.[c.key] || ""}>{r.track?.[c.key] || "—"}</td>)}
+                            {colsVis.map((c) => {
+                              const v = r.cells?.[c.key] ?? "";
+                              return (
+                                <td key={c.key} className="max-w-[220px] truncate whitespace-nowrap border-b border-neutral-100 px-3 py-1.5 text-neutral-600" title={v || undefined}>
+                                  {/* célula vazia é VAZIA (igual ao inlead) — travessão só nos metadados */}
+                                  {v === "clicked"
+                                    ? <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">clicked</span>
+                                    : v === "visto"
+                                    ? <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-500">visto</span>
+                                    : v}
+                                </td>
+                              );
+                            })}
+                            {visTrack.map((c) => <td key={c.key} className="max-w-[160px] truncate whitespace-nowrap border-b border-neutral-100 px-3 py-1.5 text-neutral-400" title={r.track?.[c.key] || ""}>{r.track?.[c.key] || "—"}</td>)}
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                ) : <p className="p-8 text-center text-sm text-neutral-400">{term ? "Nenhuma resposta bate com a busca." : "Nenhuma resposta ainda. Passe um lead pelo funil."}</p>}
+                ) : <p className="p-8 text-center text-sm text-neutral-400">{term ? "Nenhuma linha bate com a busca." : filtroLinha !== "todos" ? "Nenhuma linha nesse filtro." : "Nenhuma visita ainda. Passe um lead pelo funil."}</p>}
 
                 {pages > 1 ? (
                   <div className="flex items-center justify-center gap-2 text-xs">
@@ -937,8 +930,8 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const [nonce, setNonce] = useState(0);
   const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">("construtor");
   const [showSettings, setShowSettings] = useState(false);
-  const [device, setDevice] = useState(0); // dispositivo do preview (índice em PREVIEW_DEVICES)
-  const [zoom, setZoom] = useState(80);     // zoom do preview (%)
+  const [device, setDevice] = useState(DEFAULT_DEVICE); // id do aparelho do preview
+  const [zoom, setZoom] = useState<Zoom>("fit");        // "fit" = moldura sempre cabe
 
   const theme = (funnel.settings?.design as { themeColor?: string })?.themeColor || "#ea580c";
   const setSteps = (next: InleadStep[]) => setFunnel((f) => ({ ...f, steps: next as unknown as Funnel["steps"] }));
@@ -1066,12 +1059,49 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         </div>
       </header>
 
-      {tab === "design" && <div className="p-4"><DesignTab funnel={funnel} setFunnel={setFunnel} /></div>}
-      {tab === "fluxo" && <div className="p-4"><FluxoTab steps={steps} setSteps={setSteps} /></div>}
+      {/* Design com preview ao lado: cor, fonte e header mudam a lâmina inteira,
+          então ver o resultado enquanto ajusta evita o vai-e-volta entre abas. */}
+      {tab === "design" && (
+        <div className="grid h-[calc(100vh-49px)] grid-cols-1 bg-neutral-100 lg:grid-cols-[1fr_460px]">
+          <div className="overflow-y-auto p-4">
+            <DesignTab funnel={funnel} setFunnel={setFunnel} />
+          </div>
+          <div className="hidden border-l border-neutral-200 bg-white lg:block">
+            <DevicePreview
+              deviceId={device}
+              onDeviceChange={setDevice}
+              zoom={zoom}
+              onZoomChange={setZoom}
+              onRestart={() => setNonce((n) => n + 1)}
+              scrollStyle={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
+            >
+              <LayersRunner key={`design-${selStep}-${nonce}-${device}`} funnel={funnel} startIndex={selStep} preview />
+            </DevicePreview>
+          </div>
+        </div>
+      )}
+      {tab === "fluxo" && (
+        // `overflow-hidden`: o quadro do fluxo trata a roda do mouse por conta
+        // própria (pan/zoom). Sem isto a página rolava atrás dele.
+        <div className="h-[calc(100vh-49px)] overflow-hidden p-4">
+          <LayersFlow
+            steps={steps}
+            setSteps={setSteps}
+            onOpenStep={(i) => { setSelStep(i); setSelLayer(null); setTab("construtor"); }}
+            criarLayer={newLayer}
+          />
+        </div>
+      )}
       {tab === "leads" && <div className="p-4"><LeadsTab slug={funnel.slug} /></div>}
 
       {tab === "construtor" && (
-      <div className="grid h-[calc(100vh-49px)] grid-cols-[180px_180px_1fr_300px] bg-neutral-100">
+      // 2ª coluna (paleta) a 230px: com 180 + truncate os rótulos cortavam
+      // ("Vídeo Re…", "Múltipla …") e não dava pra saber o que era o bloco.
+      // 4ª coluna (config) cresce até 520px: o celular do preview tem largura
+      // fixa (390px + moldura), então tudo que passava disso na coluna `1fr`
+      // virava espaço morto em volta dele. Os `minmax` seguram o preview no
+      // tamanho mínimo do aparelho.
+      <div className="grid h-[calc(100vh-49px)] grid-cols-[180px_230px_minmax(420px,1fr)_minmax(360px,520px)] bg-neutral-100">
         {/* 1 · ETAPAS */}
         <aside className="overflow-y-auto border-r border-neutral-200 bg-white p-2">
           <div className="mb-2 flex items-center justify-between px-1">
@@ -1114,7 +1144,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   return (
                     <button key={key} onClick={() => addPaletteItem(key, label)} disabled={soon} title={soon ? "Em breve — ativa sob demanda" : undefined}
                       className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs ${soon ? "cursor-not-allowed text-neutral-300" : "text-neutral-700 hover:bg-white hover:shadow-sm"}`}>
-                      <span className={soon ? "opacity-40" : ""}>{PALETTE_ICON[key] || "▫️"}</span><span className="truncate">{label}</span>
+                      <span className={`shrink-0 ${soon ? "opacity-40" : ""}`}>{PALETTE_ICON[key] || "▫️"}</span><span className="min-w-0 flex-1 leading-tight">{label}</span>
                       {soon ? <span className="ml-auto rounded bg-neutral-200/70 px-1 text-[8px] font-bold uppercase text-neutral-500">breve</span> : null}
                     </button>
                   );
@@ -1124,37 +1154,17 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           ))}
         </aside>
 
-        {/* 3 · CANVAS (celular, edição inline) — com seletor de dispositivo igual DevTools */}
-        <div className="flex flex-col items-center overflow-auto p-6">
-          {(() => {
-            const dev = PREVIEW_DEVICES[device]; const z = zoom / 100;
-            return (
-              <>
-                {/* barra: dispositivo + dimensões + zoom */}
-                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs shadow-sm">
-                  <span className="text-neutral-400">📱</span>
-                  <select value={device} onChange={(e) => setDevice(Number(e.target.value))} className="rounded border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-700">
-                    {PREVIEW_DEVICES.map((d, i) => <option key={i} value={i}>{d.name}</option>)}
-                  </select>
-                  <span className="font-mono text-neutral-400">{dev.w} × {dev.h}</span>
-                  <span className="text-neutral-200">|</span>
-                  <select value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="rounded border border-neutral-300 px-2 py-1 text-xs text-neutral-600">
-                    {[50, 60, 70, 80, 90, 100].map((v) => <option key={v} value={v}>{v}%</option>)}
-                  </select>
-                </div>
-                {/* moldura escalada — conteúdo na dimensão CSS exata do device (validação 1:1) */}
-                <div className="shrink-0" style={{ width: (dev.w + 22) * z, height: (dev.h + 22) * z }}>
-                  <div className="w-fit overflow-hidden rounded-[2.2rem] border-[11px] border-neutral-900 bg-white shadow-2xl"
-                    style={{ transform: `scale(${z})`, transformOrigin: "top left", fontFamily: "'Poppins', system-ui, sans-serif" }}>
-                    <div className="overflow-y-auto transform-gpu" style={{ width: dev.w, height: dev.h }} onClick={() => setSelLayer(null)}>
-                      <LayersRunner key={`${selStep}-${nonce}-${device}`} funnel={funnel} startIndex={selStep} preview editor={{ selectedId: selLayer || undefined, onSelect, onAction, onReorder }} />
-                    </div>
-                  </div>
-                </div>
-              </>
-            );
-          })()}
-        </div>
+        {/* 3 · CANVAS (celular, edição inline) — dimensões CSS reais do aparelho */}
+        <DevicePreview
+          deviceId={device}
+          onDeviceChange={setDevice}
+          zoom={zoom}
+          onZoomChange={setZoom}
+          onBackdropClick={() => setSelLayer(null)}
+          scrollStyle={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
+        >
+          <LayersRunner key={`${selStep}-${nonce}-${device}`} funnel={funnel} startIndex={selStep} preview editor={{ selectedId: selLayer || undefined, onSelect, onAction, onReorder }} />
+        </DevicePreview>
 
         {/* 4 · PAINEL direito (Componente/Aparência/Exibição OU Etapa) */}
         <aside className="overflow-y-auto border-l border-neutral-200 bg-white">
@@ -1217,16 +1227,34 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
               })()}
               {/* Editor dedicado de slider/roleta (hero especial — não tem blocos clicáveis) */}
               {(() => {
-                const special = (step?.layers || []).find((l) => l.type === "slider" || l.type === "roulette");
+                const special = (step?.layers || []).find((l) => HERO_EDITAVEL.has(l.type));
                 if (!special) return null;
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const sc: any = special.content || {};
                 const patchSpecial = (patch: Record<string, unknown>) => patchStep(selStep, { layers: (step!.layers || []).map((l) => l.id === special.id ? { ...l, content: { ...l.content, ...patch } } : l) });
+
+                // Blocos-hero herdados do motor tipado: reaproveitam o MESMO
+                // StepEditor de lá, que já edita raspadinha/pedida/medidor/VSL/
+                // parabéns campo a campo. Duplicar essa UI aqui seria manter dois
+                // editores do mesmo bloco — e um deles ficaria para trás.
+                if (HERO_DO_TIPADO.has(special.type)) {
+                  return (
+                    <div className="space-y-2 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
+                      <p className="text-sm font-bold text-neutral-700">
+                        {PALETTE_ICON[special.type]} {ROTULO_HERO[special.type] || special.type} <span className="font-normal text-neutral-400">(ocupa a lâmina inteira)</span>
+                      </p>
+                      <StepEditor
+                        step={sc}
+                        onChange={(patch) => patchSpecial(patch as Record<string, unknown>)}
+                      />
+                    </div>
+                  );
+                }
                 if (special.type === "slider") {
                   return (
                     <div className="space-y-2 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
                       <p className="text-sm font-bold text-neutral-700">🎚️ Slider (hero)</p>
-                      <div><Lbl>Pergunta</Lbl><MarkupField value={sc.question} onChange={(v) => patchSpecial({ question: v })} /></div>
+                      <div><Lbl>Pergunta</Lbl><HtmlField value={sc.question} onChange={(v) => patchSpecial({ question: v })} /></div>
                       <div><Lbl>Ajuda (linha menor)</Lbl><input value={sc.help || ""} onChange={(e) => patchSpecial({ help: e.target.value })} className={inp} /></div>
                       <div className="grid grid-cols-3 gap-2">
                         <div><Lbl>Mín</Lbl><input type="number" value={sc.min ?? 0} onChange={(e) => patchSpecial({ min: Number(e.target.value) })} className={inp} /></div>
@@ -1245,8 +1273,8 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   return (
                     <div className="space-y-2.5 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
                       <p className="text-sm font-bold text-neutral-700">🎡 Roleta (hero)</p>
-                      <div><Lbl>Título</Lbl><MarkupField value={sc.title} onChange={(v) => patchSpecial({ title: v })} /></div>
-                      <div><Lbl>Subtítulo</Lbl><MarkupField value={sc.subtitle} onChange={(v) => patchSpecial({ subtitle: v })} /></div>
+                      <div><Lbl>Título</Lbl><HtmlField value={sc.title} onChange={(v) => patchSpecial({ title: v })} /></div>
+                      <div><Lbl>Subtítulo</Lbl><HtmlField value={sc.subtitle} onChange={(v) => patchSpecial({ subtitle: v })} /></div>
                       <div><Lbl>Botão (girar)</Lbl><input value={sc.cta || ""} onChange={(e) => patchSpecial({ cta: e.target.value })} className={inp} /></div>
                       <div className="grid grid-cols-2 gap-2">
                         <div><Lbl>Tipo da roleta</Lbl>
@@ -1282,8 +1310,8 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                       </div>
                       <div className="border-t border-orange-200/70 pt-2">
                         <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Mensagem do prêmio</p>
-                        <div><Lbl>Título</Lbl><MarkupField value={sc.winTitle} onChange={(v) => patchSpecial({ winTitle: v })} /></div>
-                        <div><Lbl>Texto</Lbl><MarkupField value={sc.winBody} onChange={(v) => patchSpecial({ winBody: v })} /></div>
+                        <div><Lbl>Título</Lbl><HtmlField value={sc.winTitle} onChange={(v) => patchSpecial({ winTitle: v })} /></div>
+                        <div><Lbl>Texto</Lbl><HtmlField value={sc.winBody} onChange={(v) => patchSpecial({ winBody: v })} /></div>
                         <div><Lbl>Botão (resgatar)</Lbl><input value={sc.winCta || ""} onChange={(e) => patchSpecial({ winCta: e.target.value })} className={inp} /></div>
                       </div>
                       <div className="space-y-1.5 border-t border-orange-200/70 pt-2">
@@ -1300,12 +1328,17 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const g = (((funnel.settings as any)?.header) || {}) as Record<string, boolean | undefined>;
                 const ov = (step?.headerOverride || {}) as Record<string, boolean | undefined>;
-                const keys = ["show_logo", "show_progress", "show_back", "go_to_top"] as const;
-                const eff = (k: string) => (ov[k] !== undefined ? ov[k] : g[k]) || false;
+                const keys = ["show_logo", "show_progress", "show_back", "go_to_top", "show_scroll_hint"] as const;
+                // A setinha é a ÚNICA que nasce LIGADA — daí o `!== false` em vez
+                // do `|| false` das outras. Sem essa distinção ela apareceria
+                // desmarcada em todo funil que nunca a tocou.
+                const eff = (k: string) => k === "show_scroll_hint"
+                  ? (ov[k] !== undefined ? !!ov[k] : g[k] !== false)
+                  : ((ov[k] !== undefined ? ov[k] : g[k]) || false);
                 const setOv = (k: string, v: boolean) => patchStep(selStep, { headerOverride: { ...ov, [k]: v } });
                 const touched = keys.some((k) => ov[k] !== undefined);
                 const reset = () => { const n = { ...ov }; keys.forEach((k) => delete n[k]); patchStep(selStep, { headerOverride: n }); };
-                const ROWS: [string, string][] = [["show_logo", "Mostrar logo"], ["show_progress", "Mostrar progresso"], ["show_back", "Mostrar botão voltar"], ["go_to_top", 'Ativar botão "Ir ao topo"']];
+                const ROWS: [string, string][] = [["show_logo", "Mostrar logo"], ["show_progress", "Mostrar progresso"], ["show_back", "Mostrar botão voltar"], ["go_to_top", 'Ativar botão "Ir ao topo"'], ["show_scroll_hint", "Setinha “role para baixo”"]];
                 return (
                   <div className="rounded-xl border border-neutral-200 p-3">
                     <div className="mb-1 flex items-center justify-between">

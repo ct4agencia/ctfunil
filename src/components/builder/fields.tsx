@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { QuizOption } from "@/lib/quiz/types";
 
 // ── Editor de texto VISUAL (WYSIWYG fase 3b) ──────────────────────
@@ -116,15 +116,123 @@ export function VisualRichField({ value, onChange, rows = 2, vars = ["nome", "es
   );
 }
 
+// ── Editor rico COMPLETO (o padrão do construtor, o que o cdb-01 usa) ─────
+// Vivia dentro do LayersBuilder e só o motor `layers` alcançava. Mora aqui pra
+// que os blocos-hero (raspadinha, pedida, medidor, VSL, parabéns) editem texto
+// com as mesmas ferramentas — fonte, tamanho, cor, realce, pílula, alinhamento,
+// entrelinhas e variáveis. Devolve HTML.
+const EDITOR_FONTS = ["Poppins", "Arial", "Georgia", "Times New Roman", "Verdana", "Courier New"];
+const EDITOR_SIZES = [12, 14, 16, 18, 20, 24, 28, 34, 40, 48];
+const EDITOR_VARS: [string, string][] = [["{nome}", "Nome"], ["{cidade}", "Cidade"], ["{estado}", "Estado"]];
+
+export function HtmlField({ value, onChange, theme = "#ea580c", rows = 2 }: { value?: string; onChange: (v: string) => void; theme?: string; rows?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const saved = useRef<Range | null>(null);
+  const [menu, setMenu] = useState<"para" | "var" | null>(null);
+  // contentEditable NÃO-controlado: re-sincroniza só quando a mudança vem de fora E o
+  // campo não está focado → enquanto digita nunca re-seta (não pula o cursor).
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || document.activeElement === el) return;
+    // Texto legado vem em marcação (`==pílula==`, `**negrito**`). Sem converter,
+    // o editor mostraria os sinais crus na tela. Converte na EXIBIÇÃO; ao salvar
+    // já sai HTML, e o `RichText` do funil aceita os dois formatos.
+    const html = /<[a-z][^>]*>/i.test(value || "") ? (value || "") : mdToHtml(value || "");
+    if (el.innerHTML !== html) el.innerHTML = html;
+  }, [value]);
+  const push = () => { if (ref.current) onChange(ref.current.innerHTML); };
+  const cmd = (c: string, v?: string) => { ref.current?.focus(); document.execCommand(c, false, v); push(); };
+  // salva/restaura a seleção (pros color pickers, que tiram o foco do campo)
+  const saveSel = () => { const s = window.getSelection(); if (s && s.rangeCount && ref.current?.contains(s.anchorNode)) saved.current = s.getRangeAt(0).cloneRange(); };
+  const withSel = (fn: () => void) => { ref.current?.focus(); const s = window.getSelection(); if (saved.current && s) { s.removeAllRanges(); s.addRange(saved.current); } fn(); push(); };
+  const setSize = (px: string) => {
+    const el = ref.current; if (!el) return; el.focus();
+    document.execCommand("fontSize", false, "7");
+    el.querySelectorAll('font[size="7"]').forEach((f) => { f.removeAttribute("size"); (f as HTMLElement).style.fontSize = `${px}px`; });
+    push();
+  };
+  const insHtml = (html: string) => { ref.current?.focus(); document.execCommand("insertHTML", false, html); push(); };
+  const wrapPill = () => {
+    const txt = window.getSelection()?.toString() || "destaque";
+    insHtml(`<span style="display:inline-block;margin:0 2px;border-radius:0.75rem;padding:0.1rem 0.6rem;font-weight:800;color:#fff;background:linear-gradient(95deg, #ea580c, #f28947);box-shadow:0 6px 16px -6px rgba(234,88,12,.55);">${txt}</span>&nbsp;`);
+  };
+  // entrelinhas: aplica line-height nos parágrafos do bloco (ou envolve o texto solto)
+  const setLineHeight = (lh: string) => {
+    const el = ref.current; if (!el) return; el.focus();
+    const blocks = el.querySelectorAll("p,h1,h2,h3,div,li");
+    if (blocks.length) blocks.forEach((bl) => { (bl as HTMLElement).style.lineHeight = lh; });
+    else el.innerHTML = `<div style="line-height:${lh}">${el.innerHTML}</div>`;
+    push();
+  };
+  const b = "grid h-7 min-w-[28px] place-items-center rounded border border-neutral-300 px-1.5 text-xs hover:bg-neutral-50";
+  const sel = "rounded border border-neutral-300 px-1 py-0.5 text-xs";
+  return (
+    <div>
+      <div className="mb-1 flex flex-wrap items-center gap-1">
+        <select title="Fonte" value="" onMouseDown={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.value) cmd("fontName", e.target.value); }} className={`${sel} max-w-[80px]`}>
+          <option value="">Fonte</option>{EDITOR_FONTS.map((f) => <option key={f} value={f}>{f}</option>)}
+        </select>
+        <select title="Tamanho do trecho" value="" onMouseDown={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.value) setSize(e.target.value); }} className={sel}>
+          <option value="">Tam ↕</option>{EDITOR_SIZES.map((s) => <option key={s} value={s}>{s}px</option>)}
+        </select>
+        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("bold"); }} className={`${b} font-bold`}>B</button>
+        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("italic"); }} className={`${b} italic`}>I</button>
+        <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("underline"); }} className={`${b} underline`}>U</button>
+        <label className={`${b} relative cursor-pointer font-bold`} title="Cor da fonte" onMouseDown={saveSel}><span style={{ color: theme }}>A</span>
+          <input type="color" onChange={(e) => withSel(() => document.execCommand("foreColor", false, e.target.value))} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" /></label>
+        <label className={`${b} relative cursor-pointer`} title="Cor de fundo (grifado)" onMouseDown={saveSel}>🖊
+          <input type="color" onChange={(e) => withSel(() => document.execCommand("hiliteColor", false, e.target.value))} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" /></label>
+        <button type="button" onMouseDown={(e) => { e.preventDefault(); wrapPill(); }} className={b} title="Caixa de destaque (pílula)">▭</button>
+        <button type="button" onClick={() => setMenu(menu === "para" ? null : "para")} className={b} title="Parágrafo / alinhamento">⋮</button>
+        <button type="button" onClick={() => setMenu(menu === "var" ? null : "var")} className={b} title="Inserir variável">{"{}"}</button>
+      </div>
+      {menu === "para" ? (
+        <div className="mb-1 space-y-1 rounded border border-neutral-200 bg-white p-1.5">
+          <div className="flex gap-1">
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyLeft"); }} className={b} title="Esquerda">⬅</button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyCenter"); }} className={b} title="Centro">↔</button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("justifyRight"); }} className={b} title="Direita">➡</button>
+          </div>
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-[10px] font-semibold text-neutral-400">Entrelinhas:</span>
+            {([["1", "Simples"], ["1.15", "1,15"], ["1.5", "1,5"], ["2", "Duplo"]] as const).map(([lh, lbl]) => (
+              <button key={lh} type="button" onMouseDown={(e) => { e.preventDefault(); setLineHeight(lh); }} className={b}>{lbl}</button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      {menu === "var" ? (
+        <div className="mb-1 flex flex-wrap gap-1 rounded border border-neutral-200 bg-white p-1">
+          {EDITOR_VARS.map(([tok, lbl]) => (
+            <button key={tok} type="button" onMouseDown={(e) => { e.preventDefault(); insHtml(tok); }} className="rounded border border-neutral-300 px-2 py-0.5 text-xs hover:bg-neutral-50">{lbl}</button>
+          ))}
+        </div>
+      ) : null}
+      <div ref={ref} contentEditable suppressContentEditableWarning
+        onInput={() => onChange(ref.current?.innerHTML || "")}
+        style={{ minHeight: `${Math.max(2, rows) * 1.6}rem` }}
+        className="rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900" />
+    </div>
+  );
+}
+
 const base =
   "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-900";
 
+/**
+ * `<div>`, não `<label>`, de propósito.
+ *
+ * Um `<label>` sem `htmlFor` manda o clique para o PRIMEIRO controle rotulável
+ * que houver dentro dele. Com o editor rico, esse primeiro controle é o
+ * `<select>` de fonte — então clicar no texto para escrever roubava o foco para
+ * a lista de fontes. Campo com vários controles não cabe num label só.
+ */
 export function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
   return (
-    <label className={`block ${full ? "sm:col-span-2" : ""}`}>
+    <div className={`block ${full ? "sm:col-span-2" : ""}`}>
       <span className="mb-1 block text-xs font-semibold text-neutral-500">{label}</span>
       {children}
-    </label>
+    </div>
   );
 }
 
