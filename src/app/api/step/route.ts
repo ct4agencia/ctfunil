@@ -66,9 +66,17 @@ export async function POST(req: Request) {
         step_type: b.step_type ?? null,
         meta: b.meta ?? null,
       }),
-      // só sobe; piso 1 pra que a 1ª lâmina também grave last_seen_at
+      // "última atividade": SEMPRE grava. Antes ia junto do max_step_reached e
+      // herdava o guard .lt() — ou seja, quem avançava e voltava, ou ficava dez
+      // minutos na última lâmina vendo a VSL, não atualizava nada. last_seen_at
+      // significava "instante em que atingiu a lâmina mais profunda", e o tempo
+      // de navegação saía sempre 00h00m00s.
       sb.from("funnel_sessions")
-        .update({ max_step_reached: idx, last_seen_at: agora })
+        .update({ last_seen_at: agora })
+        .eq("session_id", b.session_id),
+      // progresso: só sobe (piso 1 pra 1ª lâmina também contar)
+      sb.from("funnel_sessions")
+        .update({ max_step_reached: idx })
         .eq("session_id", b.session_id)
         .lt("max_step_reached", Math.max(idx, 1)),
     ]);
