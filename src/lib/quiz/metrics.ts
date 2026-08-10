@@ -384,7 +384,22 @@ export interface FunnelMetrics {
   retencao?: RetencaoLamina[];
   score: number; // 0–100 composto
   funil: { label: string; value: number; pct: number }[];
+  /**
+   * Série temporal DO PERÍODO ESCOLHIDO. Até 07/08/2026 era sempre "últimas 24h
+   * de agora" — escolher "Ontem" ou "30 dias" descartava tudo e o gráfico
+   * aparecia vazio, sem nenhum aviso. Agora vem da RPC `funnel_traffic_series`.
+   *
+   * `hour` é RÓTULO, não um horário: "14:00" quando o período cabe em horas,
+   * "24/07" quando é agregado por dia. A tela só imprime a string.
+   */
   trafego: { hour: string; visitantes: number; respostas: number; leads: number; conclusoes: number }[];
+  /**
+   * Visitantes nas últimas 24h REAIS — independe do período escolhido. Existe
+   * para o card de recência, que antes somava `trafego` justamente porque ele
+   * era travado em 24h. `undefined` quando o período não alcança agora (em
+   * "Ontem" a razão 24h/período não significa nada e a tela esconde o card).
+   */
+  visitantes24h?: number;
   totalRastreado: number;
   melhorOrigem: string;
   campanhas: { name: string; value: number; pct: number }[];
@@ -629,22 +644,24 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
   // é o índice do grupo, então firstQ/lastI/captureI têm que ser em termos de grupo.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tbGroups: any[] | null = funnel.settings?.engine === "typebot" && Array.isArray((funnel.settings as any)?.typebot?.groups) ? (funnel.settings as any).typebot.groups : null;
-  let firstQ: number, captureI: number, lastI: number, totalSteps: number;
+  // `captureI` não entra aqui: era usado só para estimar leads por
+  // `max_step_reached >= captureI` na série de tráfego. Lead agora é semi-join
+  // com funnel_leads (a regra: quem deixou nome e telefone), então chegar na
+  // lâmina de captura sem preencher deixou de contar. `stageIndices` continua
+  // devolvendo o campo — outras métricas usam.
+  let firstQ: number, lastI: number, totalSteps: number;
   if (tbGroups) {
     totalSteps = tbGroups.length;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const qi = tbGroups.findIndex((g: any) => Array.isArray(g?.blocks) && g.blocks.some((b: any) => typeof b?.type === "string" && b.type.startsWith("input-")));
     firstQ = qi < 0 ? 1 : qi;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ci = tbGroups.findIndex((g: any) => Array.isArray(g?.blocks) && g.blocks.some((b: any) => b?.type === "input-phone"));
     lastI = Math.max(0, tbGroups.length - 1);
-    captureI = ci < 0 ? Math.max(0, lastI - 1) : ci;
   } else {
     // o LayersRunner PULA lâminas desativadas no runtime → max_step_reached é o
     // índice na lista FILTRADA. Calculamos os índices sobre as ATIVAS pra bater
     // (senão a última etapa/VSL nunca é "alcançada" → conclusões = 0).
     const enabled = steps.filter((s) => !(s as { disabled?: boolean }).disabled);
-    ({ firstQ, captureI, lastI } = stageIndices(enabled.length ? enabled : steps));
+    ({ firstQ, lastI } = stageIndices(enabled.length ? enabled : steps));
     totalSteps = enabled.length || steps.length;
   }
 
@@ -659,8 +676,7 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
    * lâminas 2 e 3 do construtor estão OFF), então a perda no hero — 83% dos
    * visitantes — não aparecia em lugar nenhum da tela.
    *
-   * `captureI` e `lastI` continuam vindo do conteúdo: captura é onde há campo,
-   * fim é a última lâmina.
+   * `lastI` continua vindo do conteúdo: o fim é a última lâmina.
    */
   firstQ = 1;
 
@@ -748,8 +764,9 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
   //
   // Antes isto era ancorado na primeira lâmina COM PERGUNTA, o que escondia o
   // começo do funil: no cdb-01 a 1ª pergunta é o 3º card, então a perda no hero
-  // (83% dos visitantes) não aparecia em lugar nenhum da tela.
-  const resp1I = 1;
+  // (83% dos visitantes) não aparecia em lugar nenhum da tela. O índice usado é
+  // o `firstQ = 1` fixado acima.
+  //
   // Só existe 2ª etapa se o funil tiver um 3º card para alcançar; senão a linha
   // repetiria a anterior.
   const ativasCount = tbGroups
@@ -851,24 +868,97 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
     ...(temFim ? [{ label: "Conclusões", value: conclusoes, pct: pct(conclusoes, visitantes) }] : []),
   ];
 
-  // tráfego últimas 24h por hora
+  // ── Série de tráfego ──────────────────────────────────────────────────────
+  // O cálculo anterior descartava toda sessão com mais de 24h (`if (now - t >
+  // 24h) continue`), então o gráfico ignorava o período: escolher "Ontem"
+  // esvaziava a caixa e nada na tela dizia por quê. A RPC respeita o período e
+  // ainda conta lead pelo semi-join com funnel_leads — a regra do Luca (lead é
+  // quem deixou nome e telefone), não `max_step_reached >= captureI`.
+  //
+  // Sem fallback de propósito: cair de volta na janela de 24h quando o usuário
+  // pediu 30 dias é mentir em silêncio, que era exatamente o defeito. Se a RPC
+  // falhar, a série fica vazia e `invalidos` faz a tela mostrar "—".
   const now = Date.now();
-  const buckets = new Map<string, { v: number; r: number; l: number; c: number }>();
-  for (let h = 23; h >= 0; h--) {
-    buckets.set(`${spParts(new Date(now - h * 3600 * 1000)).hour}:00`, { v: 0, r: 0, l: 0, c: 0 });
+  const msPeriodo = range?.from
+    ? (range.to ? new Date(range.to).getTime() : now) - new Date(range.from).getTime()
+    : Infinity;
+  // até 48h a barra por hora ainda cabe na largura da caixa; acima disso, dia
+  const bucket: "hour" | "day" = msPeriodo <= 48 * 3600 * 1000 ? "hour" : "day";
+
+  let trafego: FunnelMetrics["trafego"] = [];
+  try {
+    const { data, error } = await sbCount.rpc("funnel_traffic_series", {
+      p_slug: slug,
+      p_from: range?.from ?? null,
+      p_to: range?.to ?? null,
+      p_bucket: bucket,
+      p_first_q: firstQ,
+      p_last_i: lastI,
+    });
+    if (error) {
+      issues.push({
+        code: "rpc_ausente",
+        msg: "Não consegui montar o gráfico de tráfego do período.",
+        campos: ["trafego"],
+        detalhe: `${error.code ?? ""} ${error.message}`.trim(),
+      });
+    } else if (Array.isArray(data)) {
+      // PEGADINHA: `date_trunc(campo at time zone 'America/Sao_Paulo')` devolve
+      // o horário de SP já convertido, mas ROTULADO como UTC. Formatar em UTC
+      // imprime o rótulo correto — qualquer outro fuso desloca 3h outra vez.
+      const fmt = new Intl.DateTimeFormat("pt-BR", bucket === "hour"
+        ? { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" }
+        : { day: "2-digit", month: "2-digit", timeZone: "UTC" });
+      const pontos = (data as Record<string, unknown>[]).map((r) => ({
+        t: new Date(String(r.bucket)).getTime(),
+        visitantes: Number(r.visitantes ?? 0),
+        respostas: Number(r.respostas ?? 0),
+        leads: Number(r.leads ?? 0),
+        conclusoes: Number(r.conclusoes ?? 0),
+      }));
+
+      // `group by` não devolve bucket vazio: medido no cdb-01 em 24/07, a série
+      // vem 01,02,06,07,11,12 — sem as horas mortas. Num gráfico de linha isso
+      // cola dois picos separados por 4 h como se fossem consecutivos: os
+      // números certos, o tempo mentindo. O cálculo antigo não sofria disso
+      // porque criava as 24 horas fixas antes de contar.
+      //
+      // Preenche entre o primeiro e o último ponto REAL (não a borda do
+      // período): em "Tudo", um funil com meses de histórico geraria centenas
+      // de colunas vazias à toa. O teto de 400 é só para o caso patológico.
+      const passo = bucket === "hour" ? 3_600_000 : 86_400_000;
+      const cheio: typeof pontos = [];
+      for (let i = 0; i < pontos.length; i++) {
+        cheio.push(pontos[i]);
+        const prox = pontos[i + 1];
+        if (!prox) break;
+        for (let t = pontos[i].t + passo; t < prox.t && cheio.length < 400; t += passo) {
+          cheio.push({ t, visitantes: 0, respostas: 0, leads: 0, conclusoes: 0 });
+        }
+      }
+
+      trafego = cheio.map((p) => ({
+        hour: fmt.format(new Date(p.t)),
+        visitantes: p.visitantes, respostas: p.respostas,
+        leads: p.leads, conclusoes: p.conclusoes,
+      }));
+    }
+  } catch (e) {
+    issues.push({ code: "rpc_ausente", msg: "Não consegui montar o gráfico de tráfego do período.", campos: ["trafego"], detalhe: String(e) });
   }
-  for (const s of sessions) {
-    const t = new Date(s.created_at).getTime();
-    if (now - t > 24 * 3600 * 1000) continue;
-    const key = `${spParts(new Date(s.created_at)).hour}:00`;
-    const b = buckets.get(key);
-    if (!b) continue;
-    b.v++;
-    if (s.max_step_reached >= firstQ) b.r++;
-    if (s.max_step_reached >= captureI) b.l++;
-    if (s.max_step_reached >= lastI) b.c++;
+
+  // Recência: 24h REAIS, fora do período. Só faz sentido quando o período
+  // alcança agora — em "Ontem" a razão 24h/período não significa nada, então
+  // fica `undefined` e a tela esconde o card em vez de mostrar 0%.
+  let visitantes24h: number | undefined;
+  if (!range?.to || new Date(range.to).getTime() >= now - 3600 * 1000) {
+    let q24 = sbCount.from("funnel_sessions").select("*", { count: "exact", head: true })
+      .eq("funnel_slug", slug)
+      .gte("created_at", new Date(now - 24 * 3600 * 1000).toISOString());
+    if (usaHidratacao) q24 = q24.not("hydrated_at", "is", null);
+    const { count, error } = await q24;
+    if (!error) visitantes24h = count ?? 0;
   }
-  const trafego = Array.from(buckets.entries()).map(([hour, b]) => ({ hour, visitantes: b.v, respostas: b.r, leads: b.l, conclusoes: b.c }));
 
   // campanhas (por utm_campaign, fallback utm_source)
   const campMap = new Map<string, number>();
@@ -903,7 +993,7 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
     visitantes, respostas, leads, conclusoes,
     taxaConclusao, taxaInteracao, taxaRejeicao, mediaEtapas, tempoMedioSeg, score,
     tempoMedianoSeg: tmp.seg, sessoesComTempo: tmp.sessoes, dispositivos, retencao,
-    funil, trafego,
+    funil, trafego, visitantes24h,
     totalRastreado: agg ? agg.rastreadas : rastreado,
     melhorOrigem, campanhas,
     ...(agg ? {

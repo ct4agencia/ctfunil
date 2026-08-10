@@ -312,14 +312,18 @@ export default function PerformanceView({ m, deltas }: { m: FunnelMetrics; delta
   const leads = m.funil.find((f) => /lead/i.test(f.label));
   const cf = m.conferencia;
 
-  // RECÊNCIA. `m.trafego` é sempre a janela de 24h (metrics.ts descarta sessão
-  // mais velha que isso), então somá-lo e comparar com `m.visitantes` responde o
-  // que o total sozinho esconde: um funil parado há duas semanas e um recebendo
-  // tráfego agora mostram o MESMO "122 visitantes". Não é a concentração por dia
-  // — essa metrics.ts ainda não devolve, e número inventado aqui seria pior que
-  // linha nenhuma.
-  const v24 = invalidos.has("trafego") ? null : m.trafego.reduce((a, d) => a + d.visitantes, 0);
-  const pct24 = v24 != null && m.visitantes > 0 ? Math.round((v24 / m.visitantes) * 1000) / 10 : null;
+  // RECÊNCIA — responde o que o total sozinho esconde: um funil parado há duas
+  // semanas e um recebendo tráfego agora mostram o MESMO "122 visitantes".
+  //
+  // Vinha de somar `m.trafego`, o que só funcionava porque a série era travada
+  // em 24h — o mesmo defeito que fazia o gráfico ignorar o período escolhido.
+  // Agora tem campo próprio. `undefined` quando o período não alcança agora
+  // (metrics.ts nem calcula), e aí a linha some em vez de mentir.
+  //
+  // Sem razão percentual, de propósito: as 24h reais NÃO são subconjunto do
+  // período. Em "Hoje" às 10h elas incluem ontem à tarde, e a razão passaria de
+  // 100%. Dois números lado a lado dizem a mesma coisa e não têm como mentir.
+  const v24 = m.visitantes24h ?? null;
 
   return (
     <div className="space-y-4">
@@ -410,9 +414,8 @@ export default function PerformanceView({ m, deltas }: { m: FunnelMetrics; delta
               ) : null}
               {v24 != null ? (
                 <p>
-                  <b className="text-neutral-600">Recência:</b> <span className="tabular-nums">{nf(v24)}</span> das <span className="tabular-nums">{nf(m.visitantes)}</span> visitas do período estão nas últimas 24 h
-                  {pct24 != null ? <span className="tabular-nums"> ({pct24}%)</span> : null}
-                  {v24 === 0 ? <span className="text-neutral-400"> — nenhuma visita nesta janela: ou o funil está parado, ou o período selecionado é passado</span> : null}
+                  <b className="text-neutral-600">Recência:</b> <span className="tabular-nums">{nf(v24)}</span> {v24 === 1 ? "visita" : "visitas"} nas últimas 24 h · <span className="tabular-nums">{nf(m.visitantes)}</span> no período selecionado
+                  {v24 === 0 ? <span className="text-neutral-400"> — nada nesta janela: o funil está parado agora</span> : null}
                 </p>
               ) : null}
             </div>
@@ -463,7 +466,7 @@ export default function PerformanceView({ m, deltas }: { m: FunnelMetrics; delta
           <section className="rounded-xl border border-neutral-200 bg-white p-5">
             <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-neutral-400">
               Tráfego
-              <Help text="Sempre as últimas 24 horas, hora a hora — cruzado com o período selecionado. Escolher um dia passado deixa este bloco vazio. Clique na legenda para isolar uma linha: com as quatro juntas, 'visitantes' esmaga as outras contra o eixo." />
+              <Help text="O período selecionado, hora a hora até 48 h e dia a dia acima disso. Clique na legenda para isolar uma linha: com as quatro juntas, 'visitantes' esmaga as outras contra o eixo." />
             </h2>
             <div className="mt-3"><Trafego data={m.trafego} /></div>
           </section>
