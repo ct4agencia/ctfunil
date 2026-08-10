@@ -11,6 +11,31 @@ import { motion } from "motion/react";
 export const EditContext = createContext<{ editing: boolean; onEdit?: (field?: string) => void }>({ editing: false });
 export function useEdit() { return useContext(EditContext); }
 
+/**
+ * Dedo animado que ensina "arraste para o lado". Some assim que a lead encosta.
+ *
+ * Fica ABAIXO do controle: acima ele colidia com a leitura grande do valor —
+ * no medidor invadia ~12px do número. Quem posiciona é o pai (basta um
+ * ancestral `relative`); aqui só mora a animação.
+ *
+ * Estava duplicado literal na régua e no slider; agora é um lugar só.
+ */
+export function DedoArrasta({ visivel }: { visivel: boolean }) {
+  if (!visivel) return null;
+  return (
+    <motion.div
+      aria-hidden
+      className="pointer-events-none absolute left-1/2 z-[4] text-[30px] will-change-transform"
+      style={{ filter: "drop-shadow(0 6px 8px rgba(0,0,0,.25))" }}
+      initial={{ x: "-50%" }}
+      animate={{ x: ["-140%", "40%", "-140%"], rotate: [-4, 8, -4], scale: [1, 0.9, 1] }}
+      transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+    >
+      👆
+    </motion.div>
+  );
+}
+
 /** Acha o ancestral rolável (preview = div do "celular"; live = a própria janela). */
 function scrollParent(el: HTMLElement | null): HTMLElement | null {
   let p = el?.parentElement ?? null;
@@ -59,9 +84,10 @@ function useScrollState(dep?: unknown) {
  * Seta pulsante "role para baixo": aparece quando há conteúdo abaixo da dobra,
  * some ao chegar perto do fim. Clicável. Funciona no funil ao vivo e no preview.
  */
-export function ScrollHint({ dep }: { dep?: unknown }) {
+export function ScrollHint({ dep, enabled = true }: { dep?: unknown; enabled?: boolean }) {
   const { ref, overflow, atBottom, scrollDown } = useScrollState(dep);
-  const show = overflow && !atBottom;
+  // `enabled` vem do Design → Header. Ausente = ligada (comportamento de sempre).
+  const show = enabled && overflow && !atBottom;
   return (
     <>
       <div ref={ref} className="hidden" aria-hidden />
@@ -89,8 +115,20 @@ export const RICH_RE = /(==[^=]+==|\*\*[^*]+\*\*|\*[^*\n]+\*)/g;
  * (texto branco); `**negrito**` E `*negrito*` viram realce na cor primária.
  * Mantém quebras de linha. Tudo theme-driven (usa --q-primary).
  */
+/**
+ * O editor do construtor (`HtmlField`, o mesmo do cdb-01) devolve HTML, não
+ * marcação. Detectar pela tag é suficiente e não dá falso positivo em texto
+ * comum: "2 < 3" não casa, porque exige nome de tag colado no `<`.
+ */
+const TEM_HTML = /<(\/?)(p|b|i|u|em|strong|span|div|br|h[1-6]|ul|ol|li|font|a)\b[^>]*>/i;
+
 export function RichText({ text, className }: { text: string; className?: string }) {
   if (!text) return null;
+  // HTML vindo do construtor (acesso restrito por ADMIN_EMAIL) — renderiza
+  // verbatim, igual ao que o motor `layers` já faz com as lâminas do cdb-01.
+  if (TEM_HTML.test(text)) {
+    return <span className={className} dangerouslySetInnerHTML={{ __html: text }} />;
+  }
   const parts = text.split(RICH_RE).filter(Boolean);
   return (
     <span className={className}>

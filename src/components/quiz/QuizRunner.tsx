@@ -146,7 +146,8 @@ export default function QuizRunner({ funnel, vslId, startIndex = 0, preview = fa
       {funnel.settings?.footer && step.type === "vsl" ? (
         <footer className="px-5 pb-6 pt-2 text-center text-xs text-white/55">{funnel.settings.footer}</footer>
       ) : null}
-      <ScrollHint dep={index} />
+      {/* setinha "role pra baixo" — liga/desliga em Design → Header */}
+      <ScrollHint dep={index} enabled={((funnel.settings as { header?: Record<string, boolean> })?.header || {}).show_scroll_hint !== false} />
     </div>
     </EditContext.Provider>
   );

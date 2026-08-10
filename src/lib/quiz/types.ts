@@ -256,6 +256,17 @@ export interface ConfirmStep extends BaseStep {
   body?: string;
   seal?: string;
   cta: string;
+  /**
+   * Medidor opcional acima do texto (estilo velocímetro). Sem `gaugeValue` a
+   * lâmina fica exatamente como sempre foi — é o que mantém os funis atuais
+   * inalterados. `gaugeZones[].upTo` é o valor onde a faixa termina, na escala
+   * 0..gaugeMax; sem ele as faixas se dividem em fatias iguais.
+   */
+  gaugeValue?: number;
+  gaugeMax?: number;
+  gaugeLabel?: string;
+  gaugeSuffix?: string;
+  gaugeZones?: { label: string; color: string; upTo?: number }[];
 }
 
 export interface QuestionStep extends BaseStep {
@@ -277,13 +288,33 @@ export interface QuestionStep extends BaseStep {
 }
 
 /** Medida — input numérico + toggle de unidade (estilo altura/peso lip.formula). */
+/**
+ * "Pedida" — régua/balança horizontal arrastável. O usuário desliza a fita para
+ * a esquerda/direita e o valor sob o marcador central vira a resposta.
+ *
+ * `title`/`subtitle`/`value` são os nomes que o construtor grava; `question`/
+ * `help`/`defaultValue` são os antigos, mantidos pelos funis que já existiam.
+ * Ler SEMPRE com fallback entre os dois (ver `MeasureStepView`).
+ */
 export interface MeasureStep extends BaseStep {
   type: "measure";
-  question: string;
+  title?: string;
+  question?: string;
+  subtitle?: string;
   help?: string;
   units?: string[];
   suffix?: string;
+  /** limites e granularidade da régua */
+  min?: number;
+  max?: number;
+  step?: number;
+  /** onde a régua nasce posicionada */
+  value?: number;
   defaultValue?: number;
+  /** marca alta + número a cada N passos (padrão 5) */
+  majorEvery?: number;
+  /** vibração curta ao passar de marca (só mobile; padrão ligado) */
+  haptic?: boolean;
   cta: string;
 }
 
@@ -333,15 +364,29 @@ export interface GaugeStep extends BaseStep {
   type: "gauge";
   title: string;
   subtitle?: string;
-  /** "range" = sorteia ponteiro na faixa | "imc" = calcula de peso/altura coletados */
-  mode?: "range" | "imc";
+  /**
+   * "fixed" = ponteiro sempre em `value` (padrão do construtor)
+   * "range" = sorteia o ponteiro dentro de `range` (teatral)
+   * "imc"   = calcula de peso/altura coletados antes
+   */
+  mode?: "fixed" | "range" | "imc";
+  /** ponteiro no modo "fixed" */
+  value?: number;
   /** faixa teatral [min,max] do ponteiro (escala min..max do medidor) */
   range?: [number, number];
   scaleMin?: number;
   scaleMax?: number;
   suffix?: string;
-  /** zonas coloridas da esquerda→direita (ex: baixo/ideal/alto) */
-  zones?: { label: string; color: string }[];
+  /**
+   * Zonas coloridas da esquerda→direita (ex: baixo/ideal/alto).
+   * `upTo` = valor onde a zona TERMINA, na escala scaleMin..scaleMax. Sem ele,
+   * as zonas se dividem em fatias iguais (era o único comportamento antigo).
+   */
+  zones?: { label: string; color: string; upTo?: number }[];
+  /** marcas numeradas no arco (0 = nenhuma; padrão 5) */
+  ticks?: number;
+  /** mostra o número grande sob o ponteiro (padrão ligado) */
+  showValue?: boolean;
   /** veredito exibido sob o ponteiro ({valor} interpolado) */
   verdict?: string;
   caption?: string;

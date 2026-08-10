@@ -22,6 +22,35 @@ const EditableBlockList = dynamic(() => import("./EditableBlocks").then((m) => m
 // pro bundle dos funis sem roleta (a maioria).
 const RouletteStepView = dynamic(() => import("../steps").then((m) => m.RouletteStepView), { ssr: false });
 
+/**
+ * Blocos-hero herdados do motor tipado. Ocupam a lâmina inteira e reaproveitam
+ * os componentes de components/quiz/ — mesmo mecanismo da roleta, que já fazia
+ * isso desde sempre. Todos em `dynamic`: funil que não usa o bloco não baixa
+ * uma linha a mais (o steps.tsx sozinho tem 1270 linhas).
+ */
+const ScratchGrid = dynamic(() => import("../ScratchGrid"), { ssr: false });
+const MeasureStepView = dynamic(() => import("../steps").then((m) => m.MeasureStepView), { ssr: false });
+const GaugeStepView = dynamic(() => import("../steps").then((m) => m.GaugeStepView), { ssr: false });
+const VslStepView = dynamic(() => import("../steps").then((m) => m.VslStepView), { ssr: false });
+const ConfirmStepView = dynamic(() => import("../steps").then((m) => m.ConfirmStepView), { ssr: false });
+
+/** Tipos de bloco que tomam a lâmina inteira (não empilham com outros). */
+const HERO_TIPADO = new Set(["roulette", "slider", "scratch", "measure", "gauge", "vsl", "confirm"]);
+
+/**
+ * Tipo que representa a lâmina no relatório. Bloco-hero manda (ele É a lâmina);
+ * senão, o bloco mais significativo da pilha. Sem isso, `step_events.step_type`
+ * recebia "layers" para tudo e não dava pra saber onde a lead parava por TIPO.
+ */
+const PESO_TIPO = ["options", "field", "embed", "video", "button", "loading", "carousel"];
+function tipoDaLamina(s: InleadStep): string {
+  const ls = (s.layers || []);
+  const hero = ls.find((l) => HERO_TIPADO.has(l.type));
+  if (hero) return hero.type;
+  for (const t of PESO_TIPO) if (ls.some((l) => l.type === t)) return t;
+  return "layers";
+}
+
 /** rem da string container "max-w-[34rem]". */
 function containerMax(c?: string): string {
   const m = (c || "").match(/([\d.]+)rem/);
@@ -37,6 +66,10 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   const steps = preview ? allSteps : allSteps.filter((s) => !s.disabled);
   const design = (funnel.settings?.design as InleadDesign) || {};
   const total = steps.length;
+  // Setinha "role pra baixo". Nasce LIGADA; o Design define o global e cada
+  // lâmina pode sobrescrever (mesmo headerOverride de logo/progresso/voltar).
+  const scrollHintGlobal =
+    ((funnel.settings as { header?: Record<string, boolean> })?.header || {}).show_scroll_hint !== false;
 
   const [idx, setIdx] = useState(startIndex);
   const history = useRef<number[]>([]);
@@ -45,6 +78,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   const [submitting, setSubmitting] = useState(false);
 
   const step = steps[idx];
+  // override por lâmina vence o global; ausente nos dois = ligada
+  const scrollHintLigado = (() => {
+    const ov = (step?.headerOverride || {}) as Record<string, boolean | undefined>;
+    return ov.show_scroll_hint !== undefined ? !!ov.show_scroll_hint : scrollHintGlobal;
+  })();
   const idById = useMemo(() => {
     const m: Record<string, number> = {};
     steps.forEach((s, i) => (m[s.id] = i));
@@ -52,7 +90,10 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   }, [steps]);
 
   useEffect(() => {
-    if (!preview) trackStep(funnel.slug, idx, step.id, "layers");
+    // tipo REAL da lâmina, não a string fixa "layers". Enquanto ia "layers"
+    // para tudo, qualquer relatório por tipo de lâmina era inútil neste motor
+    // (que é o de 12 dos 18 funis). Só afeta eventos NOVOS.
+    if (!preview) trackStep(funnel.slug, idx, step.id, tipoDaLamina(step));
     window.scrollTo({ top: 0 });
   }, [idx]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -62,7 +103,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     setIdx(n);
   };
   const navigate = (dest?: string) => {
-    if (!dest || dest === "next") return go(idx + 1);
+    if (!dest || dest === "next") {
+      // "próxima" pode ter destino próprio (`nextStep`), definido arrastando a
+      // bolinha do rodapé no mapa de fluxo. Sem o campo, segue por posição.
+      const padrao = step?.nextStep;
+      if (padrao && idById[padrao] != null) return go(idById[padrao]);
+      return go(idx + 1);
+    }
     if (/^https?:\/\//i.test(dest)) { window.location.href = dest; return; }
     if (idById[dest] != null) return go(idById[dest]);
     go(idx + 1);
@@ -174,36 +221,51 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   // ── Heros TIPADOS (roleta/slider) — reaproveitam os StepView do motor antigo ──
   // Renderizam em tela cheia com as CSS-vars de paleta. Roleta = fundo escuro;
   // slider = fundo claro (combina com o resto do funil inlead).
-  const hero = (step.layers || []).find((l) => l.type === "roulette" || l.type === "slider");
+  const hero = (step.layers || []).find((l) => HERO_TIPADO.has(l.type));
   if (hero) {
     const palette = getPalette(funnel.paletteId);
     // SLIDER hero: layout dedicado (foto full-bleed no rodapé + gradiente, botão acima).
     if (hero.type === "slider") {
       return <SliderHero step={hero.content} ctx={ctx} theme={design.themeColor || palette.primary || "#ea580c"} bgColor={pageBg} />;
     }
-    // ROLETA hero: tela cheia escura, reaproveita o RouletteStepView do /cdb-r.
     const stepCtx: StepCtx = {
-      name, setName, advance: () => navigate("next"),
+      ...ctx,
       // `preview` da prop (era `false` fixo): no construtor o hero de roleta
       // gravava resposta REAL em quiz_answers a cada teste interno.
+      name, setName, advance: () => navigate("next"),
       funnelSlug: funnel.slug, palette, preview,
       estado: geo?.estado, cidade: geo?.cidade,
     };
-    const rbg = (hero.content.background as string) ||
-      "radial-gradient(120% 80% at 50% 35%, #2a1d4d 0%, #150f29 55%, #0a0a1a 100%)";
+
+    // Só a roleta tem fundo escuro próprio; os demais herdam o design do funil.
+    const escuro = hero.type === "roulette";
+    const fundo = (hero.content.background as string) ||
+      (escuro ? "radial-gradient(120% 80% at 50% 35%, #2a1d4d 0%, #150f29 55%, #0a0a1a 100%)" : pageBg);
+
+    // O `content` destes blocos É o Step tipado — mesmo contrato que a roleta
+    // já usava. Por isso reaproveitamos os StepView em vez de reimplementar.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const conteudo = hero.content as any;
     return (
       <div
         className="relative flex min-h-[100dvh] flex-col overflow-x-hidden"
         style={{
           ...paletteVars(palette),
-          ["--q-bg"]: "#160a22", ["--q-text"]: "#ffffff", ["--q-text-muted"]: "rgba(255,255,255,.72)",
-          background: rbg, color: "#ffffff",
+          ...(escuro ? { ["--q-bg"]: "#160a22", ["--q-text"]: "#ffffff", ["--q-text-muted"]: "rgba(255,255,255,.72)" } : {}),
+          background: fundo,
+          color: escuro ? "#ffffff" : (design.contentColor || "#000"),
         } as React.CSSProperties}
       >
         <main className="flex flex-1 flex-col">
-          <RouletteStepView step={hero.content as unknown as RouletteStep} ctx={stepCtx} />
+          {hero.type === "roulette" ? <RouletteStepView step={conteudo as RouletteStep} ctx={stepCtx} />
+            : hero.type === "scratch" ? <ScratchGrid step={conteudo} ctx={stepCtx} />
+              : hero.type === "measure" ? <MeasureStepView step={conteudo} ctx={stepCtx} />
+                : hero.type === "gauge" ? <GaugeStepView step={conteudo} ctx={stepCtx} />
+                  : hero.type === "vsl" ? <VslStepView step={conteudo} ctx={stepCtx} />
+                    : hero.type === "confirm" ? <ConfirmStepView step={conteudo} ctx={stepCtx} />
+                      : null}
         </main>
-        <ScrollHint dep={idx} />
+        <ScrollHint dep={idx} enabled={scrollHintLigado} />
       </div>
     );
   }
@@ -330,8 +392,9 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
         <footer className="relative z-10 px-5 pb-6 pt-2 text-center text-xs opacity-50">{funnel.settings.footer}</footer>
       ) : null}
 
-      {/* setinha pulsante "role pra baixo" (pedido do Luca) */}
-      <ScrollHint dep={idx} />
+      {/* setinha pulsante "role pra baixo" — liga/desliga em Design → Header.
+          Chave ausente = ligada (é o estado de todos os funis publicados). */}
+      <ScrollHint dep={idx} enabled={scrollHintLigado} />
     </div>
     </LayersEditContext.Provider>
   );

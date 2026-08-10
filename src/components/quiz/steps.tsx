@@ -6,7 +6,7 @@ import type {
   RouletteStep, RouletteStyle, ScratchStep, MeasureStep, SliderStep, Palette, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep, ResultStep,
   OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, QuizOption,
 } from "@/lib/quiz/types";
-import { CtaButton, OptionButton, StepShell, StickyCta, RichText, RICH_RE, useEdit } from "./ui";
+import { CtaButton, OptionButton, StepShell, StickyCta, RichText, RICH_RE, useEdit, DedoArrasta } from "./ui";
 import { submitLead, submitFunnelLead, fireMetaEvent } from "@/lib/tracking";
 import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { trackAnswer } from "@/lib/quiz/track";
@@ -404,20 +404,123 @@ export function ScratchStepView({ step, ctx }: { step: ScratchStep; ctx: StepCtx
   );
 }
 
-// ── Medida (número + unidade) ─────────────────────────────────────
+// ── "Pedida": régua/balança horizontal arrastável ─────────────────
+/** Espaçamento entre marcas, em px. 14 é o menor valor que ainda dá pra mirar com o dedo. */
+const REGUA_PX = 14;
+/** Teto de marcas desenhadas. Acima disso a fita vira milhares de <div> e engasga
+ *  no celular — então o passo VISUAL aumenta (o valor continua no passo pedido). */
+const REGUA_MAX_MARCAS = 400;
+
 export function MeasureStepView({ step, ctx }: { step: MeasureStep; ctx: StepCtx }) {
-  const [v, setV] = useState(String(step.defaultValue ?? 0));
-  const [unit, setUnit] = useState(0);
+  const titulo = step.title ?? step.question ?? "";
+  const ajuda = step.subtitle ?? step.help;
+  const min = step.min ?? 0;
+  const max = Math.max(min + 1, step.max ?? 100);
+  const passo = Math.max(0.01, step.step ?? 1);
+  const inicial = step.value ?? step.defaultValue ?? Math.round((min + max) / 2);
+  const majorEvery = Math.max(1, step.majorEvery ?? 5);
   const units = step.units ?? [];
+
+  // Se a régua ficar densa demais, desenha 1 marca a cada `saltoVisual` passos.
+  const saltoVisual = Math.max(1, Math.ceil((max - min) / passo / REGUA_MAX_MARCAS));
+  const marcas = useMemo(() => {
+    const out: number[] = [];
+    for (let x = min; x <= max + 1e-9; x += passo * saltoVisual) out.push(Math.round(x * 100) / 100);
+    return out;
+  }, [min, max, passo, saltoVisual]);
+
+  const fita = useRef<HTMLDivElement>(null);
+  const [idx, setIdx] = useState(() => {
+    const i = Math.round((inicial - min) / (passo * saltoVisual));
+    return Math.max(0, Math.min(marcas.length - 1, i));
+  });
+  const [unit, setUnit] = useState(0);
+  const ultimoIdx = useRef(idx);
+
+  /**
+   * Largura do espaçador que põe a primeira e a última marca no centro.
+   * Medida em PX, não em `calc(50%)`: com o flex em `max-content` uma
+   * porcentagem dependeria da largura que ela mesma define (circular), e com o
+   * flex em largura automática o estouro dos itens não entra no `scrollWidth` —
+   * a fita ficava travada sem rolagem nenhuma.
+   * O ResizeObserver já dispara uma vez ao observar, então não medimos à mão
+   * (chamada síncrona dentro do efeito dispararia render em cascata).
+   */
+  const [pad, setPad] = useState(0);
+  useEffect(() => {
+    const el = fita.current; if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setPad(Math.max(0, el.clientWidth / 2 - REGUA_PX / 2));
+      // Mudar a largura muda o espaçador e desloca a fita: sem reposicionar, a
+      // régua pulava para outro número ao girar o celular ou abrir o teclado.
+      requestAnimationFrame(() => { el.scrollLeft = ultimoIdx.current * REGUA_PX; });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // posiciona a fita no valor inicial assim que o espaçador existe (uma vez só)
+  const posicionado = useRef(false);
+  useEffect(() => {
+    const el = fita.current;
+    if (!el || pad <= 0 || posicionado.current) return;
+    posicionado.current = true;
+    el.scrollLeft = ultimoIdx.current * REGUA_PX;
+  }, [pad]);
+
+  const aoRolar = () => {
+    const el = fita.current; if (!el) return;
+    const i = Math.max(0, Math.min(marcas.length - 1, Math.round(el.scrollLeft / REGUA_PX)));
+    if (i === ultimoIdx.current) return;
+    ultimoIdx.current = i;
+    setIdx(i);
+    // vibração curta a cada marca — é o que dá a sensação de "catraca" da balança
+    if (step.haptic !== false) navigator.vibrate?.(6);
+  };
+
+  /**
+   * Arraste com MOUSE. O `overflow-x` nativo só responde a toque ou a scroll
+   * horizontal (shift+roda) — de mouse, arrastar não fazia nada. Restrito a
+   * `pointerType === "mouse"`: no toque o navegador já rola sozinho, e mexer no
+   * `scrollLeft` junto faria a fita andar em dobro.
+   */
+  const puxada = useRef<{ x: number; s: number } | null>(null);
+  const [tocou, setTocou] = useState(false);
+  // O dedo é uma dica de "arraste aqui" — tem que voltar em cada lâmina. Sem
+  // isto, um clique no preview do construtor o matava até remontar o componente,
+  // e parecia que o emoji simplesmente não existia ali.
+  //
+  // Comparação durante o RENDER (padrão do React para reajustar estado quando
+  // uma prop muda), não `useEffect`: com effect o React renderiza uma vez com o
+  // valor velho e só então corrige, em cascata.
+  const [laminaDoDedo, setLaminaDoDedo] = useState(step.id);
+  if (laminaDoDedo !== step.id) { setLaminaDoDedo(step.id); setTocou(false); }
+  const pegarFita = (e: React.PointerEvent) => {
+    const el = fita.current;
+    if (!el || e.pointerType !== "mouse") { setTocou(true); return; }
+    puxada.current = { x: e.clientX, s: el.scrollLeft };
+    el.setPointerCapture(e.pointerId);
+    setTocou(true);
+  };
+  const moverFita = (e: React.PointerEvent) => {
+    const a = puxada.current, el = fita.current;
+    if (!a || !el) return;
+    el.scrollLeft = a.s - (e.clientX - a.x);
+  };
+  const soltarFita = () => { puxada.current = null; };
+
+  const valor = marcas[idx] ?? inicial;
+  const sufixo = units[unit] ?? step.suffix ?? "";
   const go = () => {
-    logAnswer(ctx, step.id, step.question, `${v} ${units[unit] ?? step.suffix ?? ""}`.trim());
+    logAnswer(ctx, step.id, titulo, `${valor} ${sufixo}`.trim());
     ctx.advance();
   };
+
   return (
     <>
       <StepShell center>
-        <div className="text-center"><Title>{interp(step.question, ctx)}</Title></div>
-        {step.help ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]">{step.help}</p> : null}
+        <div className="text-center"><Title>{interp(titulo, ctx)}</Title></div>
+        {ajuda ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(ajuda, ctx)} /></p> : null}
         {units.length > 1 ? (
           <div className="mx-auto mt-5 inline-flex rounded-full bg-[var(--q-bg-soft)] p-1">
             {units.map((u, i) => (
@@ -426,13 +529,63 @@ export function MeasureStepView({ step, ctx }: { step: MeasureStep; ctx: StepCtx
             ))}
           </div>
         ) : null}
+
+        {/* leitura grande */}
         <div className="mt-7 flex items-end justify-center gap-2">
-          <input value={v} onChange={(e) => setV(e.target.value.replace(/[^\d.]/g, ""))} inputMode="decimal" autoFocus
-            className="w-36 border-b-2 border-[var(--q-primary)] bg-transparent text-center text-5xl font-black text-[var(--q-text)] outline-none" />
-          <span className="pb-2 text-xl font-semibold text-[var(--q-text-muted)]">{(units[unit] ?? step.suffix ?? "").toLowerCase()}</span>
+          <span className="text-6xl font-black leading-none text-[var(--q-text)] tabular-nums">{valor}</span>
+          {sufixo ? <span className="pb-2 text-xl font-semibold text-[var(--q-text-muted)]">{sufixo.toLowerCase()}</span> : null}
+        </div>
+
+        {/* fita */}
+        <div className="relative mt-6 select-none">
+          {/* Affordance de arraste, no lugar dos botões ‹ ›: o degradê apaga a
+              fita nas bordas (sinal de "tem mais coisa pros lados") e as setas
+              são DECORATIVAS — `pointer-events-none` para não roubarem o toque
+              de quem está arrastando a régua. */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-[2] w-10 bg-gradient-to-r from-[var(--q-bg,#fff)] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-[2] w-10 bg-gradient-to-l from-[var(--q-bg,#fff)] to-transparent" />
+          <span className="pointer-events-none absolute left-1 top-1/2 z-[3] -translate-y-1/2 text-lg text-[var(--q-text-muted)] opacity-40">‹</span>
+          <span className="pointer-events-none absolute right-1 top-1/2 z-[3] -translate-y-1/2 text-lg text-[var(--q-text-muted)] opacity-40">›</span>
+
+          {/* marcador central: seta no topo + haste da altura da marca alta */}
+          <div className="pointer-events-none absolute left-1/2 top-0 z-[2] h-0 w-0 -translate-x-1/2"
+            style={{ borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: "9px solid var(--q-primary)" }} />
+          <div className="pointer-events-none absolute left-1/2 top-[9px] z-[2] h-[34px] w-[3px] -translate-x-1/2 rounded-full"
+            style={{ background: "var(--q-primary)" }} />
+
+          {/* altura fixa: marca alta (34) + respiro (4) + número (16) = 54 */}
+          <div ref={fita} onScroll={aoRolar}
+            onPointerDown={pegarFita} onPointerMove={moverFita}
+            onPointerUp={soltarFita} onPointerCancel={soltarFita}
+            className="qf-regua overflow-x-auto overflow-y-hidden"
+            style={{ height: 63, paddingTop: 9, cursor: "grab", scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+            {/* `w-max` faz o scrollWidth medir a fita inteira; os espaçadores em
+                px (meia tela menos meia marca) fazem scrollLeft = i * REGUA_PX. */}
+            <div className="flex w-max items-start">
+              <div className="shrink-0" style={{ width: pad }} />
+              {marcas.map((m, i) => {
+                const alta = i % majorEvery === 0;
+                return (
+                  <div key={i} className="shrink-0" style={{ width: REGUA_PX, scrollSnapAlign: "center" }}>
+                    <div className="mx-auto rounded-full"
+                      style={{ width: alta ? 2 : 1, height: alta ? 34 : 20, background: "var(--q-text)", opacity: alta ? 0.55 : 0.22 }} />
+                    {alta ? (
+                      <div className="mt-1 text-center text-[11px] font-semibold leading-none tabular-nums text-[var(--q-text-muted)]">{m}</div>
+                    ) : null}
+                  </div>
+                );
+              })}
+              <div className="shrink-0" style={{ width: pad }} />
+            </div>
+          </div>
+          {/* dedo ABAIXO da fita: acima ele encostava no número grande */}
+          <div className="relative h-9">
+            <DedoArrasta visivel={!tocou} />
+          </div>
+          <style>{".qf-regua::-webkit-scrollbar{width:0;height:0;display:none}"}</style>
         </div>
       </StepShell>
-      <StickyCta><CtaButton onClick={go} disabled={!v}>{step.cta}</CtaButton></StickyCta>
+      <StickyCta><CtaButton onClick={go}>{step.cta}</CtaButton></StickyCta>
     </>
   );
 }
@@ -441,6 +594,10 @@ export function MeasureStepView({ step, ctx }: { step: MeasureStep; ctx: StepCtx
 export function SliderStepView({ step, ctx }: { step: SliderStep; ctx: StepCtx }) {
   const min = step.min ?? 0, max = step.max ?? 10, st = step.step ?? 1;
   const [v, setV] = useState(step.defaultValue ?? Math.round((min + max) / 2));
+  const [tocou, setTocou] = useState(false);
+  // mesmo padrão do MeasureStepView: reajuste no render, sem effect
+  const [laminaDoDedo, setLaminaDoDedo] = useState(step.id);
+  if (laminaDoDedo !== step.id) { setLaminaDoDedo(step.id); setTocou(false); }
   const scale = max - min <= 12;
   const go = () => {
     logAnswer(ctx, step.id, step.question, `${v}${step.suffix ?? ""}`);
@@ -450,10 +607,11 @@ export function SliderStepView({ step, ctx }: { step: SliderStep; ctx: StepCtx }
     <>
       <StepShell center>
         <div className="text-center"><Title>{interp(step.question, ctx)}</Title></div>
-        {step.help ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]">{step.help}</p> : null}
+        {step.help ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.help, ctx)} /></p> : null}
         <div className="mt-8">
           <div className="mb-2 text-center text-2xl font-black text-[var(--q-primary)]">{v}{step.suffix ?? ""}</div>
-          <input type="range" min={min} max={max} step={st} value={v} onChange={(e) => setV(Number(e.target.value))}
+          <input type="range" min={min} max={max} step={st} value={v}
+            onChange={(e) => { setV(Number(e.target.value)); setTocou(true); }}
             className="h-2 w-full cursor-pointer appearance-none rounded-full"
             style={{ accentColor: "var(--q-primary)", background: `linear-gradient(90deg, var(--q-primary) ${((v - min) / (max - min)) * 100}%, var(--q-bg-soft) ${((v - min) / (max - min)) * 100}%)` }} />
           {step.showScale ? (
@@ -463,6 +621,10 @@ export function SliderStepView({ step, ctx }: { step: SliderStep; ctx: StepCtx }
                 : <><span>{min}</span><span>{Math.round((min + max) / 2)}</span><span>{max}</span></>}
             </div>
           ) : null}
+          {/* mesma dica da régua — este slider não tinha nenhuma */}
+          <div className="relative h-9">
+            <DedoArrasta visivel={!tocou} />
+          </div>
         </div>
         {step.image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -561,12 +723,99 @@ export function NameStepView({ step, ctx }: { step: NameStep; ctx: StepCtx }) {
 }
 
 // ── Confirmação ───────────────────────────────────────────────────
+
+/**
+ * Medidor em arco, compacto — o "gauge" que aparece no topo do parabéns.
+ *
+ * Escrito à mão de propósito: esta lâmina roda em `/q/[slug]`, o bundle dos
+ * funis pagos, e uma biblioteca de gráfico aqui pesaria em todos eles.
+ *
+ * Duas sutilezas herdadas do `GaugeStepView`, que custaram depuração:
+ *  - o ponteiro gira por transição CSS, NÃO por `motion`: o motion impõe
+ *    `transform-origin: 50% 50%` do viewBox e o eixo sai do lugar;
+ *  - por isso `transformBox: "view-box"` + origem explícita no centro.
+ */
+function MedidorArco({ valor, max, zonas, sufixo, rotulo }: {
+  valor: number; max: number; sufixo?: string; rotulo?: string;
+  zonas?: { label: string; color: string; upTo?: number }[];
+}) {
+  const R = 64, CX = 80, CY = 76;
+  const faixas = zonas?.length ? zonas : [{ label: "", color: "var(--q-primary)" }];
+  const razao = Math.max(0, Math.min(1, valor / (max || 100)));
+
+  const [angulo, setAngulo] = useState(-90);
+  useEffect(() => {
+    const t = setTimeout(() => setAngulo(-90 + razao * 180), 220);
+    return () => clearTimeout(t);
+  }, [razao]);
+
+  const pt = (deg: number, r = R) => {
+    const rad = (deg - 180) * (Math.PI / 180);
+    return [CX + r * Math.cos(rad), CY + r * Math.sin(rad)];
+  };
+
+  // `upTo` dá a fatia real da escala; sem ele, fatias iguais
+  const temUpTo = faixas.some((z) => typeof z.upTo === "number");
+  const bordas: number[] = [0];
+  faixas.forEach((z, i) => {
+    bordas.push(temUpTo
+      ? Math.max(bordas[i], Math.min(180, ((z.upTo ?? max) / (max || 100)) * 180))
+      : ((i + 1) / faixas.length) * 180);
+  });
+  bordas[faixas.length] = 180;
+
+  const zonaAtual = faixas.findIndex((_, i) => razao * 180 <= bordas[i + 1] + 1e-6);
+  const nomeZona = rotulo ?? faixas[zonaAtual < 0 ? faixas.length - 1 : zonaAtual]?.label ?? "";
+
+  const [f0x, f0y] = pt(0), [f1x, f1y] = pt(180);
+  return (
+    <div className="mx-auto w-full max-w-[240px]">
+      <svg viewBox="0 0 160 96" className="w-full" role="img" aria-label={`Medidor: ${valor}${sufixo ?? ""}`}>
+        <path d={`M ${f0x} ${f0y} A ${R} ${R} 0 0 1 ${f1x} ${f1y}`}
+          fill="none" stroke="var(--q-text)" strokeWidth={11} opacity={0.08} strokeLinecap="round" />
+        {faixas.map((z, i) => {
+          if (bordas[i + 1] - bordas[i] < 0.5) return null;
+          const [ax, ay] = pt(bordas[i]);
+          const [bx, by] = pt(bordas[i + 1]);
+          return (
+            <path key={i} d={`M ${ax} ${ay} A ${R} ${R} 0 0 1 ${bx} ${by}`}
+              fill="none" stroke={z.color} strokeWidth={11} strokeLinecap="butt" opacity={0.92} />
+          );
+        })}
+        <line x1={CX} y1={CY} x2={CX} y2={CY - R + 14} stroke="var(--q-text)" strokeWidth={3.5} strokeLinecap="round"
+          style={{
+            transformBox: "view-box",
+            transformOrigin: `${CX}px ${CY}px`,
+            transform: `rotate(${angulo}deg)`,
+            transition: "transform .9s cubic-bezier(.2,.8,.2,1)",
+          }} />
+        <circle cx={CX} cy={CY} r={6.5} fill="var(--q-text)" />
+        <circle cx={CX} cy={CY} r={3} fill="var(--q-surface, #fff)" />
+      </svg>
+      <div className="-mt-1 text-center">
+        <span className="text-3xl font-black leading-none text-[var(--q-primary)] tabular-nums">
+          {valor}{sufixo ?? ""}
+        </span>
+        {nomeZona ? (
+          <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-[var(--q-text-muted)]">{nomeZona}</div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function ConfirmStepView({ step, ctx }: { step: ConfirmStep; ctx: StepCtx }) {
   return (
     <>
       <StepShell center>
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
           className="mx-auto w-full rounded-3xl bg-[var(--q-surface)] p-7 text-center shadow-xl">
+          {step.gaugeValue != null ? (
+            <div className="mb-4">
+              <MedidorArco valor={step.gaugeValue} max={step.gaugeMax ?? 100}
+                zonas={step.gaugeZones} sufixo={step.gaugeSuffix} rotulo={step.gaugeLabel} />
+            </div>
+          ) : null}
           {step.emoji ? <div className="mb-2 text-4xl">{step.emoji}</div> : null}
           <Title>{interp(step.title, ctx)}</Title>
           {step.body ? <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx)} /></p> : null}
@@ -614,7 +863,7 @@ export function QuestionStepView({ step, ctx }: { step: QuestionStep; ctx: StepC
     <>
       <StepShell>
         <Title>{interp(step.question, ctx)}</Title>
-        {step.help ? <p className="mt-2 text-sm text-[var(--q-text-muted)]">{step.help}</p> : null}
+        {step.help ? <p className="mt-2 text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.help, ctx)} /></p> : null}
         {step.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={step.image} alt="" className="mx-auto mt-4 max-h-44 w-auto rounded-xl object-contain" />
@@ -831,11 +1080,22 @@ function LoadingChecklist({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
 
 // ── Medidor / projeção (gauge) ────────────────────────────────────
 export function GaugeStepView({ step, ctx }: { step: GaugeStep; ctx: StepCtx }) {
-  const sMin = step.scaleMin ?? 0, sMax = step.scaleMax ?? 100;
+  const sMin = step.scaleMin ?? 0, sMax = Math.max((step.scaleMin ?? 0) + 1, step.scaleMax ?? 100);
+  /**
+   * `mode:"fixed"` (o padrão do construtor) fixa o ponteiro em `value`.
+   * `mode:"range"` mantém o sorteio teatral antigo — e a semente vem de um
+   * `useState` inicializador, não de `Math.random()` solto no corpo do render:
+   * no corpo, cada re-render sortearia um valor novo e o ponteiro tremeria.
+   */
+  const [seed] = useState(() => Math.random());
   const value = useMemo(() => {
-    const [a, b] = step.range ?? [sMin, sMax];
-    return Math.round(a + Math.random() * (b - a));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (step.mode === "range" && step.range) {
+      const [a, b] = step.range;
+      return Math.round(a + seed * (b - a));
+    }
+    return Math.round(step.value ?? Math.round((sMin + sMax) / 2));
+  }, [step.mode, step.range, step.value, sMin, sMax, seed]);
+
   const zones = step.zones && step.zones.length ? step.zones : [{ label: "", color: "var(--q-primary)" }];
   const ratio = Math.max(0, Math.min(1, (value - sMin) / (sMax - sMin)));
   // ponteiro: -90° (esquerda) → +90° (direita)
@@ -845,21 +1105,49 @@ export function GaugeStepView({ step, ctx }: { step: GaugeStep; ctx: StepCtx }) 
     return () => clearTimeout(t);
   }, [ratio]);
 
-  // arco SVG semicircular dividido em zonas
   const R = 86, CX = 100, CY = 100;
-  const pt = (deg: number) => {
+  const pt = (deg: number, r = R) => {
     const rad = (deg - 180) * (Math.PI / 180);
-    return [CX + R * Math.cos(rad), CY + R * Math.sin(rad)];
+    return [CX + r * Math.cos(rad), CY + r * Math.sin(rad)];
   };
-  let acc = 0;
-  const arcs = zones.map((z) => {
-    const span = 180 / zones.length;
-    const [x1, y1] = pt(acc);
-    const [x2, y2] = pt(acc + span);
-    acc += span;
-    return { d: `M ${x1} ${y1} A ${R} ${R} 0 0 1 ${x2} ${y2}`, color: z.color };
+
+  /**
+   * Fronteiras das zonas em GRAUS (0..180). Com `upTo` a zona ocupa a fatia real
+   * da escala — sem ele, cai no comportamento antigo de fatias iguais. Isso é o
+   * que faz "ideal 18,5–25" desenhar uma faixa estreita em vez de 1/3 do arco.
+   */
+  const temUpTo = zones.some((z) => typeof z.upTo === "number");
+  const bordas: number[] = [0];
+  zones.forEach((z, i) => {
+    if (temUpTo) {
+      const v = typeof z.upTo === "number" ? z.upTo : sMax;
+      bordas.push(Math.max(bordas[i], Math.min(180, ((v - sMin) / (sMax - sMin)) * 180)));
+    } else {
+      bordas.push(((i + 1) / zones.length) * 180);
+    }
   });
-  const zoneLabel = zones[Math.min(zones.length - 1, Math.floor(ratio * zones.length))]?.label ?? "";
+  bordas[zones.length] = 180;
+
+  const arcs = zones.map((z, i) => {
+    const [x1, y1] = pt(bordas[i]);
+    const [x2, y2] = pt(bordas[i + 1]);
+    return { d: `M ${x1} ${y1} A ${R} ${R} 0 0 1 ${x2} ${y2}`, color: z.color, vazio: bordas[i + 1] - bordas[i] < 0.5 };
+  });
+
+  const zonaAtual = zones.findIndex((_, i) => ratio * 180 <= bordas[i + 1] + 1e-6);
+  const zoneLabel = zones[zonaAtual < 0 ? zones.length - 1 : zonaAtual]?.label ?? "";
+
+  // marcas numeradas no arco
+  const nTicks = step.ticks ?? 5;
+  const ticks = nTicks > 0
+    ? Array.from({ length: nTicks + 1 }, (_, i) => {
+        const deg = (i / nTicks) * 180;
+        const [ax, ay] = pt(deg, R - 11);
+        const [bx, by] = pt(deg, R - 17);
+        const [tx, ty] = pt(deg, R - 28);
+        return { ax, ay, bx, by, tx, ty, label: Math.round(sMin + (i / nTicks) * (sMax - sMin)) };
+      })
+    : [];
 
   return (
     <>
@@ -869,19 +1157,41 @@ export function GaugeStepView({ step, ctx }: { step: GaugeStep; ctx: StepCtx }) 
 
         <div className="mx-auto mt-8 w-full max-w-xs">
           <svg viewBox="0 0 200 118" className="w-full">
-            {arcs.map((a, i) => (
+            {/* trilho de fundo — dá o contorno do mostrador mesmo com 1 zona só */}
+            <path d={`M ${pt(0)[0]} ${pt(0)[1]} A ${R} ${R} 0 0 1 ${pt(180)[0]} ${pt(180)[1]}`}
+              fill="none" stroke="var(--q-text)" strokeWidth={14} opacity={0.08} strokeLinecap="round" />
+            {arcs.filter((a) => !a.vazio).map((a, i) => (
               <path key={i} d={a.d} fill="none" stroke={a.color} strokeWidth={14} strokeLinecap="butt" opacity={0.92} />
             ))}
+            {/* marcas numeradas */}
+            {ticks.map((t, i) => (
+              <g key={i}>
+                <line x1={t.ax} y1={t.ay} x2={t.bx} y2={t.by} stroke="var(--q-text)" strokeWidth={1.5} opacity={0.35} />
+                <text x={t.tx} y={t.ty} textAnchor="middle" dominantBaseline="middle"
+                  fontSize={9} fontWeight={700} fill="var(--q-text)" opacity={0.45}>{t.label}</text>
+              </g>
+            ))}
             {/* ponteiro */}
-            <motion.line x1={CX} y1={CY} x2={CX} y2={CY - R + 16} stroke="var(--q-text)" strokeWidth={4} strokeLinecap="round"
-              style={{ transformOrigin: `${CX}px ${CY}px` }}
-              initial={{ rotate: -90 }} animate={{ rotate: angle }} transition={{ type: "spring", stiffness: 60, damping: 12 }} />
+            {/* Transição CSS, não `motion`: o motion impõe o próprio
+                transform-origin (resolve 50%/50% do view-box = 100,59) e o
+                ponteiro girava em torno do ponto errado — marcava ~60 com 82.
+                Aqui a origem é o eixo do mostrador e o giro fica exato. */}
+            <line x1={CX} y1={CY} x2={CX} y2={CY - R + 16} stroke="var(--q-text)" strokeWidth={4} strokeLinecap="round"
+              style={{
+                transformBox: "view-box",
+                transformOrigin: `${CX}px ${CY}px`,
+                transform: `rotate(${angle}deg)`,
+                transition: "transform .9s cubic-bezier(.2,.8,.2,1)",
+              }} />
             <circle cx={CX} cy={CY} r={8} fill="var(--q-text)" />
+            <circle cx={CX} cy={CY} r={3.5} fill="var(--q-bg, #fff)" />
           </svg>
-          <div className="-mt-2 text-center">
-            <div className="text-4xl font-black text-[var(--q-primary)]">
-              {interp(step.verdict ?? `{valor}${step.suffix ?? ""}`, ctx).replace("{valor}", String(value))}
-            </div>
+          <div className="mt-1 text-center">
+            {step.showValue !== false ? (
+              <div className="text-4xl font-black text-[var(--q-primary)]">
+                {interp(step.verdict ?? `{valor}${step.suffix ?? ""}`, ctx).replace("{valor}", String(value))}
+              </div>
+            ) : null}
             {zoneLabel ? <div className="mt-1 text-sm font-bold uppercase tracking-wide text-[var(--q-text-muted)]">{zoneLabel}</div> : null}
           </div>
         </div>

@@ -20,6 +20,27 @@ import { playWin, playUrl } from "@/lib/quiz/sound";
  *  - o botão final vai pro `ctaUrl` (WhatsApp) ou avança a lâmina se vazio.
  */
 
+/**
+ * PADRÃO DE FÁBRICA — copiado do `premio-sonia`, que é a raspadinha de
+ * referência. Toda lâmina que não define um campo cai aqui, então uma
+ * raspadinha nova já nasce com o efeito do funil que roda em produção.
+ * Campo gravado na lâmina SEMPRE vence: mudar isto não altera funil existente
+ * que já tenha o valor.
+ */
+const VERDE_PREMIO = "#16a34a";      // card do prêmio ganho
+const CINZA_PERDEDOR = "#919191";    // cards que não saíram
+const PADRAO = {
+  /** % da capa que precisa ser raspada para revelar */
+  revealPct: 80,
+  /** imagem 16:9 em tela 9:16: ancorar no topo preserva a arte de cima (logo) */
+  bgPosition: "top center",
+  coverColor: "#f7e08a",
+  coverColor2: "#c08c1e",
+  coverText: "RASPE AQUI 🔥",
+  coverTextColor: "#4a1c05",
+  coverTextSize: 50,
+} as const;
+
 const CW = 300, CH = 150;             // resolução do canvas de cada card
 const COLS_GRID = 12, ROWS_GRID = 8;  // grade de cobertura (não usa getImageData)
 
@@ -93,7 +114,13 @@ function Card({
   onFirstTouch: () => void;
   onReveal: () => void;
 }) {
-  const corDestaque = destaqueBg || card.color || "var(--q-primary)";
+  /**
+   * Cor do card revelado. O fallback é SEMÂNTICO, não o tema: prêmio ganho é
+   * verde e prêmio perdido é cinza — é o que o `premio-sonia` faz gravando
+   * `#16a34a` / `#919191` em cada card. Caindo em `var(--q-primary)`, uma
+   * raspadinha criada sem escolher cor pintava o vencedor de laranja.
+   */
+  const corDestaque = destaqueBg || card.color || VERDE_PREMIO;
   const corTexto = destaqueText || "#ffffff";
   const ref = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
@@ -212,7 +239,7 @@ function Card({
               }
             : {
                 background: "var(--q-bg-soft)",
-                border: `2px solid ${card.color || "var(--q-primary)"}`,
+                border: `2px solid ${card.color || CINZA_PERDEDOR}`,
                 // perdedores desbotam pra o ganho saltar aos olhos (% configurável)
                 opacity: revealed ? opacidadePerdedor : 1,
                 filter: revealed ? "saturate(.6)" : "none",
@@ -222,7 +249,7 @@ function Card({
         {card.emoji ? <span className="text-2xl leading-none">{card.emoji}</span> : null}
         <span
           className={`mt-0.5 leading-tight font-black ${destaque ? "text-lg" : "text-base"}`}
-          style={{ color: destaque ? corTexto : card.color || "var(--q-primary)" }}
+          style={{ color: destaque ? corTexto : card.color || CINZA_PERDEDOR }}
         >
           {card.label}
         </span>
@@ -270,7 +297,7 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
     }];
   }, [step]);
 
-  const revealPct = Math.min(0.9, Math.max(0.05, Number(step.revealPct ?? 25) / 100));
+  const revealPct = Math.min(0.9, Math.max(0.05, Number(step.revealPct ?? PADRAO.revealPct) / 100));
   const cols = Math.min(4, Math.max(1, Number(step.columns ?? 2)));
   const lockKey = `ctf_scratch_${ctx.funnelSlug}_${step.id}`;
 
@@ -382,7 +409,7 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
             // imagem 16:9 exibida em tela 9:16: "cover" + âncora no topo mantém
             // a arte de cima (ex.: a logo) visível em vez de cortá-la.
             backgroundSize: step.bgSize ?? "cover",
-            backgroundPosition: step.bgPosition ?? "center",
+            backgroundPosition: step.bgPosition ?? PADRAO.bgPosition,
             backgroundRepeat: "no-repeat",
           }}
         />
@@ -450,12 +477,13 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
             <Card
               key={pos}
               card={cardAt(pos)}
-              cover={step.coverColor ?? "#b8b8b8"}
-              cover2={step.coverColor2 ?? "#9c9c9c"}
-              coverGradiente={step.coverStyle === "gradient"}
-              coverText={step.coverText ?? "RASPE AQUI"}
-              coverTextColor={step.coverTextColor ?? "rgba(0,0,0,.38)"}
-              coverTextSize={Number(step.coverTextSize ?? 15)}
+              cover={step.coverColor ?? PADRAO.coverColor}
+              cover2={step.coverColor2 ?? PADRAO.coverColor2}
+              // sem `coverStyle` gravado, o padrão é o degradê dourado da referência
+              coverGradiente={step.coverStyle ? step.coverStyle === "gradient" : true}
+              coverText={step.coverText ?? PADRAO.coverText}
+              coverTextColor={step.coverTextColor ?? PADRAO.coverTextColor}
+              coverTextSize={Number(step.coverTextSize ?? PADRAO.coverTextSize)}
               opacidadePerdedor={Math.min(1, Math.max(0, Number(step.perdedoresOpacidade ?? 45) / 100))}
               // enquanto ninguém tocou, todos pulsam chamando pro toque
               pulsarAntes={estado === null}

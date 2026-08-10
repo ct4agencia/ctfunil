@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { fireMetaEvent } from "@/lib/tracking";
 import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { interpEstado } from "@/lib/quiz/estado";
+import { DedoArrasta } from "../ui";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
 
 /** Modo de edição no canvas (construtor inline estilo inlead). Off = runtime normal. */
@@ -646,18 +647,6 @@ export function SliderHero({
           {step.help ? <p className="mt-2 text-center text-sm text-black/45">{step.help}</p> : null}
 
           <div className="relative mt-16">
-            {/* dedo animado arrastando — some assim que ela toca */}
-            {!touched ? (
-              <motion.div
-                className="pointer-events-none absolute -top-11 left-0 z-20 text-[34px] will-change-transform"
-                style={{ filter: "drop-shadow(0 6px 8px rgba(0,0,0,.25))" }}
-                initial={{ x: "2%" }}
-                animate={{ x: ["2%", "60%", "2%"], rotate: [-4, 8, -4], scale: [1, 0.9, 1] }}
-                transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-              >
-                👆
-              </motion.div>
-            ) : null}
             <input
               type="range" min={min} max={max} step={stp} value={v}
               onChange={(e) => { setV(Number(e.target.value)); setTouched(true); }}
@@ -668,7 +657,11 @@ export function SliderHero({
             <div className="mt-2 flex justify-between px-0.5 text-xs font-semibold text-black/45">
               {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((n) => <span key={n}>{n}</span>)}
             </div>
-            <p className="mt-6 text-center text-sm font-semibold" style={{ color: theme }}>
+            {/* dedo ABAIXO do controle — antes ficava em cima e brigava com o título */}
+            <div className="relative h-9">
+              <DedoArrasta visivel={!touched} />
+            </div>
+            <p className="mt-2 text-center text-sm font-semibold" style={{ color: theme }}>
               {touched ? "Solte para continuar" : "Arraste o seletor para responder"}
             </p>
           </div>

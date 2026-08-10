@@ -11,7 +11,16 @@
 export type LayerType =
   | "text" | "clear" | "options" | "image" | "button" | "alert"
   | "loading" | "field" | "timer" | "notification" | "graphics"
-  | "embed" | "video" | "roulette" | "slider" | "carousel";
+  | "embed" | "video" | "roulette" | "slider" | "carousel"
+  // ── blocos-hero vindos do motor tipado ────────────────────────────────────
+  // Ocupam a lâmina inteira e reaproveitam os componentes de components/quiz/
+  // (mesmo mecanismo que roulette/slider já usam). O `content` de cada um é o
+  // Step tipado correspondente, não um content de layer comum.
+  | "scratch"    // raspadinha (ScratchGrid)
+  | "measure"    // "pedida": régua horizontal arrastável (MeasureStepView)
+  | "gauge"      // medidor/velocímetro (GaugeStepView)
+  | "vsl"        // player de vídeo com CTA por tempo (VslStepView)
+  | "confirm";   // "parabéns": celebração + confete (ConfirmStepView)
 
 /** Imagem/emoji de uma opção ou bloco. */
 export interface InleadMedia {
@@ -105,6 +114,14 @@ export interface InleadStep {
   title: string;
   /** false/true: lâmina desativada é PULADA no funil publicado (sem deletar). */
   disabled?: boolean;
+  /**
+   * Destino da saída PADRÃO — a que vale "independente do botão clicado".
+   * Ausente = próxima lâmina por posição (o comportamento de sempre). É o que a
+   * bolinha do rodapé grava quando arrastada no mapa de fluxo.
+   */
+  nextStep?: string;
+  /** Posição no mapa de fluxo, quando arrastada à mão. Ausente = layout automático. */
+  flowPos?: { x: number; y: number };
   layers: Layer[];
   options?: { show_logo?: boolean; show_progress?: boolean; show_back?: boolean };
   /** Override do header SÓ desta lâmina. Cada chave undefined = herda do global. */
