@@ -22,6 +22,7 @@ import { normalizarChave } from "@/lib/quiz/colunas";
 // Presets de período (Tudo/Hoje/Ontem/7d/30d) e o tratamento de fuso: os mesmos
 // que `/dashboard/[slug]` usa. Uma cópia só.
 import { PERIODOS, spYmd, dayBounds } from "@/lib/quiz/periodo";
+import ColorField from "@/components/ui/ColorField";
 import dynamic from "next/dynamic";
 // Mapa do funil: só carrega ao abrir a aba Fluxo (SVG + animação ficam fora do
 // chunk de quem só usa o construtor).
@@ -371,8 +372,12 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <Lbl>Ícone / emoji (opcional, antes do texto)</Lbl><input value={c.icon || ""} onChange={(e) => setC({ icon: e.target.value })} placeholder="ex: 👉 🔥 ✅" className={inp} />
         <Lbl>Cor do botão</Lbl>
         <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-1.5 text-xs text-neutral-600"><input type="color" value={layer.design?.backgroundColor || "#ea580c"} onChange={(e) => setD({ backgroundColor: e.target.value })} className="h-7 w-9 cursor-pointer rounded border border-neutral-300" /> Fundo</label>
-          <label className="flex items-center gap-1.5 text-xs text-neutral-600"><input type="color" value={layer.design?.color || "#ffffff"} onChange={(e) => setD({ color: e.target.value })} className="h-7 w-9 cursor-pointer rounded border border-neutral-300" /> Texto</label>
+          {/* <span>, não <label>: o ColorField abre um popover, e a ativação do
+              <label> reenviaria o clique ao primeiro controle — o próprio botão
+              — fechando o painel na hora. Mesmo mecanismo que roubava o foco no
+              campo de texto. */}
+          <span className="flex items-center gap-1.5 text-xs text-neutral-600"><ColorField value={layer.design?.backgroundColor || "#ea580c"} onChange={(v) => setD({ backgroundColor: v })} className="h-7 w-9" label="Fundo do botão" /> Fundo</span>
+          <span className="flex items-center gap-1.5 text-xs text-neutral-600"><ColorField value={layer.design?.color || "#ffffff"} onChange={(v) => setD({ color: v })} className="h-7 w-9" label="Texto do botão" /> Texto</span>
         </div>
         <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
           <input type="checkbox" checked={!!layer.design?.borderColor} onChange={(e) => setD({ borderColor: e.target.checked ? (layer.design?.backgroundColor || "#ea580c") : undefined, backgroundColor: e.target.checked ? "transparent" : (layer.design?.borderColor || "#ea580c") })} className="h-3.5 w-3.5 accent-neutral-900" /> Botão vazado (só contorno)
@@ -561,10 +566,10 @@ function DesignTab({ funnel, setFunnel }: { funnel: Funnel; setFunnel: (fn: (f: 
   return (
     <div className="mx-auto max-w-xl rounded-xl border border-neutral-200 bg-white p-5">
       <h2 className="mb-3 text-base font-bold">🎨 Design global</h2>
-      <Row label="Cor do tema (botões/destaques)"><input type="color" value={d.themeColor || "#ea580c"} onChange={(e) => setDesign({ themeColor: e.target.value })} className="h-8 w-12" /></Row>
-      <Row label="Fundo da página"><input type="color" value={d.backgroundColor || "#ffffff"} onChange={(e) => setDesign({ backgroundColor: e.target.value })} className="h-8 w-12" /></Row>
-      <Row label="Cor do título"><input type="color" value={d.titleColor || "#000000"} onChange={(e) => setDesign({ titleColor: e.target.value })} className="h-8 w-12" /></Row>
-      <Row label="Cor do texto"><input type="color" value={d.contentColor || "#000000"} onChange={(e) => setDesign({ contentColor: e.target.value })} className="h-8 w-12" /></Row>
+      <Row label="Cor do tema (botões/destaques)"><ColorField value={d.themeColor || "#ea580c"} onChange={(v) => setDesign({ themeColor: v })} className="h-8 w-12" label="Cor do tema" /></Row>
+      <Row label="Fundo da página"><ColorField value={d.backgroundColor || "#ffffff"} onChange={(v) => setDesign({ backgroundColor: v })} className="h-8 w-12" label="Fundo da página" /></Row>
+      <Row label="Cor do título"><ColorField value={d.titleColor || "#000000"} onChange={(v) => setDesign({ titleColor: v })} className="h-8 w-12" label="Cor do título" /></Row>
+      <Row label="Cor do texto"><ColorField value={d.contentColor || "#000000"} onChange={(v) => setDesign({ contentColor: v })} className="h-8 w-12" label="Cor do texto" /></Row>
       <Row label="Tamanho do texto (px)"><input type="number" value={Number(d.contentSize) || 17} onChange={(e) => setDesign({ contentSize: String(e.target.value) })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" /></Row>
       <Row label="Largura do container">
         <select value={d.container || "max-w-[34rem]"} onChange={(e) => setDesign({ container: e.target.value })} className="rounded border border-neutral-300 px-2 py-1 text-xs">
@@ -1355,14 +1360,14 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                             <option value="soft">Suave (paleta)</option><option value="casino">Cassino (dourado)</option><option value="neon">Neon (roxo)</option><option value="bulbs">Vegas (vinho)</option>
                           </select>
                         </div>
-                        <div><Lbl>Fundo (tela cheia)</Lbl><input type="color" value={sc.background || "#0b1f3a"} onChange={(e) => patchSpecial({ background: e.target.value })} className="h-8 w-full rounded border border-neutral-300" /></div>
+                        <div><Lbl>Fundo (tela cheia)</Lbl><ColorField value={sc.background || "#0b1f3a"} onChange={(v) => patchSpecial({ background: v })} className="h-8 w-full" label="Fundo (tela cheia)" /></div>
                       </div>
                       <div><Lbl>Imagem do centro</Lbl><ImageField value={sc.centerImage || ""} onChange={(v) => patchSpecial({ centerImage: v })} /></div>
                       <Lbl>Fatias (texto + cor)</Lbl>
                       <div className="space-y-1.5">
                         {segs.map((s, i) => (
                           <div key={i} className="flex items-center gap-1">
-                            <input type="color" value={s.color || "#ea580c"} onChange={(e) => setSeg(i, { color: e.target.value })} className="h-7 w-8 shrink-0 cursor-pointer rounded border border-neutral-300" />
+                            <ColorField value={s.color || "#ea580c"} onChange={(v) => setSeg(i, { color: v })} className="h-7 w-8" label="Cor da fatia" />
                             <input value={s.label || ""} onChange={(e) => setSeg(i, { label: e.target.value })} className={`${inp} flex-1`} />
                             <button onClick={() => patchSpecial({ segments: segs.filter((_, k) => k !== i) })} className="px-1 text-red-400">✕</button>
                           </div>

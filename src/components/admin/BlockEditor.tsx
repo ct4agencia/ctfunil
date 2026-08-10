@@ -2,6 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+// Alias: já existe um `ColorField` local neste arquivo (o wrapper com rótulo e
+// botão limpar), e é ele que os 7 pontos abaixo usam.
+import SeletorCor from "@/components/ui/ColorField";
 import {
   DndContext,
   closestCenter,
@@ -33,7 +36,20 @@ const inputCls =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-500";
 const lbl = "mb-1 block text-xs font-medium text-slate-600";
 
-// Seletor de cor: swatch (color picker) + hex + botão limpar (vazio = tema/padrão).
+/**
+ * Linha de cor do editor de blocos: rótulo + seletor + hex livre + limpar.
+ *
+ * O miolo virou o `SeletorCor` compartilhado (`components/ui/ColorField`), que
+ * traz área saturação×brilho, matiz e a paleta do funil — antes era um
+ * `<input type="color">` cru, o quarto tamanho de swatch diferente do painel.
+ *
+ * O wrapper continua aqui porque este editor mostra o rótulo ACIMA do campo e
+ * mantém o campo de texto livre ao lado. Vazio é semântico ("herda do tema"),
+ * não é erro — daí o `allowEmpty`.
+ *
+ * Virou `<div>`: em `<label>`, a ativação reenvia o clique ao primeiro controle
+ * (o botão do seletor) e o popover fecharia sozinho ao abrir.
+ */
 function ColorField({
   label,
   value,
@@ -46,15 +62,10 @@ function ColorField({
   emptyHint?: string;
 }) {
   return (
-    <label className="block">
+    <div className="block">
       <span className={lbl}>{label}</span>
       <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={value || "#000000"}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-10 shrink-0 cursor-pointer rounded border border-slate-300"
-        />
+        <SeletorCor value={value} onChange={onChange} label={label} className="h-9 w-10" allowEmpty />
         <input
           className={inputCls}
           placeholder={emptyHint}
@@ -71,7 +82,7 @@ function ColorField({
           </button>
         )}
       </div>
-    </label>
+    </div>
   );
 }
 
@@ -172,10 +183,12 @@ function PropsEditor({
               <option value={900}>Black</option>
             </select>
           </label>
-          <label className="block">
+          {/* <div>, não <label>: ativar o <label> reenviaria o clique ao botão
+              do seletor e o popover fecharia sozinho ao abrir. */}
+          <div className="block">
             <span className={lbl}>Cor</span>
-            <input type="color" className="h-10 w-14 rounded border border-slate-300" value={String(p.color || "#ffffff")} onChange={(e) => set("color", e.target.value)} />
-          </label>
+            <SeletorCor value={String(p.color || "#ffffff")} onChange={(v) => set("color", v)} className="h-10 w-14" label="Cor" />
+          </div>
           {alignField}
           {revealField}
         </div>
@@ -243,10 +256,11 @@ function PropsEditor({
             <span className={lbl}>Cor do botão</span>
             <input className={inputCls} placeholder="vazio = verde" value={String(p.bgColor ?? "")} onChange={(e) => set("bgColor", e.target.value)} />
           </label>
-          <label className="block">
+          {/* idem: <div> por causa do popover do seletor */}
+          <div className="block">
             <span className={lbl}>Cor do texto</span>
-            <input type="color" className="h-10 w-14 rounded border border-slate-300" value={String(p.textColor || "#ffffff")} onChange={(e) => set("textColor", e.target.value)} />
-          </label>
+            <SeletorCor value={String(p.textColor || "#ffffff")} onChange={(v) => set("textColor", v)} className="h-10 w-14" label="Cor do texto" />
+          </div>
           {alignField}
           {revealField}
           <label className="block">

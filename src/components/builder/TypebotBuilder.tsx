@@ -6,6 +6,7 @@ import type { TbBlock, TbFunnel, TbGroup } from "@/lib/quiz/typebot/types";
 import { TB_BLOCK_LABEL, TB_DEFAULT_THEME, isInput } from "@/lib/quiz/typebot/types";
 import ChatRunner from "@/components/quiz/typebot/ChatRunner";
 import { LeadsTab } from "@/components/builder/LayersBuilder";
+import ColorField from "@/components/ui/ColorField";
 import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
 import TypebotFlow from "@/components/builder/TypebotFlow";
 import { saveFunnelAction } from "@/app/builder/[slug]/actions";
@@ -452,7 +453,7 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel>) =
   const set = (p: Partial<typeof t>) => setTb({ theme: { ...t, ...p } });
   const Color = ({ label, k }: { label: string; k: keyof typeof t }) => (
     <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">{label}</span>
-      <input type="color" value={(t[k] as string) || "#000000"} onChange={(e) => set({ [k]: e.target.value })} className="h-8 w-12" /></div>
+      <ColorField value={(t[k] as string) || "#000000"} onChange={(v) => set({ [k]: v })} className="h-8 w-12" label={label} /></div>
   );
   const Toggle = ({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) => (
     <label className="flex cursor-pointer items-center justify-between py-1.5 text-sm"><span className="text-neutral-700">{label}</span>

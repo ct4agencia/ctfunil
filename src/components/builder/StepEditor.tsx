@@ -8,6 +8,9 @@ import type {
 import { ROULETTE_STYLES } from "@/lib/quiz/types";
 import { Field, Text, Area, HtmlField, Num, Toggle, Select, StringList, OptionsList } from "./fields";
 import { playSpinTicks, playWin } from "@/lib/quiz/sound";
+// Seletor único do painel. Substitui os <input type="color"> nativos, que aqui
+// apareciam em 4 tamanhos diferentes de swatch e sem campo hex.
+import ColorField from "@/components/ui/ColorField";
 
 /**
  * Grade de 2 colunas. DEFINIDA NO MÓDULO (fora do componente) de propósito:
@@ -31,8 +34,8 @@ function BgField({ value, onChange, onImagem }: { value?: string; onChange: (v: 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-        <input type="color" value={c1} onChange={(e) => setC1(e.target.value)} className="h-9 w-10 rounded border border-neutral-300" title="Cor do topo" />
-        <input type="color" value={c2} onChange={(e) => setC2(e.target.value)} className="h-9 w-10 rounded border border-neutral-300" title="Cor da base" />
+        <ColorField value={c1} onChange={setC1} className="h-9 w-10" label="Cor do topo" />
+        <ColorField value={c2} onChange={setC2} className="h-9 w-10" label="Cor da base" />
         <button type="button" onClick={() => onChange(`linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`)} className="rounded-md bg-neutral-900 px-2.5 py-1.5 text-xs font-semibold text-white">Aplicar gradiente</button>
         {value ? <button type="button" onClick={() => onChange(undefined)} className="text-xs font-semibold text-red-500">limpar (usa o padrão do estilo)</button> : null}
       </div>
@@ -110,7 +113,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               {s.segments.map((seg, i) => (
                 <div key={i} className="flex items-center gap-2 rounded-lg border border-neutral-200 p-2">
                   <input type="radio" name="winner" checked={s.winningIndex === i} onChange={() => setWinner(i)} className="h-4 w-4 accent-neutral-900" />
-                  <input type="color" value={seg.color} onChange={(e) => patchSeg(i, { color: e.target.value })} className="h-8 w-9 shrink-0 rounded border border-neutral-300" />
+                  <ColorField value={seg.color} onChange={(v) => patchSeg(i, { color: v })} className="h-8 w-9" label="Cor da fatia" />
                   <input className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" value={seg.label} onChange={(e) => patchSeg(i, { label: e.target.value })} />
                   <button type="button" onClick={() => p({ segments: s.segments.filter((_, k) => k !== i), winningIndex: Math.min(s.winningIndex, s.segments.length - 2) } as Partial<Step>)} disabled={s.segments.length <= 2} className="shrink-0 text-sm text-red-500 disabled:opacity-30">✕</button>
                 </div>
@@ -167,15 +170,15 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                 options={[{ value: "solid", label: "Cor sólida" }, { value: "gradient", label: "Degradê" }]} />
             </Field>
             <Field label={s.coverStyle === "gradient" ? "Cor da capa (início)" : "Cor da capa"}>
-              <input type="color" value={s.coverColor ?? "#b8b8b8"} onChange={(e) => p({ coverColor: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+              <ColorField value={s.coverColor ?? "#b8b8b8"} onChange={(v) => p({ coverColor: v } as Partial<Step>)} label="Cor da capa" />
             </Field>
             {s.coverStyle === "gradient" ? (
               <Field label="Cor da capa (fim)">
-                <input type="color" value={s.coverColor2 ?? "#9c9c9c"} onChange={(e) => p({ coverColor2: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+                <ColorField value={s.coverColor2 ?? "#9c9c9c"} onChange={(v) => p({ coverColor2: v } as Partial<Step>)} label="Cor da capa (fim)" />
               </Field>
             ) : null}
             <Field label="Cor do texto da capa">
-              <input type="color" value={s.coverTextColor ?? "#000000"} onChange={(e) => p({ coverTextColor: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+              <ColorField value={s.coverTextColor ?? "#000000"} onChange={(v) => p({ coverTextColor: v } as Partial<Step>)} label="Cor do texto da capa" />
             </Field>
             <Field label="Tamanho do texto da capa (px)">
               <input type="number" min={10} max={72} value={s.coverTextSize ?? 15}
@@ -218,8 +221,8 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                       className="h-4 w-4 shrink-0 accent-neutral-900" />
                     <input className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
                       value={c.label} onChange={(e) => patchCard(i, { label: e.target.value })} placeholder="Copy do prêmio" />
-                    <input type="color" value={c.color ?? "#a855f7"} onChange={(e) => patchCard(i, { color: e.target.value })}
-                      className="h-8 w-9 shrink-0 rounded border border-neutral-300" />
+                    <ColorField value={c.color ?? "#a855f7"} onChange={(v) => patchCard(i, { color: v })}
+                      className="h-8 w-9" label="Cor do card" />
                     <input type="number" min={0} max={100} title="Peso (100 = viciado)" value={c.weight ?? 0}
                       onChange={(e) => patchCard(i, { weight: Number(e.target.value) })}
                       className="w-16 shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-sm" />
@@ -263,13 +266,13 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             </span>
             <Grid>
               <Field label="Fundo do popup">
-                <input type="color" value={s.popupBg ?? "#16a34a"} onChange={(e) => p({ popupBg: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+                <ColorField value={s.popupBg ?? "#16a34a"} onChange={(v) => p({ popupBg: v } as Partial<Step>)} label="Fundo do popup" />
               </Field>
               <Field label="Botão do popup">
-                <input type="color" value={s.popupBtnBg ?? "#ffffff"} onChange={(e) => p({ popupBtnBg: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+                <ColorField value={s.popupBtnBg ?? "#ffffff"} onChange={(v) => p({ popupBtnBg: v } as Partial<Step>)} label="Botão do popup" />
               </Field>
               <Field label="Textos do popup">
-                <input type="color" value={s.popupText ?? "#ffffff"} onChange={(e) => p({ popupText: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+                <ColorField value={s.popupText ?? "#ffffff"} onChange={(v) => p({ popupText: v } as Partial<Step>)} label="Textos do popup" />
               </Field>
               <Field label="Botão dentro do popup"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
             </Grid>
@@ -340,7 +343,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                   ele quebrava em 3 linhas e sobrepunha o campo ao lado */}
               <Field label="Fundo do card em destaque">
                 <div className="space-y-1.5">
-                  <input type="color" value={s.destaqueBg ?? "#16a34a"} onChange={(e) => p({ destaqueBg: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+                  <ColorField value={s.destaqueBg ?? "#16a34a"} onChange={(v) => p({ destaqueBg: v } as Partial<Step>)} label="Fundo do destaque" />
                   <button type="button" onClick={() => p({ destaqueBg: "" } as Partial<Step>)}
                     className="w-full whitespace-nowrap rounded-md border border-neutral-300 px-2 py-1 text-[11px] font-semibold text-neutral-500 hover:bg-neutral-100">
                     usar cor do prêmio
@@ -348,7 +351,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                 </div>
               </Field>
               <Field label="Texto do card em destaque">
-                <input type="color" value={s.destaqueText ?? "#ffffff"} onChange={(e) => p({ destaqueText: e.target.value } as Partial<Step>)} className="h-9 w-full rounded-lg border border-neutral-300" />
+                <ColorField value={s.destaqueText ?? "#ffffff"} onChange={(v) => p({ destaqueText: v } as Partial<Step>)} label="Texto do destaque" />
               </Field>
               <Field label={`Opacidade dos outros cards: ${s.perdedoresOpacidade ?? 45}%`} full>
                 <input type="range" min={0} max={100} value={s.perdedoresOpacidade ?? 45}
@@ -524,7 +527,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                   <div className="space-y-2">
                     {zonasGauge.map((z, i) => (
                       <div key={i} className="flex items-center gap-2 rounded-lg border border-neutral-200 p-2">
-                        <input type="color" value={z.color} onChange={(e) => patchZonaGauge(i, { color: e.target.value })} className="h-8 w-9 shrink-0 rounded border border-neutral-300" />
+                        <ColorField value={z.color} onChange={(v) => patchZonaGauge(i, { color: v })} className="h-8 w-9" label="Cor da faixa" />
                         <input value={z.label} onChange={(e) => patchZonaGauge(i, { label: e.target.value })} placeholder="Rótulo" className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
                         <input type="number" value={z.upTo ?? 0} onChange={(e) => patchZonaGauge(i, { upTo: Number(e.target.value) })}
                           title="Até que valor esta faixa vai" className="w-[68px] shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-sm tabular-nums" />
@@ -659,7 +662,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             <div className="space-y-2">
               {zones.map((z, i) => (
                 <div key={i} className="flex items-center gap-2 rounded-lg border border-neutral-200 p-2">
-                  <input type="color" value={z.color} onChange={(e) => patchZone(i, { color: e.target.value })} className="h-8 w-9 shrink-0 rounded border border-neutral-300" />
+                  <ColorField value={z.color} onChange={(v) => patchZone(i, { color: v })} className="h-8 w-9" label="Cor da faixa" />
                   <input value={z.label} onChange={(e) => patchZone(i, { label: e.target.value })} placeholder="Rótulo" className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
                   <input type="number" value={z.upTo ?? 0} onChange={(e) => patchZone(i, { upTo: Number(e.target.value) })}
                     title="Até que valor da escala esta zona vai" className="w-[68px] shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-sm tabular-nums" />
@@ -805,10 +808,10 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                 <Field label="Texto da barra"><Text value={bar.text} onChange={(v) => patchBar({ text: v })} placeholder="⚠️ ATENÇÃO: ESTE VÍDEO SAI DO AR EM BREVE" /></Field>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <Field label="Cor de fundo">
-                    <input type="color" value={bar.bg || "#b86b00"} onChange={(e) => patchBar({ bg: e.target.value })} className="h-9 w-full rounded-lg border border-neutral-300" />
+                    <ColorField value={bar.bg || "#b86b00"} onChange={(v) => patchBar({ bg: v })} label="Cor de fundo" />
                   </Field>
                   <Field label="Cor do texto">
-                    <input type="color" value={bar.color || "#ffffff"} onChange={(e) => patchBar({ color: e.target.value })} className="h-9 w-full rounded-lg border border-neutral-300" />
+                    <ColorField value={bar.color || "#ffffff"} onChange={(v) => patchBar({ color: v })} label="Cor do texto" />
                   </Field>
                   <Field label="Revelar após (seg)"><Num value={bar.revealAt ?? 0} onChange={(v) => patchBar({ revealAt: v })} /></Field>
                 </div>
@@ -870,7 +873,7 @@ function AppearanceFields({ step, onChange }: { step: Step; onChange: (patch: Pa
         <div>
           <span className="mb-1 block text-xs font-semibold text-neutral-500">Cor do título</span>
           <div className="flex items-center gap-2">
-            <input type="color" value={a.titleColor ?? "#171717"} onChange={(e) => set({ titleColor: e.target.value })} className="h-9 w-12 rounded border border-neutral-300" />
+            <ColorField value={a.titleColor ?? "#171717"} onChange={(v) => set({ titleColor: v })} className="h-9 w-12" label="Cor do título" />
             {a.titleColor ? <button type="button" onClick={() => set({ titleColor: undefined })} className="text-xs text-red-500">limpar</button> : <span className="text-[11px] text-neutral-400">padrão do tema</span>}
           </div>
         </div>

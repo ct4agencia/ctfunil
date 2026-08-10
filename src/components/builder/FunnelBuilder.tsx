@@ -15,6 +15,7 @@ import { PALETTES, getPalette } from "@/lib/quiz/theme";
 import QuizRunner from "@/components/quiz/QuizRunner";
 import DevicePreview, { DEFAULT_DEVICE } from "@/components/builder/DevicePreview";
 import StepEditor from "./StepEditor";
+import ColorField from "@/components/ui/ColorField";
 import FunnelSettingsPanel from "./FunnelSettingsPanel";
 import { LeadsTab } from "./LayersBuilder";
 import { saveFunnelAction } from "@/app/builder/[slug]/actions";
@@ -208,11 +209,17 @@ export default function FunnelBuilder({ initial }: { initial: Funnel }) {
                   className={`h-7 w-7 rounded-full border-2 ${p.id === funnel.paletteId ? "border-neutral-900 ring-2 ring-neutral-900/15" : "border-white shadow"}`}
                   style={{ background: p.primary }} />
               ))}
-              <label title="Cor personalizada" className="relative grid h-7 w-7 cursor-pointer place-items-center overflow-hidden rounded-full border-2 text-[11px]"
-                style={funnel.paletteId.startsWith("#") ? { background: funnel.paletteId, borderColor: "#171717" } : { borderStyle: "dashed", borderColor: "#cbcbcb" }}>
-                {funnel.paletteId.startsWith("#") ? "" : "🎨"}
-                <input type="color" value={funnel.paletteId.startsWith("#") ? funnel.paletteId : "#6d46b8"} onChange={(e) => setFunnel((f) => ({ ...f, paletteId: e.target.value }))} className="absolute inset-0 cursor-pointer opacity-0" />
-              </label>
+              {/* Cor personalizada. Era um <input type="color"> invisível
+                  (opacity-0) esticado sobre um <label> que fazia as vezes de
+                  swatch — truque que existia só para abrir o seletor NATIVO. O
+                  ColorField já É o swatch e abre o painel próprio, então o
+                  truque saiu junto. */}
+              <ColorField
+                value={funnel.paletteId.startsWith("#") ? funnel.paletteId : "#6d46b8"}
+                onChange={(v) => setFunnel((f) => ({ ...f, paletteId: v }))}
+                className="h-7 w-7 rounded-full"
+                label="Cor personalizada"
+              />
             </div>
             <p className="mt-1.5 text-[11px] text-neutral-500">{pal.name}{funnel.paletteId.startsWith("#") ? ` ${funnel.paletteId}` : ""}</p>
             <div className="mt-3 border-t border-neutral-100 pt-2.5">
