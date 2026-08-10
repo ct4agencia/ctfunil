@@ -30,7 +30,19 @@ interface Detail {
 }
 
 const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.round(s) % 60).padStart(2, "0")}`;
-const iso = (d: Date) => d.toISOString().slice(0, 10);
+/**
+ * Dia no fuso de São Paulo — NÃO `toISOString()`, que devolve o dia em UTC.
+ *
+ * Com UTC, das 21h à meia-noite o dia já virou lá fora: "Hoje" pedia o dia
+ * SEGUINTE e a tela voltava vazia, e "Ontem" mostrava hoje. Medido: em 3 das 6
+ * horas testadas o dia saía errado. `en-CA` já formata como YYYY-MM-DD.
+ *
+ * Mesma técnica de LayersBuilder.tsx:596, que sempre esteve correto.
+ */
+const FMT_SP = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+});
+const iso = (d: Date) => FMT_SP.format(d);
 const daysAgo = (n: number) => iso(new Date(Date.now() - n * 86400 * 1000));
 const PERIODS = [
   { key: "hoje", label: "Hoje" },

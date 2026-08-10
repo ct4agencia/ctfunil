@@ -19,6 +19,10 @@ export interface VslCompareRow {
 }
 
 const COLORS = ["#38bdf8", "#a78bfa", "#34d399", "#fbbf24", "#fb7185", "#f97316", "#22d3ee", "#e879f9"];
+/** Dia-calendário de São Paulo (`en-CA` já sai YYYY-MM-DD). */
+const DIA_SP = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+});
 interface Curve { pts: { x: number; pct: number }[]; pitchX: number | null }
 
 export default function VslCompare({ rows }: { rows: VslCompareRow[] }) {
@@ -29,8 +33,10 @@ export default function VslCompare({ rows }: { rows: VslCompareRow[] }) {
     let dead = false;
     (async () => {
       setLoading(true);
-      const from = new Date(Date.now() - 30 * 86400 * 1000).toISOString().slice(0, 10);
-      const to = new Date().toISOString().slice(0, 10);
+      // Dia em São Paulo, não UTC: com `toISOString()` a janela deslocava um dia
+      // inteiro das 21h à meia-noite. Mesmo bug do VslDetail e do LayersBuilder.
+      const from = DIA_SP.format(new Date(Date.now() - 30 * 86400 * 1000));
+      const to = DIA_SP.format(new Date());
       const out: Record<string, Curve> = {};
       await Promise.all(rows.map(async (r) => {
         try {

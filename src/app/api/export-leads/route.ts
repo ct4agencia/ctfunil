@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { colunasDoFunil, type FunnelCol } from "@/lib/quiz/colunas";
 
 /**
  * Export CSV das respostas — PADRÃO INLEAD.
@@ -25,36 +26,10 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 type Layer = { id?: string; type?: string; webhookKey?: string; content?: Record<string, unknown> };
 type Step = { id?: string; title?: string; disabled?: boolean; layers?: Layer[]; type?: string; webhookKey?: string };
 
-/** Uma coluna do CSV: prefixo do tipo + chave estável. */
-type Col = { header: string; kind: "options" | "button" | "field"; stepId: string; stepIdx: number; fieldName?: string };
-
-/** Monta as colunas a partir da ESTRUTURA do funil (ordem das lâminas). */
-function colunasDoFunil(steps: Step[]): Col[] {
-  const cols: Col[] = [];
-  const ativos = steps.filter((s) => !s?.disabled);
-  ativos.forEach((step, idx) => {
-    const layers = Array.isArray(step.layers) ? step.layers : [];
-    // motor tipado: a lâmina inteira é a unidade (não tem blocos)
-    if (!layers.length) {
-      if (step.type === "question" || step.type === "slider" || step.type === "measure") {
-        cols.push({ header: `options: ${step.webhookKey || step.id || idx}`, kind: "options", stepId: String(step.id ?? idx), stepIdx: idx });
-      }
-      return;
-    }
-    for (const l of layers) {
-      const id = String(l.id ?? "");
-      if (l.type === "options") {
-        cols.push({ header: `options: ${l.webhookKey || step.webhookKey || id}`, kind: "options", stepId: String(step.id ?? idx), stepIdx: idx });
-      } else if (l.type === "button") {
-        cols.push({ header: `button: ${id}`, kind: "button", stepId: String(step.id ?? idx), stepIdx: idx });
-      } else if (l.type === "field") {
-        const nome = String((l.content?.name as string) || (l.content?.type as string) || id);
-        cols.push({ header: `field: ${nome}`, kind: "field", stepId: String(step.id ?? idx), stepIdx: idx, fieldName: nome });
-      }
-    }
-  });
-  return cols;
-}
+// As colunas vêm de `lib/quiz/colunas.ts` — o MESMO módulo que a aba Leads usa.
+// Enquanto cada um tinha a sua cópia, o cabeçalho da tela e o do CSV eram
+// modelos diferentes e nunca se reconciliavam.
+type Col = FunnelCol;
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -64,7 +39,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const slug = new URL(request.url).searchParams.get("slug") || "";
+  const qs = new URL(request.url).searchParams;
+  const slug = qs.get("slug") || "";
+  // Período do seletor da aba Leads. Filtra SÓ a sessão: uma sessão pode começar
+  // dia 1 e responder dia 2, então filtrar as respostas por data cortaria linhas
+  // pela metade. Filtrando a sessão, o nº de linhas do CSV bate com o da tela.
+  const from = qs.get("from") || "";
+  const to = qs.get("to") || "";
   const sb = createAdminClient();
 
   // 1) estrutura do funil -> ordem e nome das colunas
@@ -79,6 +60,8 @@ export async function GET(request: Request) {
     .select("session_id,created_at,max_step_reached,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,xcod,ctwa_clid,source_id")
     .order("created_at", { ascending: false }).limit(20000);
   if (slug) sq = sq.eq("funnel_slug", slug);
+  if (from) sq = sq.gte("created_at", from);
+  if (to) sq = sq.lte("created_at", to);
   const { data: sessions, error } = await sq;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -121,6 +104,8 @@ export async function GET(request: Request) {
       if (c.kind === "options") return ans?.get(c.stepId) ?? "";
       // botão: a lead passou desta lâmina, logo clicou (mesma regra da tela)
       if (c.kind === "button") return max > c.stepIdx ? "clicked" : "";
+      // lâmina sem interação: registra só se a lead chegou a vê-la
+      if (c.kind === "passou") return max >= c.stepIdx ? "visto" : "";
       // campo: nome/telefone vêm do lead capturado
       const n = (c.fieldName || "").toLowerCase();
       if (/tel|phone|whats/.test(n)) return (lead?.phone as string) ?? "";
@@ -145,7 +130,10 @@ export async function GET(request: Request) {
   }
 
   const csv = "﻿" + lines.join("\r\n"); // BOM p/ Excel
-  const stamp = new Date().toISOString().slice(0, 10);
+  // dia de São Paulo, não UTC: depois das 21h o nome saía com a data de amanhã
+  const stamp = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date());
   const fname = `leads_${slug || "todos"}_${stamp}.csv`;
   return new NextResponse(csv, {
     headers: {
