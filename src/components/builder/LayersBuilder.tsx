@@ -19,6 +19,9 @@ import { HtmlField } from "@/components/builder/fields";
 // Mesma normalização que gera o cabeçalho do CSV — se o construtor tivesse a
 // dele, o nome digitado e o nome exportado divergiriam no primeiro acento.
 import { normalizarChave } from "@/lib/quiz/colunas";
+// Presets de período (Tudo/Hoje/Ontem/7d/30d) e o tratamento de fuso: os mesmos
+// que `/dashboard/[slug]` usa. Uma cópia só.
+import { PERIODOS, spYmd, dayBounds } from "@/lib/quiz/periodo";
 import dynamic from "next/dynamic";
 // Mapa do funil: só carrega ao abrir a aba Fluxo (SVG + animação ficam fora do
 // chunk de quem só usa o construtor).
@@ -665,23 +668,11 @@ function Bar({ pct, color = "#3b82f6" }: { pct: number; color?: string }) {
   return <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100"><div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} /></div>;
 }
 
-/** Data yyyy-mm-dd no fuso de São Paulo (offset em dias: 0 = hoje, 1 = ontem). */
-const spYmd = (offsetDays = 0) =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" })
-    .format(new Date(Date.now() - offsetDays * 86400000));
-/** Limites UTC de um dia (00:00–23:59) no fuso BR (-03:00, sem horário de verão). */
-const dayBounds = (ymd: string): { from: string; to: string } => ({
-  from: new Date(`${ymd}T00:00:00.000-03:00`).toISOString(),
-  to: new Date(`${ymd}T23:59:59.999-03:00`).toISOString(),
-});
-const sinceDays = (n: number): { from: string } => ({ from: new Date(Date.now() - n * 86400000).toISOString() });
-const PERIODOS: { key: string; label: string; make: () => { from?: string; to?: string } }[] = [
-  { key: "tudo", label: "Tudo", make: () => ({}) },
-  { key: "hoje", label: "Hoje", make: () => dayBounds(spYmd(0)) },
-  { key: "ontem", label: "Ontem", make: () => dayBounds(spYmd(1)) },
-  { key: "7d", label: "7 dias", make: () => sinceDays(7) },
-  { key: "30d", label: "30 dias", make: () => sinceDays(30) },
-];
+// spYmd / dayBounds / sinceDays / PERIODOS moraram aqui até 10/08/2026, quando
+// `/dashboard/[slug]` precisou do MESMO filtro. Duas cópias divergiriam na
+// primeira mudança — e uma delas é a que trata fuso, que já deu bug em
+// produção ("Hoje" pedindo o dia seguinte depois das 21h). Agora vêm de
+// `lib/quiz/periodo.ts`, importado no topo do arquivo.
 
 /** Aba Leads = sub-abas Respostas / Resultados / Performance (estilo inlead).
  *  Exportada pra ser reusada também no FunnelBuilder (motor typed). */
