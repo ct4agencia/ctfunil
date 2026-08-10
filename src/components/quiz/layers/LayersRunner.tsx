@@ -73,6 +73,33 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
 
   const [idx, setIdx] = useState(startIndex);
   const history = useRef<number[]>([]);
+
+  /**
+   * PRIMEIRA pintura não anima — as trocas de lâmina continuam animando.
+   *
+   * O `motion.div` da lâmina usava `initial={{ opacity: 0, y: 14 }}` sempre. A
+   * doc do motion (motion.dev/docs/react-motion-component) é explícita: "motion
+   * components are fully compatible with server-side rendering, meaning the
+   * INITIAL STATE of the component will be reflected in the server-generated
+   * output". Ou seja, o funil inteiro era servido com `opacity: 0` e só ficava
+   * visível quando o JS hidratava e rodava a animação de 0,28 s.
+   *
+   * Medido em produção (cdb-01, Pixel 7 / 4G lento / CPU 4x, visita fria):
+   * o HTML chegava em 37 ms com todo o conteúdo dentro, e o LCP só marcava aos
+   * 9.860 ms. O navegador tinha os pixels e estava proibido de pintá-los.
+   *
+   * `initial={false}` faz o servidor emitir direto o estado de `animate` — a
+   * mesma doc: "`initial` can be set as `false` to disable the enter animation
+   * and initially render as the values found in `animate`".
+   *
+   * Por que uma ref e não `idx === 0`: com `idx === 0` a lâmina 1 perderia a
+   * animação para SEMPRE, inclusive ao voltar para ela no meio do funil. A ref
+   * marca só o primeiro render — e como ela é lida durante o render e só muda
+   * no efeito, servidor e hidratação enxergam o MESMO valor (`true`), então não
+   * há divergência de hidratação.
+   */
+  const primeiroPaint = useRef(true);
+  useEffect(() => { primeiroPaint.current = false; }, []);
   const [name, setName] = useState("");
   const [fields, setFields] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -348,7 +375,10 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
         <AnimatePresence mode="wait">
           <motion.div
             key={idx}
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+            // `false` só na primeira pintura: é o que tira o opacity:0 do HTML
+            // servido. Da 2ª lâmina em diante o fade/slide de entrada continua.
+            initial={primeiroPaint.current ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.28 }}
             className="mx-auto flex w-full flex-col"
             style={{ maxWidth: containerMax(design.container), gap: `${Number(design.gap) || 0.6}rem` }}
