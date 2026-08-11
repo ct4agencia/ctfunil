@@ -114,10 +114,36 @@ export const ROULETTE_STYLES: { id: RouletteStyle; name: string }[] = [
   { id: "bulbs", name: "Lâmpadas (vegas)" },
 ];
 
+/**
+ * Motor de animação da roleta.
+ *
+ * `classica` é o que todos os funis usam hoje: a roda anima por uma curva de
+ * easing de 4,2 s e o som é agendado à parte (30 tiques numa curva própria).
+ *
+ * `interativa` simula a roda quadro a quadro — o som nasce da passagem real do
+ * pino pelo ponteiro, o ponteiro tem peso, e o fim tem recuo (backdrag) e
+ * hesitação sobre o pino. Em ambos o prêmio continua sendo decidido pelo
+ * sorteio, nunca pela física.
+ *
+ * AUSENTE = `classica`. É isso que mantém intacto todo funil já publicado.
+ */
+export type RouletteEngine = "classica" | "interativa";
+
+export const ROULETTE_ENGINES: { id: RouletteEngine; name: string; hint: string }[] = [
+  { id: "classica", name: "Roleta padrão", hint: "A de sempre. Giro suave, som sincronizado por tempo." },
+  { id: "interativa", name: "Roleta interativa", hint: "Física real: o pino segura, a roda recua e o som acompanha o giro." },
+];
+
 export interface RouletteStep extends BaseStep {
   type: "roulette";
   title: string;
   subtitle?: string;
+  /** motor de animação; ausente = `classica` (comportamento de sempre) */
+  engine?: RouletteEngine;
+  /** só para `interativa`: nome do preset de movimento (ex.: "Suspense") */
+  preset?: string;
+  /** só para `interativa`: intensidade do preset, de -10 a +10 (0 = puro) */
+  intensidade?: number;
   segments: RouletteSegment[];
   /** índice que SEMPRE vence (modo "sempre vence") */
   winningIndex: number;

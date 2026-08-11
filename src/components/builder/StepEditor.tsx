@@ -5,7 +5,10 @@ import type {
   Step, RouletteStep, ScratchStep, ScratchCard, MeasureStep, SliderStep, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep,
   ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint, ScarcityBar, StepAppearance,
 } from "@/lib/quiz/types";
-import { ROULETTE_STYLES } from "@/lib/quiz/types";
+import { ROULETTE_STYLES, ROULETTE_ENGINES } from "@/lib/quiz/types";
+// Presets de movimento da roleta interativa — os mesmos que /lab/roleta usa,
+// para o que o Luca ouve no laboratório ser o que o funil publica.
+import { PRESETS as PRESETS_ROLETA } from "@/lib/quiz/roleta-fisica";
 import { Field, Text, Area, HtmlField, Num, Toggle, Select, StringList, OptionsList } from "./fields";
 import { playSpinTicks, playWin } from "@/lib/quiz/sound";
 // Seletor único do painel. Substitui os <input type="color"> nativos, que aqui
@@ -105,7 +108,43 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               <Select value={s.style ?? "soft"} onChange={(v) => p({ style: v } as Partial<Step>)}
                 options={ROULETTE_STYLES.map((st) => ({ value: st.id, label: st.name }))} />
             </Field>
+            <Field label="Tipo de roleta">
+              <Select value={s.engine ?? "classica"} onChange={(v) => p({ engine: v } as Partial<Step>)}
+                options={ROULETTE_ENGINES.map((e) => ({ value: e.id, label: e.name }))} />
+            </Field>
           </Grid>
+
+          {/* O tipo muda só a ANIMAÇÃO: sorteio, trava de 24 h e prêmios são os
+              mesmos nos dois motores. */}
+          <p className="-mt-2 text-[11px] leading-snug text-neutral-500">
+            {ROULETTE_ENGINES.find((e) => e.id === (s.engine ?? "classica"))?.hint}
+          </p>
+
+          {s.engine === "interativa" ? (
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Movimento da roleta interativa</p>
+              <Grid>
+                <Field label="Estilo de giro">
+                  <Select value={s.preset ?? PRESETS_ROLETA[0].nome} onChange={(v) => p({ preset: v } as Partial<Step>)}
+                    options={PRESETS_ROLETA.filter((pr) => pr.nome !== "Personalizado").map((pr) => ({ value: pr.nome, label: pr.nome }))} />
+                </Field>
+                <Field label={`Intensidade (${s.intensidade ?? 0})`}>
+                  <input type="range" min={-10} max={10} step={1} value={s.intensidade ?? 0}
+                    onChange={(e) => p({ intensidade: Number(e.target.value) } as Partial<Step>)}
+                    onDoubleClick={() => p({ intensidade: 0 } as Partial<Step>)}
+                    className="w-full accent-neutral-900"
+                    title="0 = estilo puro · duplo clique volta ao 0" />
+                </Field>
+              </Grid>
+              <p className="mt-1 text-[11px] leading-snug text-neutral-500">
+                {PRESETS_ROLETA.find((pr) => pr.nome === (s.preset ?? PRESETS_ROLETA[0].nome))?.desc}
+                {" "}A intensidade vai de −10 a +10 e reforça essa característica; 0 é o estilo puro.
+              </p>
+              <p className="mt-1 text-[11px] text-neutral-400">
+                Para ouvir antes de publicar, teste em <code className="rounded bg-neutral-200 px-1">/lab/roleta</code>.
+              </p>
+            </div>
+          ) : null}
           <Field label="Fundo da lâmina (full-screen)"><BgField value={s.background} onChange={(v) => p({ background: v } as Partial<Step>)} /></Field>
           <div>
             <span className="mb-1 block text-xs font-semibold text-neutral-500">Segmentos (marque o vencedor)</span>

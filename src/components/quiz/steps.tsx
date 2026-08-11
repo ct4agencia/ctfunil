@@ -12,6 +12,10 @@ import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { trackAnswer } from "@/lib/quiz/track";
 import { interpEstado } from "@/lib/quiz/estado";
 import { playSpinTicks, playWin, playUrl } from "@/lib/quiz/sound";
+import dynamic from "next/dynamic";
+// Motor alternativo da roleta. `dynamic` de propósito: funil que usa a roleta
+// clássica (todos os de hoje) não baixa uma linha da simulação.
+const RoletaInterativa = dynamic(() => import("./RoletaInterativa"), { ssr: false });
 
 /** Contexto passado a cada lâmina pelo QuizRunner. */
 export interface StepCtx {
@@ -170,27 +174,43 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   const pegR = ch.peg === "bulb" ? 95 : 93;
   const pegs = Array.from({ length: pegCount }, (_, k) => polar(pegR, (k * 360) / pegCount));
 
+  // Motor "interativa": a roda é simulada quadro a quadro e avisa quando parou.
+  // A clássica segue sendo o padrão — `engine` ausente é o caminho de sempre.
+  const interativa = step.engine === "interativa";
+  const [vencedor, setVencedor] = useState(step.winningIndex);
+
+  /** Vitória: som, confete e liberação do botão. Um só lugar para os dois motores. */
+  const celebrar = () => {
+    setDone(true); setSpinning(false);
+    if (step.sound?.enabled) {
+      if (step.sound.winUrl) playUrl(step.sound.winUrl);
+      else playWin();
+    }
+    import("canvas-confetti").then((m) => m.default({ particleCount: 170, spread: 95, origin: { y: 0.4 } })).catch(() => {});
+  };
+
   const spin = () => {
     if (spinning || done) return;
     setSpinning(true);
-    if (step.sound?.enabled) {
-      if (step.sound.tickUrl) playUrl(step.sound.tickUrl);
-      else playSpinTicks(4200);
-    }
+
     const win = step.mode === "random" ? Math.floor(Math.random() * N) : step.winningIndex;
+    setVencedor(win);
     // trava 24h: registra o prêmio no aparelho (fixa no reload + bloqueia novo giro)
     if (step.lockReplay && typeof window !== "undefined") {
       try { localStorage.setItem(`cdb-rl-${step.id}`, JSON.stringify({ w: win, ts: Date.now() })); } catch { /* noop */ }
     }
+
+    // Na interativa o som dos pinos nasce da própria simulação, então NÃO se
+    // agenda `playSpinTicks` — seriam duas trilhas concorrentes, uma por tempo
+    // e outra pelo movimento. O som customizado (tickUrl) vale nos dois motores.
+    if (step.sound?.enabled) {
+      if (step.sound.tickUrl) playUrl(step.sound.tickUrl);
+      else if (!interativa) playSpinTicks(4200);
+    }
+    if (interativa) return; // o fim chega pelo callback do componente
+
     setRotation(360 * 6 - win * seg); // win=0 → 6 voltas exatas, labels terminam retas
-    setTimeout(() => {
-      setDone(true); setSpinning(false);
-      if (step.sound?.enabled) {
-        if (step.sound.winUrl) playUrl(step.sound.winUrl);
-        else playWin();
-      }
-      import("canvas-confetti").then((m) => m.default({ particleCount: 170, spread: 95, origin: { y: 0.4 } })).catch(() => {});
-    }, 4300);
+    setTimeout(celebrar, 4300);
   };
 
   // após vencer, avança sozinho (sem 2º clique) quando autoAdvance
@@ -223,6 +243,29 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
         <div className="text-center"><Title>{interp(step.title, ctx)}</Title></div>
         {step.subtitle ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(step.subtitle, ctx)} /></p> : null}
 
+        {/* MOTOR INTERATIVO — só quando escolhido no construtor. A roda é
+            simulada quadro a quadro; o som dos pinos nasce do próprio giro e o
+            fim avisa por callback. O sorteio, a trava de 24 h e o confete
+            continuam aqui fora, iguais para os dois motores. */}
+        {interativa ? (
+          <div className="mt-7">
+            <RoletaInterativa
+              segments={step.segments}
+              vencedor={vencedor}
+              girando={spinning}
+              onFim={celebrar}
+              som={!!step.sound?.enabled && !step.sound?.tickUrl}
+              preset={step.preset}
+              intensidade={step.intensidade ?? 0}
+              chrome={{ rim: ch.rim, rimInner: ch.rimInner, pegColor: ch.pegColor, pointer: ch.pointer, dark: ch.dark }}
+              centerImage={step.centerImage}
+              hubR={ch.hubR}
+              hub={ch.hub}
+              hubInner={ch.hubInner}
+              anguloInicial={-((step.initialIndex ?? 0) * seg)}
+            />
+          </div>
+        ) : (
         <div className="relative mx-auto mt-7 h-[300px] w-[300px] max-w-full">
             {/* ponteiro por estilo */}
             {ch.pointerType === "notch" ? (
@@ -275,6 +318,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               ) : null}
             </div>
           </div>
+          )}
           {ch.stand === "trapezoid" ? (
             <div className="mx-auto -mt-2" style={{ width: 96, height: 48, background: "linear-gradient(#333,#0a0a0a)", clipPath: "polygon(26% 0,74% 0,100% 100%,0 100%)" }} />
           ) : ch.stand === "podium" ? (
