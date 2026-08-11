@@ -326,7 +326,20 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       {/* fundo personalizado da lâmina */}
       {bgImg ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={bgImg} alt="" className="pointer-events-none absolute inset-0 h-full w-full" style={{ opacity: bgOpacity, objectFit: bgFit, objectPosition: bgPos }} />
+        // Na PRIMEIRA lâmina esta imagem é o elemento LCP — medido no cdb-01,
+        // onde ela sozinha responde por ~4 s do carregamento. `fetchPriority
+        // high` tira ela da fila comum; `eager` impede que algum heurístico do
+        // navegador a trate como abaixo da dobra. Nas demais lâminas o padrão
+        // continua, porque ali ela não bloqueia nada.
+        <img
+          src={bgImg}
+          alt=""
+          fetchPriority={idx === 0 ? "high" : "auto"}
+          loading={idx === 0 ? "eager" : "lazy"}
+          decoding="async"
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          style={{ opacity: bgOpacity, objectFit: bgFit, objectPosition: bgPos }}
+        />
       ) : null}
 
       {/* header GLOBAL (settings.header): logo + progresso + voltar.
