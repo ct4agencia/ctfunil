@@ -36,6 +36,11 @@ export interface RoletaInterativaProps {
   preset?: string;
   /** -10..+10; 0 = preset puro */
   intensidade?: number;
+  /**
+   * Valores crus do movimento. Quando presentes VENCEM preset+intensidade — é
+   * o que o modo "Personalizado" usa, já que ali não há preset de onde derivar.
+   */
+  params?: Params;
   /** cores vindas de `wheelChrome` (steps.tsx:43), para casar com o estilo */
   chrome: { rim: string; rimInner: string; pegColor: string; pointer: string; dark?: boolean };
   centerImage?: string;
@@ -110,7 +115,7 @@ function contraste(hex: string): string {
 
 export default function RoletaInterativa({
   segments, vencedor, girando, onFim, som = true,
-  preset, intensidade = 0, chrome, centerImage,
+  preset, intensidade = 0, params, chrome, centerImage,
   hubR = 94, hub = "#fdf8ef", hubInner = "#eef5f0", anguloInicial = 0,
 }: RoletaInterativaProps) {
   const N = segments.length;
@@ -129,8 +134,9 @@ export default function RoletaInterativa({
   useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); }, []);
 
   const rodar = useCallback(() => {
+    // `params` (modo Personalizado) vence; senão deriva do preset + intensidade.
     const pr = PRESETS.find((x) => x.nome === preset);
-    const p: Params = pr ? comIntensidade(pr.params, pr.dir, intensidade) : PADRAO;
+    const p: Params = params ?? (pr ? comIntensidade(pr.params, pr.dir, intensidade) : PADRAO);
 
     ac();
     const base = st.current.ang;
@@ -219,7 +225,7 @@ export default function RoletaInterativa({
     };
 
     raf.current = requestAnimationFrame(passo);
-  }, [vencedor, SEG, CRISTA, som, onFim, preset, intensidade]);
+  }, [vencedor, SEG, CRISTA, som, onFim, preset, intensidade, params]);
 
   // Dispara UMA vez quando `girando` vira true. `rodou` evita que uma
   // re-renderização do pai reinicie o giro no meio.

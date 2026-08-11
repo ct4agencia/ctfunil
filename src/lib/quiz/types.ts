@@ -144,6 +144,15 @@ export interface RouletteStep extends BaseStep {
   preset?: string;
   /** só para `interativa`: intensidade do preset, de -10 a +10 (0 = puro) */
   intensidade?: number;
+  /**
+   * só para `preset === "Personalizado"`: os valores crus do movimento.
+   * Ignorado nos demais presets, que derivam tudo de nome + intensidade — sem
+   * este campo, "Personalizado" não teria onde guardar o que foi ajustado.
+   */
+  paramsRoleta?: {
+    voltas: number; duracaoAlvo: number; limiarCatraca: number; pedagio: number;
+    rigidez: number; amortecimento: number; overshoot: number; pegHang: boolean;
+  };
   segments: RouletteSegment[];
   /** índice que SEMPRE vence (modo "sempre vence") */
   winningIndex: number;

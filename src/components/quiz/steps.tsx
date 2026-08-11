@@ -257,6 +257,8 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               som={!!step.sound?.enabled && !step.sound?.tickUrl}
               preset={step.preset}
               intensidade={step.intensidade ?? 0}
+              // só o modo Personalizado grava valores crus; nos demais é undefined
+              params={step.preset === "Personalizado" ? step.paramsRoleta : undefined}
               chrome={{ rim: ch.rim, rimInner: ch.rimInner, pegColor: ch.pegColor, pointer: ch.pointer, dark: ch.dark }}
               centerImage={step.centerImage}
               hubR={ch.hubR}

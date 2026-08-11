@@ -8,7 +8,7 @@ import type {
 import { ROULETTE_STYLES, ROULETTE_ENGINES } from "@/lib/quiz/types";
 // Presets de movimento da roleta interativa — os mesmos que /lab/roleta usa,
 // para o que o Luca ouve no laboratório ser o que o funil publica.
-import { PRESETS as PRESETS_ROLETA } from "@/lib/quiz/roleta-fisica";
+import { PRESETS as PRESETS_ROLETA, PADRAO as PARAMS_PADRAO_ROLETA } from "@/lib/quiz/roleta-fisica";
 import { Field, Text, Area, HtmlField, Num, Toggle, Select, StringList, OptionsList } from "./fields";
 import { playSpinTicks, playWin } from "@/lib/quiz/sound";
 // Seletor único do painel. Substitui os <input type="color"> nativos, que aqui
@@ -83,6 +83,22 @@ function BgField({ value, onChange, onImagem }: { value?: string; onChange: (v: 
 
 /** Editor de campos da lâmina selecionada — varia por tipo (estilo inlead). */
 export default function StepEditor({ step, onChange }: { step: Step; onChange: (patch: Partial<Step>) => void }) {
+  // Feedback do botão "Salvar" do movimento da roleta. Volta a false a cada
+  // mudança, para não ficar dizendo "Salvo" sobre algo que já mudou depois.
+  const [salvoRoleta, setSalvoRoleta] = useState(false);
+  /**
+   * Intensidade SUGERIDA de cada modo da roleta. Vive só no painel: o
+   * "Surpreenda-me" sorteia todos de uma vez e o Luca testa um por um clicando
+   * nos cards — só o card clicado vai para a lâmina. Sem esse estado, sortear
+   * todos gravaria seis configurações que ele ainda não ouviu.
+   */
+  const [sugestoes, setSugestoes] = useState<Record<string, number>>({});
+  /**
+   * Sugestão do modo "Personalizado". Ele não tem régua — o que se sorteia são
+   * os valores crus dentro dos limites de cada controle, e por isso precisa de
+   * um estado próprio em vez de caber no mapa de intensidades.
+   */
+  const [sugestaoCustom, setSugestaoCustom] = useState<typeof PARAMS_PADRAO_ROLETA | null>(null);
   const p = (patch: Partial<Step>) => onChange(patch);
 
   const fields = ((): React.ReactNode => {
@@ -120,28 +136,202 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             {ROULETTE_ENGINES.find((e) => e.id === (s.engine ?? "classica"))?.hint}
           </p>
 
+          {/* MESMOS CARDS DO /lab/roleta. Um <select> escondia o que cada estilo
+              faz — aqui a descrição, o eixo e a régua ficam à vista, e a escolha
+              é exatamente a que se ouve no laboratório.
+              O card ATIVO é o do preset salvo na lâmina; mexer na régua de outro
+              card também o seleciona (senão seria preciso clicar duas vezes). */}
           {s.engine === "interativa" ? (
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Movimento da roleta interativa</p>
-              <Grid>
-                <Field label="Estilo de giro">
-                  <Select value={s.preset ?? PRESETS_ROLETA[0].nome} onChange={(v) => p({ preset: v } as Partial<Step>)}
-                    options={PRESETS_ROLETA.filter((pr) => pr.nome !== "Personalizado").map((pr) => ({ value: pr.nome, label: pr.nome }))} />
-                </Field>
-                <Field label={`Intensidade (${s.intensidade ?? 0})`}>
-                  <input type="range" min={-10} max={10} step={1} value={s.intensidade ?? 0}
-                    onChange={(e) => p({ intensidade: Number(e.target.value) } as Partial<Step>)}
-                    onDoubleClick={() => p({ intensidade: 0 } as Partial<Step>)}
-                    className="w-full accent-neutral-900"
-                    title="0 = estilo puro · duplo clique volta ao 0" />
-                </Field>
-              </Grid>
-              <p className="mt-1 text-[11px] leading-snug text-neutral-500">
-                {PRESETS_ROLETA.find((pr) => pr.nome === (s.preset ?? PRESETS_ROLETA[0].nome))?.desc}
-                {" "}A intensidade vai de −10 a +10 e reforça essa característica; 0 é o estilo puro.
+            <div className="rounded-xl border border-neutral-200 bg-white p-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">
+                Movimento — escolha e ajuste a intensidade
               </p>
-              <p className="mt-1 text-[11px] text-neutral-400">
-                Para ouvir antes de publicar, teste em <code className="rounded bg-neutral-200 px-1">/lab/roleta</code>.
+              <div className="mt-2.5 grid gap-2">
+                {PRESETS_ROLETA.filter((pr) => pr.nome !== "Personalizado").map((pr) => {
+                  const escolhido = (s.preset ?? PRESETS_ROLETA[0].nome) === pr.nome;
+                  // O card ATIVO mostra o que está na lâmina; os outros mostram
+                  // a sugestão sorteada (ou 0). Assim o "Surpreenda-me" propõe
+                  // seis movimentos sem gravar nenhum.
+                  const n = escolhido ? (s.intensidade ?? 0) : (sugestoes[pr.nome] ?? 0);
+                  const sugerido = !escolhido && sugestoes[pr.nome] !== undefined;
+                  return (
+                    <div key={pr.nome}
+                      className={`rounded-lg border p-2.5 transition ${
+                        escolhido ? "border-neutral-900 bg-neutral-900 text-white"
+                        : sugerido ? "border-orange-300 bg-orange-50/40" : "border-neutral-200"}`}>
+                      <button type="button"
+                        onClick={() => p({ preset: pr.nome, intensidade: n } as Partial<Step>)}
+                        className="block w-full text-left">
+                        <span className="block text-xs font-bold">
+                          {pr.nome}
+                          {sugerido ? <span className="ml-1 font-normal text-[10px] text-orange-600">sugerido — clique para ouvir</span> : null}
+                        </span>
+                        <span className={`block text-[11px] leading-snug ${escolhido ? "text-neutral-300" : "text-neutral-500"}`}>
+                          {pr.desc}
+                        </span>
+                      </button>
+                      <p className="mt-2 text-[10px] text-neutral-400">{pr.eixo}</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="w-6 shrink-0 text-[10px] text-neutral-400">−10</span>
+                        <span className="relative flex-1">
+                          <span className={`pointer-events-none absolute left-1/2 top-1/2 h-3 w-px -translate-x-1/2 -translate-y-1/2 ${escolhido ? "bg-neutral-600" : "bg-neutral-300"}`} />
+                          <input type="range" min={-10} max={10} step={1} value={n}
+                            onChange={(e) => {
+                              const v = Number(e.target.value);
+                              setSugestoes((o) => ({ ...o, [pr.nome]: v }));
+                              // mexer na régua já escolhe o card: evita ter de
+                              // ajustar e depois clicar para valer
+                              p({ preset: pr.nome, intensidade: v } as Partial<Step>);
+                              setSalvoRoleta(false);
+                            }}
+                            onDoubleClick={() => {
+                              setSugestoes((o) => ({ ...o, [pr.nome]: 0 }));
+                              p({ preset: pr.nome, intensidade: 0 } as Partial<Step>);
+                            }}
+                            className="relative w-full accent-orange-500"
+                            title="arraste para os lados · duplo clique volta ao 0" />
+                        </span>
+                        <span className="w-6 shrink-0 text-right text-[10px] text-neutral-400">+10</span>
+                        <b className={`w-8 shrink-0 rounded px-1 py-0.5 text-center text-[11px] tabular-nums ${
+                          n === 0 ? (escolhido ? "bg-neutral-700 text-neutral-300" : "bg-neutral-100 text-neutral-500") : "bg-orange-500 text-white"
+                        }`}>{n > 0 ? `+${n}` : n}</b>
+                      </div>
+                    </div>
+                  );
+                })}
+                {/* PERSONALIZADO — abre os controles crus. Diferente dos outros
+                    cards, ele não tem régua: aqui não há característica para
+                    amplificar, os valores são o próprio ajuste. */}
+                {(() => {
+                  const custom = (s.preset ?? PRESETS_ROLETA[0].nome) === "Personalizado";
+                  // sorteado e ainda não ouvido: mostra a proposta, não o que está salvo
+                  const sugCustom = !custom && sugestaoCustom !== null;
+                  const pv = custom ? (s.paramsRoleta ?? PARAMS_PADRAO_ROLETA) : (sugestaoCustom ?? PARAMS_PADRAO_ROLETA);
+                  const setPv = (patch: Partial<typeof pv>) => {
+                    p({ preset: "Personalizado", paramsRoleta: { ...pv, ...patch } } as Partial<Step>);
+                    setSalvoRoleta(false);
+                  };
+                  const fino = (
+                    k: keyof typeof pv, min: number, max: number, passo: number,
+                    rotulo: string, menos: string, mais: string,
+                  ) => (
+                    <div key={k} className="border-t border-neutral-100 pt-2 first:border-0 first:pt-0">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-[11px] font-semibold text-neutral-700">{rotulo}</span>
+                        <b className="text-[11px] tabular-nums">{pv[k] as number}</b>
+                      </div>
+                      <input type="range" min={min} max={max} step={passo} value={pv[k] as number}
+                        onChange={(e) => setPv({ [k]: Number(e.target.value) } as Partial<typeof pv>)}
+                        className="mt-1 w-full accent-neutral-900" />
+                      <div className="flex justify-between text-[10px] text-neutral-400">
+                        <span>← {menos}</span><span>{mais} →</span>
+                      </div>
+                    </div>
+                  );
+                  return (
+                    <div className={`rounded-lg border p-2.5 transition ${
+                      custom ? "border-neutral-900 bg-neutral-900 text-white"
+                      : sugCustom ? "border-orange-300 bg-orange-50/40" : "border-neutral-200"}`}>
+                      <button type="button"
+                        onClick={() => p({ preset: "Personalizado", paramsRoleta: pv } as Partial<Step>)}
+                        className="block w-full text-left">
+                        <span className="block text-xs font-bold">
+                          Personalizado {custom ? "▾" : "▸"}
+                          {sugCustom ? <span className="ml-1 font-normal text-[10px] text-orange-600">sugerido — clique para ouvir</span> : null}
+                        </span>
+                        <span className={`block text-[11px] leading-snug ${custom ? "text-neutral-300" : "text-neutral-500"}`}>
+                          {sugCustom
+                            ? `${pv.voltas} voltas · ${pv.duracaoAlvo}s · recuo ${pv.overshoot}°${pv.pegHang ? " · para no pino" : ""}`
+                            : "Abre os controles finos. Parte do padrão e é só ajustar."}
+                        </span>
+                      </button>
+                      {custom ? (
+                        <div className="mt-2 space-y-2 rounded-lg bg-white p-2.5 text-neutral-900">
+                          {fino("voltas", 2, 10, 1, "Quantas voltas ela dá", "curto", "longo")}
+                          {fino("duracaoAlvo", 2, 8, 0.2, "Duração do giro (s)", "2 s", "8 s")}
+                          {fino("limiarCatraca", 60, 400, 10, "Quando o suspense começa", "só no fim", "bem antes")}
+                          {fino("pedagio", 0, 40, 1, "Força com que o pino segura", "escorrega", "agarra")}
+                          {fino("overshoot", 0, 20, 1, "Quanto ela passa do ponto", "sem recuo", "recua muito")}
+                          {fino("amortecimento", 2, 20, 0.5, "Quanto ela balança no fim", "balança", "firme")}
+                          {fino("rigidez", 40, 300, 10, "Força do encaixe final", "molenga", "seco")}
+                          <label className="flex cursor-pointer items-start justify-between gap-2 border-t border-neutral-100 pt-2 text-[11px]">
+                            <span>
+                              <b className="text-neutral-700">Parar em cima do pino</b>
+                              <span className="mt-0.5 block leading-snug text-neutral-500">
+                                Equilibra na divisória, hesita e tomba.
+                              </span>
+                            </span>
+                            <input type="checkbox" checked={pv.pegHang}
+                              onChange={(e) => setPv({ pegHang: e.target.checked })}
+                              className="mt-0.5 h-4 w-4 shrink-0 accent-neutral-900" />
+                          </label>
+                          <button type="button" onClick={() => setPv(PARAMS_PADRAO_ROLETA)}
+                            className="text-[10px] text-neutral-400 underline">restaurar padrão</button>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <div className="mt-2.5 flex gap-2">
+                {/* SURPREENDA-ME: sorteia TODOS os modos de uma vez, sem gravar
+                    nenhum. Vira uma bateria de seis propostas para ouvir uma a
+                    uma; só a que for clicada entra na lâmina. */}
+                <button type="button"
+                  onClick={() => {
+                    const novas: Record<string, number> = {};
+                    for (const pr of PRESETS_ROLETA) {
+                      if (pr.nome === "Personalizado") continue;
+                      novas[pr.nome] = Math.floor(Math.random() * 21) - 10; // -10..+10
+                    }
+                    setSugestoes(novas);
+                    // "Personalizado" não tem régua: sorteia os valores CRUS,
+                    // cada um dentro do próprio limite. `passo` respeita a casa
+                    // decimal de cada controle (duração vai de 0,2 em 0,2).
+                    const sorteia = (min: number, max: number, passo: number) => {
+                      const casas = Math.round((max - min) / passo);
+                      return Math.round((min + Math.floor(Math.random() * (casas + 1)) * passo) * 10) / 10;
+                    };
+                    setSugestaoCustom({
+                      voltas: sorteia(3, 9, 1),
+                      duracaoAlvo: sorteia(2.6, 6.4, 0.2),
+                      limiarCatraca: sorteia(80, 380, 10),
+                      pedagio: sorteia(4, 38, 1),
+                      rigidez: sorteia(60, 280, 10),
+                      amortecimento: sorteia(2.5, 16, 0.5),
+                      overshoot: sorteia(0, 19, 1),
+                      pegHang: Math.random() < 0.3, // hesitação é tempero, não regra
+                    });
+                    setSalvoRoleta(false);
+                  }}
+                  className="flex-1 rounded-lg border border-dashed border-neutral-300 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">
+                  🎲 Surpreenda-me <span className="font-normal text-neutral-400">— sorteia os 6</span>
+                </button>
+                {/* SALVAR: guarda esta combinação como a preferida, no navegador.
+                    A lâmina já recebe as mudanças na hora (é o funil que publica);
+                    isto é para a PRÓXIMA roleta nascer com o mesmo movimento. */}
+                <button type="button"
+                  onClick={() => {
+                    try {
+                      localStorage.setItem("ct4-roleta-preferido", JSON.stringify({
+                        preset: s.preset ?? PRESETS_ROLETA[0].nome,
+                        intensidade: s.intensidade ?? 0,
+                        params: s.paramsRoleta ?? null,
+                      }));
+                      setSalvoRoleta(true);
+                    } catch { /* navegador sem storage: não impede publicar */ }
+                  }}
+                  className={`rounded-lg px-4 py-2 text-xs font-bold transition ${
+                    salvoRoleta ? "bg-green-600 text-white" : "bg-neutral-900 text-white hover:bg-neutral-700"}`}>
+                  {salvoRoleta ? "✓ Salvo" : "Salvar"}
+                </button>
+              </div>
+              <p className="mt-1.5 text-center text-[10px] leading-relaxed text-neutral-400">
+                <b>Surpreenda-me</b> sorteia os 6 de uma vez — clique em cada um para ouvir no
+                preview. Só o clicado entra na lâmina.
+                <br />0 = estilo puro · duplo clique na régua volta ao 0 ·{" "}
+                <b>Salvar</b> guarda o escolhido como seu padrão para as próximas roletas
               </p>
             </div>
           ) : null}
