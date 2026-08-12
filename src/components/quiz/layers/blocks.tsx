@@ -6,7 +6,13 @@ import { fireMetaEvent } from "@/lib/tracking";
 import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { interpEstado } from "@/lib/quiz/estado";
 import { DedoArrasta } from "../ui";
+import dynamic from "next/dynamic";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
+
+// Tela do bloco `loading` no estilo "diagnóstico", dividida com o motor tipado.
+// `dynamic` porque a maioria das lâminas de loading usa a barra simples e não
+// deve baixar o anel + as caixas.
+const Diagnostico = dynamic(() => import("../Diagnostico"), { ssr: false });
 
 /** Modo de edição no canvas (construtor inline estilo inlead). Off = runtime normal. */
 export interface LayersEdit {
@@ -504,6 +510,23 @@ function FieldBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 // ─────────────────────────────── LOADING ────────────────────────────
 function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const c = layer.content;
+  // DIAGNÓSTICO: outra tela, não outra skin da barra. Sai antes de qualquer
+  // estado da barra ser montado — os dois só compartilham o campo `seconds`. A
+  // tela mora em `quiz/Diagnostico.tsx`, dividida com o motor tipado.
+  if (c.style === "diagnostico") {
+    const limpo = (s: unknown) => interpHtml(String(s), ctx).replace(/<[^>]+>/g, "").trim();
+    return (
+      <Diagnostico
+        titulo={c.title ? interpHtml(String(c.title), ctx) : undefined}
+        subtitulo={c.description ? limpo(c.description) : undefined}
+        caixas={((c.bars as string[]) ?? []).map(limpo)}
+        icones={c.icons as string[] | undefined}
+        duracaoMs={(Number(c.seconds) || 5) * 1000}
+        // type "none" = a lâmina segue no lugar depois da análise (igual à barra)
+        onFim={c.type === "none" ? undefined : () => ctx.navigate(String(c.destination || "next"))}
+      />
+    );
+  }
   const secs = Number(c.seconds) || 4;
   const [pct, setPct] = useState(Number(c.starts) || 0);
   const done = useRef(false);

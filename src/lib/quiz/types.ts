@@ -95,6 +95,13 @@ export interface RouletteSegment {
   label: string;
   color: string;
   win?: boolean;
+  /** emoji do popup deste prêmio; sem valor, o popup usa 🎉 */
+  emoji?: string;
+  /** copy do popup SÓ deste prêmio; sem valor, cai no winTitle/winBody da lâmina.
+   *  Espelha a raspadinha (`premio.popupTitle || step.winTitle`) e só faz
+   *  diferença no modo "random" — no "always" existe um vencedor só. */
+  popupTitle?: string;
+  popupBody?: string;
 }
 
 export interface RouletteSound {
@@ -178,6 +185,20 @@ export interface RouletteStep extends BaseStep {
   /** trava anti-repeat: se já girou e ganhou, não gira de novo por 24h (localStorage);
    *  o prêmio fica fixado mesmo no reload. Opcional por funil (A/B). */
   lockReplay?: boolean;
+  /**
+   * Popup de prêmio ao fim do giro — o mesmo liga/desliga que a raspadinha tem.
+   * AUSENTE = desligado: as roletas que já rodam continuam só com confete e som.
+   *
+   * Diferente do da raspadinha em um ponto de propósito: lá a faixa fica no topo
+   * e é informativa (a grade de cards precisa continuar visível). Aqui ele é
+   * central e TEM botão, porque na roleta o giro já acabou — não há nada atrás
+   * para o visitante olhar, e o clique dele é o próximo passo do funil.
+   */
+  popupEnabled?: boolean;
+  /** cores do popup; sem valor, herdam a paleta do funil */
+  popupBg?: string;
+  popupText?: string;
+  popupBtnBg?: string;
 }
 
 /** Um card da grade de raspadinha. Espelha o painel de prêmios da roleta:
@@ -380,8 +401,20 @@ export interface LoadingCheckpoint {
 export interface LoadingStep extends BaseStep {
   type: "loading";
   variant?: "light" | "dark";
-  /** "simple" = pulso + slides | "checklist" = barras rotuladas estilo "Preparando seu plano" */
-  style?: "simple" | "checklist";
+  /**
+   * "simple"      = pulso + slides
+   * "checklist"   = barras rotuladas estilo "Preparando seu plano"
+   * "diagnostico" = anel de progresso + caixas com ícone e spinner
+   *
+   * O diagnóstico não é uma variação visual do checklist: ali cada linha é uma
+   * BARRA que enche, aqui cada linha é uma CAIXA que espera, roda e conclui. A
+   * diferença importa porque a caixa carrega a ideia de "uma verificação sendo
+   * feita sobre você" — que é justamente o que esta lâmina precisa estabelecer
+   * antes de a roleta aparecer.
+   */
+  style?: "simple" | "checklist" | "diagnostico";
+  /** ícones das caixas (modo diagnóstico), na ordem de `bars`; faltando, usa 🔎 */
+  icons?: string[];
   title?: string;
   /** logo opcional no topo */
   logo?: string;

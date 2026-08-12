@@ -371,6 +371,28 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               </div>
             ) : null}
           </div>
+
+          {/* POPUP DE PRÊMIO — mesmo liga/desliga da raspadinha. Desligado por
+              padrão: as roletas publicadas não podem ganhar uma tela nova por
+              conta de um campo que ninguém marcou. */}
+          <div className="rounded-xl bg-neutral-50 p-3">
+            <Toggle label="🎉 Popup de prêmio" value={s.popupEnabled ?? false} onChange={(v) => p({ popupEnabled: v } as Partial<Step>)} />
+            {s.popupEnabled ? (
+              <div className="mt-3 space-y-3">
+                <p className="text-[11px] text-neutral-500">
+                  Aparece no <b>centro da tela</b> quando a roleta para, usando o <b>título</b> e o{" "}
+                  <b>texto da vitória</b> acima. O botão é o <b>botão pós-vitória</b>. Com ele ligado, o
+                  card de vitória embaixo da roda não aparece (seria a mesma copy duas vezes) e o
+                  avanço automático fica desativado.
+                </p>
+                <Grid>
+                  <Field label="Fundo do popup"><ColorField value={s.popupBg ?? "#16a34a"} onChange={(v) => p({ popupBg: v } as Partial<Step>)} label="Fundo do popup" /></Field>
+                  <Field label="Cor do texto"><ColorField value={s.popupText ?? "#ffffff"} onChange={(v) => p({ popupText: v } as Partial<Step>)} label="Cor do texto" /></Field>
+                  <Field label="Fundo do botão"><ColorField value={s.popupBtnBg ?? "#ffffff"} onChange={(v) => p({ popupBtnBg: v } as Partial<Step>)} label="Fundo do botão" /></Field>
+                </Grid>
+              </div>
+            ) : null}
+          </div>
         </div>
       );
     }
@@ -802,7 +824,10 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
     }
     case "loading": {
       const s = step as LoadingStep;
-      const checklist = s.style === "checklist";
+      const diag = s.style === "diagnostico";
+      // O diagnóstico reusa os mesmos campos do checklist (título, rótulos,
+      // legenda) — só as micro-perguntas ficam de fora, porque ele não pausa.
+      const checklist = s.style === "checklist" || diag;
       const cps = s.checkpoints ?? [];
       const patchCp = (i: number, patch: Partial<LoadingCheckpoint>) =>
         p({ checkpoints: cps.map((c, k) => (k === i ? { ...c, ...patch } : c)) } as Partial<Step>);
@@ -811,7 +836,11 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           <Grid>
             <Field label="Estilo">
               <Select value={s.style ?? "simple"} onChange={(v) => p({ style: v } as Partial<Step>)}
-                options={[{ value: "simple", label: "Simples (pulso + frases)" }, { value: "checklist", label: "Sofisticado (barras + micro-perguntas)" }]} />
+                options={[
+                  { value: "simple", label: "Simples (pulso + frases)" },
+                  { value: "checklist", label: "Sofisticado (barras + micro-perguntas)" },
+                  { value: "diagnostico", label: "Diagnóstico (anel + caixas com ícone)" },
+                ]} />
             </Field>
             <Field label="Variante">
               <Select value={s.variant ?? "light"} onChange={(v) => p({ variant: v } as Partial<Step>)}
@@ -823,8 +852,17 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           {checklist ? (
             <>
               <Field label="Título do topo"><HtmlField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-              <Field label="Barras (rótulos sequenciais)"><StringList items={s.bars ?? []} onChange={(v) => p({ bars: v } as Partial<Step>)} addLabel="Barra" placeholder="Analisando suas respostas" /></Field>
-              <Field label="Legenda (use {nome})"><StringList items={s.slides} onChange={(v) => p({ slides: v } as Partial<Step>)} addLabel="Linha" /></Field>
+              <Field label={diag ? "Caixas (uma verificação por linha)" : "Barras (rótulos sequenciais)"}>
+                <StringList items={s.bars ?? []} onChange={(v) => p({ bars: v } as Partial<Step>)} addLabel={diag ? "Caixa" : "Barra"} placeholder="Analisando suas respostas" />
+              </Field>
+              {diag ? (
+                <Field label="Ícones das caixas (emoji, mesma ordem)">
+                  <StringList items={s.icons ?? []} onChange={(v) => p({ icons: v } as Partial<Step>)} addLabel="Ícone" placeholder="🔍" />
+                </Field>
+              ) : null}
+              <Field label={diag ? "Subtítulo (use {nome})" : "Legenda (use {nome})"}><StringList items={s.slides} onChange={(v) => p({ slides: v } as Partial<Step>)} addLabel="Linha" /></Field>
+              {/* micro-perguntas não existem no diagnóstico: ele não pausa */}
+              {!diag ? (
               <div>
                 <span className="mb-1 block text-xs font-semibold text-neutral-500">Micro-perguntas (modal pausa o loading)</span>
                 <div className="space-y-2">
@@ -843,6 +881,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                   <button type="button" onClick={() => p({ checkpoints: [...cps, { at: 50, question: "Nova pergunta?", options: ["Sim", "Não"] }] } as Partial<Step>)} className="rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">+ Micro-pergunta</button>
                 </div>
               </div>
+              ) : null}
             </>
           ) : (
             <Field label="Slides (use {nome})"><StringList items={s.slides} onChange={(v) => p({ slides: v } as Partial<Step>)} addLabel="Slide" /></Field>

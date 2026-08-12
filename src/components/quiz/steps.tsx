@@ -16,6 +16,9 @@ import dynamic from "next/dynamic";
 // Motor alternativo da roleta. `dynamic` de propósito: funil que usa a roleta
 // clássica (todos os de hoje) não baixa uma linha da simulação.
 const RoletaInterativa = dynamic(() => import("./RoletaInterativa"), { ssr: false });
+// Mesma tela usada pelo motor layers; mora fora daqui para os dois a
+// compartilharem sem que o layers importe este arquivo inteiro.
+const Diagnostico = dynamic(() => import("./Diagnostico"), { ssr: false });
 
 /** Contexto passado a cada lâmina pelo QuizRunner. */
 export interface StepCtx {
@@ -179,6 +182,11 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   const interativa = step.engine === "interativa";
   const [vencedor, setVencedor] = useState(step.winningIndex);
 
+  // Popup de prêmio: AUSENTE = desligado, para as roletas que já rodam não
+  // ganharem uma tela nova sem ninguém ter pedido.
+  const popupOn = !!step.popupEnabled;
+  const premio = step.segments[vencedor];
+
   /** Vitória: som, confete e liberação do botão. Um só lugar para os dois motores. */
   const celebrar = () => {
     setDone(true); setSpinning(false);
@@ -213,9 +221,11 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     setTimeout(celebrar, 4300);
   };
 
-  // após vencer, avança sozinho (sem 2º clique) quando autoAdvance
+  // após vencer, avança sozinho (sem 2º clique) quando autoAdvance.
+  // Com o popup ligado o avanço automático NÃO roda: o popup existe para ser
+  // lido e clicado, e um timer o arrancaria da tela no meio da leitura.
   useEffect(() => {
-    if (!done || !step.autoAdvance) return;
+    if (!done || !step.autoAdvance || popupOn) return;
     const t = setTimeout(() => ctx.advance(), step.autoAdvanceMs ?? 2600);
     return () => clearTimeout(t);
   }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -327,8 +337,11 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
             <div className="mx-auto -mt-1 h-3.5 w-44 rounded-[50%] bg-white/85" style={{ boxShadow: "0 8px 18px rgba(0,0,0,.45)" }} />
           ) : null}
 
+        {/* Card de vitória INLINE. Com o popup ligado ele sai de cena: os dois
+            carregam a mesma copy (winTitle/winBody), e exibir ambos faria o
+            visitante ler o prêmio duplicado na mesma tela. */}
         <AnimatePresence>
-          {done ? (
+          {done && !popupOn ? (
             <motion.div key="win" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               className="mt-6 rounded-2xl bg-white p-5 text-center shadow-xl">
               <p className="text-lg font-bold text-[var(--q-primary-dark)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx)} /></p>
@@ -359,6 +372,42 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
           )}
         </StickyCta>
       ) : null}
+
+      {/* POPUP DE PRÊMIO — central e com botão, ao contrário do da raspadinha
+          (faixa no topo, informativa). Lá a grade precisa continuar à vista; aqui
+          o giro já acabou e o clique é o próximo passo do funil.
+          O fundo escuro fecha o resto da tela para o prêmio ser a única coisa
+          legível no momento em que o visitante decide continuar. */}
+      <AnimatePresence>
+        {popupOn && done ? (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-6 backdrop-blur-sm"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-[330px] rounded-3xl px-6 py-7 text-center shadow-2xl"
+              style={{ background: step.popupBg || "var(--q-primary)", color: step.popupText || "#ffffff" }}
+              initial={{ scale: 0.82, y: 18 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 24 }}
+            >
+              <div className="text-4xl leading-none">{premio?.emoji || "🎉"}</div>
+              <p className="mt-3 text-xl font-black uppercase leading-tight tracking-tight">
+                <RichText text={interp(premio?.popupTitle || step.winTitle || "Parabéns!", ctx)} />
+              </p>
+              <p className="mt-2 text-sm font-medium leading-snug opacity-95">
+                <RichText text={interp(premio?.popupBody || step.winBody || "Você ganhou...", ctx)} />
+              </p>
+              <button
+                onClick={ctx.advance}
+                className="mt-5 w-full rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
+                style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
+              >
+                {step.winCta ?? "Pegar meu prêmio"}
+              </button>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </>
   );
 }
@@ -965,8 +1014,30 @@ export function QuestionStepView({ step, ctx }: { step: QuestionStep; ctx: StepC
 
 // ── Loading / transição ───────────────────────────────────────────
 export function LoadingStepView({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
+  if (step.style === "diagnostico") return <LoadingDiagnostico step={step} ctx={ctx} />;
   if (step.style === "checklist") return <LoadingChecklist step={step} ctx={ctx} />;
   return <LoadingSimple step={step} ctx={ctx} />;
+}
+
+/**
+ * DIAGNÓSTICO — casca fina sobre `Diagnostico.tsx`.
+ *
+ * A tela mora em arquivo próprio porque o motor layers precisa dela sem
+ * arrastar este arquivo (1.500+ linhas) para o bundle público. Aqui só se
+ * traduz `LoadingStep` → props e se liga o fim ao `ctx.advance`.
+ */
+function LoadingDiagnostico({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
+  return (
+    <Diagnostico
+      titulo={step.title ? interp(step.title, ctx) : undefined}
+      subtitulo={step.slides?.[0] ? interp(step.slides[0], ctx) : undefined}
+      caixas={(step.bars ?? []).map((b) => interp(b, ctx))}
+      icones={step.icons}
+      duracaoMs={step.durationMs ?? 5000}
+      escuro={step.variant === "dark"}
+      onFim={ctx.advance}
+    />
+  );
 }
 
 function LoadingSimple({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
