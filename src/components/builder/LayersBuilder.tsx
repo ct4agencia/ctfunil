@@ -56,10 +56,20 @@ const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Gráficos", items: [["graphics", "Métricas"], ["charts", "Gráficos"]] },
   { name: "Personalização", items: [["clear", "Espaço"], ["html", "HTML/Script"]] },
 ];
-/** Blocos-hero que vieram do motor tipado — editados pelo StepEditor de lá. */
-const HERO_DO_TIPADO = new Set(["scratch", "measure", "gauge", "vsl", "confirm"]);
-/** Todos os heros com painel dedicado (os do tipado + slider/roleta nativos). */
-const HERO_EDITAVEL = new Set([...HERO_DO_TIPADO, "slider", "roulette"]);
+/**
+ * Blocos-hero editados pelo StepEditor — o editor único desses blocos.
+ *
+ * `roulette` entrou aqui depois de viver com editor próprio neste arquivo. O
+ * daqui só conhecia título, fatias, prêmio e cores; tudo que a roleta ganhou
+ * depois (tipo clássica/interativa, presets de movimento, régua de
+ * intensidade, popup de prêmio, som, trava de 24 h) existia apenas no
+ * StepEditor. Quem abrisse a roleta pelo construtor layers não enxergava nada
+ * disso — dois editores do mesmo bloco, e um ficou para trás, exatamente o que
+ * o comentário abaixo já previa.
+ */
+const HERO_DO_TIPADO = new Set(["scratch", "measure", "gauge", "vsl", "confirm", "roulette"]);
+/** Todos os heros com painel dedicado (os acima + o slider, que ainda é nativo daqui). */
+const HERO_EDITAVEL = new Set([...HERO_DO_TIPADO, "slider"]);
 const ROTULO_HERO: Record<string, string> = {
   scratch: "Raspadinha", measure: "Pedida (régua)", gauge: "Medidor",
   vsl: "VSL", confirm: "Parabéns",
@@ -1388,63 +1398,11 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                     </div>
                   );
                 }
-                {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const segs: any[] = Array.isArray(sc.segments) ? sc.segments : [];
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const setSeg = (i: number, patch: any) => patchSpecial({ segments: segs.map((s, k) => k === i ? { ...s, ...patch } : s) });
-                  return (
-                    <div className="space-y-2.5 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
-                      <p className="text-sm font-bold text-neutral-700">🎡 Roleta (hero)</p>
-                      <div><Lbl>Título</Lbl><HtmlField value={sc.title} onChange={(v) => patchSpecial({ title: v })} /></div>
-                      <div><Lbl>Subtítulo</Lbl><HtmlField value={sc.subtitle} onChange={(v) => patchSpecial({ subtitle: v })} /></div>
-                      <div><Lbl>Botão (girar)</Lbl><input value={sc.cta || ""} onChange={(e) => patchSpecial({ cta: e.target.value })} className={inp} /></div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div><Lbl>Tipo da roleta</Lbl>
-                          <select value={sc.style || "soft"} onChange={(e) => patchSpecial({ style: e.target.value })} className={inp}>
-                            <option value="soft">Suave (paleta)</option><option value="casino">Cassino (dourado)</option><option value="neon">Neon (roxo)</option><option value="bulbs">Vegas (vinho)</option>
-                          </select>
-                        </div>
-                        <div><Lbl>Fundo (tela cheia)</Lbl><ColorField value={sc.background || "#0b1f3a"} onChange={(v) => patchSpecial({ background: v })} className="h-8 w-full" label="Fundo (tela cheia)" /></div>
-                      </div>
-                      <div><Lbl>Imagem do centro</Lbl><ImageField value={sc.centerImage || ""} onChange={(v) => patchSpecial({ centerImage: v })} /></div>
-                      <Lbl>Fatias (texto + cor)</Lbl>
-                      <div className="space-y-1.5">
-                        {segs.map((s, i) => (
-                          <div key={i} className="flex items-center gap-1">
-                            <ColorField value={s.color || "#ea580c"} onChange={(v) => setSeg(i, { color: v })} className="h-7 w-8" label="Cor da fatia" />
-                            <input value={s.label || ""} onChange={(e) => setSeg(i, { label: e.target.value })} className={`${inp} flex-1`} />
-                            <button onClick={() => patchSpecial({ segments: segs.filter((_, k) => k !== i) })} className="px-1 text-red-400">✕</button>
-                          </div>
-                        ))}
-                        <button onClick={() => patchSpecial({ segments: [...segs, { label: "Nova fatia", color: "#67c57a", value: "" }] })} className="rounded-md border border-dashed border-neutral-300 px-2 py-1 text-xs text-neutral-500">+ fatia</button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div><Lbl>Parada (sob o ponteiro)</Lbl>
-                          <select value={sc.initialIndex ?? 0} onChange={(e) => patchSpecial({ initialIndex: Number(e.target.value) })} className={inp}>
-                            {segs.map((s, i) => <option key={i} value={i}>{i + 1}. {strip(s.label)}</option>)}
-                          </select>
-                        </div>
-                        <div><Lbl>Prêmio (ao girar)</Lbl>
-                          <select value={sc.winningIndex ?? 0} onChange={(e) => patchSpecial({ winningIndex: Number(e.target.value) })} className={inp}>
-                            {segs.map((s, i) => <option key={i} value={i}>{i + 1}. {strip(s.label)}</option>)}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="border-t border-orange-200/70 pt-2">
-                        <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Mensagem do prêmio</p>
-                        <div><Lbl>Título</Lbl><HtmlField value={sc.winTitle} onChange={(v) => patchSpecial({ winTitle: v })} /></div>
-                        <div><Lbl>Texto</Lbl><HtmlField value={sc.winBody} onChange={(v) => patchSpecial({ winBody: v })} /></div>
-                        <div><Lbl>Botão (resgatar)</Lbl><input value={sc.winCta || ""} onChange={(e) => patchSpecial({ winCta: e.target.value })} className={inp} /></div>
-                      </div>
-                      <div className="space-y-1.5 border-t border-orange-200/70 pt-2">
-                        <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Comportamento (lead)</p>
-                        <label className="flex cursor-pointer items-center justify-between gap-2 text-xs text-neutral-600"><span>Travar repetição — 1 giro por aparelho em 24h (prêmio fica fixado)</span><input type="checkbox" checked={!!sc.lockReplay} onChange={(e) => patchSpecial({ lockReplay: e.target.checked || undefined })} className="h-3.5 w-3.5 shrink-0 accent-neutral-900" /></label>
-                        <label className="flex cursor-pointer items-center justify-between gap-2 text-xs text-neutral-600"><span>Avançar automático ao ganhar (desligado = exige clique no Resgatar)</span><input type="checkbox" checked={!!sc.autoAdvance} onChange={(e) => patchSpecial({ autoAdvance: e.target.checked || undefined })} className="h-3.5 w-3.5 shrink-0 accent-neutral-900" /></label>
-                      </div>
-                    </div>
-                  );
-                }
+                // A roleta tinha aqui um segundo editor, hoje removido: ela
+                // entrou em HERO_DO_TIPADO e sai pelo StepEditor lá em cima,
+                // que é o único que conhece tipo de roleta, movimento, popup e
+                // som. `slider` sai no ramo acima. Não há mais hero sem editor.
+                return null;
               })()}
               {/* Header POR LÂMINA: cada toggle herda do global (Design) até você mexer */}
               {(() => {

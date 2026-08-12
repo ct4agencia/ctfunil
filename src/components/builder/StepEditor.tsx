@@ -351,6 +351,13 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             </div>
           </div>
           <Grid>
+            {/* Qual fatia fica sob o ponteiro ANTES de girar. Vinha só no editor
+                duplicado do LayersBuilder; entrou aqui para o construtor layers
+                poder usar este editor sem perder o campo. */}
+            <Field label="Fatia parada (antes de girar)">
+              <Select value={String(s.initialIndex ?? 0)} onChange={(v) => p({ initialIndex: Number(v) } as Partial<Step>)}
+                options={s.segments.map((seg, i) => ({ value: String(i), label: `${i + 1}. ${(seg.label || "").replace(/<[^>]+>/g, "").slice(0, 22)}` }))} />
+            </Field>
             <Field label="Botão (girar)"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
             <Field label="Botão pós-vitória"><Text value={s.winCta} onChange={(v) => p({ winCta: v } as Partial<Step>)} /></Field>
             <Field label="Título da vitória"><HtmlField value={s.winTitle} onChange={(v) => p({ winTitle: v } as Partial<Step>)} /></Field>
