@@ -116,6 +116,38 @@ export function VisualRichField({ value, onChange, rows = 2, vars = ["nome", "es
   );
 }
 
+// ── Campo de imagem com upload ────────────────────────────────────────────
+// Mesma história do HtmlField abaixo: vivia dentro do LayersBuilder e só o
+// motor `layers` alcançava. Enquanto isso o StepEditor — que edita TODOS os
+// blocos-hero, nos dois motores — pedia a imagem como URL crua digitada à mão.
+// Agora os dois usam o mesmo campo: cola a URL ou envia o arquivo.
+export function ImageField({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const up = async (file: File) => {
+    setBusy(true);
+    try {
+      const fd = new FormData(); fd.append("file", file);
+      const r = await fetch("/api/upload", { method: "POST", body: fd });
+      const j = await r.json();
+      if (j.url) onChange(j.url);
+    } catch { /* upload falhou: o campo de URL continua servindo */ }
+    setBusy(false);
+  };
+  return (
+    <div className="space-y-1.5">
+      <input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder="https://…/imagem.jpg" className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs" />
+      <label className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">
+        {busy ? "Enviando…" : "⬆ Upload"}
+        <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && up(e.target.files[0])} />
+      </label>
+      {value ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={value} alt="" className="mt-1 max-h-24 rounded-md border border-neutral-200 object-contain" />
+      ) : null}
+    </div>
+  );
+}
+
 // ── Editor rico COMPLETO (o padrão do construtor, o que o cdb-01 usa) ─────
 // Vivia dentro do LayersBuilder e só o motor `layers` alcançava. Mora aqui pra
 // que os blocos-hero (raspadinha, pedida, medidor, VSL, parabéns) editem texto

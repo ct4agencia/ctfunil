@@ -9,7 +9,7 @@ import { ROULETTE_STYLES, ROULETTE_ENGINES } from "@/lib/quiz/types";
 // Presets de movimento da roleta interativa — os mesmos que /lab/roleta usa,
 // para o que o Luca ouve no laboratório ser o que o funil publica.
 import { PRESETS as PRESETS_ROLETA, PADRAO as PARAMS_PADRAO_ROLETA } from "@/lib/quiz/roleta-fisica";
-import { Field, Text, Area, HtmlField, Num, Toggle, Select, StringList, OptionsList } from "./fields";
+import { Field, Text, Area, HtmlField, ImageField, Num, Toggle, Select, StringList, OptionsList } from "./fields";
 import { playSpinTicks, playWin } from "@/lib/quiz/sound";
 // Seletor único do painel. Substitui os <input type="color"> nativos, que aqui
 // apareciam em 4 tamanhos diferentes de swatch e sem campo hex.
@@ -115,7 +115,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           <Grid>
             <Field label="Título"><HtmlField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
             <Field label="Subtítulo"><HtmlField value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
-            <Field label="Imagem do miolo (URL)"><Text value={s.centerImage} onChange={(v) => p({ centerImage: v } as Partial<Step>)} /></Field>
+            <Field label="Imagem do miolo"><ImageField value={s.centerImage} onChange={(v) => p({ centerImage: v } as Partial<Step>)} /></Field>
             <Field label="Modo">
               <Select value={s.mode ?? "always"} onChange={(v) => p({ mode: v } as Partial<Step>)}
                 options={[{ value: "always", label: "Sempre vence" }, { value: "random", label: "Sorteio real" }]} />
@@ -697,7 +697,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
           <Field label="Passo"><Num value={s.step ?? 1} onChange={(v) => p({ step: v } as Partial<Step>)} /></Field>
           <Field label="Valor padrão"><Num value={s.defaultValue ?? 5} onChange={(v) => p({ defaultValue: v } as Partial<Step>)} /></Field>
           <Field label="Sufixo"><Text value={s.suffix} onChange={(v) => p({ suffix: v } as Partial<Step>)} /></Field>
-          <Field label="Imagem (URL, opcional)"><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
+          <Field label="Imagem (opcional)"><ImageField value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
           <div className="flex items-end"><Toggle label="Mostrar escala" value={s.showScale} onChange={(v) => p({ showScale: v } as Partial<Step>)} /></div>
           <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
         </Grid>
@@ -709,7 +709,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
         <div className="space-y-3">
           <Grid>
             <Field label="Selo (badge)"><Text value={s.badge} onChange={(v) => p({ badge: v } as Partial<Step>)} /></Field>
-            <Field label="Imagem (URL)"><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
+            <Field label="Imagem"><ImageField value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
             <Field label="Título" full><HtmlField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
             <Field label="Subtítulo" full><HtmlField value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
             <Field label="Botão (CTA)"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
@@ -854,7 +854,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                 options={[{ value: "light", label: "Claro" }, { value: "dark", label: "Escuro" }]} />
             </Field>
             <Field label={checklist ? "Duração total (ms)" : "Duração por slide (ms)"}><Num value={s.durationMs ?? (checklist ? 4200 : 1700)} onChange={(v) => p({ durationMs: v } as Partial<Step>)} /></Field>
-            <Field label="Logo (URL)"><Text value={s.logo} onChange={(v) => p({ logo: v } as Partial<Step>)} /></Field>
+            <Field label="Logo"><ImageField value={s.logo} onChange={(v) => p({ logo: v } as Partial<Step>)} /></Field>
           </Grid>
           {checklist ? (
             <>
@@ -978,7 +978,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
         <div className="space-y-4">
           <Grid>
             <Field label="Selo"><Text value={s.badge} onChange={(v) => p({ badge: v } as Partial<Step>)} /></Field>
-            <Field label="Imagem (URL — foto redonda)"><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
+            <Field label="Imagem (foto redonda)"><ImageField value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
             <div className="flex items-end"><Toggle label="Selo verificado (azul) na foto" value={s.verified} onChange={(v) => p({ verified: v } as Partial<Step>)} /></div>
             <Field label="Título" full><HtmlField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
             <Field label="Corpo (apresentação)" full><HtmlField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={5} /></Field>
@@ -1010,7 +1010,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
         <Grid>
           <Field label="Título" full><HtmlField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
           <Field label="Corpo" full><HtmlField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={3} /></Field>
-          <Field label="Imagem (URL — ebook)"><Text value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
+          <Field label="Imagem (ebook)"><ImageField value={s.image} onChange={(v) => p({ image: v } as Partial<Step>)} /></Field>
           <Field label="Selo na imagem (ex: GRÁTIS)"><Text value={s.freeBadge} onChange={(v) => p({ freeBadge: v } as Partial<Step>)} placeholder="GRÁTIS" /></Field>
           <Field label="Nota verde (WhatsApp) acima do form" full><HtmlField value={s.note} onChange={(v) => p({ note: v } as Partial<Step>)} rows={2} /></Field>
           <Field label="Linha de segurança (abaixo do botão)" full><Text value={s.secure} onChange={(v) => p({ secure: v } as Partial<Step>)} placeholder="🔒 Seus dados estão protegidos..." /></Field>

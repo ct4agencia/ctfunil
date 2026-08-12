@@ -15,7 +15,7 @@ import DevicePreview, { DEFAULT_DEVICE, type Zoom } from "@/components/builder/D
 // VSL, parabéns). Reusado em vez de duplicado: dois editores do mesmo bloco
 // viram dois comportamentos diferentes na primeira mudança.
 import StepEditor from "@/components/builder/StepEditor";
-import { HtmlField } from "@/components/builder/fields";
+import { HtmlField, ImageField } from "@/components/builder/fields";
 // Mesma normalização que gera o cabeçalho do CSV — se o construtor tivesse a
 // dele, o nome digitado e o nome exportado divergiriam no primeiro acento.
 import { normalizarChave } from "@/lib/quiz/colunas";
@@ -67,9 +67,9 @@ const CATS: { name: string; items: [string, string][] }[] = [
  * disso — dois editores do mesmo bloco, e um ficou para trás, exatamente o que
  * o comentário abaixo já previa.
  */
-const HERO_DO_TIPADO = new Set(["scratch", "measure", "gauge", "vsl", "confirm", "roulette"]);
-/** Todos os heros com painel dedicado (os acima + o slider, que ainda é nativo daqui). */
-const HERO_EDITAVEL = new Set([...HERO_DO_TIPADO, "slider"]);
+const HERO_DO_TIPADO = new Set(["scratch", "measure", "gauge", "vsl", "confirm", "roulette", "slider"]);
+/** Todo hero editável passa pelo StepEditor. Não há mais lista paralela. */
+const HERO_EDITAVEL = HERO_DO_TIPADO;
 const ROTULO_HERO: Record<string, string> = {
   scratch: "Raspadinha", measure: "Pedida (régua)", gauge: "Medidor",
   vsl: "VSL", confirm: "Parabéns",
@@ -187,34 +187,7 @@ function newLayer(type: LayerType): Layer {
   }
 }
 
-/** Editor rico do construtor — agora compartilhado em builder/fields.tsx. */
-
-function ImageField({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
-  const [busy, setBusy] = useState(false);
-  const up = async (file: File) => {
-    setBusy(true);
-    try {
-      const fd = new FormData(); fd.append("file", file);
-      const r = await fetch("/api/upload", { method: "POST", body: fd });
-      const j = await r.json();
-      if (j.url) onChange(j.url);
-    } catch { /* noop */ }
-    setBusy(false);
-  };
-  return (
-    <div className="space-y-1.5">
-      <input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder="https://…/imagem.jpg" className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs" />
-      <label className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">
-        {busy ? "Enviando…" : "⬆ Upload"}
-        <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && up(e.target.files[0])} />
-      </label>
-      {value ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={value} alt="" className="mt-1 max-h-24 rounded-md border border-neutral-200 object-contain" />
-      ) : null}
-    </div>
-  );
-}
+/** Editor rico e campo de imagem — ambos compartilhados em builder/fields.tsx. */
 
 const Lbl = ({ children }: { children: React.ReactNode }) => <label className="mb-1 mt-2 block text-[11px] font-semibold text-neutral-500">{children}</label>;
 const inp = "w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs";
@@ -1383,25 +1356,11 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                     </div>
                   );
                 }
-                if (special.type === "slider") {
-                  return (
-                    <div className="space-y-2 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
-                      <p className="text-sm font-bold text-neutral-700">🎚️ Slider (hero)</p>
-                      <div><Lbl>Pergunta</Lbl><HtmlField value={sc.question} onChange={(v) => patchSpecial({ question: v })} /></div>
-                      <div><Lbl>Ajuda (linha menor)</Lbl><input value={sc.help || ""} onChange={(e) => patchSpecial({ help: e.target.value })} className={inp} /></div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div><Lbl>Mín</Lbl><input type="number" value={sc.min ?? 0} onChange={(e) => patchSpecial({ min: Number(e.target.value) })} className={inp} /></div>
-                        <div><Lbl>Máx</Lbl><input type="number" value={sc.max ?? 10} onChange={(e) => patchSpecial({ max: Number(e.target.value) })} className={inp} /></div>
-                        <div><Lbl>Passo</Lbl><input type="number" value={sc.step ?? 1} onChange={(e) => patchSpecial({ step: Number(e.target.value) })} className={inp} /></div>
-                      </div>
-                      <div><Lbl>Imagem (rodapé)</Lbl><ImageField value={sc.image || ""} onChange={(v) => patchSpecial({ image: v })} /></div>
-                    </div>
-                  );
-                }
-                // A roleta tinha aqui um segundo editor, hoje removido: ela
-                // entrou em HERO_DO_TIPADO e sai pelo StepEditor lá em cima,
-                // que é o único que conhece tipo de roleta, movimento, popup e
-                // som. `slider` sai no ramo acima. Não há mais hero sem editor.
+                // Aqui viviam DOIS editores paralelos — roleta e slider — hoje
+                // removidos. Os dois cobriam menos que o StepEditor: o da roleta
+                // não conhecia tipo, movimento, popup nem som; o do slider não
+                // tinha valor padrão, sufixo, escala nem botão. Todo hero passa
+                // pelo StepEditor agora, então este ramo é inalcançável.
                 return null;
               })()}
               {/* Header POR LÂMINA: cada toggle herda do global (Design) até você mexer */}
