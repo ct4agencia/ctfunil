@@ -271,7 +271,9 @@ const STEPS = [
         popupBg: "#0f766e",
         popupText: "#ffffff",
         popupBtnBg: "#ffffff",
-        winTitle: "🎉 PARABÉNS!",
+        // Sem emoji no título: o popup já mostra o do prêmio (🎁) em corpo
+        // grande logo acima, e os dois juntos saíam como "🎁🎉 PARABÉNS!".
+        winTitle: "PARABÉNS!",
         winBody: "VOCÊ LIBEROU: ACESSO GRATUITO AO MATERIAL COMPLETO DO CLUBE DAS BOLSAS",
         winCta: "PEGAR MEU PRÊMIO",
         sound: { enabled: true },

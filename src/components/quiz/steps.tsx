@@ -350,23 +350,27 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
           ) : null}
         </AnimatePresence>
 
-        {/* botão LOGO ABAIXO da roleta (ctaBelow). Com autoAdvance, some na vitória. */}
+        {/* Botão LOGO ABAIXO da roleta (ctaBelow). Some na vitória quando há
+            autoAdvance — ou quando o popup está ligado, porque ele traz o
+            próprio botão com a MESMA copy (winCta) e a tela ficava com dois
+            "PEGAR MEU PRÊMIO", um atrás do fundo escuro. */}
         {step.ctaBelow ? (
           <div className="mx-auto mt-6 w-full max-w-xs">
             {!done ? (
               <CtaButton onClick={spin} disabled={spinning} pulse={!spinning}>{spinning ? "Girando..." : step.cta}</CtaButton>
-            ) : !step.autoAdvance ? (
+            ) : !step.autoAdvance && !popupOn ? (
               <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
             ) : null}
           </div>
         ) : null}
       </StepShell>
 
-      {/* rodapé sticky (padrão, quando não é ctaBelow) */}
+      {/* Rodapé sticky (padrão, quando não é ctaBelow). Mesma regra: com o popup
+          ligado, quem leva adiante é o botão dele. */}
       {!step.ctaBelow ? (
         <StickyCta bare>
           {done ? (
-            <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
+            popupOn ? null : <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
           ) : (
             <CtaButton onClick={spin} disabled={spinning} pulse={!spinning}>{spinning ? "Girando..." : step.cta}</CtaButton>
           )}
