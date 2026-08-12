@@ -273,13 +273,38 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     // já usava. Por isso reaproveitamos os StepView em vez de reimplementar.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const conteudo = hero.content as any;
+
+    // Enquadramento e aparência vinham sendo DESCARTADOS aqui. O motor tipado
+    // trata os dois desde sempre (QuizRunner:120-134); este ramo nasceu depois e
+    // não herdou o tratamento, então a MESMA lâmina ficava certa num motor e
+    // errada no outro.
+    //
+    // Fundo de imagem sem enquadramento: o CSS assume `auto` + `repeat` e a arte
+    // vira mosaico — a foto 9:16 do prêmio da Sônia se repetia na tela.
+    // `appearance`: sem as variáveis, o título perde a cor configurada e some
+    // contra um fundo escuro.
+    const fundoEhImagem = /\burl\(/i.test(fundo);
+    const ap = conteudo.appearance as
+      | { align?: string; titleSize?: number; titleWeight?: number | string; titleColor?: string }
+      | undefined;
     return (
       <div
         className="relative flex min-h-[100dvh] flex-col overflow-x-hidden"
         style={{
           ...paletteVars(palette),
           ...(escuro ? { ["--q-bg"]: "#160a22", ["--q-text"]: "#ffffff", ["--q-text-muted"]: "rgba(255,255,255,.72)" } : {}),
+          ...(ap?.align ? { ["--q-title-align"]: ap.align } : {}),
+          ...(ap?.titleSize ? { ["--q-title-size"]: `${ap.titleSize}px` } : {}),
+          ...(ap?.titleWeight ? { ["--q-title-weight"]: String(ap.titleWeight) } : {}),
+          ...(ap?.titleColor ? { ["--q-title-color"]: ap.titleColor } : {}),
           background: fundo,
+          ...(fundoEhImagem
+            ? {
+                backgroundSize: (conteudo.bgSize as string) ?? "cover",
+                backgroundPosition: (conteudo.bgPosition as string) ?? "center",
+                backgroundRepeat: "no-repeat",
+              }
+            : {}),
           color: escuro ? "#ffffff" : (design.contentColor || "#000"),
         } as React.CSSProperties}
       >
