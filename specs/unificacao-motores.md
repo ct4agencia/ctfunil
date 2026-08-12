@@ -2,8 +2,12 @@
 
 ## Status
 - Criada: 2026-08-04
+- **Revisada: 12/08/2026** — três fatos desta spec foram medidos e estavam
+  errados. As correções aparecem marcadas com ⚠️ ao longo do texto; nada foi
+  apagado, para o histórico da decisão continuar legível.
 - Sessão: CTFUNNEL — mapeamento da centralização
-- Estado: aguardando aprovação do Luca. **Nenhum código escrito.**
+- Estado: **Onda 1 concluída** (por caminho diferente do previsto, ver abaixo).
+  Onda 2 em andamento. Ondas 3 e 4 dependem de decisão do Luca.
 
 ## Objetivo
 
@@ -22,6 +26,31 @@ funcionalidade e sem tocar nos 12 funis que rodam tráfego hoje.
 | `layers` | 12 | Os CDB. Todos publicados, rodando tráfego |
 | `tipado` | 3 | `cdb-rr`, `teste`, `premio-sonia` |
 | `typebot` | 2 | `cdb-type01`, `cdb-type01-a` — **0 lâminas, vazios** |
+
+> ⚠️ **CORREÇÃO (12/08/2026) — o typebot NÃO está vazio.**
+> A linha acima olhou a coluna `steps`. O motor typebot não guarda conteúdo
+> ali: ele usa `settings.typebot.groups`. Medido:
+>
+> | Funil | `steps` | **grupos** | sessões | **leads** | respostas |
+> |---|---|---|---|---|---|
+> | `cdb-type01` | 0 | **19** | 110 | **16** | **625** |
+> | `cdb-type01-a` | 0 | **27** | 1 | 0 | 0 |
+>
+> O `cdb-type01` rodou de 02 a 04/07/2026 e captou 16 leads reais. Está parado
+> há 38 dias, mas nunca esteve vazio. **Decisão do Luca (12/08): o typebot
+> FICA** — é simulador de WhatsApp, formato de conversa em chat, experiência
+> diferente por design. Não é duplicação, e sai de vez do escopo desta spec.
+
+> ⚠️ **CORREÇÃO (12/08/2026) — o `cdb-rr` já tem uma versão layers pronta.**
+> Comparando lâmina a lâmina, o `cdb-01` (layers) é o MESMO funil do `cdb-rr`
+> (tipado): as perguntas Idade/Filhos/Região/Ocupação batem uma a uma, o
+> `result` do anel de 94% virou `text+graphics+text+button`, o `offer` da
+> Sônia virou `text+text+image+alert+text+button`, e assim por diante.
+> Tráfego em 30 dias: `cdb-rr` = **0**, `cdb-01` = **125**.
+>
+> Consequência prática: converter o `cdb-rr` seria refazer à mão um trabalho
+> que já existe com outro nome. **Pendente de decisão do Luca** — arquivar o
+> `cdb-rr` ou converter mesmo assim.
 
 Os três gravam no **mesmo** `funnels.steps` (jsonb). O motor é escolhido por
 `settings.engine`. Converter um funil = reescrever o JSON e trocar a string.
@@ -110,6 +139,38 @@ Aditiva. Não altera nenhum funil existente.
 - [ ] **REQ-11**: Nenhum dos 12 funis `layers` muda de comportamento.
       *Verificar:* `node scripts/regressao.cjs check` → 17/17.
 
+### ONDA 1-B — Um editor por bloco (não estava prevista, virou o ganho real)
+
+Descoberta ao testar: a Onda 1 resolveu o RUNTIME (o layers renderiza os heros
+do tipado), mas o CONSTRUTOR continuou com editores paralelos. O comentário do
+próprio código já previa a falha — *"duplicar essa UI seria manter dois
+editores do mesmo bloco, e um deles ficaria para trás"* — e foi exatamente o
+que aconteceu.
+
+- [x] **REQ-1B.1**: `roulette` passa a ser editado pelo `StepEditor`.
+      O editor duplicado no `LayersBuilder` não conhecia tipo (clássica ×
+      interativa), presets de movimento, régua de intensidade, popup de prêmio,
+      som nem modo. Antes de trocar, comparado campo a campo: só `initialIndex`
+      existia apenas no duplicado — foi levado para o `StepEditor`.
+      *Commit:* `7662791`. −66 linhas.
+- [x] **REQ-1B.2**: `slider` idem. O `StepEditor` tinha quatro campos a mais
+      (valor padrão, sufixo, mostrar escala, botão). `HERO_EDITAVEL` deixou de
+      ser lista paralela e virou apelido de `HERO_DO_TIPADO`.
+      *Commit:* `bf3da02`.
+- [x] **REQ-1B.3**: `loading` ganha o estilo "diagnóstico" nos DOIS motores, com
+      a tela em arquivo próprio (`quiz/Diagnostico.tsx`) para o layers não
+      importar o `steps.tsx` inteiro dentro do bundle de `/q/[slug]`.
+      *Commits:* `7283660`, `0fb899c`.
+- [x] **REQ-1B.4**: `ImageField` movido para `builder/fields.tsx` — mesmo
+      caminho que o `HtmlField` já tinha percorrido. Os seis campos de imagem do
+      `StepEditor` ganharam upload de arquivo, que antes só o layers tinha.
+      *Commit:* `bf3da02`.
+- [x] **REQ-1B.5**: bloco `loading` para de auto-avançar dentro do construtor
+      (`LayersEditContext`) — a lâmina fugia de quem estava editando. Defeito
+      antigo, valia também para a barra comum. *Commit:* `0fb899c`.
+
+**Estado: nenhum bloco-hero tem mais de um editor.**
+
 ### ONDA 2 — Converter os 3 funis tipados
 
 - [ ] **REQ-12**: Existe um conversor (script) que lê um funil `tipado` e
@@ -122,6 +183,21 @@ Aditiva. Não altera nenhum funil existente.
       *Verificar:* comparar `steps[].id` antes/depois — lista idêntica.
 - [ ] **REQ-14**: Ordem de conversão: `teste` → `premio-sonia` → `cdb-rr`.
       Do menos crítico ao mais crítico.
+
+> ⚠️ **ATUALIZAÇÃO (12/08/2026) — o REQ-14 já não descreve o que resta.**
+> - `teste` **já está em layers** (a spec o listava como tipado; mudou desde
+>   04/08). Nada a fazer.
+> - `premio-sonia` **convertido** para `premio-sonia-v2` (draft, sem domínio),
+>   commit `409dde1`. Original intacto no ar. Conferido no DevTools lado a
+>   lado: mesmos 6 cards, mesma geometria (209×104 × 209×105), os mesmos 9
+>   textos na mesma ordem, mesmo fundo. **Falta o Luca raspar com o dedo** — a
+>   raspagem sintética não convence o canvas em nenhum dos dois. Depois disso,
+>   promover o v2 para o slug real.
+> - `cdb-rr` — ver a correção no Contexto: a versão layers dele já existe
+>   (`cdb-01`). Decisão do Luca pendente.
+>
+> Backup do `premio-sonia` original: `specs/backups/premio-sonia-<ISO>.json`
+> (a pasta está no `.gitignore`, então vive só no disco).
 - [ ] **REQ-15**: Cada funil convertido é validado **em produção** (visual +
       raspar/girar + botão de saída) antes do próximo.
       *Verificar:* screenshot antes/depois de cada um.
@@ -136,6 +212,29 @@ Só depois que os 3 funis estiverem convertidos e validados.
 - [ ] **REQ-17**: Apagar `QuizRunner.tsx`, `steps.tsx`, `ScratchGrid.tsx` e o
       que ficar órfão. `FunnelBuilder.tsx` sai junto (era o construtor do tipado).
       *Verificar:* `npx tsc --noEmit` limpo; `grep -r` sem referências vivas.
+
+> ⚠️ **CORREÇÃO (12/08/2026) — o REQ-17 não é executável como está escrito.**
+> `steps.tsx` e `ScratchGrid.tsx` **não podem ser apagados**: o motor layers
+> depende dos dois. A Onda 1 foi resolvida por REUSO, não por reimplementação —
+> `LayersRunner.tsx:31` importa o `ScratchGrid`, e `HERO_TIPADO`
+> (`LayersRunner.tsx:38`) lista sete blocos que o layers pega emprestado do
+> motor tipado: `roulette`, `slider`, `scratch`, `measure`, `gauge`, `vsl`,
+> `confirm`. O mesmo vale para o `StepEditor.tsx`, que hoje é o editor ÚNICO
+> desses blocos nos dois construtores.
+>
+> **O que de fato pode ser apagado quando a Onda 2 terminar:**
+>
+> | Arquivo | Linhas | Some? |
+> |---|---|---|
+> | `QuizRunner.tsx` | 143 | ✅ sim — só o tipado usa |
+> | `FunnelBuilder.tsx` | 312 | ✅ sim — construtor do tipado |
+> | `steps.tsx` | 1.522 | ❌ **não** — o layers renderiza os heros com ele |
+> | `ScratchGrid.tsx` | ~560 | ❌ **não** — idem |
+> | `StepEditor.tsx` | 1.105 | ❌ **não** — editor único dos heros |
+>
+> Ganho real: **455 linhas**, não as ~2.000 que a spec original sugeria. O
+> ganho maior da centralização não é apagar arquivo — é ter **um** lugar por
+> responsabilidade, o que já se provou na prática (ver Onda 1-B abaixo).
 - [ ] **REQ-18**: O bundle do `/q/[slug]` **encolhe**.
       *Verificar:* comparar o tamanho da rota no `npm run build` antes/depois.
       Se aumentar, a onda falhou.
@@ -176,6 +275,9 @@ Só depois que os 3 funis estiverem convertidos e validados.
 - Mexer nos 12 funis `layers` que rodam tráfego (só a Onda 3 os toca, e apenas
   removendo código que eles não usam).
 - Decidir o destino dos 2 funis `typebot` vazios — **decisão adiada** pelo Luca.
+  ⚠️ **Decidida em 12/08/2026: o typebot FICA como está.** Não são vazios (ver
+  correção no Contexto) e o formato de conversa em chat é outra experiência,
+  não duplicação. `TypebotBuilder`, `TypebotFlow` e `ChatRunner` permanecem.
 - Os 4 problemas de performance pré-existentes (SDK Supabase no caminho da lead,
   motor VSL morto em `/[slug]`, `/q/[slug]` sem cache de borda, `motion` inteiro).
   São independentes desta unificação.
