@@ -510,6 +510,11 @@ function FieldBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 // ─────────────────────────────── LOADING ────────────────────────────
 function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const c = layer.content;
+  // No CONSTRUTOR o bloco não navega. Ele conta o tempo e pula para a lâmina
+  // seguinte — o que no runtime é o comportamento certo, mas no canvas tira a
+  // lâmina de baixo de quem está editando: seleciona o card, ele roda e some.
+  // Vale para o diagnóstico e para a barra, que tinha o mesmo problema.
+  const editando = !!useContext(LayersEditContext);
   // DIAGNÓSTICO: outra tela, não outra skin da barra. Sai antes de qualquer
   // estado da barra ser montado — os dois só compartilham o campo `seconds`. A
   // tela mora em `quiz/Diagnostico.tsx`, dividida com o motor tipado.
@@ -523,7 +528,7 @@ function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
         icones={c.icons as string[] | undefined}
         duracaoMs={(Number(c.seconds) || 5) * 1000}
         // type "none" = a lâmina segue no lugar depois da análise (igual à barra)
-        onFim={c.type === "none" ? undefined : () => ctx.navigate(String(c.destination || "next"))}
+        onFim={c.type === "none" || editando ? undefined : () => ctx.navigate(String(c.destination || "next"))}
       />
     );
   }
@@ -539,7 +544,7 @@ function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
       setPct(p);
       if (p < 100) raf = requestAnimationFrame(tick);
       // type "none" = loading só anima e revela o resto da lâmina (não auto-avança).
-      else if (!done.current && c.type !== "none") { done.current = true; setTimeout(() => ctx.navigate(c.destination || "next"), 300); }
+      else if (!done.current && c.type !== "none" && !editando) { done.current = true; setTimeout(() => ctx.navigate(c.destination || "next"), 300); }
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);

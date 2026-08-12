@@ -461,11 +461,56 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
     case "timer":
       return (<><Lbl>Tempo (segundos)</Lbl><input type="number" value={c.time ?? 300} onChange={(e) => setC({ time: Number(e.target.value) })} className={inp} />
         <Lbl>Texto (use [time])</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} /></>);
-    case "loading":
+    case "loading": {
+      // Duas telas no mesmo bloco: a barra de sempre e o diagnóstico (anel +
+      // caixas). Os campos de baixo só existem no diagnóstico — mostrá-los na
+      // barra ofereceria ajuste que ela ignora.
+      const diag = c.style === "diagnostico";
+      const caixas: string[] = (c.bars as string[]) || [];
+      const icones: string[] = (c.icons as string[]) || [];
+      // As duas listas andam juntas (caixa i usa ícone i), então editar e
+      // remover mexem nas duas — senão os ícones desalinham do texto.
+      const setCaixa = (i: number, texto?: string, icone?: string) => setC({
+        bars: texto === undefined ? caixas : caixas.map((x, k) => (k === i ? texto : x)),
+        icons: icone === undefined ? icones : Array.from({ length: caixas.length }, (_, k) => (k === i ? icone : icones[k] ?? "")),
+      });
       return (<><Lbl>Título</Lbl><input value={c.title || ""} onChange={(e) => setC({ title: e.target.value })} className={inp} />
+        <Lbl>Estilo</Lbl>
+        <select value={diag ? "diagnostico" : "barra"} onChange={(e) => setC({ style: e.target.value === "diagnostico" ? "diagnostico" : undefined })} className={inp}>
+          <option value="barra">Barra de progresso</option>
+          <option value="diagnostico">Diagnóstico (anel + caixas)</option>
+        </select>
         <Lbl>Duração (s)</Lbl><input type="number" value={c.seconds ?? 4} onChange={(e) => setC({ seconds: Number(e.target.value) })} className={inp} />
         <Lbl>Auto-avançar ao terminar?</Lbl>
-        <select value={c.type === "none" ? "no" : "yes"} onChange={(e) => setC({ type: e.target.value === "no" ? "none" : "advance" })} className={inp}><option value="no">Não (revela a lâmina)</option><option value="yes">Sim</option></select></>);
+        <select value={c.type === "none" ? "no" : "yes"} onChange={(e) => setC({ type: e.target.value === "no" ? "none" : "advance" })} className={inp}><option value="no">Não (revela a lâmina)</option><option value="yes">Sim</option></select>
+        {diag ? (<>
+          <Lbl>Subtítulo</Lbl>
+          <input value={c.description || ""} onChange={(e) => setC({ description: e.target.value })} className={inp} placeholder="Estamos preparando…" />
+          <Lbl>Caixas (o que está sendo verificado)</Lbl>
+          <div className="space-y-2">
+            {caixas.map((texto, i) => (
+              <div key={i} className="flex items-center gap-2 rounded-md border border-neutral-200 p-2">
+                <input
+                  value={icones[i] ?? ""} onChange={(e) => setCaixa(i, undefined, e.target.value)}
+                  className="w-11 shrink-0 rounded-md border border-neutral-300 px-2 py-1 text-center text-base"
+                  placeholder="🔍" aria-label={`Ícone da caixa ${i + 1}`}
+                />
+                <input
+                  value={texto} onChange={(e) => setCaixa(i, e.target.value)}
+                  className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm"
+                  placeholder="Analisando suas respostas..."
+                />
+                <button
+                  onClick={() => setC({ bars: caixas.filter((_, k) => k !== i), icons: icones.filter((_, k) => k !== i) })}
+                  className="shrink-0 text-red-400" aria-label={`Remover caixa ${i + 1}`}
+                >✕</button>
+              </div>
+            ))}
+            <button onClick={() => setC({ bars: [...caixas, "Nova verificação..."], icons: [...icones, "🔍"] })}
+              className="rounded-md border border-dashed border-neutral-300 px-2 py-1 text-xs text-neutral-500">+ caixa</button>
+          </div>
+        </>) : null}</>);
+    }
     case "clear":
       return (<><Lbl>Altura</Lbl>
         <select value={c.clear || "h-[1rem]"} onChange={(e) => setC({ clear: e.target.value })} className={inp}>
