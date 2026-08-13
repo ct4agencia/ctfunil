@@ -12,6 +12,7 @@ import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { trackAnswer } from "@/lib/quiz/track";
 import { interpEstado } from "@/lib/quiz/estado";
 import { playSpinTicks, playWin, playUrl } from "@/lib/quiz/sound";
+import { ajustarRotulo } from "@/lib/quiz/roleta-texto";
 import dynamic from "next/dynamic";
 // Motor alternativo da roleta. `dynamic` de propósito: funil que usa a roleta
 // clássica (todos os de hoje) não baixa uma linha da simulação.
@@ -310,14 +311,23 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                     stroke={ch.dark ? "rgba(0,0,0,.28)" : "#fffaf2"} strokeWidth="2" />
                 ))}
                 {step.segments.map((s, i) => {
-                  const [tx, ty] = polar(56, i * seg);
-                  const ls = labelLines(s.label);
+                  // raio 62 e não 56: mais para fora a fatia é mais larga, e o
+                  // texto ganha espaço sem precisar encolher
+                  const [tx, ty] = polar(62, i * seg);
+                  // tamanho DESTA fatia > tamanho da lâmina > 11. Definido à
+                  // mão, o valor é respeitado; automático, encolhe até caber.
+                  const fixo = s.labelSize != null;
+                  const { linhas: ls, fontSize: fs } = ajustarRotulo(
+                    s.label, N, 62, s.labelSize ?? step.labelSize ?? 11, fixo,
+                  );
                   const fill = contrastText(s.color);
+                  // pilha de N linhas centralizada: sobe metade da altura total
+                  const dy0 = ls.length === 1 ? "0" : `${-((ls.length - 1) * 0.55)}em`;
                   return (
                     <text key={`t${i}`} x={tx} y={ty} textAnchor="middle" dominantBaseline="middle"
                       transform={`rotate(${i * seg} ${tx} ${ty})`}
-                      fontSize={step.labelSize ?? 11} fontWeight={800} fill={fill} style={{ letterSpacing: ".2px" }}>
-                      {ls.length === 1 ? ls[0] : ls.map((l, j) => <tspan key={j} x={tx} dy={j === 0 ? "-0.5em" : "1.1em"}>{l}</tspan>)}
+                      fontSize={fs} fontWeight={800} fill={fill} style={{ letterSpacing: ".2px" }}>
+                      {ls.length === 1 ? ls[0] : ls.map((l, j) => <tspan key={j} x={tx} dy={j === 0 ? dy0 : "1.1em"}>{l}</tspan>)}
                     </text>
                   );
                 })}

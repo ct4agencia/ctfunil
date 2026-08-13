@@ -349,6 +349,16 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                   <input type="radio" name="winner" checked={s.winningIndex === i} onChange={() => setWinner(i)} className="h-4 w-4 accent-neutral-900" />
                   <ColorField value={seg.color} onChange={(v) => patchSeg(i, { color: v })} className="h-8 w-9" label="Cor da fatia" />
                   <input className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" value={seg.label} onChange={(e) => patchSeg(i, { label: e.target.value })} />
+                  {/* tamanho SÓ desta fatia: vazio = herda o da lâmina. Existe
+                      porque um nome longo dividindo a roda com nomes curtos
+                      obrigaria a encolher todos por causa de um. */}
+                  <input
+                    type="number" min={6} max={20} placeholder={String(s.labelSize ?? 11)}
+                    value={seg.labelSize ?? ""}
+                    onChange={(e) => patchSeg(i, { labelSize: e.target.value === "" ? undefined : Math.min(20, Math.max(6, Number(e.target.value))) })}
+                    title="Tamanho do texto desta fatia (vazio = usa o da lâmina)"
+                    className="w-14 shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-center text-sm"
+                  />
                   <button type="button" onClick={() => p({ segments: s.segments.filter((_, k) => k !== i), winningIndex: Math.min(s.winningIndex, s.segments.length - 2) } as Partial<Step>)} disabled={s.segments.length <= 2} className="shrink-0 text-sm text-red-500 disabled:opacity-30">✕</button>
                 </div>
               ))}

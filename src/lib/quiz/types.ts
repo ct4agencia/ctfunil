@@ -97,6 +97,12 @@ export interface RouletteSegment {
   win?: boolean;
   /** emoji do popup deste prêmio; sem valor, o popup usa 🎉 */
   emoji?: string;
+  /**
+   * Tamanho do texto DESTA fatia. Sem valor, usa o `labelSize` da lâmina; sem
+   * ele, 11. Existe porque prêmio de nome longo divide a roda com prêmios
+   * curtos: um tamanho único obriga a encolher todos por causa de um.
+   */
+  labelSize?: number;
   /** copy do popup SÓ deste prêmio; sem valor, cai no winTitle/winBody da lâmina.
    *  Espelha a raspadinha (`premio.popupTitle || step.winTitle`) e só faz
    *  diferença no modo "random" — no "always" existe um vencedor só. */

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PRESETS, PADRAO, comIntensidade, type Params } from "@/lib/quiz/roleta-fisica";
+import { ajustarRotulo } from "@/lib/quiz/roleta-texto";
 
 /**
  * Motor de animação "interativa" da roleta — a alternativa à clássica.
@@ -24,8 +25,9 @@ import { PRESETS, PADRAO, comIntensidade, type Params } from "@/lib/quiz/roleta-
  */
 
 export interface RoletaInterativaProps {
-  segments: { label: string; color: string }[];
-  /** tamanho do texto nas fatias, em px do viewBox (padrão 11) */
+  /** `labelSize` por fatia vence o da lâmina — prêmio de nome longo encolhe sozinho */
+  segments: { label: string; color: string; labelSize?: number }[];
+  /** tamanho padrão do texto nas fatias, em px do viewBox (padrão 11) */
   labelSize?: number;
   /** índice JÁ SORTEADO. A física é calculada para parar exatamente nele. */
   vencedor: number;
@@ -268,17 +270,20 @@ export default function RoletaInterativa({
             <circle key={`p${k}`} cx={x} cy={y} r={2.6} fill={chrome.pegColor} />
           ))}
           {segments.map((s, i) => {
-            const [tx, ty] = polar(56, i * SEG);
-            const w = s.label.split(" ");
-            const linhas = w.length > 1
-              ? [w.slice(0, Math.ceil(w.length / 2)).join(" "), w.slice(Math.ceil(w.length / 2)).join(" ")]
-              : [s.label];
+            // raio 62: mais para fora a fatia é mais larga (ver roleta-texto)
+            const [tx, ty] = polar(62, i * SEG);
+            // mesma regra da roleta clássica — antes eram duas cópias divergentes
+            const fixo = s.labelSize != null;
+            const { linhas, fontSize: fs } = ajustarRotulo(
+              s.label, N, 62, s.labelSize ?? labelSize ?? 11, fixo,
+            );
+            const dy0 = linhas.length === 1 ? "0" : `${-((linhas.length - 1) * 0.55)}em`;
             return (
               <text key={`t${i}`} x={tx} y={ty} textAnchor="middle" dominantBaseline="middle"
-                transform={`rotate(${i * SEG} ${tx} ${ty})`} fontSize={labelSize ?? 11} fontWeight={800}
+                transform={`rotate(${i * SEG} ${tx} ${ty})`} fontSize={fs} fontWeight={800}
                 fill={contraste(s.color)} style={{ letterSpacing: ".2px" }}>
                 {linhas.length === 1 ? linhas[0] : linhas.map((l, j) => (
-                  <tspan key={j} x={tx} dy={j === 0 ? "-0.5em" : "1.1em"}>{l}</tspan>
+                  <tspan key={j} x={tx} dy={j === 0 ? dy0 : "1.1em"}>{l}</tspan>
                 ))}
               </text>
             );
