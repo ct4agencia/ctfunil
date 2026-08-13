@@ -89,7 +89,11 @@ const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert",
   // NotificationBlock) e o construtor ainda dizia "em breve" — funcionalidade
   // pronta e trancada. O `graphics` é o anel de porcentagem que o cdb-01 usa
   // no "94% compatível": dava para ver no funil e não para adicionar num novo.
-  "graphics", "notification"]);
+  "graphics", "notification",
+  // Escritos a pedido do Luca: régua de níveis, prova social antes→depois com
+  // carrossel, e barras de projeção. Diferente dos dois acima, estes NÃO
+  // existiam no runtime — foram construídos, não destrancados.
+  "level", "beforeafter", "charts"]);
 
 /**
  * Atalhos da paleta que NÃO são tipos de bloco: viram `field` já configurado.
@@ -115,6 +119,19 @@ function newLayer(type: LayerType): Layer {
     case "field": return { ...base, content: { id, name: "telefone", title: "Seu WhatsApp (com DDD)", placeholder: "(00) 00000-0000", type: "phone", mask: "phone_br", required: true } };
     case "graphics": return { ...base, design: { basis: 100 }, content: { id, cols: "grid-cols-1", order: "default", graphics: [{ id: genId(), type: "chart", style: "#16a34a", percent: "80", legend: "<h2 class=\"ql-align-center\"><strong>Seu resultado</strong></h2>" }] } };
     case "notification": return { ...base, design: { backgroundColor: "#52525b", color: "#ffffff" }, content: { id, text: "<p>🔥 12 pessoas estão vendo isso agora</p>", duration: 6 } };
+    // Os três nascem PRONTOS, como os blocos-hero: adicionar e já funciona no
+    // preview. Bloco que nasce vazio parece quebrado.
+    case "level": return { ...base, design: { basis: 100 }, content: { id,
+      title: "<h2 class=\"ql-align-center\"><strong>Seu nível hoje</strong></h2>",
+      levels: [{ label: "Iniciante", pct: 25 }, { label: "Intermediário", pct: 60 }, { label: "Avançado", pct: 100 }],
+      atual: 1,
+      description: "<p class=\"ql-align-center\">Falta pouco para o próximo nível.</p>" } };
+    case "beforeafter": return { ...base, design: { basis: 100 }, content: { id,
+      pairs: [{ antes: "", depois: "", legenda: "<p>Resultado em 90 dias</p>" }] } };
+    case "charts": return { ...base, design: { basis: 100 }, content: { id,
+      title: "<h2 class=\"ql-align-center\"><strong>Sua projeção</strong></h2>",
+      suffix: "%",
+      bars: [{ label: "Hoje", value: 20 }, { label: "30 dias", value: 45 }, { label: "90 dias", value: 85 }] } };
     case "timer": return { ...base, design: { backgroundColor: "#e3eeff", color: "#1c72f1", borderColor: "#c7dcfe", padding: 10 }, content: { id, text: "<p><strong>Oferta acaba em: [time]</strong></p>", time: 300 } };
     case "loading": return { ...base, content: { id, title: "Carregando…", seconds: 4, type: "none", show_title: true, show_percent: true, show_progress: true } };
     case "clear": return { ...base, content: { id, clear: "h-[1rem]" } };
@@ -460,6 +477,22 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <select value={c.cols || "grid-cols-1"} onChange={(e) => setC({ cols: e.target.value })} className={inp}>
           <option value="grid-cols-1">1 (empilhado)</option><option value="grid-cols-2">2</option><option value="grid-cols-3">3</option>
         </select>
+        <Lbl>Estilo do card</Lbl>
+        <select value={layer.design?.cardStyle || "lista"} onChange={(e) => setD({ cardStyle: e.target.value === "lista" ? undefined : e.target.value })} className={inp}>
+          <option value="lista">Lista (imagem pequena ao lado)</option>
+          <option value="foto">Foto (imagem ocupa o card, texto em cápsula)</option>
+        </select>
+        {layer.design?.cardStyle === "foto" ? (
+          <p className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-[11px] text-amber-700">
+            Cada opção precisa de <b>imagem</b> (não emoji). Quem não tiver cai no estilo lista. Use 2 colunas.
+          </p>
+        ) : null}
+        <Lbl>Brilho da opção escolhida</Lbl>
+        <select value={layer.design?.fx || "none"} onChange={(e) => setD({ fx: e.target.value === "none" ? undefined : e.target.value })} className={inp}>
+          <option value="none">Simples (contorno)</option>
+          <option value="glow">Neon (halo colorido)</option>
+          <option value="blur">Difuso (halo largo)</option>
+        </select>
         <Lbl>Opções</Lbl>
         {/* Cada opção aceita EMOJI ou IMAGEM à esquerda do rótulo. O runtime já
             desenhava as duas (`content.options[].image = {src, type}`) e o
@@ -552,6 +585,76 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           </div>
         </>) : null}</>);
     }
+    case "level": {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ns: any[] = Array.isArray(c.levels) ? c.levels : [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setN = (i: number, patch: any) => setC({ levels: ns.map((n, k) => (k === i ? { ...n, ...patch } : n)) });
+      return (<>
+        <Lbl>Título</Lbl><HtmlField value={c.title} onChange={(v) => setC({ title: v })} />
+        <Lbl>Níveis (o marcado é o do visitante)</Lbl>
+        <div className="space-y-1.5">
+          {ns.map((n, i) => (
+            <div key={i} className="flex items-center gap-1.5 rounded-lg border border-neutral-200 p-2">
+              <input type="radio" name={`nivel-${layer.id}`} checked={Number(c.atual) === i} onChange={() => setC({ atual: i })} className="h-4 w-4 accent-neutral-900" title="Nível do visitante" />
+              <input value={n.label || ""} onChange={(e) => setN(i, { label: e.target.value })} className={`${inp} flex-1`} placeholder="Nome do nível" />
+              <input type="number" min={0} max={100} value={Number(n.pct) || 0} onChange={(e) => setN(i, { pct: Number(e.target.value) })} className="w-16 rounded-md border border-neutral-300 px-2 py-1 text-sm" title="% da barra" />
+              <button onClick={() => setC({ levels: ns.filter((_, k) => k !== i) })} className="text-red-400">✕</button>
+            </div>
+          ))}
+          <button onClick={() => setC({ levels: [...ns, { label: "Novo nível", pct: 100 }] })} className="rounded-md border border-dashed border-neutral-300 px-2 py-1 text-xs text-neutral-500">+ nível</button>
+        </div>
+        <Lbl>Texto abaixo</Lbl><HtmlField value={c.description} onChange={(v) => setC({ description: v })} />
+      </>);
+    }
+
+    case "beforeafter": {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ps: any[] = Array.isArray(c.pairs) ? c.pairs : [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setP = (i: number, patch: any) => setC({ pairs: ps.map((p, k) => (k === i ? { ...p, ...patch } : p)) });
+      return (<>
+        <Lbl>Provas (cada uma vira um slide)</Lbl>
+        <div className="space-y-2">
+          {ps.map((p, i) => (
+            <div key={i} className="space-y-1.5 rounded-lg border border-neutral-200 p-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-neutral-500">Prova {i + 1}</span>
+                <button onClick={() => setC({ pairs: ps.filter((_, k) => k !== i) })} className="text-red-400">✕</button>
+              </div>
+              <Lbl>Antes</Lbl><ImageField value={p.antes || ""} onChange={(v) => setP(i, { antes: v })} />
+              <Lbl>Depois</Lbl><ImageField value={p.depois || ""} onChange={(v) => setP(i, { depois: v })} />
+              <Lbl>Legenda</Lbl><HtmlField value={p.legenda} onChange={(v) => setP(i, { legenda: v })} rows={1} />
+            </div>
+          ))}
+          <button onClick={() => setC({ pairs: [...ps, { antes: "", depois: "", legenda: "" }] })} className="rounded-md border border-dashed border-neutral-300 px-2 py-1 text-xs text-neutral-500">+ prova</button>
+        </div>
+      </>);
+    }
+
+    case "charts": {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const bs: any[] = Array.isArray(c.bars) ? c.bars : [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setB = (i: number, patch: any) => setC({ bars: bs.map((b, k) => (k === i ? { ...b, ...patch } : b)) });
+      return (<>
+        <Lbl>Título</Lbl><HtmlField value={c.title} onChange={(v) => setC({ title: v })} />
+        <Lbl>Sufixo do número (%, kg, R$…)</Lbl>
+        <input value={c.suffix || ""} onChange={(e) => setC({ suffix: e.target.value })} className={inp} placeholder="%" />
+        <Lbl>Barras (a última fica destacada)</Lbl>
+        <div className="space-y-1.5">
+          {bs.map((b, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <input value={b.label || ""} onChange={(e) => setB(i, { label: e.target.value })} className={`${inp} flex-1`} placeholder="Rótulo" />
+              <input type="number" value={Number(b.value) || 0} onChange={(e) => setB(i, { value: Number(e.target.value) })} className="w-20 rounded-md border border-neutral-300 px-2 py-1 text-sm" />
+              <button onClick={() => setC({ bars: bs.filter((_, k) => k !== i) })} className="text-red-400">✕</button>
+            </div>
+          ))}
+          <button onClick={() => setC({ bars: [...bs, { label: "Novo", value: 50 }] })} className="rounded-md border border-dashed border-neutral-300 px-2 py-1 text-xs text-neutral-500">+ barra</button>
+        </div>
+      </>);
+    }
+
     case "notification":
       return (<>
         <Lbl>Texto da notificação</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />

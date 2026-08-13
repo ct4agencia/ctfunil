@@ -12,6 +12,10 @@ export type LayerType =
   | "text" | "clear" | "options" | "image" | "button" | "alert"
   | "loading" | "field" | "timer" | "notification" | "graphics"
   | "embed" | "video" | "roulette" | "slider" | "carousel"
+  // ── diagnóstico e prova (13/08/2026) ──────────────────────────────────────
+  | "level"        // régua de níveis com "você está aqui"
+  | "beforeafter"  // prova social antes→depois, em carrossel
+  | "charts"       // barras de projeção (o `graphics` é UM anel de %)
   // ── blocos-hero vindos do motor tipado ────────────────────────────────────
   // Ocupam a lâmina inteira e reaproveitam os componentes de components/quiz/
   // (mesmo mecanismo que roulette/slider já usam). O `content` de cada um é o

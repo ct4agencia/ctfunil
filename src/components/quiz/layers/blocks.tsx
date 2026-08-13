@@ -383,6 +383,20 @@ function Chevron({ color }: { color: string }) {
     </span>
   );
 }
+/**
+ * Sombra do card SELECIONADO, conforme o efeito escolhido.
+ *  none  → anel fino, o de sempre
+ *  glow  → halo colorido em volta (o "neon" dos quizzes de fitness)
+ *  blur  → halo mais largo e difuso, sem o anel duro
+ * Só o estado selecionado muda: o card em repouso continua com a sombra comum,
+ * senão a tela inteira brilha e nada se destaca.
+ */
+function sombraFx(cor: string, fx: string): string {
+  if (fx === "glow") return `0 0 0 2px ${cor}, 0 0 18px -2px ${cor}, 0 0 34px -6px ${cor}`;
+  if (fx === "blur") return `0 0 24px 2px ${cor}99, 0 0 48px 8px ${cor}4d`;
+  return `0 0 0 2px ${cor}`;
+}
+
 function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; question: string }) {
   const c = layer.content;
   const d = layer.design || {};
@@ -405,6 +419,10 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   const iconStart = d.iconPosition === "start";
   const multiple = !!c.multiple;
   const [sel, setSel] = useState<string[]>([]);
+  // Estilo do card: "lista" (padrão de sempre) ou "foto" (a imagem É o card,
+  // rótulo em cápsula por cima). `fx` controla o brilho do selecionado.
+  const cardFoto = d.cardStyle === "foto";
+  const fx = (d.fx as string) || "none";
 
   // pergunta/introdução do próprio bloco (alguns steps guardam o texto aqui)
   const intro = c.introduction && plain(c.introduction) ? c.introduction : "";
@@ -423,11 +441,41 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
         <Html html={interpHtml(intro, ctx)} style={{ fontSize: `${remContent(ctx)}px`, color: ctx.design.contentColor || "#000" }} />
       </div>
     ) : null}
-    <div className="grid w-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: ".55rem" }}>
+    <div className="grid w-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: cardFoto ? ".7rem" : ".55rem" }}>
       {opts.map((o) => {
         const img = o.image?.type === "image" ? o.image?.src : null;
         const emoji = o.image?.type === "emoji" ? o.image?.src : o.emoji;
         const active = sel.includes(o.id);
+
+        // ESTILO "FOTO": a imagem É o card e o rótulo flutua em cápsula sobre
+        // ela, no rodapé. No estilo de lista a imagem vira miniatura de 48px —
+        // serve para ícone, não para foto que precisa ser lida de longe.
+        if (cardFoto && img) {
+          return (
+            <motion.button key={o.id} onClick={() => pick(o)} whileTap={{ scale: 0.98 }}
+              className="relative overflow-hidden"
+              style={{
+                borderRadius: radius(ctx.design),
+                aspectRatio: "3 / 4",
+                border: `${Math.max(2, bw)}px solid ${active ? theme : "rgba(255,255,255,.10)"}`,
+                boxShadow: active ? sombraFx(theme, fx) : shadow,
+              }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+              {/* véu embaixo: sem ele o rótulo some numa foto clara */}
+              <span className="absolute inset-x-0 bottom-0 h-2/5" style={{ background: "linear-gradient(to top, rgba(0,0,0,.72), transparent)" }} />
+              {active ? (
+                <span className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full text-[13px] font-black text-white" style={{ background: theme }}>✓</span>
+              ) : null}
+              <span className="absolute inset-x-0 bottom-2.5 flex justify-center px-2">
+                <Html html={interpHtml(o.label, ctx)}
+                  className="rounded-full px-3 py-1"
+                  style={{ background: "rgba(20,20,22,.82)", color: "#fff", fontSize: `${Math.max(12, remContent(ctx) - 2)}px`, fontWeight: 700, lineHeight: 1.2, backdropFilter: "blur(3px)" }} />
+              </span>
+            </motion.button>
+          );
+        }
+
         return (
           <motion.button key={o.id} onClick={() => pick(o)} whileTap={{ scale: 0.98 }}
             className={`flex transition ${multi ? "flex-col items-center justify-center gap-2 text-center" : "flex-row items-center justify-start gap-3 text-left"}`}
@@ -435,7 +483,7 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
               borderRadius: radius(ctx.design), minHeight: ctx.design.elementSize || "64px",
               background: cardBg,
               border: `${bw}px solid ${active ? theme : contrast ? `color-mix(in srgb, ${theme} 55%, #ffffff)` : "#e5e7eb"}`,
-              boxShadow: active ? `0 0 0 2px ${theme}` : shadow,
+              boxShadow: active ? sombraFx(theme, fx) : shadow,
               padding: multi ? ".9rem .65rem" : ".75rem 1rem",
             }}>
             {showIcon && iconStart ? <Chevron color={theme} /> : null}
@@ -628,6 +676,139 @@ function NotificationBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 }
 
 // ─────────────────────────────── GRAPHICS ───────────────────────────
+// ─────────────────────────────── NÍVEL ─────────────────────────────
+/**
+ * Régua de níveis com o do visitante em destaque ("você está aqui").
+ * Serve para devolver um diagnóstico logo depois do quiz, antes da oferta.
+ * A barra anima do zero até a posição, senão o resultado aparece pronto e não
+ * se lê como algo que foi calculado.
+ */
+function LevelBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  const c = layer.content;
+  const niveis = (c.levels as { label: string; pct?: number }[]) || [];
+  const atual = Math.min(Math.max(0, Number(c.atual) || 0), Math.max(0, niveis.length - 1));
+  const theme = ctx.design.themeColor || "#ea580c";
+  const alvo = Number(niveis[atual]?.pct ?? ((atual + 1) / Math.max(1, niveis.length)) * 100);
+  const [w, setW] = useState(0);
+  useEffect(() => {
+    const t0 = performance.now();
+    let raf = 0;
+    const tick = (n: number) => { const p = Math.min(alvo, ((n - t0) / 1200) * alvo); setW(p); if (p < alvo) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [alvo]);
+  if (!niveis.length) return null;
+  return (
+    <div className="mx-auto w-full">
+      {c.title ? <Html html={interpHtml(String(c.title), ctx)} className="mb-2 text-center" /> : null}
+      <div className="h-3 w-full overflow-hidden rounded-full" style={{ background: "rgba(0,0,0,.08)" }}>
+        <div className="h-full rounded-full transition-none" style={{ width: `${w}%`, background: `linear-gradient(90deg, ${theme}, ${theme}bb)` }} />
+      </div>
+      <div className="mt-2 flex justify-between gap-1">
+        {niveis.map((n, i) => (
+          <span key={i} className="flex-1 text-center text-[11px] font-semibold"
+            style={{ color: i === atual ? theme : "var(--q-text-muted, #9ca3af)", fontWeight: i === atual ? 800 : 600 }}>
+            {i === atual ? "▲ " : ""}{n.label}
+          </span>
+        ))}
+      </div>
+      {c.description ? <Html html={interpHtml(String(c.description), ctx)} className="mt-3 text-center" /> : null}
+    </div>
+  );
+}
+
+// ──────────────────────────── ANTES / DEPOIS ───────────────────────
+/**
+ * Prova social em pares antes→depois, com setas para percorrer vários casos —
+ * o carrossel que o Luca pediu. Sem ele cada prova viraria uma lâmina, e o
+ * funil ficaria comprido só para mostrar cinco fotos.
+ */
+function BeforeAfterBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  const c = layer.content;
+  const pares = (c.pairs as { antes?: string; depois?: string; legenda?: string }[]) || [];
+  const [i, setI] = useState(0);
+  const n = pares.length;
+  if (!n) return null;
+  const p = pares[Math.min(i, n - 1)];
+  const rot = radius(ctx.design);
+  const go = (d: number) => setI((x) => (x + d + n) % n);
+  return (
+    <div className="mx-auto w-full select-none">
+      <div className="grid grid-cols-2 gap-2">
+        {([["ANTES", p.antes], ["DEPOIS", p.depois]] as const).map(([rot2, src]) => (
+          <div key={rot2} className="relative overflow-hidden" style={{ borderRadius: rot, aspectRatio: "3 / 4", background: "rgba(0,0,0,.06)" }}>
+            {src ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={src} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+            ) : null}
+            <span className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-black tracking-wide text-white"
+              style={{ background: rot2 === "DEPOIS" ? (ctx.design.themeColor || "#ea580c") : "rgba(20,20,22,.75)" }}>
+              {rot2}
+            </span>
+          </div>
+        ))}
+      </div>
+      {p.legenda ? <Html html={interpHtml(p.legenda, ctx)} className="mt-2 text-center" style={{ fontSize: `${remContent(ctx) - 2}px` }} /> : null}
+      {n > 1 ? (
+        <div className="mt-2 flex items-center justify-center gap-3">
+          <button onClick={() => go(-1)} aria-label="Anterior" className="grid h-7 w-7 place-items-center rounded-full border border-black/10 text-sm">‹</button>
+          <div className="flex gap-1.5">
+            {pares.map((_, k) => (
+              <span key={k} className="h-1.5 rounded-full transition-all"
+                style={{ width: k === i ? 16 : 6, background: k === i ? (ctx.design.themeColor || "#ea580c") : "rgba(0,0,0,.2)" }} />
+            ))}
+          </div>
+          <button onClick={() => go(1)} aria-label="Próximo" className="grid h-7 w-7 place-items-center rounded-full border border-black/10 text-sm">›</button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ─────────────────────────────── GRÁFICOS ──────────────────────────
+/**
+ * Barras verticais para projeção ("onde você chega em 3 meses"). Diferente do
+ * `graphics`, que é UM anel de porcentagem: aqui a leitura é a evolução entre
+ * pontos, não um número só.
+ */
+function ChartsBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  const c = layer.content;
+  const barras = (c.bars as { label: string; value: number }[]) || [];
+  const theme = ctx.design.themeColor || "#ea580c";
+  const [f, setF] = useState(0);
+  useEffect(() => {
+    const t0 = performance.now();
+    let raf = 0;
+    const tick = (n: number) => { const p = Math.min(1, (n - t0) / 1100); setF(p); if (p < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  if (!barras.length) return null;
+  const max = Math.max(...barras.map((b) => Number(b.value) || 0), 1);
+  return (
+    <div className="mx-auto w-full">
+      {c.title ? <Html html={interpHtml(String(c.title), ctx)} className="mb-3 text-center" /> : null}
+      <div className="flex items-end justify-between gap-2" style={{ height: 150 }}>
+        {barras.map((b, i) => {
+          const v = Number(b.value) || 0;
+          const h = (v / max) * 100 * f;
+          const ultima = i === barras.length - 1;
+          return (
+            <div key={i} className="flex flex-1 flex-col items-center justify-end gap-1" style={{ height: "100%" }}>
+              <span className="text-[11px] font-bold" style={{ color: ultima ? theme : "var(--q-text-muted, #9ca3af)" }}>
+                {Math.round(v * f)}{String(c.suffix || "")}
+              </span>
+              <div className="w-full rounded-t-md"
+                style={{ height: `${h}%`, background: ultima ? theme : `${theme}59`, minHeight: 2 }} />
+              <span className="text-[10px] font-semibold text-[var(--q-text-muted,#9ca3af)]">{b.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function GraphicsBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const g = (layer.content.graphics || [])[0];
   if (!g) return null;
@@ -748,6 +929,9 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
       case "timer": return <TimerBlock layer={layer} ctx={ctx} />;
       case "notification": return <NotificationBlock layer={layer} ctx={ctx} />;
       case "graphics": return <GraphicsBlock layer={layer} ctx={ctx} />;
+      case "level": return <LevelBlock layer={layer} ctx={ctx} />;
+      case "beforeafter": return <BeforeAfterBlock layer={layer} ctx={ctx} />;
+      case "charts": return <ChartsBlock layer={layer} ctx={ctx} />;
       case "embed": case "video": return <EmbedBlock layer={layer} ctx={ctx} />;
       case "carousel": return <CarouselBlock layer={layer} ctx={ctx} />;
       default: return null;
