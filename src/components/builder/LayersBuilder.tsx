@@ -353,6 +353,17 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
       return (<>
         <Lbl>Rótulo do botão</Lbl><input value={c.label || ""} onChange={(e) => setC({ label: e.target.value })} className={inp} />
         <Lbl>Ícone / emoji (opcional, antes do texto)</Lbl><input value={c.icon || ""} onChange={(e) => setC({ icon: e.target.value })} placeholder="ex: 👉 🔥 ✅" className={inp} />
+        {/* BOTÃO-IMAGEM: o runtime já renderizava isso (blocks.tsx:262) e o
+            cdb-01 usa em produção — mas o campo não existia no construtor, só
+            dava para ligar editando o JSON na mão. Com imagem, as cores e o
+            efeito abaixo deixam de valer: quem manda é o PNG. */}
+        <Lbl>Imagem no lugar do botão (opcional)</Lbl>
+        <ImageField value={c.imageSrc || ""} onChange={(v) => setC({ imageSrc: v || undefined })} />
+        {c.imageSrc ? (
+          <p className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-[11px] text-amber-700">
+            Com imagem, o botão vira o PNG clicável — rótulo, cores e contorno abaixo não aparecem.
+          </p>
+        ) : null}
         <Lbl>Cor do botão</Lbl>
         <div className="flex flex-wrap items-center gap-3">
           {/* <span>, não <label>: o ColorField abre um popover, e a ativação do
