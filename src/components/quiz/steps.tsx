@@ -19,6 +19,8 @@ const RoletaInterativa = dynamic(() => import("./RoletaInterativa"), { ssr: fals
 // Mesma tela usada pelo motor layers; mora fora daqui para os dois a
 // compartilharem sem que o layers importe este arquivo inteiro.
 const Diagnostico = dynamic(() => import("./Diagnostico"), { ssr: false });
+// Idem: barras rotuladas + micro-perguntas, divididas com o motor layers.
+const Checklist = dynamic(() => import("./Checklist"), { ssr: false });
 
 /** Contexto passado a cada lâmina pelo QuizRunner. */
 export interface StepCtx {
@@ -1086,116 +1088,21 @@ function LoadingSimple({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
  * que enchem em sequência (✓ ao concluir), pausando em micro-perguntas (modal).
  */
 function LoadingChecklist({ step, ctx }: { step: LoadingStep; ctx: StepCtx }) {
-  const dark = step.variant === "dark";
-  const bars = step.bars && step.bars.length ? step.bars : ["Processando…"];
-  const checkpoints = useMemo(
-    () => (step.checkpoints ?? []).slice().sort((a, b) => a.at - b.at),
-    [step.checkpoints],
-  );
-  const total = step.durationMs ?? 4200;
-  const [pct, setPct] = useState(0);
-  const [paused, setPaused] = useState<number | null>(null);
-  const answered = useRef<Set<number>>(new Set());
-  const start = useRef<number | null>(null);
-  const elapsedBeforePause = useRef(0);
-  const raf = useRef<number | null>(null);
-
-  useEffect(() => {
-    let stop = false;
-    const tick = (ts: number) => {
-      if (stop) return;
-      if (start.current == null) start.current = ts;
-      const p = Math.min(100, ((elapsedBeforePause.current + (ts - start.current)) / total) * 100);
-
-      // pausa em checkpoint não respondido
-      const cp = checkpoints.findIndex((c, idx) => !answered.current.has(idx) && p >= c.at);
-      if (cp !== -1) {
-        setPct(checkpoints[cp].at);
-        setPaused(cp);
-        elapsedBeforePause.current = (checkpoints[cp].at / 100) * total;
-        start.current = null;
-        return;
-      }
-      setPct(p);
-      if (p >= 100) { setTimeout(ctx.advance, 350); return; }
-      raf.current = requestAnimationFrame(tick);
-    };
-    if (paused == null) raf.current = requestAnimationFrame(tick);
-    return () => { stop = true; if (raf.current) cancelAnimationFrame(raf.current); };
-  }, [paused]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const answer = (cpIdx: number, opt: string) => {
-    const cp = checkpoints[cpIdx];
-    logAnswer(ctx, `${step.id}:cp${cpIdx}`, cp.question, opt);
-    answered.current.add(cpIdx);
-    setPaused(null);
-  };
-
-  // qual barra está ativa, conforme o progresso
-  const per = 100 / bars.length;
-  const activeBar = Math.min(bars.length - 1, Math.floor(pct / per));
-  const cp = paused != null ? checkpoints[paused] : null;
-
+  // Casca fina sobre `Checklist.tsx`. A tela mora fora daqui porque o motor
+  // layers precisa dela sem arrastar este arquivo para o bundle publico.
   return (
-    <div className={`relative flex w-full flex-1 flex-col items-center justify-center px-7 ${dark ? "text-white" : ""}`}>
-      {step.logo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={step.logo} alt="" className="mb-6 h-9 w-auto object-contain" />
-      ) : null}
-      {step.title ? (
-        <h2 className="mb-7 text-center font-[var(--q-display)] text-[22px] font-bold leading-tight text-[var(--q-text)]">
-          <RichText text={interp(step.title, ctx)} />
-        </h2>
-      ) : null}
-
-      <div className="w-full max-w-sm space-y-4">
-        {bars.map((label, idx) => {
-          const done = idx < activeBar || pct >= 100;
-          const active = idx === activeBar && pct < 100;
-          const fill = done ? 100 : active ? Math.max(0, ((pct - idx * per) / per) * 100) : 0;
-          return (
-            <div key={idx}>
-              <div className="mb-1.5 flex items-center justify-between text-[13px] font-semibold">
-                <span className={done || active ? "text-[var(--q-text)]" : "text-[var(--q-text-muted)] opacity-60"}>{interp(label, ctx)}</span>
-                <span className="tabular-nums text-[var(--q-text-muted)]">
-                  {done ? <span className="text-[var(--q-primary)]">✓</span> : active ? `${Math.round(fill)}%` : ""}
-                </span>
-              </div>
-              <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--q-bg-soft)]">
-                <motion.div className="h-full rounded-full" style={{ background: "var(--q-primary)" }}
-                  animate={{ width: `${fill}%` }} transition={{ ease: "linear", duration: 0.15 }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {step.slides?.[0] ? (
-        <p className="mt-7 text-center text-sm text-[var(--q-text-muted)]">{interp(step.slides[0], ctx)}</p>
-      ) : null}
-
-      {/* modal de micro-pergunta */}
-      <AnimatePresence>
-        {cp ? (
-          <motion.div className="absolute inset-0 z-20 flex items-center justify-center bg-black/45 px-6 backdrop-blur-sm"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl"
-              initial={{ scale: 0.9, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 26 }}>
-              <p className="mb-4 text-center text-[17px] font-bold leading-snug text-neutral-900">{interp(cp.question, ctx)}</p>
-              <div className="space-y-2">
-                {cp.options.map((o, k) => (
-                  <button key={k} onClick={() => answer(paused!, o)}
-                    className="w-full rounded-xl border-2 border-neutral-200 px-4 py-3 text-sm font-semibold text-neutral-800 transition hover:border-[var(--q-primary)] hover:bg-[var(--q-bg-soft)]">
-                    {o}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </div>
+    <Checklist
+      titulo={step.title ? interp(step.title, ctx) : undefined}
+      barras={(step.bars ?? []).map((b) => interp(b, ctx))}
+      checkpoints={step.checkpoints}
+      duracaoMs={step.durationMs ?? 4200}
+      logo={step.logo}
+      legenda={step.slides?.[0] ? interp(step.slides[0], ctx) : undefined}
+      escuro={step.variant === "dark"}
+      onFim={ctx.advance}
+      // grava no MESMO formato de sempre: step_id "<lamina>:cp<n>"
+      onResponder={(i, cp, opt) => logAnswer(ctx, `${step.id}:cp${i}`, cp.question, opt)}
+    />
   );
 }
 

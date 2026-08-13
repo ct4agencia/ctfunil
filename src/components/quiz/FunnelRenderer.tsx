@@ -15,7 +15,6 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type { Funnel } from "@/lib/quiz/types";
 
-const QuizRunner = dynamic(() => import("./QuizRunner"));
 const LayersRunner = dynamic(() => import("./layers/LayersRunner"));
 const ChatRunner = dynamic(() => import("./typebot/ChatRunner"));
 
@@ -40,8 +39,10 @@ export default function FunnelRenderer({
       .catch(() => {});
   }, [preview, geo?.estado]);
 
-  const engine = funnel.settings?.engine;
-  if (engine === "typebot") return <ChatRunner funnel={funnel} preview={preview} />;
-  if (engine === "layers") return <LayersRunner funnel={funnel} geo={clientGeo} preview={preview} />;
-  return <QuizRunner funnel={funnel} geo={clientGeo} preview={preview} />;
+  // O motor TIPADO foi aposentado: os funis que rodavam nele viraram `layers`
+  // (premio-sonia e cdb-rr, 12/08/2026) e o QuizRunner foi removido. `layers` é
+  // o fallback — funil sem `engine` gravado abre no motor padrão em vez de
+  // quebrar. O typebot fica: simula WhatsApp, é outra experiência.
+  if (funnel.settings?.engine === "typebot") return <ChatRunner funnel={funnel} preview={preview} />;
+  return <LayersRunner funnel={funnel} geo={clientGeo} preview={preview} />;
 }

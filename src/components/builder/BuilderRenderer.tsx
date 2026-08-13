@@ -17,14 +17,14 @@ const Loading = () => (
   </div>
 );
 
-const FunnelBuilder = dynamic(() => import("@/components/builder/FunnelBuilder"), { loading: Loading });
 const LayersBuilder = dynamic(() => import("@/components/builder/LayersBuilder"), { loading: Loading });
 const TypebotBuilder = dynamic(() => import("@/components/builder/TypebotBuilder"), { loading: Loading });
 
 export default function BuilderRenderer({ funnel }: { funnel: Funnel }) {
   // Funis do motor "typebot" (chat) usam o construtor conversacional.
   if (funnel.settings?.engine === "typebot") return <TypebotBuilder initial={funnel} />;
-  // Funis do motor "layers" (clones do inlead) usam o construtor de blocos.
-  if (funnel.settings?.engine === "layers") return <LayersBuilder initial={funnel} />;
-  return <FunnelBuilder initial={funnel} />;
+  // `layers` é o padrão. O FunnelBuilder (construtor do motor tipado) saiu em
+  // 12/08/2026 junto com o próprio motor: funil sem `engine` gravado abre no
+  // construtor de blocos em vez de quebrar.
+  return <LayersBuilder initial={funnel} />;
 }

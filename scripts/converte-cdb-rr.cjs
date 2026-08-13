@@ -148,6 +148,11 @@ function converte(step, i) {
         content: {
           id: `c-${id}`, name: id, title: step.title,
           bars: step.bars,
+          // checkpoints = micro-perguntas que GRAVAM resposta do lead. O layers
+          // passou a suportar (blocks.tsx -> Checklist.tsx); sem isso a pergunta
+          // sumiria em silencio na conversao.
+          checkpoints: step.checkpoints,
+          logo: step.logo,
           seconds: Math.round((step.durationMs ?? 4200) / 1000),
           type: "advance", destination: "next",
           description: step.slides?.[0],

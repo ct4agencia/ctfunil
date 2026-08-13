@@ -13,6 +13,8 @@ import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types"
 // `dynamic` porque a maioria das lâminas de loading usa a barra simples e não
 // deve baixar o anel + as caixas.
 const Diagnostico = dynamic(() => import("../Diagnostico"), { ssr: false });
+// Barras rotuladas + micro-perguntas — mesma tela do motor tipado.
+const Checklist = dynamic(() => import("../Checklist"), { ssr: false });
 
 /** Modo de edição no canvas (construtor inline estilo inlead). Off = runtime normal. */
 export interface LayersEdit {
@@ -532,6 +534,28 @@ function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
       />
     );
   }
+  // CHECKLIST: barras rotuladas, com pausa em micro-pergunta. Só a barra lisa
+  // existia aqui — uma lâmina vinda do motor tipado com `bars` perdia os
+  // rótulos, e o `checkpoint` (que GRAVA resposta do lead) sumia sem aviso.
+  // Mesma tela nos dois motores, em `quiz/Checklist.tsx`.
+  const barras = (c.bars as string[]) ?? [];
+  const cps = c.checkpoints as { at: number; question: string; options: string[] }[] | undefined;
+  if (barras.length || cps?.length) {
+    const limpo = (s: unknown) => interpHtml(String(s), ctx).replace(/<[^>]+>/g, "").trim();
+    return (
+      <Checklist
+        titulo={c.title ? interpHtml(String(c.title), ctx) : undefined}
+        barras={barras.map(limpo)}
+        checkpoints={cps}
+        duracaoMs={(Number(c.seconds) || 4) * 1000}
+        logo={c.logo as string | undefined}
+        legenda={c.description ? limpo(c.description) : undefined}
+        onFim={c.type === "none" || editando ? undefined : () => ctx.navigate(String(c.destination || "next"))}
+        onResponder={(i, cp, opt) => ctx.trackAnswer?.(`${layer.id}:cp${i}`, cp.question, opt)}
+      />
+    );
+  }
+
   const secs = Number(c.seconds) || 4;
   const [pct, setPct] = useState(Number(c.starts) || 0);
   const done = useRef(false);

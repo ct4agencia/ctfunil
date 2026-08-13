@@ -1,0 +1,154 @@
+"use client";
+
+/**
+ * CHECKLIST — barras rotuladas que enchem em sequência, pausando em
+ * micro-perguntas ("Preparando seu plano").
+ *
+ * POR QUE EM ARQUIVO PRÓPRIO
+ * Mesma história do `Diagnostico.tsx`: os dois motores precisam desta tela. Ela
+ * vivia dentro do `steps.tsx`, então o motor layers não a alcançava sem puxar
+ * 1.500 linhas de roleta/raspadinha/medidor para o bundle de `/q/[slug]`.
+ *
+ * O preço apareceu na conversão do `cdb-rr`: a lâmina de loading de lá tem três
+ * barras rotuladas e uma micro-pergunta, e o layers só sabia desenhar uma barra
+ * lisa. A pergunta — que GRAVA resposta do lead — sumiria sem ninguém notar.
+ *
+ * Puro de propósito: recebe texto, devolve `onFim` e `onResponder`. Não conhece
+ * `StepCtx`, `LayersCtx`, tracking nem navegação — quem chama grava a resposta
+ * no formato do seu próprio motor.
+ */
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+
+export interface ChecklistCheckpoint {
+  /** percentual (0–100) em que a barra pausa e abre o modal */
+  at: number;
+  question: string;
+  options: string[];
+}
+
+export interface ChecklistProps {
+  titulo?: string;
+  /** rótulo de cada barra, na ordem em que enchem */
+  barras: string[];
+  checkpoints?: ChecklistCheckpoint[];
+  duracaoMs?: number;
+  logo?: string;
+  legenda?: string;
+  escuro?: boolean;
+  /** chamado uma vez, quando a última barra fecha */
+  onFim?: () => void;
+  /** chamado quando o visitante responde uma micro-pergunta */
+  onResponder?: (indice: number, cp: ChecklistCheckpoint, opcao: string) => void;
+}
+
+export default function Checklist({
+  titulo, barras, checkpoints: cps, duracaoMs = 4200, logo, legenda, escuro = false, onFim, onResponder,
+}: ChecklistProps) {
+  const bars = barras.length ? barras : ["Processando…"];
+  const checkpoints = useMemo(() => (cps ?? []).slice().sort((a, b) => a.at - b.at), [cps]);
+
+  const [pct, setPct] = useState(0);
+  const [pausado, setPausado] = useState<number | null>(null);
+  const respondidos = useRef<Set<number>>(new Set());
+  const inicio = useRef<number | null>(null);
+  const decorridoAntes = useRef(0);
+  const raf = useRef<number | null>(null);
+
+  useEffect(() => {
+    let parado = false;
+    const tick = (ts: number) => {
+      if (parado) return;
+      if (inicio.current == null) inicio.current = ts;
+      const p = Math.min(100, ((decorridoAntes.current + (ts - inicio.current)) / duracaoMs) * 100);
+
+      // pausa no primeiro checkpoint ainda não respondido
+      const cp = checkpoints.findIndex((c, i) => !respondidos.current.has(i) && p >= c.at);
+      if (cp !== -1) {
+        setPct(checkpoints[cp].at);
+        setPausado(cp);
+        decorridoAntes.current = (checkpoints[cp].at / 100) * duracaoMs;
+        inicio.current = null;
+        return;
+      }
+      setPct(p);
+      if (p >= 100) { if (onFim) setTimeout(onFim, 350); return; }
+      raf.current = requestAnimationFrame(tick);
+    };
+    if (pausado == null) raf.current = requestAnimationFrame(tick);
+    return () => { parado = true; if (raf.current) cancelAnimationFrame(raf.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pausado]);
+
+  const responder = (i: number, opcao: string) => {
+    onResponder?.(i, checkpoints[i], opcao);
+    respondidos.current.add(i);
+    setPausado(null);
+  };
+
+  const fatia = 100 / bars.length;
+  const ativa = Math.min(bars.length - 1, Math.floor(pct / fatia));
+  const cp = pausado != null ? checkpoints[pausado] : null;
+
+  return (
+    <div className={`relative flex w-full flex-1 flex-col items-center justify-center px-7 ${escuro ? "text-white" : ""}`}>
+      {logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logo} alt="" className="mb-6 h-9 w-auto object-contain" />
+      ) : null}
+      {titulo ? (
+        <h2
+          className="mb-7 text-center font-[var(--q-display)] text-[22px] font-bold leading-tight text-[var(--q-text)]"
+          dangerouslySetInnerHTML={{ __html: titulo }}
+        />
+      ) : null}
+
+      <div className="w-full max-w-sm space-y-4">
+        {bars.map((label, i) => {
+          const feita = i < ativa || pct >= 100;
+          const rodando = i === ativa && pct < 100;
+          const enche = feita ? 100 : rodando ? Math.max(0, ((pct - i * fatia) / fatia) * 100) : 0;
+          return (
+            <div key={i}>
+              <div className="mb-1.5 flex items-center justify-between text-[13px] font-semibold">
+                <span className={feita || rodando ? "text-[var(--q-text)]" : "text-[var(--q-text-muted)] opacity-60"}>{label}</span>
+                <span className="tabular-nums text-[var(--q-text-muted)]">
+                  {feita ? <span className="text-[var(--q-primary)]">✓</span> : rodando ? `${Math.round(enche)}%` : ""}
+                </span>
+              </div>
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--q-bg-soft)]">
+                <motion.div className="h-full rounded-full" style={{ background: "var(--q-primary)" }}
+                  animate={{ width: `${enche}%` }} transition={{ ease: "linear", duration: 0.15 }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {legenda ? <p className="mt-7 text-center text-sm text-[var(--q-text-muted)]">{legenda}</p> : null}
+
+      {/* modal de micro-pergunta */}
+      <AnimatePresence>
+        {cp ? (
+          <motion.div className="absolute inset-0 z-20 flex items-center justify-center bg-black/45 px-6 backdrop-blur-sm"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl"
+              initial={{ scale: 0.9, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 26 }}>
+              <p className="mb-4 text-center text-[17px] font-bold leading-snug text-neutral-900">{cp.question}</p>
+              <div className="space-y-2">
+                {cp.options.map((o, k) => (
+                  <button key={k} onClick={() => responder(pausado!, o)}
+                    className="w-full rounded-xl border-2 border-neutral-200 px-4 py-3 text-sm font-semibold text-neutral-800 transition hover:border-[var(--q-primary)] hover:bg-[var(--q-bg-soft)]">
+                    {o}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
