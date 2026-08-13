@@ -205,8 +205,11 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
 
     const win = step.mode === "random" ? Math.floor(Math.random() * N) : step.winningIndex;
     setVencedor(win);
-    // trava 24h: registra o prêmio no aparelho (fixa no reload + bloqueia novo giro)
-    if (step.lockReplay && typeof window !== "undefined") {
+    // trava 24h: registra o prêmio no aparelho (fixa no reload + bloqueia novo giro).
+    // NUNCA no preview: ali a trava sobrevive à remontagem do componente, então
+    // o "Reiniciar" do construtor remontava a lâmina e a roleta voltava já
+    // ganha. Mesma guarda que a raspadinha usa no `oncePerDevice`.
+    if (step.lockReplay && !ctx.preview && typeof window !== "undefined") {
       try { localStorage.setItem(`cdb-rl-${step.id}`, JSON.stringify({ w: win, ts: Date.now() })); } catch { /* noop */ }
     }
 
@@ -235,7 +238,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   // trava 24h: se já girou e ganhou nas últimas 24h, restaura o prêmio FIXADO
   // (sem animar) e bloqueia novo giro. localStorage = por aparelho/navegador.
   useEffect(() => {
-    if (!step.lockReplay || typeof window === "undefined") return;
+    if (!step.lockReplay || ctx.preview || typeof window === "undefined") return;
     try {
       const raw = localStorage.getItem(`cdb-rl-${step.id}`);
       if (!raw) return;
