@@ -161,6 +161,12 @@ export interface RouletteStep extends BaseStep {
     rigidez: number; amortecimento: number; overshoot: number; pegHang: boolean;
   };
   segments: RouletteSegment[];
+  /**
+   * Tamanho do texto DENTRO das fatias, em px do viewBox da roda (padrão 11).
+   * Vale para os dois motores. Prêmio de nome longo cabia mal e não havia como
+   * ajustar sem mexer no código.
+   */
+  labelSize?: number;
   /** índice que SEMPRE vence (modo "sempre vence") */
   winningIndex: number;
   /** "always" = cai no winningIndex | "random" = sorteio (Fase B) */

@@ -124,6 +124,11 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               <Select value={s.style ?? "soft"} onChange={(v) => p({ style: v } as Partial<Step>)}
                 options={ROULETTE_STYLES.map((st) => ({ value: st.id, label: st.name }))} />
             </Field>
+            {/* Texto DENTRO das fatias. Era fixo em 11 nos dois motores, então
+                prêmio de nome longo cabia mal e não havia como ajustar. */}
+            <Field label="Tamanho do texto nas fatias">
+              <Num value={s.labelSize ?? 11} onChange={(v) => p({ labelSize: Math.min(20, Math.max(7, v)) } as Partial<Step>)} />
+            </Field>
             <Field label="Tipo de roleta">
               <Select value={s.engine ?? "classica"} onChange={(v) => p({ engine: v } as Partial<Step>)}
                 options={ROULETTE_ENGINES.map((e) => ({ value: e.id, label: e.name }))} />

@@ -25,6 +25,8 @@ import { PRESETS, PADRAO, comIntensidade, type Params } from "@/lib/quiz/roleta-
 
 export interface RoletaInterativaProps {
   segments: { label: string; color: string }[];
+  /** tamanho do texto nas fatias, em px do viewBox (padrão 11) */
+  labelSize?: number;
   /** índice JÁ SORTEADO. A física é calculada para parar exatamente nele. */
   vencedor: number;
   /** vira `true` para começar o giro */
@@ -114,7 +116,7 @@ function contraste(hex: string): string {
 }
 
 export default function RoletaInterativa({
-  segments, vencedor, girando, onFim, som = true,
+  segments, labelSize, vencedor, girando, onFim, som = true,
   preset, intensidade = 0, params, chrome, centerImage,
   hubR = 94, hub = "#fdf8ef", hubInner = "#eef5f0", anguloInicial = 0,
 }: RoletaInterativaProps) {
@@ -273,7 +275,7 @@ export default function RoletaInterativa({
               : [s.label];
             return (
               <text key={`t${i}`} x={tx} y={ty} textAnchor="middle" dominantBaseline="middle"
-                transform={`rotate(${i * SEG} ${tx} ${ty})`} fontSize={11} fontWeight={800}
+                transform={`rotate(${i * SEG} ${tx} ${ty})`} fontSize={labelSize ?? 11} fontWeight={800}
                 fill={contraste(s.color)} style={{ letterSpacing: ".2px" }}>
                 {linhas.length === 1 ? linhas[0] : linhas.map((l, j) => (
                   <tspan key={j} x={tx} dy={j === 0 ? "-0.5em" : "1.1em"}>{l}</tspan>

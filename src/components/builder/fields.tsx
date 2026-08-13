@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { QuizOption } from "@/lib/quiz/types";
 
 // ── Editor de texto VISUAL (WYSIWYG fase 3b) ──────────────────────
@@ -11,6 +11,30 @@ const BOLD_CSS = "color:#e8842a;font-weight:800";
 
 function escHtml(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/**
+ * Cor do tema do funil, para os campos que geram HTML colorido (a pílula).
+ *
+ * É contexto e não prop porque o `HtmlField` aparece em ~20 pontos entre os dois
+ * construtores; passar a cor em cada um deixaria alguns para trás — que foi
+ * exatamente o que houve: a prop `theme` existia, ninguém passava, e a pílula
+ * saía laranja em funil de qualquer paleta.
+ */
+export const TemaFunilContext = createContext<string | null>(null);
+
+/**
+ * Clareia um hex em direção ao branco. Deriva o segundo tom do degradê da pílula
+ * a partir da cor do tema — o funil define UMA cor e o conjunto sai coerente.
+ * Entrada inválida devolve a própria string: perde o degradê, nunca a cor.
+ */
+function clarear(hex: string, fator: number): string {
+  const m = /^#?([\da-f]{6})$/i.exec((hex || "").trim());
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const mix = (c: number) => Math.round(c + (255 - c) * fator);
+  const r = mix((n >> 16) & 255), g = mix((n >> 8) & 255), b = mix(n & 255);
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
 function mdToHtml(md: string): string {
   let h = escHtml(md ?? "");
@@ -157,7 +181,9 @@ const EDITOR_FONTS = ["Poppins", "Arial", "Georgia", "Times New Roman", "Verdana
 const EDITOR_SIZES = [12, 14, 16, 18, 20, 24, 28, 34, 40, 48];
 const EDITOR_VARS: [string, string][] = [["{nome}", "Nome"], ["{cidade}", "Cidade"], ["{estado}", "Estado"]];
 
-export function HtmlField({ value, onChange, theme = "#ea580c", rows = 2 }: { value?: string; onChange: (v: string) => void; theme?: string; rows?: number }) {
+export function HtmlField({ value, onChange, theme: themeProp, rows = 2 }: { value?: string; onChange: (v: string) => void; theme?: string; rows?: number }) {
+  // prop explícita > tema do funil > laranja histórico
+  const theme = themeProp ?? useContext(TemaFunilContext) ?? "#ea580c";
   const ref = useRef<HTMLDivElement>(null);
   const saved = useRef<Range | null>(null);
   const [menu, setMenu] = useState<"para" | "var" | null>(null);
@@ -186,7 +212,12 @@ export function HtmlField({ value, onChange, theme = "#ea580c", rows = 2 }: { va
   const insHtml = (html: string) => { ref.current?.focus(); document.execCommand("insertHTML", false, html); push(); };
   const wrapPill = () => {
     const txt = window.getSelection()?.toString() || "destaque";
-    insHtml(`<span style="display:inline-block;margin:0 2px;border-radius:0.75rem;padding:0.1rem 0.6rem;font-weight:800;color:#fff;background:linear-gradient(95deg, #ea580c, #f28947);box-shadow:0 6px 16px -6px rgba(234,88,12,.55);">${txt}</span>&nbsp;`);
+    // A cor sai do TEMA do funil, não de um laranja fixo. Antes o `#ea580c`
+    // estava escrito aqui, então a pílula nascia laranja em funil de qualquer
+    // paleta — e a prop `theme`, que já existia na assinatura, era ignorada.
+    // O segundo tom do degradê é o próprio tema clareado e a sombra é o tema
+    // com alfa: uma cor só define o conjunto inteiro.
+    insHtml(`<span style="display:inline-block;margin:0 2px;border-radius:0.75rem;padding:0.1rem 0.6rem;font-weight:800;color:#fff;background:linear-gradient(95deg, ${theme}, ${clarear(theme, 0.22)});box-shadow:0 6px 16px -6px ${theme}8c;">${txt}</span>&nbsp;`);
   };
   // entrelinhas: aplica line-height nos parágrafos do bloco (ou envolve o texto solto)
   const setLineHeight = (lh: string) => {

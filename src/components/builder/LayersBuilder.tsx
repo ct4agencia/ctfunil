@@ -15,7 +15,7 @@ import DevicePreview, { DEFAULT_DEVICE, type Zoom } from "@/components/builder/D
 // VSL, parabéns). Reusado em vez de duplicado: dois editores do mesmo bloco
 // viram dois comportamentos diferentes na primeira mudança.
 import StepEditor from "@/components/builder/StepEditor";
-import { HtmlField, ImageField } from "@/components/builder/fields";
+import { HtmlField, ImageField, TemaFunilContext } from "@/components/builder/fields";
 // Mesma normalização que gera o cabeçalho do CSV — se o construtor tivesse a
 // dele, o nome digitado e o nome exportado divergiriam no primeiro acento.
 import { normalizarChave } from "@/lib/quiz/colunas";
@@ -461,13 +461,41 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <option value="grid-cols-1">1 (empilhado)</option><option value="grid-cols-2">2</option><option value="grid-cols-3">3</option>
         </select>
         <Lbl>Opções</Lbl>
-        <div className="space-y-1.5">
-          {(c.options || []).map((o, i) => (
-            <div key={o.id} className="flex items-center gap-1">
-              <input value={strip(o.label)} onChange={(e) => setC({ options: c.options!.map((x, k) => k === i ? { ...x, label: `<p>${e.target.value}</p>` } : x) })} className={`${inp} flex-1`} />
-              <button onClick={() => setC({ options: c.options!.filter((_, k) => k !== i) })} className="px-1 text-red-400">✕</button>
-            </div>
-          ))}
+        {/* Cada opção aceita EMOJI ou IMAGEM à esquerda do rótulo. O runtime já
+            desenhava as duas (`content.options[].image = {src, type}`) e o
+            construtor só editava o texto — dava para ver opção com emoji num
+            funil publicado e não dava para pôr num novo. */}
+        <div className="space-y-2">
+          {(c.options || []).map((o, i) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const img = (o as any).image as { src?: string; type?: string } | undefined;
+            const ehImagem = img?.type === "image";
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const patch = (p: any) => setC({ options: c.options!.map((x, k) => (k === i ? { ...x, ...p } : x)) });
+            return (
+              <div key={o.id} className="space-y-1.5 rounded-lg border border-neutral-200 p-2">
+                <div className="flex items-center gap-1">
+                  <input value={strip(o.label)} onChange={(e) => patch({ label: `<p>${e.target.value}</p>` })} className={`${inp} flex-1`} placeholder="Texto da opção" />
+                  <button onClick={() => setC({ options: c.options!.filter((_, k) => k !== i) })} className="px-1 text-red-400">✕</button>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {(["", "emoji", "image"] as const).map((t) => (
+                    <button key={t || "none"} type="button"
+                      onClick={() => patch({ image: t ? { type: t, src: t === (img?.type) ? img?.src ?? "" : "" } : undefined })}
+                      className={`rounded-md px-2 py-1 text-[11px] font-semibold ${(img?.type ?? "") === t ? "bg-neutral-900 text-white" : "border border-neutral-300 text-neutral-500"}`}>
+                      {t === "" ? "só texto" : t === "emoji" ? "emoji" : "imagem"}
+                    </button>
+                  ))}
+                </div>
+                {img?.type === "emoji" ? (
+                  <input value={img.src || ""} onChange={(e) => patch({ image: { type: "emoji", src: e.target.value } })}
+                    className={`${inp} text-center text-lg`} placeholder="🔥" maxLength={4} />
+                ) : ehImagem ? (
+                  <ImageField value={img.src || ""} onChange={(v) => patch({ image: { type: "image", src: v } })} />
+                ) : null}
+              </div>
+            );
+          })}
           <button onClick={() => setC({ options: [...(c.options || []), { id: genId(), label: "<p>Nova opção</p>", destination: "next" }] })} className="rounded-md border border-dashed border-neutral-300 px-2 py-1 text-xs text-neutral-500">+ opção</button>
         </div>
       </>);
@@ -1205,6 +1233,9 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
     if (from < 0 || to < 0) return; setSteps(arrayMove(steps, from, to)); setSelStep(to);
   };
   return (
+    // Tema do funil para os campos que geram HTML colorido (a pílula do editor
+    // rico). Sem isso ela nascia laranja em funil de qualquer paleta.
+    <TemaFunilContext.Provider value={theme}>
     <div className="min-h-screen bg-neutral-100 text-neutral-900">
       <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
         <div className="flex items-center gap-3">
@@ -1328,6 +1359,11 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           onDeviceChange={setDevice}
           zoom={zoom}
           onZoomChange={setZoom}
+          // Remonta a lâmina do zero. O canvas do Construtor era o único preview
+          // sem isto — e é justamente onde faz falta: depois de girar a roleta,
+          // raspar ou ver o loading correr, a lâmina fica no estado final e não
+          // havia como rever a animação sem trocar de lâmina e voltar.
+          onRestart={() => setNonce((n) => n + 1)}
           onBackdropClick={() => setSelLayer(null)}
           scrollStyle={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
         >
@@ -1527,5 +1563,6 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         </div>
       ) : null}
     </div>
+    </TemaFunilContext.Provider>
   );
 }
