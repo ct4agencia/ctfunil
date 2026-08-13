@@ -84,11 +84,28 @@ const PALETTE_ICON: Record<string, string> = {
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
 const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
   // blocos-hero herdados do motor tipado (todos com preset pronto)
-  "scratch", "measure", "gauge", "vsl", "confirm"]);
+  "scratch", "measure", "gauge", "vsl", "confirm",
+  // Estes DOIS o funil já desenhava (blocks.tsx: GraphicsBlock e
+  // NotificationBlock) e o construtor ainda dizia "em breve" — funcionalidade
+  // pronta e trancada. O `graphics` é o anel de porcentagem que o cdb-01 usa
+  // no "94% compatível": dava para ver no funil e não para adicionar num novo.
+  "graphics", "notification"]);
+
+/**
+ * Atalhos da paleta que NÃO são tipos de bloco: viram `field` já configurado.
+ * Estavam no ADDABLE sem default nem editor, então adicionar "E-mail" criava um
+ * bloco de tipo inválido, que caía no "em breve" do painel e não renderizava.
+ */
+const ATALHO_CAMPO: Record<string, Record<string, unknown>> = {
+  email: { name: "email", title: "Seu melhor e-mail", placeholder: "voce@email.com", type: "email", required: true },
+  phone: { name: "telefone", title: "Seu WhatsApp (com DDD)", placeholder: "(00) 00000-0000", type: "phone", mask: "phone_br", required: true },
+};
 
 function newLayer(type: LayerType): Layer {
   const id = genId();
   const base = { id, type, content: { id: genId() } } as Layer;
+  const atalho = ATALHO_CAMPO[type as string];
+  if (atalho) return { id, type: "field", content: { id, ...atalho } } as unknown as Layer;
   switch (type) {
     case "text": return { ...base, content: { id, text: "<p class=\"ql-align-center\">Novo texto</p>" } };
     case "alert": return { ...base, design: { style: "danger", padding: 14 }, content: { id, text: "<p class=\"ql-align-center\">Aviso importante</p>" } };
@@ -96,6 +113,8 @@ function newLayer(type: LayerType): Layer {
     case "image": return { ...base, design: { basis: 100 }, content: { id, image: { type: "image", src: "" } } };
     case "options": return { ...base, design: { background: "contrast", icon: "right", iconPosition: "start", border: "border-[2px]" }, content: { id, cols: "grid-cols-1", options: [{ id: genId(), label: "<p>Opção 1</p>", destination: "next" }, { id: genId(), label: "<p>Opção 2</p>", destination: "next" }] } };
     case "field": return { ...base, content: { id, name: "telefone", title: "Seu WhatsApp (com DDD)", placeholder: "(00) 00000-0000", type: "phone", mask: "phone_br", required: true } };
+    case "graphics": return { ...base, design: { basis: 100 }, content: { id, cols: "grid-cols-1", order: "default", graphics: [{ id: genId(), type: "chart", style: "#16a34a", percent: "80", legend: "<h2 class=\"ql-align-center\"><strong>Seu resultado</strong></h2>" }] } };
+    case "notification": return { ...base, design: { backgroundColor: "#52525b", color: "#ffffff" }, content: { id, text: "<p>🔥 12 pessoas estão vendo isso agora</p>", duration: 6 } };
     case "timer": return { ...base, design: { backgroundColor: "#e3eeff", color: "#1c72f1", borderColor: "#c7dcfe", padding: 10 }, content: { id, text: "<p><strong>Oferta acaba em: [time]</strong></p>", time: 300 } };
     case "loading": return { ...base, content: { id, title: "Carregando…", seconds: 4, type: "none", show_title: true, show_percent: true, show_progress: true } };
     case "clear": return { ...base, content: { id, clear: "h-[1rem]" } };
@@ -505,6 +524,41 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           </div>
         </>) : null}</>);
     }
+    case "notification":
+      return (<>
+        <Lbl>Texto da notificação</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />
+        <Lbl>Sumir depois de (segundos, 0 = fica)</Lbl>
+        <input type="number" min={0} value={Number(c.duration) || 0} onChange={(e) => setC({ duration: Number(e.target.value) || undefined })} className={inp} />
+        <p className="mt-1 text-[11px] text-neutral-500">Aparece no canto de baixo 1,5 s após a lâmina abrir. Não intercepta clique.</p>
+      </>);
+
+    case "graphics": {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gs: any[] = Array.isArray(c.graphics) ? c.graphics : [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setG = (i: number, patch: any) => setC({ graphics: gs.map((g, k) => (k === i ? { ...g, ...patch } : g)) });
+      return (<>
+        <Lbl>Anéis de porcentagem</Lbl>
+        <div className="space-y-2">
+          {gs.map((g, i) => (
+            <div key={i} className="space-y-1.5 rounded-lg border border-neutral-200 p-2">
+              <div className="flex items-center gap-2">
+                <input type="number" min={0} max={100} value={Number(g.percent) || 0}
+                  onChange={(e) => setG(i, { percent: String(e.target.value) })}
+                  className="w-16 rounded-md border border-neutral-300 px-2 py-1 text-sm" />
+                <span className="text-[11px] text-neutral-500">%</span>
+                <ColorField value={g.style || "#16a34a"} onChange={(v) => setG(i, { style: v })} className="h-7 w-9" label="Cor do anel" />
+                <button onClick={() => setC({ graphics: gs.filter((_, k) => k !== i) })} className="ml-auto text-red-400">✕</button>
+              </div>
+              <HtmlField value={g.legend} onChange={(v) => setG(i, { legend: v })} rows={2} />
+            </div>
+          ))}
+          <button onClick={() => setC({ graphics: [...gs, { id: genId(), type: "chart", style: "#16a34a", percent: "80", legend: "" }] })}
+            className="rounded-md border border-dashed border-neutral-300 px-2 py-1 text-xs text-neutral-500">+ anel</button>
+        </div>
+      </>);
+    }
+
     case "clear":
       return (<><Lbl>Altura</Lbl>
         <select value={c.clear || "h-[1rem]"} onChange={(e) => setC({ clear: e.target.value })} className={inp}>

@@ -76,5 +76,33 @@ for (const comp of ["ImageField", "HtmlField", "StringList"]) {
   ok(onde.length === 1, `${comp}: declarado em ${onde.length} arquivo(s)${onde.length ? ` (${onde.map((a) => a.split("/").pop()).join(", ")})` : ""}`);
 }
 
+console.log("\n4) Nenhum bloco adicionável fica sem editor, nem pronto e trancado");
+{
+  const lb = ler(EDITOR);
+  const bl = ler("src/components/quiz/layers/blocks.tsx");
+  const lista = (re, txt) => { const m = re.exec(txt); return m ? (m[1].match(/"([a-z_]+)"/g) ?? []).map((s) => s.slice(1, -1)) : []; };
+
+  const addable = lista(/const ADDABLE = new Set\(\[([\s\S]*?)\]\)/, lb);
+  // `case "a": case "b":` na mesma linha conta os dois
+  const editor = [...lb.matchAll(/case "([a-z_]+)":/g)].map((m) => m[1]);
+  const atalhos = [...(/const ATALHO_CAMPO[^=]*=\s*\{([\s\S]*?)\n\};/.exec(lb)?.[1] ?? "").matchAll(/^\s+([a-z]+):/gm)].map((m) => m[1]);
+  const heros = lerSet(EDITOR, "HERO_DO_TIPADO");
+  const desenha = [...bl.matchAll(/case "([a-z_]+)": return </g)].map((m) => m[1]);
+
+  // Adicionar um bloco e não achar onde configurá-lo é o pior caminho: só se
+  // descobre depois de montar a lâmina inteira.
+  const semEditor = addable.filter((t) => !editor.includes(t) && !atalhos.includes(t) && !heros.includes(t));
+  ok(semEditor.length === 0, semEditor.length
+    ? `adicionáveis SEM editor: ${semEditor.join(", ")}`
+    : `todos os ${addable.length} blocos adicionáveis têm onde ser configurados`);
+
+  // O oposto: o funil desenha, mas o construtor diz "em breve". Foi o caso do
+  // `graphics` (anel de %, que o cdb-01 usa) e do `notification`.
+  const trancados = desenha.filter((t) => !addable.includes(t));
+  ok(trancados.length === 0, trancados.length
+    ? `o funil desenha mas o construtor bloqueia: ${trancados.join(", ")}`
+    : "nenhuma funcionalidade pronta está trancada como 'em breve'");
+}
+
 console.log(falhas === 0 ? "\nOK — nenhuma falha." : `\n${falhas} FALHA(S).`);
 process.exit(falhas === 0 ? 0 : 1);
