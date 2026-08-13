@@ -605,8 +605,14 @@ function Exibicao({ layer, onChange }: { layer: Layer; onChange: (l: Layer) => v
   );
 }
 
-/** Painel direito: Componente / Aparência / Exibição (estilo inlead). */
-function RightPanel({ layer, steps, onChange }: { layer: Layer; steps: InleadStep[]; onChange: (l: Layer) => void }) {
+/**
+ * Painel direito: Componente / Aparência / Exibição (estilo inlead).
+ *
+ * `conteudo` troca só a aba "Componente" — é o que os blocos-hero usam para
+ * entrar aqui com o StepEditor deles. Antes eles ficavam FORA deste painel, e
+ * eram os únicos blocos sem Aparência e sem Exibição.
+ */
+function RightPanel({ layer, steps, onChange, conteudo }: { layer: Layer; steps: InleadStep[]; onChange: (l: Layer) => void; conteudo?: React.ReactNode }) {
   const [t, setT] = useState<"componente" | "aparencia" | "exibicao">("componente");
   return (
     <div>
@@ -617,23 +623,25 @@ function RightPanel({ layer, steps, onChange }: { layer: Layer; steps: InleadSte
       </div>
       <div className="p-3">
         {t === "componente" ? (
-          <>
-            {GERA_COLUNA.has(layer.type) ? (
-              <CampoId
-                valor={layer.webhookKey}
-                aoSalvar={(v) => onChange({ ...layer, webhookKey: v })}
-                automatico={layer.id}
-                ajuda="Nomeia a coluna deste bloco na aba Leads e no CSV exportado."
-              />
-            ) : (
-              <p className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 p-2.5 text-[10px] leading-snug text-neutral-500">
-                Este bloco não gera coluna própria na aba Leads. Quem nomeia a
-                coluna da lâmina é o <b>ID / Nome</b> da <b>Etapa</b> — clique no
-                fundo do celular para desselecionar o bloco e o painel aparece.
-              </p>
-            )}
-            <LayerFields layer={layer} steps={steps} onChange={onChange} />
-          </>
+          conteudo ?? (
+            <>
+              {GERA_COLUNA.has(layer.type) ? (
+                <CampoId
+                  valor={layer.webhookKey}
+                  aoSalvar={(v) => onChange({ ...layer, webhookKey: v })}
+                  automatico={layer.id}
+                  ajuda="Nomeia a coluna deste bloco na aba Leads e no CSV exportado."
+                />
+              ) : (
+                <p className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 p-2.5 text-[10px] leading-snug text-neutral-500">
+                  Este bloco não gera coluna própria na aba Leads. Quem nomeia a
+                  coluna da lâmina é o <b>ID / Nome</b> da <b>Etapa</b> — clique no
+                  fundo do celular para desselecionar o bloco e o painel aparece.
+                </p>
+              )}
+              <LayerFields layer={layer} steps={steps} onChange={onChange} />
+            </>
+          )
         ) : null}
         {t === "aparencia" ? <Appearance layer={layer} onChange={onChange} /> : null}
         {t === "exibicao" ? <Exibicao layer={layer} onChange={onChange} /> : null}
@@ -1409,14 +1417,28 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                 // parabéns campo a campo. Duplicar essa UI aqui seria manter dois
                 // editores do mesmo bloco — e um deles ficaria para trás.
                 if (HERO_DO_TIPADO.has(special.type)) {
+                  // O hero passa pelas MESMAS três abas dos outros blocos.
+                  // Antes o StepEditor entrava solto aqui, fora do RightPanel —
+                  // então os blocos-hero eram os únicos sem Aparência (largura,
+                  // alinhamento, opacidade) e sem Exibição (revelar após N
+                  // segundos, ocultar). Era o que faltava no slider.
+                  const trocaLayer = (l: Layer) =>
+                    patchStep(selStep, { layers: (step!.layers || []).map((x) => (x.id === special.id ? l : x)) });
                   return (
-                    <div className="space-y-2 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
-                      <p className="text-sm font-bold text-neutral-700">
+                    <div className="rounded-xl border border-orange-200 bg-orange-50/40">
+                      <p className="px-3 pt-3 text-sm font-bold text-neutral-700">
                         {PALETTE_ICON[special.type]} {ROTULO_HERO[special.type] || special.type} <span className="font-normal text-neutral-400">(ocupa a lâmina inteira)</span>
                       </p>
-                      <StepEditor
-                        step={sc}
-                        onChange={(patch) => patchSpecial(patch as Record<string, unknown>)}
+                      <RightPanel
+                        layer={special}
+                        steps={steps}
+                        onChange={trocaLayer}
+                        conteudo={
+                          <StepEditor
+                            step={sc}
+                            onChange={(patch) => patchSpecial(patch as Record<string, unknown>)}
+                          />
+                        }
                       />
                     </div>
                   );
