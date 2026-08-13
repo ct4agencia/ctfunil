@@ -37,6 +37,8 @@ export interface ChecklistProps {
   logo?: string;
   legenda?: string;
   escuro?: boolean;
+  /** cor das barras e dos ✓ — ver a mesma nota em Diagnostico.tsx */
+  cor?: string;
   /** chamado uma vez, quando a última barra fecha */
   onFim?: () => void;
   /** chamado quando o visitante responde uma micro-pergunta */
@@ -44,8 +46,10 @@ export interface ChecklistProps {
 }
 
 export default function Checklist({
-  titulo, barras, checkpoints: cps, duracaoMs = 4200, logo, legenda, escuro = false, onFim, onResponder,
+  titulo, barras, checkpoints: cps, duracaoMs = 4200, logo, legenda, escuro = false, cor, onFim, onResponder,
 }: ChecklistProps) {
+  const acento = cor || "var(--q-primary)";
+  const trilho = cor ? `${cor}22` : "var(--q-bg-soft)";
   const bars = barras.length ? barras : ["Processando…"];
   const checkpoints = useMemo(() => (cps ?? []).slice().sort((a, b) => a.at - b.at), [cps]);
 
@@ -114,11 +118,11 @@ export default function Checklist({
               <div className="mb-1.5 flex items-center justify-between text-[13px] font-semibold">
                 <span className={feita || rodando ? "text-[var(--q-text)]" : "text-[var(--q-text-muted)] opacity-60"}>{label}</span>
                 <span className="tabular-nums text-[var(--q-text-muted)]">
-                  {feita ? <span className="text-[var(--q-primary)]">✓</span> : rodando ? `${Math.round(enche)}%` : ""}
+                  {feita ? <span style={{ color: acento }}>✓</span> : rodando ? `${Math.round(enche)}%` : ""}
                 </span>
               </div>
-              <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--q-bg-soft)]">
-                <motion.div className="h-full rounded-full" style={{ background: "var(--q-primary)" }}
+              <div className="h-2.5 w-full overflow-hidden rounded-full" style={{ background: trilho }}>
+                <motion.div className="h-full rounded-full" style={{ background: acento }}
                   animate={{ width: `${enche}%` }} transition={{ ease: "linear", duration: 0.15 }} />
               </div>
             </div>
@@ -140,7 +144,7 @@ export default function Checklist({
               <div className="space-y-2">
                 {cp.options.map((o, k) => (
                   <button key={k} onClick={() => responder(pausado!, o)}
-                    className="w-full rounded-xl border-2 border-neutral-200 px-4 py-3 text-sm font-semibold text-neutral-800 transition hover:border-[var(--q-primary)] hover:bg-[var(--q-bg-soft)]">
+                    className="w-full rounded-xl border-2 border-neutral-200 px-4 py-3 text-sm font-semibold text-neutral-800 transition hover:border-current">
                     {o}
                   </button>
                 ))}

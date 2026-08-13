@@ -577,6 +577,10 @@ function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
         caixas={((c.bars as string[]) ?? []).map(limpo)}
         icones={c.icons as string[] | undefined}
         duracaoMs={(Number(c.seconds) || 5) * 1000}
+        // por prop, não por CSS var: `paletteVars` só é aplicado no ramo de
+        // bloco-hero do LayersRunner, e aqui isto renderiza como bloco comum —
+        // o anel saía desenhado e sem cor
+        cor={ctx.design.themeColor || "#ea580c"}
         // type "none" = a lâmina segue no lugar depois da análise (igual à barra)
         onFim={c.type === "none" || editando ? undefined : () => ctx.navigate(String(c.destination || "next"))}
       />
@@ -598,6 +602,7 @@ function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
         duracaoMs={(Number(c.seconds) || 4) * 1000}
         logo={c.logo as string | undefined}
         legenda={c.description ? limpo(c.description) : undefined}
+        cor={ctx.design.themeColor || "#ea580c"}
         onFim={c.type === "none" || editando ? undefined : () => ctx.navigate(String(c.destination || "next"))}
         onResponder={(i, cp, opt) => ctx.trackAnswer?.(`${layer.id}:cp${i}`, cp.question, opt)}
       />

@@ -34,6 +34,13 @@ export interface DiagnosticoProps {
   icones?: string[];
   duracaoMs?: number;
   escuro?: boolean;
+  /**
+   * Cor do anel, do % e dos ✓. Vem por PROP, não por CSS var: `--q-primary` só
+   * existe onde o motor aplica `paletteVars`, e no layers isso acontece apenas
+   * no ramo de bloco-hero. Renderizado como bloco COMUM, o anel ficava sem cor
+   * — desenhado e invisível.
+   */
+  cor?: string;
   /** chamado uma única vez, quando o anel fecha */
   onFim?: () => void;
   /** conteúdo extra abaixo das caixas (ex.: botão da lâmina) */
@@ -41,8 +48,10 @@ export interface DiagnosticoProps {
 }
 
 export default function Diagnostico({
-  titulo, subtitulo, caixas, icones, duracaoMs = 5000, escuro = false, onFim, children,
+  titulo, subtitulo, caixas, icones, duracaoMs = 5000, escuro = false, cor, onFim, children,
 }: DiagnosticoProps) {
+  const acento = cor || "var(--q-primary)";
+  const trilho = cor ? `${cor}22` : "var(--q-bg-soft)";
   const linhas = caixas.length ? caixas : ["Processando…"];
   const [pct, setPct] = useState(0);
 
@@ -88,15 +97,15 @@ export default function Diagnostico({
 
       <div className="relative my-7 h-[92px] w-[92px] shrink-0">
         <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90" aria-hidden>
-          <circle cx="40" cy="40" r={R} fill="none" strokeWidth="5" className="stroke-[var(--q-bg-soft)]" />
+          <circle cx="40" cy="40" r={R} fill="none" strokeWidth="5" stroke={trilho} />
           <circle
             cx="40" cy="40" r={R} fill="none" strokeWidth="5" strokeLinecap="round"
-            stroke="var(--q-primary)"
+            stroke={acento}
             strokeDasharray={PERIM}
             strokeDashoffset={PERIM * (1 - pct / 100)}
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-lg font-bold tabular-nums text-[var(--q-primary)]">
+        <div className="absolute inset-0 flex items-center justify-center text-lg font-bold tabular-nums" style={{ color: acento }}>
           {Math.round(pct)}%
         </div>
       </div>
@@ -112,18 +121,19 @@ export default function Diagnostico({
               animate={{ opacity: feita || rodando ? 1 : 0.45 }}
               transition={{ duration: 0.25 }}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--q-bg-soft)] text-lg">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" style={{ background: trilho }}>
                 {icones?.[i] ?? "🔎"}
               </div>
               <p className="flex-1 text-[13px] font-semibold leading-snug text-neutral-800">{label}</p>
               {feita ? (
-                <span className="shrink-0 text-lg leading-none text-[var(--q-primary)]">✓</span>
+                <span className="shrink-0 text-lg leading-none" style={{ color: acento }}>✓</span>
               ) : rodando ? (
                 <span className="flex shrink-0 gap-1" aria-hidden>
                   {[0, 1, 2].map((d) => (
                     <motion.span
                       key={d}
-                      className="h-1.5 w-1.5 rounded-full bg-[var(--q-primary)]"
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ background: acento }}
                       animate={{ opacity: [0.25, 1, 0.25] }}
                       transition={{ duration: 0.9, repeat: Infinity, delay: d * 0.15 }}
                     />
