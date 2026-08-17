@@ -12,6 +12,7 @@ import { getPalette, paletteVars } from "@/lib/quiz/theme";
 import { estiloPilulaPergunta } from "@/lib/quiz/resina";
 import ResinaQuiz from "../ResinaQuiz";
 import ResinaHero from "../ResinaHero";
+import ResinaResultado from "../ResinaResultado";
 
 /** Tira tags e entidades: o `ResinaQuiz` recebe texto puro, não HTML. */
 const semHtml = (h?: string) =>
@@ -509,6 +510,40 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     cardTexto={textos[2] ? semHtml(textos[2].content?.text) : undefined}
                     imagens={imgs}
                     cta={semHtml(btn?.content?.label) || "COMEÇAR"}
+                    onAvancar={() => ctx.navigate(btn?.content?.destination || "next")}
+                  />
+                );
+              }
+              /* RESULTADO — veredito com nota. Marcado por `tela` na LÂMINA
+                 (não no bloco): a tela inteira é substituída, e nenhum bloco
+                 sozinho a representa. */
+              if (presetTelas && (step as { tela?: string }).tela === "resultado") {
+                const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
+                const btn = ls.find((l) => l.type === "button");
+                const img = ls.find((l) => l.type === "image")?.content?.image?.src;
+                const tit = semHtml(textos[0]?.content?.text);
+                const nota = Number((step as { nota?: number }).nota) || 94;
+                return (
+                  <ResinaResultado
+                    cor={design.themeColor || "#0284c7"}
+                    nota={nota}
+                    minimo={Number((step as { minimo?: number }).minimo) || undefined}
+                    imagem={img || undefined}
+                    titulo={tit}
+                    /* O chip verde recebe a NOTA, que é a afirmação da tela —
+                       não a palavra mais longa, como no hero. Prefere a frase
+                       inteira ("94% de compatibilidade") e cai no número solto
+                       quando ela não estiver no texto. */
+                    destaque={(() => {
+                      const frase = `${nota}% de compatibilidade`;
+                      if (tit.includes(frase)) return frase;
+                      if (tit.includes(`${nota}%`)) return `${nota}%`;
+                      return undefined;
+                    })()}
+                    reforco={textos[1] ? semHtml(textos[1].content?.text) : undefined}
+                    aprovacaoTitulo={textos[2] ? semHtml(textos[2].content?.text) : undefined}
+                    aprovacaoTexto={textos[3] ? semHtml(textos[3].content?.text) : undefined}
+                    cta={semHtml(btn?.content?.label) || "CONTINUAR"}
                     onAvancar={() => ctx.navigate(btn?.content?.destination || "next")}
                   />
                 );
