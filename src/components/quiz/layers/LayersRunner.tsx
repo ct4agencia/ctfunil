@@ -474,14 +474,25 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                   .map((s, i) => [i, ((s.headerOverride || {}) as Record<string, boolean | undefined>).show_progress] as const)
                   .filter(([, v]) => (v !== undefined ? v : ((funnel.settings as { header?: Record<string, boolean> })?.header || {}).show_progress))
                   .map(([i]) => i);
-                const titulo = semHtml(opt.content?.introduction || question);
+                /* A pergunta está no bloco de TEXTO da lâmina, não em
+                   `step.title` — esse é o nome administrativo ("Card 07 —
+                   Pergunta 5") e foi o que apareceu na tela quando troquei a
+                   lâmina inteira sem levar o texto junto. O 2º bloco de texto,
+                   se houver, é o subtítulo. */
+                const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
+                const brutoTitulo = textos[0]?.content?.text || opt.content?.introduction || question;
+                const titulo = semHtml(brutoTitulo);
+                /* O destaque já vem marcado num <span style="color:…"> gravado
+                   pelo script. Aproveito o que está lá em vez de re-adivinhar:
+                   duas heurísticas iguais escritas em lugares diferentes é como
+                   as divergências começam. */
+                const marcado = /<span[^>]*color:[^>]*>([^<]+)<\/span>/i.exec(String(brutoTitulo))?.[1];
                 return (
                   <ResinaQuiz
                     cor={design.themeColor || "#0284c7"}
                     pergunta={titulo}
-                    /* destaque = a palavra mais longa do título. Mesma regra do
-                       script que monta o funil, para os dois concordarem. */
-                    destaque={titulo.split(/\s+/).filter((p) => p.length > 4).sort((a, b) => b.length - a.length)[0]}
+                    destaque={marcado ? semHtml(marcado) : undefined}
+                    subtitulo={textos[1] ? semHtml(textos[1].content?.text) : undefined}
                     opcoes={(opt.content?.options || []).map((o) => ({
                       id: o.id,
                       label: semHtml(o.label),
