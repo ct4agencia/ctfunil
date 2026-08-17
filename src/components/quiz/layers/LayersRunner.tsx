@@ -10,6 +10,11 @@ import { ScrollHint } from "../ui";
 import { type StepCtx } from "../steps";
 import { getPalette, paletteVars } from "@/lib/quiz/theme";
 import { estiloPilulaPergunta } from "@/lib/quiz/resina";
+import ResinaQuiz from "../ResinaQuiz";
+
+/** Tira tags e entidades: o `ResinaQuiz` recebe texto puro, não HTML. */
+const semHtml = (h?: string) =>
+  String(h || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
 import type { RouletteStep } from "@/lib/quiz/types";
 import dynamic from "next/dynamic";
 import { Block, Reveal, SliderHero, LayersEditContext, type LayersCtx, type LayersEdit } from "./blocks";
@@ -455,6 +460,46 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
               // ── modo editor: cada bloco arrastável (⠿) p/ reordenar; sem agrupar imagens ──
               if (editor) {
                 return <EditableBlockList layers={ls} ctx={ctx} question={question} editor={editor} />;
+              }
+              /* LÂMINA DE PERGUNTA no formato da referência.
+                 Aqui a TELA inteira troca, não só o bloco de opções: voltar em
+                 chevron, pílula de posição, título responsivo com destaque,
+                 subtítulo e o respiro de 320 ms ao marcar. Empilhar blocos não
+                 chega nesse arranjo — foi o que eu tentei antes e não bateu.
+                 Só entra quando o bloco pede `preset: "resina"`; sem isso, cai
+                 no caminho de sempre e nenhum funil em produção muda. */
+              const opt = ls.find((l) => l.type === "options");
+              if (opt?.design?.preset === "resina" && !opt.content?.multiple) {
+                const idsComBarra = steps
+                  .map((s, i) => [i, ((s.headerOverride || {}) as Record<string, boolean | undefined>).show_progress] as const)
+                  .filter(([, v]) => (v !== undefined ? v : ((funnel.settings as { header?: Record<string, boolean> })?.header || {}).show_progress))
+                  .map(([i]) => i);
+                const titulo = semHtml(opt.content?.introduction || question);
+                return (
+                  <ResinaQuiz
+                    cor={design.themeColor || "#0284c7"}
+                    pergunta={titulo}
+                    /* destaque = a palavra mais longa do título. Mesma regra do
+                       script que monta o funil, para os dois concordarem. */
+                    destaque={titulo.split(/\s+/).filter((p) => p.length > 4).sort((a, b) => b.length - a.length)[0]}
+                    opcoes={(opt.content?.options || []).map((o) => ({
+                      id: o.id,
+                      label: semHtml(o.label),
+                      // `?? undefined`: no banco esses campos vêm `null`, e a
+                      // prop é opcional — `null` não satisfaz `string | undefined`.
+                      emoji: (o.image?.type === "emoji" ? o.image?.src : o.emoji) ?? undefined,
+                      imagem: (o.image?.type === "image" ? o.image?.src : undefined) ?? undefined,
+                    }))}
+                    posicao={idsComBarra.indexOf(idx) + 1 || undefined}
+                    total={idsComBarra.length || undefined}
+                    onVoltar={history.current.length ? back : undefined}
+                    onEscolha={(o) => {
+                      const orig = (opt.content?.options || []).find((x) => x.id === o.id);
+                      ctx.trackAnswer(step.id, titulo, o.label);
+                      ctx.navigate(orig?.destination || "next");
+                    }}
+                  />
+                );
               }
               // agrupa IMAGENS consecutivas numa linha (igual inlead: 3 fotos 33% lado a lado)
               const out: React.ReactNode[] = [];
