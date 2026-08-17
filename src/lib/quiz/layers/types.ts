@@ -16,6 +16,10 @@ export type LayerType =
   | "level"        // régua de níveis com "você está aqui"
   | "beforeafter"  // prova social antes→depois, em carrossel
   | "charts"       // barras de projeção (o `graphics` é UM anel de %)
+  // ── organização visual ────────────────────────────────────────────────────
+  // Caixa com fundo, borda e sombra derivados do tema, para separar um trecho
+  // do resto. Era o que faltava para a lâmina parar de parecer lista solta.
+  | "card"
   // ── blocos-hero vindos do motor tipado ────────────────────────────────────
   // Ocupam a lâmina inteira e reaproveitam os componentes de components/quiz/
   // (mesmo mecanismo que roulette/slider já usam). O `content` de cada um é o

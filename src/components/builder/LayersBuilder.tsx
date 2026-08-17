@@ -50,7 +50,7 @@ const CATS: { name: string; items: [string, string][] }[] = [
   // preset pronto — adicionar e já funciona.
   { name: "Jogos (hero)", items: [["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
   { name: "Conversão (hero)", items: [["vsl", "VSL (vídeo + CTA)"], ["confirm", "Parabéns"]] },
-  { name: "Mídia e conteúdo", items: [["text", "Texto"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
+  { name: "Mídia e conteúdo", items: [["text", "Texto"], ["card", "Card"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
   { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"]] },
   { name: "Argumentação", items: [["arguments", "Argumentos"], ["testimonials", "Depoimentos"], ["faq", "FAQ"], ["price", "Preço"], ["checklist", "Checklist"], ["beforeafter", "Antes/Depois"], ["carousel", "Carrossel"]] },
   { name: "Gráficos", items: [["graphics", "Métricas"], ["charts", "Gráficos"]] },
@@ -77,7 +77,7 @@ const ROTULO_HERO: Record<string, string> = {
 const PALETTE_ICON: Record<string, string> = {
   field: "📝", email: "✉️", phone: "📞", button: "🔘", number: "🔢", textarea: "📄", date: "📅", height: "📏", weight: "⚖️",
   options: "☑️", multi: "🗂️", single: "⚪", yesno: "🔀", videoanswer: "🎬", text: "🔤", image: "🖼️", video: "▶️", audio: "🔊",
-  alert: "⚠️", notification: "🔔", timer: "⏱️", loading: "⏳", level: "📶", arguments: "💬", testimonials: "⭐", faq: "❓",
+  card: "🗂️", alert: "⚠️", notification: "🔔", timer: "⏱️", loading: "⏳", level: "📶", arguments: "💬", testimonials: "⭐", faq: "❓",
   price: "💲", checklist: "✅", beforeafter: "🔁", carousel: "🎠", graphics: "📊", charts: "📈", clear: "↕️", html: "▟",
   roulette: "🎡", slider: "🎚️", scratch: "🎟️", measure: "📐", gauge: "🎯", vsl: "🎥", confirm: "🎉",
 };
@@ -89,7 +89,7 @@ const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert",
   // NotificationBlock) e o construtor ainda dizia "em breve" — funcionalidade
   // pronta e trancada. O `graphics` é o anel de porcentagem que o cdb-01 usa
   // no "94% compatível": dava para ver no funil e não para adicionar num novo.
-  "graphics", "notification",
+  "graphics", "notification", "card",
   // Escritos a pedido do Luca: régua de níveis, prova social antes→depois com
   // carrossel, e barras de projeção. Diferente dos dois acima, estes NÃO
   // existiam no runtime — foram construídos, não destrancados.
@@ -112,6 +112,7 @@ function newLayer(type: LayerType): Layer {
   if (atalho) return { id, type: "field", content: { id, ...atalho } } as unknown as Layer;
   switch (type) {
     case "text": return { ...base, content: { id, text: "<p class=\"ql-align-center\">Novo texto</p>" } };
+    case "card": return { ...base, design: { basis: 100, variant: "suave", padding: 20 }, content: { id, text: "<p class=\"ql-align-center\">Texto dentro do card. Use a barra de formatação para destacar palavras.</p>" } };
     case "alert": return { ...base, design: { style: "danger", padding: 14 }, content: { id, text: "<p class=\"ql-align-center\">Aviso importante</p>" } };
     case "button": return { ...base, design: { style: "success", basis: 100, pulse: true, backgroundColor: "#ea580c", color: "#FFFFFF" }, content: { id, label: "Continuar", type: "next", destination: "next" } };
     case "image": return { ...base, design: { basis: 100 }, content: { id, image: { type: "image", src: "" } } };
@@ -654,6 +655,24 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         </div>
       </>);
     }
+
+    case "card":
+      return (<>
+        <Lbl>Texto do card</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} rows={4} />
+        <Lbl>Estilo</Lbl>
+        <select value={layer.design?.variant || "suave"} onChange={(e) => setD({ variant: e.target.value })} className={inp}>
+          <option value="suave">Suave — véu da cor do tema</option>
+          <option value="contorno">Contorno — só a borda</option>
+          <option value="escuro">Escuro — inverte o contraste</option>
+          <option value="destaque">Destaque — o tema cheio</option>
+        </select>
+        <Lbl>Respiro interno (px)</Lbl>
+        <input type="number" min={8} max={48} value={Number(layer.design?.padding) || 20}
+          onChange={(e) => setD({ padding: Math.min(48, Math.max(8, Number(e.target.value))) })} className={inp} />
+        <p className="mt-1 text-[11px] text-neutral-500">
+          Cores saem da <b>Cor do tema</b> no Design. Trocar o tema muda o card junto.
+        </p>
+      </>);
 
     case "notification":
       return (<>

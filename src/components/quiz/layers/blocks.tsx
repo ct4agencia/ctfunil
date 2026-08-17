@@ -681,6 +681,73 @@ function NotificationBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 }
 
 // ─────────────────────────────── GRAPHICS ───────────────────────────
+// ──────────────────────────────── CARD ─────────────────────────────
+/**
+ * Caixa que separa um trecho do resto da lâmina.
+ *
+ * Os valores saem da referência que o Luca mandou (artedaresina.com.br),
+ * medidos no navegador: raio ~20, borda 1px do tema a ~15%, sombra do tema a
+ * ~8% em 0 4px 24px, fundo em degradê de 160° partindo do tema a ~6%. Tudo
+ * derivado de UMA cor — é o que torna isto aplicável a qualquer paleta, em vez
+ * de virar um tema azul chumbado no código.
+ *
+ * Carrega texto rico próprio em vez de aninhar blocos: o editor já formata
+ * pílula, cor e tamanho dentro do HTML, e aninhamento exigiria arrastar bloco
+ * para dentro no construtor — três vezes o trabalho para o mesmo resultado.
+ */
+function CardBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  const c = layer.content;
+  const d = layer.design || {};
+  const tema = ctx.design.themeColor || "#ea580c";
+  const variante = (d.variant as string) || "suave";
+
+  const estilos: Record<string, React.CSSProperties> = {
+    // padrão: quase branco com um véu do tema — separa sem competir com o texto
+    suave: {
+      background: `linear-gradient(160deg, ${tema}0f 0%, ${tema}08 100%)`,
+      border: `1px solid ${tema}26`,
+      boxShadow: `0 4px 24px 0 ${tema}14, 0 2px 6px 0 rgba(0,0,0,.04)`,
+    },
+    // só contorno: para quando já existe outro card por perto e dois fundos
+    // empilhados deixariam a tela pesada
+    contorno: {
+      background: "transparent",
+      border: `1.5px solid ${tema}40`,
+      boxShadow: "none",
+    },
+    // escuro: o "presente de boas-vindas" da referência — inverte o contraste
+    // e o bloco vira o ponto de atenção da lâmina
+    escuro: {
+      background: "linear-gradient(160deg, #111827 0%, #0b1220 100%)",
+      border: "1px solid rgba(255,255,255,.08)",
+      boxShadow: "0 18px 40px -18px rgba(0,0,0,.55)",
+      color: "#f8fafc",
+    },
+    // destaque: o tema cheio, para o card que carrega a promessa
+    destaque: {
+      background: `linear-gradient(160deg, ${tema} 0%, ${tema}d9 100%)`,
+      border: "none",
+      boxShadow: `0 16px 38px -14px ${tema}8c`,
+      color: "#ffffff",
+    },
+  };
+
+  return (
+    <div
+      className="mx-auto w-full"
+      style={{
+        ...(estilos[variante] || estilos.suave),
+        borderRadius: radius(ctx.design),
+        padding: `${Number(d.padding) || 20}px ${Math.round((Number(d.padding) || 20) * 0.8)}px`,
+      }}
+    >
+      {c.text ? (
+        <Html html={interpHtml(c.text, ctx)} style={{ fontSize: `${remContent(ctx)}px` }} />
+      ) : null}
+    </div>
+  );
+}
+
 // ─────────────────────────────── NÍVEL ─────────────────────────────
 /**
  * Régua de níveis com o do visitante em destaque ("você está aqui").
@@ -934,6 +1001,7 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
       case "timer": return <TimerBlock layer={layer} ctx={ctx} />;
       case "notification": return <NotificationBlock layer={layer} ctx={ctx} />;
       case "graphics": return <GraphicsBlock layer={layer} ctx={ctx} />;
+      case "card": return <CardBlock layer={layer} ctx={ctx} />;
       case "level": return <LevelBlock layer={layer} ctx={ctx} />;
       case "beforeafter": return <BeforeAfterBlock layer={layer} ctx={ctx} />;
       case "charts": return <ChartsBlock layer={layer} ctx={ctx} />;
