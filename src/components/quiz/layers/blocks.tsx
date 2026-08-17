@@ -98,8 +98,16 @@ function plain(html: string | undefined): string {
 }
 
 /** rem de strings tipo "h-[1rem]" ou "34rem". */
-function remOf(v: string | undefined, fallback: number): number {
-  const m = (v || "").match(/([\d.]+)rem/);
+/**
+ * Lê "h-[2rem]" e devolve 2. Aceita número cru também: os `steps` vêm de JSONB
+ * e nada no banco garante o tipo, então um `clear: 2` gravado por script fazia
+ * `v.match` estourar TypeError — e um throw aqui derruba a lâmina inteira, não
+ * só o espaçamento. Vale para toda leitura de `content`: o motor renderiza dado
+ * de fora, e dado de fora vem torto.
+ */
+function remOf(v: unknown, fallback: number): number {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  const m = (typeof v === "string" ? v : "").match(/([\d.]+)rem/);
   return m ? parseFloat(m[1]) : fallback;
 }
 
