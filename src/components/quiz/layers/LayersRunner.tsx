@@ -16,6 +16,16 @@ import ResinaHero from "../ResinaHero";
 /** Tira tags e entidades: o `ResinaQuiz` recebe texto puro, não HTML. */
 const semHtml = (h?: string) =>
   String(h || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+
+/**
+ * Igual, mas PRESERVA as quebras de linha. A headline do hero é escrita em
+ * linhas de tamanho parecido de propósito; o `\s+ → " "` do `semHtml` apagaria
+ * exatamente isso e deixaria o navegador quebrar onde coubesse.
+ */
+const semHtmlMultilinha = (h?: string) =>
+  String(h || "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
+    .replace(/[^\S\n]+/g, " ").replace(/ *\n */g, "\n").trim();
 import type { RouletteStep } from "@/lib/quiz/types";
 import dynamic from "next/dynamic";
 import { Block, Reveal, SliderHero, LayersEditContext, type LayersCtx, type LayersEdit } from "./blocks";
@@ -484,11 +494,12 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                   ...((ls.find((l) => l.type === "carousel")?.content?.images || []) as unknown[]).map((im) =>
                     typeof im === "string" ? im : (im as { src?: string })?.src),
                 ].filter(Boolean) as string[];
-                const h = semHtml(textos[0]?.content?.text);
+                const h = semHtmlMultilinha(textos[0]?.content?.text);
                 return (
                   <ResinaHero
                     cor={design.themeColor || "#0284c7"}
                     titulo={h}
+                    ctaImagem={(btn?.content as { imageSrc?: string })?.imageSrc || undefined}
                     // a cápsula recebe o trecho que o script marcou em <span>
                     capsula={(() => {
                       const m = /<span[^>]*color:[^>]*>([^<]+)<\/span>/i.exec(String(textos[0]?.content?.text || ""));

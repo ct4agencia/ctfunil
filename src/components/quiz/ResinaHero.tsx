@@ -43,6 +43,8 @@ export interface ResinaHeroProps {
   valor?: string;
   imagens?: string[];
   cta: string;
+  /** CTA como PNG clicável (padrão inlead). Presente, substitui o botão estilizado. */
+  ctaImagem?: string;
   rodape?: string;
   onAvancar: () => void;
 }
@@ -53,7 +55,7 @@ const SLIDE_MS = 2200;
 
 export default function ResinaHero({
   cor, emoji = "🎁", titulo, capsula, subtexto, cardTexto, produto, cardTextoFim,
-  valor, imagens = [], cta, rodape, onAvancar,
+  valor, imagens = [], cta, ctaImagem, rodape, onAvancar,
 }: ResinaHeroProps) {
   const t = tokensResina(cor);
   const rgb = rgbDe(cor);
@@ -110,7 +112,11 @@ export default function ResinaHero({
         className="mx-auto mb-5 w-full text-center"
         style={{ maxWidth: 440 }}
       >
-        <h1 style={{ fontWeight: 900, fontSize: 30, lineHeight: 1.2, letterSpacing: "0.02em", color: cor, textTransform: "uppercase", marginBottom: 14 }}>
+        {/* `pre-line` para o título respeitar as quebras que vêm no texto. A
+            headline da referência é escrita em linhas de tamanho parecido, e
+            deixar o navegador quebrar sozinho produz uma linha órfã de uma
+            palavra — que é o que mais denuncia headline não trabalhada. */}
+        <h1 style={{ fontWeight: 900, fontSize: 30, lineHeight: 1.2, letterSpacing: "0.02em", color: cor, textTransform: "uppercase", marginBottom: 14, whiteSpace: "pre-line" }}>
           {antes}
           {corte >= 0 ? (
             // CÁPSULA — fundo em degradê e texto branco. Só colorir a palavra
@@ -231,6 +237,21 @@ export default function ResinaHero({
         </>
       ) : null}
 
+      {ctaImagem ? (
+        /* CTA como PNG clicável: o botão É a arte. Sem moldura, sem degradê e
+           sem sombra por baixo — qualquer um dos três brigaria com o desenho
+           que já vem na imagem. */
+        <motion.img
+          src={ctaImagem} alt={cta} onClick={onAvancar}
+          initial={reduzido ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          whileTap={{ scale: 0.96 }}
+          decoding="async"
+          className={`mx-auto block w-full cursor-pointer select-none ${reduzido ? "" : "fx-pulse"}`}
+          style={{ maxWidth: 260 }}
+        />
+      ) : (
       <motion.button
         initial={reduzido ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -251,6 +272,7 @@ export default function ResinaHero({
         )}
         <span className="relative z-[1]">{cta}</span>
       </motion.button>
+      )}
 
       {rodape ? <p className="mt-7 text-center text-xs" style={{ color: t.muted }}>{rodape}</p> : null}
     </div>
