@@ -7,6 +7,7 @@ import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { interpEstado } from "@/lib/quiz/estado";
 import { DedoArrasta } from "../ui";
 import dynamic from "next/dynamic";
+import { entradaBloco, prefereMenosMovimento, DUR, EASE } from "@/lib/quiz/motion";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
 
 // Tela do bloco `loading` no estilo "diagnóstico", dividida com o motor tipado.
@@ -206,11 +207,58 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
         {/* Segue a PROPORÇÃO NATURAL da imagem (sem forçar aspect-ratio/object-contain,
             que letterboxava quando im.width/height salvos estavam errados). O slide de
             largura (basis%) escala proporcional; o alinhamento posiciona (justifyOf). */}
-        <img
+        <motion.img
           src={src} alt="" loading="lazy" decoding="async"
-          style={{ width: "100%", height: "auto", borderRadius: radius(ctx.design) }}
+          style={{
+            width: "100%", height: "auto",
+            // `redonda`: a foto da professora do print. Vira círculo com anel
+            // branco, para o selo ter onde encostar sem tocar o rosto.
+            borderRadius: d.redonda ? "9999px" : radius(ctx.design),
+            aspectRatio: d.redonda ? "1 / 1" : undefined,
+            objectFit: d.redonda ? "cover" : undefined,
+            boxShadow: d.redonda ? `0 0 0 5px #fff, 0 12px 34px -12px ${ctx.design.themeColor || "#ea580c"}66` : undefined,
+          }}
           className="block"
+          // `flutua`: sobe e desce devagar. É o "motion bonitinho" da apostila —
+          // movimento lento e contínuo lê como objeto vivo, não como animação.
+          animate={d.flutua && !prefereMenosMovimento() ? { y: [0, -9, 0] } : undefined}
+          transition={d.flutua ? { duration: 3.4, repeat: Infinity, ease: "easeInOut" } : undefined}
         />
+        {/* SELO VERIFICADO — sobreposto no canto, como no print da Sônia */}
+        {d.selo === "verificado" ? (
+          <motion.span
+            className="absolute grid place-items-center rounded-full"
+            style={{
+              right: d.redonda ? "6%" : 8, bottom: d.redonda ? "4%" : 8,
+              width: 42, height: 42,
+              background: "linear-gradient(150deg,#38bdf8,#0284c7)",
+              boxShadow: "0 0 0 3px #fff, 0 6px 16px -4px rgba(2,132,199,.6)",
+              color: "#fff", fontSize: 20, fontWeight: 900,
+            }}
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 380, damping: 18, delay: 0.35 }}
+          >✓</motion.span>
+        ) : null}
+        {/* TAG com brilho pulsante — o "GRÁTIS" do print da apostila */}
+        {d.tag ? (
+          <motion.span
+            className="absolute rounded-full px-3 py-1 text-[12px] font-black uppercase tracking-wide text-white"
+            style={{
+              right: -6, top: -6,
+              background: `linear-gradient(135deg, ${d.tagCor || "#16a34a"}, ${d.tagCor || "#16a34a"}cc)`,
+              transform: "rotate(6deg)",
+            }}
+            animate={prefereMenosMovimento() ? {} : {
+              boxShadow: [
+                `0 0 0 0 ${d.tagCor || "#16a34a"}00`,
+                `0 0 22px 4px ${d.tagCor || "#16a34a"}99`,
+                `0 0 0 0 ${d.tagCor || "#16a34a"}00`,
+              ],
+            }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >{String(d.tag)}</motion.span>
+        ) : null}
         {overlays}
       </div>
     </div>
@@ -289,12 +337,34 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
           border: d.borderColor ? `1px solid ${d.borderColor}` : "none",
           borderRadius: radius(ctx.design), minHeight: ctx.design.elementSize || "64px",
           fontSize: `${remContent(ctx) + 1}px`, padding: "0 1.25rem",
-          boxShadow: "0 12px 24px -10px rgba(0,0,0,.3)",
+          // GRADIENTE + HALO da cor do botão. A referência não usa cor chapada:
+          // o degradê dá volume e o halo destaca o CTA do fundo claro sem
+          // precisar de borda. `sombraChapada` volta ao antigo se alguém quiser.
+          ...(d.sombraChapada
+            ? { boxShadow: "0 12px 24px -10px rgba(0,0,0,.3)" }
+            : {
+                background: `linear-gradient(135deg, ${bg} 0%, ${escurecerHex(bg, 0.18)} 100%)`,
+                boxShadow: `0 13px 38px 0 ${bg}91, 0 2px 6px 0 rgba(0,0,0,.10)`,
+              }),
         }}>
         {ctx.submitting ? "Enviando…" : `${c.icon ? `${c.icon} ` : ""}${c.label || ""}`}
       </motion.button>
     </div>
   );
+}
+
+/**
+ * Escurece um hex em direção ao preto. Deriva o fim do degradê do botão a
+ * partir da própria cor — uma cor define o par, em vez de exigir dois campos.
+ * Entrada inválida devolve a própria string: o botão perde o degradê, não a cor.
+ */
+function escurecerHex(hex: string, fator: number): string {
+  const m = /^#?([\da-f]{6})$/i.exec((hex || "").trim());
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const esc = (c: number) => Math.round(c * (1 - fator));
+  const r = esc((n >> 16) & 255), g = esc((n >> 8) & 255), b = esc(n & 255);
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
 
 // ─────────────────────────── CARROSSEL ──────────────────────────────
@@ -331,12 +401,30 @@ function CarouselBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
         onPointerDown={(e) => onDown(e.clientX)}
         onPointerUp={(e) => onUp(e.clientX)}
       >
-        <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${i * 100}%)` }}>
-          {imgs.map((src, k) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={k} src={src} alt="" loading={k === 0 ? undefined : "lazy"} decoding="async" draggable={false} className="w-full shrink-0 object-cover" style={{ aspectRatio: "1 / 1" }} />
-          ))}
-        </div>
+        {/* FADE: as fotos ficam empilhadas e cruzam opacidade, em vez de
+            deslizar. Some o "corte" entre uma e outra — pedido do Luca para a
+            prova social, onde o deslize disputava atenção com a foto.
+            `deslizar` continua o padrão: nenhum carrossel publicado muda. */}
+        {(layer.design?.transicao as string) === "fade" ? (
+          <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+            {imgs.map((src, k) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={k} src={src} alt="" loading={k === 0 ? undefined : "lazy"} decoding="async" draggable={false}
+                className="absolute inset-0 h-full w-full object-cover"
+                style={{
+                  opacity: k === i ? 1 : 0,
+                  transition: `opacity ${DUR.tela}ms cubic-bezier(${EASE.suave.join(",")})`,
+                }} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${i * 100}%)` }}>
+            {imgs.map((src, k) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={k} src={src} alt="" loading={k === 0 ? undefined : "lazy"} decoding="async" draggable={false} className="w-full shrink-0 object-cover" style={{ aspectRatio: "1 / 1" }} />
+            ))}
+          </div>
+        )}
       </div>
       {n > 1 ? (
         <div className="mt-2.5 flex justify-center gap-1.5">
@@ -490,9 +578,27 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
             {img ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={img} alt="" loading="lazy" decoding="async" className={`rounded-lg object-cover ${multi ? "h-12 w-12" : "h-10 w-10"}`} />
-            ) : emoji ? <span className={multi ? "text-3xl" : "text-2xl"}>{emoji}</span> : null}
-            <Html html={interpHtml(o.label, ctx)} className={multi ? "w-full" : "flex-1"} style={{ fontSize: `${remContent(ctx)}px`, fontWeight: 500, lineHeight: 1.25, color: ctx.design.contentColor || "#000" }} />
-            {showIcon && !iconStart ? <Chevron color={theme} /> : null}
+            ) : emoji ? (
+              // tamanho do emoji configurável: na referência ele é o peso visual
+              // da opção, não um enfeite ao lado do texto
+              <span style={{ fontSize: `${Number(d.emojiSize) || (multi ? 30 : 24)}px`, lineHeight: 1 }}>{emoji}</span>
+            ) : null}
+            <Html html={interpHtml(o.label, ctx)} className={multi ? "w-full" : "flex-1"} style={{ fontSize: `${remContent(ctx)}px`, fontWeight: 600, lineHeight: 1.25, color: ctx.design.contentColor || "#000" }} />
+            {/* CHECK REDONDO — o círculo da referência, que enche ao ser
+                escolhido. A seta (Chevron) diz "vai avançar"; o círculo diz
+                "isto é uma escolha" — e em múltipla escolha essa diferença é o
+                que faz o visitante entender que pode marcar mais de um. */}
+            {d.icon === "check" ? (
+              <span
+                className="grid shrink-0 place-items-center rounded-full transition-all"
+                style={{
+                  width: 22, height: 22,
+                  border: `2px solid ${active ? theme : `${theme}59`}`,
+                  background: active ? theme : "transparent",
+                  color: "#fff", fontSize: 12, fontWeight: 900,
+                }}
+              >{active ? "✓" : ""}</span>
+            ) : showIcon && !iconStart ? <Chevron color={theme} /> : null}
           </motion.button>
         );
       })}
@@ -987,7 +1093,7 @@ export function SliderHero({
 }
 
 // ─────────────────────────── DISPATCHER ─────────────────────────────
-export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; question: string }) {
+export function Block({ layer, ctx, question, indice = 0 }: { layer: Layer; ctx: LayersCtx; question: string; indice?: number }) {
   const inner = ((): React.ReactNode => {
     switch (layer.type) {
       case "text": return <TextBlock layer={layer} ctx={ctx} />;
@@ -1020,7 +1126,13 @@ export function Block({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   if (edit) return <>{node}</>;            // EditBlock provê o wrapper/toolbar/sortable
   if (hidden) return null;                 // runtime: bloco oculto não renderiza
   // revelação progressiva (effects.starts) — ex: botão Continuar da VAGAS só após o loading.
-  return <Reveal delay={layer.effects?.starts}>{node}</Reveal>;
+  if (layer.effects?.starts) return <Reveal delay={layer.effects.starts}>{node}</Reveal>;
+
+  // ENTRADA: cada bloco chega com fade + leve subida, escalonado pela posição.
+  // Antes tudo aparecia de uma vez e a lâmina "piscava" pronta — era o que dava
+  // a sensação de página estática. `entradaBloco` respeita
+  // `prefers-reduced-motion`: quem pediu menos movimento recebe só o fade.
+  return <motion.div {...entradaBloco(indice)}>{node}</motion.div>;
 }
 
 /** Wrapper de edição no canvas: seleção + toolbar + arrastar (sortable).

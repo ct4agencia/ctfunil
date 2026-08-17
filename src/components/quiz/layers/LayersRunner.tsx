@@ -387,11 +387,34 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
               <img src={design.logo.src} alt="" decoding="async" className="w-auto object-contain"
                 style={{ height: `${Number(design.logoSize) || 36}px`, opacity: (Number(design.logoOpacity ?? 100) || 100) / 100 }} />
             ) : null}
-            {hdr.show_progress ? (
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
-                <div className="h-full rounded-full transition-[width]" style={{ width: `${((idx + 1) / total) * 100}%`, background: design.themeColor || "#ea580c" }} />
-              </div>
-            ) : null}
+            {hdr.show_progress ? (() => {
+              /* A barra conta só as lâminas que TÊM barra, não o funil inteiro.
+                 Antes era (idx+1)/total sobre todas as lâminas: num funil de 14
+                 a primeira pergunta já nascia em 28% e a última fechava em 64% —
+                 a barra nunca enchia e o visitante não sabia quanto faltava.
+                 O conjunto sai do próprio `show_progress` (global + override),
+                 então quem liga/desliga a barra no construtor já define o
+                 denominador. Sem campo novo, sem migration. */
+              const comBarra = steps
+                .map((s, i) => [i, ((s.headerOverride || {}) as Record<string, boolean | undefined>).show_progress] as const)
+                .filter(([, v]) => (v !== undefined ? v : g.show_progress))
+                .map(([i]) => i);
+              const pos = comBarra.indexOf(idx);
+              const quantas = comBarra.length;
+              const pct = quantas && pos >= 0 ? ((pos + 1) / quantas) * 100 : ((idx + 1) / total) * 100;
+              return (
+                <div className="w-full">
+                  {quantas > 1 && pos >= 0 ? (
+                    <p className="mb-1.5 text-center text-[11px] font-bold uppercase tracking-wide" style={{ color: design.themeColor || "#ea580c" }}>
+                      Pergunta {pos + 1} de {quantas}
+                    </p>
+                  ) : null}
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
+                    <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${pct}%`, background: design.themeColor || "#ea580c" }} />
+                  </div>
+                </div>
+              );
+            })() : null}
           </header>
         );
       })()}
@@ -447,7 +470,10 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     </div>,
                   );
                 } else {
-                  out.push(<Block key={l.id} layer={l} ctx={ctx} question={question} />);
+                  // `out.length` e não `k`: o índice conta o que já foi
+                  // EMPILHADO na tela — senão um grupo de imagens (que vira um
+                  // item só) deixa buracos na cascata de entrada.
+                  out.push(<Block key={l.id} layer={l} ctx={ctx} question={question} indice={out.length} />);
                 }
               }
               return out;

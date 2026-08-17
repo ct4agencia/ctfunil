@@ -410,8 +410,20 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <span className="flex items-center gap-1.5 text-xs text-neutral-600"><ColorField value={layer.design?.backgroundColor || "#ea580c"} onChange={(v) => setD({ backgroundColor: v })} className="h-7 w-9" label="Fundo do botão" /> Fundo</span>
           <span className="flex items-center gap-1.5 text-xs text-neutral-600"><ColorField value={layer.design?.color || "#ffffff"} onChange={(v) => setD({ color: v })} className="h-7 w-9" label="Texto do botão" /> Texto</span>
         </div>
+        {/* Duas coisas diferentes que estavam presas na mesma caixa.
+            "Vazado" é fundo transparente com a cor na borda; "sem contorno" é
+            fundo sólido e borda nenhuma. O teste antigo era `!!borderColor`, que
+            marcava a caixa em qualquer botão com borda — inclusive os sólidos —
+            e desmarcar apagava o fundo. Agora vazado testa o fundo, que é o que
+            de fato o define. O runtime já trata borda ausente como `none`
+            (blocks.tsx:337), então nada muda no motor. */}
         <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
-          <input type="checkbox" checked={!!layer.design?.borderColor} onChange={(e) => setD({ borderColor: e.target.checked ? (layer.design?.backgroundColor || "#ea580c") : undefined, backgroundColor: e.target.checked ? "transparent" : (layer.design?.borderColor || "#ea580c") })} className="h-3.5 w-3.5 accent-neutral-900" /> Botão vazado (só contorno)
+          <input type="checkbox" checked={layer.design?.backgroundColor === "transparent"} onChange={(e) => setD({ borderColor: e.target.checked ? (layer.design?.backgroundColor === "transparent" ? layer.design?.borderColor : layer.design?.backgroundColor) || "#ea580c" : undefined, backgroundColor: e.target.checked ? "transparent" : (layer.design?.borderColor || "#ea580c") })} className="h-3.5 w-3.5 accent-neutral-900" /> Botão vazado (só contorno)
+        </label>
+        <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
+          <input type="checkbox" checked={!layer.design?.borderColor} disabled={layer.design?.backgroundColor === "transparent"}
+            onChange={(e) => setD({ borderColor: e.target.checked ? undefined : (layer.design?.backgroundColor || "#ea580c") })}
+            className="h-3.5 w-3.5 accent-neutral-900 disabled:opacity-40" /> Sem contorno
         </label>
         <Lbl>Efeito de animação</Lbl>
         <select value={(layer.design?.effect as string) || "none"} onChange={(e) => setD({ effect: e.target.value })} className={inp}>
@@ -440,6 +452,26 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
       </>);
     case "image":
       return (<><Lbl>Imagem</Lbl><ImageField value={c.image?.src || ""} onChange={(v) => setC({ image: { ...(c.image || {}), type: "image", src: v } })} />
+        <div className="mt-2 space-y-1.5 rounded-lg bg-neutral-50 p-2">
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
+            <input type="checkbox" checked={!!layer.design?.redonda} onChange={(e) => setD({ redonda: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" />
+            Foto redonda (com anel branco)
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
+            <input type="checkbox" checked={layer.design?.selo === "verificado"} onChange={(e) => setD({ selo: e.target.checked ? "verificado" : undefined })} className="h-3.5 w-3.5 accent-neutral-900" />
+            Selo de verificado ✓
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
+            <input type="checkbox" checked={!!layer.design?.flutua} onChange={(e) => setD({ flutua: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" />
+            Flutuar (sobe e desce devagar)
+          </label>
+          <Lbl>Tag no canto (vazio = sem tag)</Lbl>
+          <div className="flex items-center gap-2">
+            <input value={layer.design?.tag || ""} onChange={(e) => setD({ tag: e.target.value || undefined })} placeholder="GRÁTIS" className={`${inp} flex-1`} />
+            <ColorField value={layer.design?.tagCor || "#16a34a"} onChange={(v) => setD({ tagCor: v })} className="h-8 w-9" label="Cor da tag" />
+          </div>
+          {layer.design?.tag ? <p className="text-[11px] text-neutral-500">A tag pulsa sozinha.</p> : null}
+        </div>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <label className="mt-2 flex cursor-pointer items-center justify-between text-xs text-neutral-600"><span>Tela cheia (borda a borda)</span>
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -488,6 +520,12 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
             Cada opção precisa de <b>imagem</b> (não emoji). Quem não tiver cai no estilo lista. Use 2 colunas.
           </p>
         ) : null}
+        <Lbl>Marcador à direita</Lbl>
+        <select value={layer.design?.icon || "select"} onChange={(e) => setD({ icon: e.target.value })} className={inp}>
+          <option value="select">Seta ›</option>
+          <option value="check">Círculo de check ○ (marca ao clicar)</option>
+          <option value="none">Nenhum</option>
+        </select>
         <Lbl>Brilho da opção escolhida</Lbl>
         <select value={layer.design?.fx || "none"} onChange={(e) => setD({ fx: e.target.value === "none" ? undefined : e.target.value })} className={inp}>
           <option value="none">Simples (contorno)</option>
@@ -722,6 +760,11 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
       return (<>
         <Lbl>Passar a cada (segundos)</Lbl>
         <input type="number" min={1} value={Number(c.interval) || 2} onChange={(e) => setC({ interval: Number(e.target.value) })} className={inp} />
+        <Lbl>Transição</Lbl>
+        <select value={layer.design?.transicao || "deslizar"} onChange={(e) => setD({ transicao: e.target.value === "deslizar" ? undefined : e.target.value })} className={inp}>
+          <option value="deslizar">Deslizar (padrão)</option>
+          <option value="fade">Fade — cruza as fotos, sem corte</option>
+        </select>
         <Lbl>Fotos do carrossel</Lbl>
         <div className="space-y-2">
           {imgs.map((src, idx) => (

@@ -24,6 +24,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import { prefereMenosMovimento } from "@/lib/quiz/motion";
 
 export interface DiagnosticoProps {
   titulo?: string;
@@ -52,6 +53,8 @@ export default function Diagnostico({
 }: DiagnosticoProps) {
   const acento = cor || "var(--q-primary)";
   const trilho = cor ? `${cor}22` : "var(--q-bg-soft)";
+  // giro dos anéis e pulso do ícone desligam para quem pediu menos movimento
+  const reduzido = prefereMenosMovimento();
   const linhas = caixas.length ? caixas : ["Processando…"];
   const [pct, setPct] = useState(0);
 
@@ -95,19 +98,89 @@ export default function Diagnostico({
         <p className="mt-2 max-w-xs text-center text-sm leading-snug text-[var(--q-text-muted)]">{subtitulo}</p>
       ) : null}
 
-      <div className="relative my-7 h-[92px] w-[92px] shrink-0">
-        <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90" aria-hidden>
-          <circle cx="40" cy="40" r={R} fill="none" strokeWidth="5" stroke={trilho} />
+      {/* MEDALHÃO — o do print de referência: ícone no miolo branco, dois anéis
+          concêntricos girando em sentidos opostos e o arco de progresso por
+          fora. O giro contínuo é o que faz a espera parecer trabalho sendo
+          feito; um anel parado só informa quanto falta. */}
+      {/* 132px era pequeno demais: na referência o medalhão é o elemento
+          dominante da tela, e aqui ele competia com as caixas de checagem.
+          172px o coloca como assunto principal e ainda cabe num 375px de
+          largura com folga (172 + 2×24 de padding). */}
+      <div className="relative my-7 h-[172px] w-[172px] shrink-0">
+        <motion.span
+          className="absolute inset-0 rounded-full"
+          style={{ border: `1px dashed ${acento}55` }}
+          animate={reduzido ? {} : { rotate: 360 }}
+          transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.span
+          className="absolute inset-[13px] rounded-full"
+          style={{ border: `2px solid ${acento}2e` }}
+          animate={reduzido ? {} : { rotate: -360 }}
+          transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
+        />
+        <svg viewBox="0 0 80 80" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden>
+          <circle cx="40" cy="40" r={R} fill="none" strokeWidth="4" stroke={trilho} />
           <circle
-            cx="40" cy="40" r={R} fill="none" strokeWidth="5" strokeLinecap="round"
+            cx="40" cy="40" r={R} fill="none" strokeWidth="4" strokeLinecap="round"
             stroke={acento}
             strokeDasharray={PERIM}
             strokeDashoffset={PERIM * (1 - pct / 100)}
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-lg font-bold tabular-nums" style={{ color: acento }}>
-          {Math.round(pct)}%
+        {/* miolo branco elevado: separa o ícone dos anéis sem precisar de borda */}
+        <div
+          className="absolute inset-[34px] grid place-items-center rounded-full bg-white"
+          style={{ boxShadow: `0 8px 24px -8px ${acento}66` }}
+        >
+          <motion.span
+            className="text-[40px] leading-none"
+            animate={reduzido ? {} : { scale: [1, 1.08, 1] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+          >
+            {icones?.[ativa] ?? "🔍"}
+          </motion.span>
         </div>
+      </div>
+
+      {/* BARRA com gradiente + rótulo, como no print */}
+      <div className="w-full max-w-sm">
+        <div className="h-2.5 w-full overflow-hidden rounded-full" style={{ background: trilho }}>
+          <div
+            className="h-full rounded-full"
+            style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${acento}, ${acento}b3)` }}
+          />
+        </div>
+        <div className="mt-1.5 flex items-center justify-between text-[11px] font-bold tracking-wide">
+          <span style={{ color: "var(--q-text-muted, #94a3b8)" }}>PROCESSANDO</span>
+          <span className="tabular-nums" style={{ color: acento }}>{Math.round(pct)}%</span>
+        </div>
+      </div>
+
+      {/* PÍLULAS DE ETAPA — a fase corrente acesa, as outras apagadas */}
+      <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+        {linhas.map((label, i) => {
+          const corrente = i === ativa && pct < 100;
+          const feita = i < ativa || pct >= 100;
+          const curto = label.replace(/[.…]+$/, "").split(" ")[0].toUpperCase();
+          return (
+            <span
+              key={i}
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wide transition-colors"
+              style={{
+                background: corrente ? `${acento}1a` : "transparent",
+                color: corrente ? acento : feita ? `${acento}99` : "var(--q-text-muted, #cbd5e1)",
+                border: `1px solid ${corrente ? `${acento}59` : "rgba(0,0,0,.07)"}`,
+              }}
+            >
+              <span
+                className="inline-block h-1.5 w-1.5 rounded-full"
+                style={{ background: corrente || feita ? acento : "rgba(0,0,0,.15)" }}
+              />
+              {curto}
+            </span>
+          );
+        })}
       </div>
 
       <div className="w-full max-w-sm space-y-2.5">
