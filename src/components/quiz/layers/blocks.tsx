@@ -8,6 +8,7 @@ import { interpEstado } from "@/lib/quiz/estado";
 import { DedoArrasta } from "../ui";
 import dynamic from "next/dynamic";
 import { entradaBloco, prefereMenosMovimento, DUR, EASE } from "@/lib/quiz/motion";
+import { estiloOpcao, estiloCheck } from "@/lib/quiz/resina";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
 
 // Tela do bloco `loading` no estilo "diagnóstico", dividida com o motor tipado.
@@ -511,6 +512,11 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   // rótulo em cápsula por cima). `fx` controla o brilho do selecionado.
   const cardFoto = d.cardStyle === "foto";
   const fx = (d.fx as string) || "none";
+  /* Preset da referência (artedaresina.com.br): borda de 1,5px, raio 16, sombra
+     preta a 8% em repouso e check redondo com miolo em radial-gradient. Os
+     números vêm de `lib/quiz/resina.ts`, medidos no código-fonte, não de olho.
+     É opt-in por bloco — ausente, os 17 funis em produção seguem idênticos. */
+  const presetResina = d.preset === "resina";
 
   // pergunta/introdução do próprio bloco (alguns steps guardam o texto aqui)
   const intro = c.introduction && plain(c.introduction) ? c.introduction : "";
@@ -567,7 +573,7 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
         return (
           <motion.button key={o.id} onClick={() => pick(o)} whileTap={{ scale: 0.98 }}
             className={`flex transition ${multi ? "flex-col items-center justify-center gap-2 text-center" : "flex-row items-center justify-start gap-3 text-left"}`}
-            style={{
+            style={presetResina && !multi ? estiloOpcao(theme, active) : {
               borderRadius: radius(ctx.design), minHeight: ctx.design.elementSize || "64px",
               background: cardBg,
               border: `${bw}px solid ${active ? theme : contrast ? `color-mix(in srgb, ${theme} 55%, #ffffff)` : "#e5e7eb"}`,
@@ -588,16 +594,23 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
                 escolhido. A seta (Chevron) diz "vai avançar"; o círculo diz
                 "isto é uma escolha" — e em múltipla escolha essa diferença é o
                 que faz o visitante entender que pode marcar mais de um. */}
-            {d.icon === "check" ? (
-              <span
-                className="grid shrink-0 place-items-center rounded-full transition-all"
-                style={{
-                  width: 22, height: 22,
-                  border: `2px solid ${active ? theme : `${theme}59`}`,
-                  background: active ? theme : "transparent",
-                  color: "#fff", fontSize: 12, fontWeight: 900,
-                }}
-              >{active ? "✓" : ""}</span>
+            {d.icon === "check" || presetResina ? (
+              presetResina ? (
+                // O da referência: 18px, sem ✓ dentro — o miolo é um
+                // radial-gradient que para em 40%, deixando um anel de respiro
+                // entre o preenchimento e a borda.
+                <span className="shrink-0" style={estiloCheck(theme, active)} />
+              ) : (
+                <span
+                  className="grid shrink-0 place-items-center rounded-full transition-all"
+                  style={{
+                    width: 22, height: 22,
+                    border: `2px solid ${active ? theme : `${theme}59`}`,
+                    background: active ? theme : "transparent",
+                    color: "#fff", fontSize: 12, fontWeight: 900,
+                  }}
+                >{active ? "✓" : ""}</span>
+              )
             ) : showIcon && !iconStart ? <Chevron color={theme} /> : null}
           </motion.button>
         );

@@ -9,6 +9,7 @@ import { getSessionId, collectTrackingParams, fireMetaEvent } from "@/lib/tracki
 import { ScrollHint } from "../ui";
 import { type StepCtx } from "../steps";
 import { getPalette, paletteVars } from "@/lib/quiz/theme";
+import { estiloPilulaPergunta } from "@/lib/quiz/resina";
 import type { RouletteStep } from "@/lib/quiz/types";
 import dynamic from "next/dynamic";
 import { Block, Reveal, SliderHero, LayersEditContext, type LayersCtx, type LayersEdit } from "./blocks";
@@ -404,9 +405,14 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
               const pct = quantas && pos >= 0 ? ((pos + 1) / quantas) * 100 : ((idx + 1) / total) * 100;
               return (
                 <div className="w-full">
+                  {/* Pílula, não texto solto: é a forma da referência
+                      (StepQuiz.tsx:60) — caixa alta, tracking largo, fundo e
+                      borda claros derivados do tema. */}
                   {quantas > 1 && pos >= 0 ? (
-                    <p className="mb-1.5 text-center text-[11px] font-bold uppercase tracking-wide" style={{ color: design.themeColor || "#ea580c" }}>
-                      Pergunta {pos + 1} de {quantas}
+                    <p className="mb-2 text-center">
+                      <span style={estiloPilulaPergunta(design.themeColor || "#ea580c")}>
+                        Pergunta {pos + 1} de {quantas}
+                      </span>
                     </p>
                   ) : null}
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
