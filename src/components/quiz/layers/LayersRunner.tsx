@@ -11,6 +11,7 @@ import { type StepCtx } from "../steps";
 import { getPalette, paletteVars } from "@/lib/quiz/theme";
 import { estiloPilulaPergunta } from "@/lib/quiz/resina";
 import ResinaQuiz from "../ResinaQuiz";
+import ResinaHero from "../ResinaHero";
 
 /** Tira tags e entidades: o `ResinaQuiz` recebe texto puro, não HTML. */
 const semHtml = (h?: string) =>
@@ -468,6 +469,39 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                  chega nesse arranjo — foi o que eu tentei antes e não bateu.
                  Só entra quando o bloco pede `preset: "resina"`; sem isso, cai
                  no caminho de sempre e nenhum funil em produção muda. */
+              /* HERO no formato da referência. Vale só na lâmina 0 e quando o
+                 funil declara `presetTelas: "resina"` no design — é um campo do
+                 FUNIL, não do bloco, porque o hero não tem um bloco que o
+                 represente inteiro (ele é a lâmina toda). */
+              const presetTelas = (design as { presetTelas?: string }).presetTelas === "resina";
+              if (presetTelas && idx === 0) {
+                const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
+                const btn = ls.find((l) => l.type === "button");
+                const imgs = [
+                  ...ls.filter((l) => l.type === "image").map((l) => l.content?.image?.src),
+                  // o carrossel guarda ou a URL crua ou {src}; os dois formatos
+                  // existem no banco conforme a época em que o funil foi montado
+                  ...((ls.find((l) => l.type === "carousel")?.content?.images || []) as unknown[]).map((im) =>
+                    typeof im === "string" ? im : (im as { src?: string })?.src),
+                ].filter(Boolean) as string[];
+                const h = semHtml(textos[0]?.content?.text);
+                return (
+                  <ResinaHero
+                    cor={design.themeColor || "#0284c7"}
+                    titulo={h}
+                    // a cápsula recebe o trecho que o script marcou em <span>
+                    capsula={(() => {
+                      const m = /<span[^>]*color:[^>]*>([^<]+)<\/span>/i.exec(String(textos[0]?.content?.text || ""));
+                      return m ? semHtml(m[1]) : undefined;
+                    })()}
+                    subtexto={textos[1] ? semHtml(textos[1].content?.text) : undefined}
+                    cardTexto={textos[2] ? semHtml(textos[2].content?.text) : undefined}
+                    imagens={imgs}
+                    cta={semHtml(btn?.content?.label) || "COMEÇAR"}
+                    onAvancar={() => ctx.navigate(btn?.content?.destination || "next")}
+                  />
+                );
+              }
               const opt = ls.find((l) => l.type === "options");
               if (opt?.design?.preset === "resina" && !opt.content?.multiple) {
                 const idsComBarra = steps
