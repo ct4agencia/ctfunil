@@ -8,6 +8,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
+import CanvasErrorBoundary from "@/components/builder/CanvasErrorBoundary";
 import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
 import PerformanceView from "@/components/dashboard/PerformanceView";
 import DevicePreview, { DEFAULT_DEVICE, type Zoom } from "@/components/builder/DevicePreview";
@@ -1558,7 +1559,9 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
               onRestart={() => setNonce((n) => n + 1)}
               scrollStyle={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
             >
-              <LayersRunner key={`design-${selStep}-${nonce}-${device}`} funnel={funnel} startIndex={selStep} preview />
+              <CanvasErrorBoundary resetKey={`design-${selStep}-${nonce}`}>
+                <LayersRunner key={`design-${selStep}-${nonce}-${device}`} funnel={funnel} startIndex={selStep} preview />
+              </CanvasErrorBoundary>
             </DevicePreview>
           </div>
         </div>
@@ -1666,11 +1669,17 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
               preset (hero, pergunta, captura…), que substituem a pilha inteira
               de blocos e por isso não aparecem no modo de edição. Sem este
               botão, a única forma de conferir o resultado era abrir o site. */}
-          <LayersRunner
-            key={`${selStep}-${nonce}-${device}-${verResultado ? "ver" : "edit"}`}
-            funnel={funnel} startIndex={selStep} preview
-            editor={verResultado ? undefined : { selectedId: selLayer || undefined, onSelect, onAction, onReorder }}
-          />
+          {/* Erro numa lâmina fica DENTRO do celular: as etapas, a paleta e o
+              painel continuam vivos, e a mensagem aparece na tela em vez de
+              só no console. Antes, qualquer erro de render derrubava a página
+              inteira e não sobrava pista do que quebrou. */}
+          <CanvasErrorBoundary resetKey={`${selStep}-${nonce}`}>
+            <LayersRunner
+              key={`${selStep}-${nonce}-${device}-${verResultado ? "ver" : "edit"}`}
+              funnel={funnel} startIndex={selStep} preview
+              editor={verResultado ? undefined : { selectedId: selLayer || undefined, onSelect, onAction, onReorder }}
+            />
+          </CanvasErrorBoundary>
         </DevicePreview>
 
         {/* 4 · PAINEL direito (Componente/Aparência/Exibição OU Etapa) */}
