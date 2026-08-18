@@ -397,8 +397,26 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <Lbl>Estilo</Lbl>
         <select value={layer.design?.style || "danger"} onChange={(e) => setD({ style: e.target.value })} className={inp}>
           <option value="danger">Destaque (laranja)</option><option value="success">Sucesso (verde)</option><option value="theme">Tema</option><option value="default">Neutro</option>
+          <option value="pilula">Pílula (cápsula do tema)</option>
         </select>
         <Lbl>Texto do alerta</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />
+      </>);
+    case "check":
+      return (<>
+        {/* Com ícone o bloco vira MEDALHÃO; vazio, é o selo de confirmação com
+            o ✓ se desenhando. Mesmo bloco, dois papéis. */}
+        <Lbl>Ícone / emoji (vazio = ✓ animado)</Lbl>
+        <input value={String(c.icone || "")} onChange={(e) => setC({ icone: e.target.value })}
+          placeholder="ex: 🎁 🔒 ⭐" className={inp} />
+        <Lbl>Tamanho (px)</Lbl>
+        <input type="number" min={32} max={160} value={Number(layer.design?.basis) || 64}
+          onChange={(e) => setD({ basis: Number(e.target.value) })} className={inp} />
+        <div className="mt-2 flex items-center gap-2">
+          <ColorField value={(layer.design?.backgroundColor as string) || "#16A34A"}
+            onChange={(v) => setD({ backgroundColor: v })} className="h-7 w-9" label="Cor do disco" />
+          <span className="text-xs text-neutral-600">Cor do disco</span>
+        </div>
+        <Lbl>Texto abaixo (opcional)</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />
       </>);
     case "button":
       return (<>

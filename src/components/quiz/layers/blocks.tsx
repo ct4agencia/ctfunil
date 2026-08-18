@@ -540,14 +540,25 @@ function CheckBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
           className="relative grid h-full w-full place-items-center rounded-full"
           style={{ background: `linear-gradient(135deg, ${cor} 0%, ${escurecerHex(cor, 0.18)} 100%)`, boxShadow: `0 10px 30px -10px ${cor}` }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" style={{ width: tam * 0.5, height: tam * 0.5 }} aria-hidden>
-            <motion.path
-              d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"
-              initial={reduzido ? false : { pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.5, ease: "easeOut" }}
-            />
-          </svg>
+          {/* Com emoji o bloco vira MEDALHÃO (o 🎁 do hero); sem, é o selo de
+              confirmação com o ✓ se desenhando. Mesmo bloco, dois papéis — o
+              que muda é só o campo Ícone. */}
+          {c.icone ? (
+            <motion.span
+              style={{ fontSize: tam * 0.46, lineHeight: 1 }}
+              animate={reduzido ? {} : { scale: [1, 1.12, 1], rotateZ: [0, -5, 5, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5 }}
+            >{String(c.icone)}</motion.span>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" style={{ width: tam * 0.5, height: tam * 0.5 }} aria-hidden>
+              <motion.path
+                d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"
+                initial={reduzido ? false : { pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.5, ease: "easeOut" }}
+              />
+            </svg>
+          )}
         </div>
       </motion.div>
       {c.text ? (
