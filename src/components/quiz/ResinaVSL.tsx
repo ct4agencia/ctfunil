@@ -49,6 +49,12 @@ export interface ResinaVSLProps {
   textoEspera?: string;
   /** chamada ACIMA do player — diz o que assistir antes de o vídeo começar */
   headline?: string;
+  /**
+   * Blocos de ALERTA da lâmina, em HTML, renderizados entre a chamada e o
+   * player. Antes esta tela lia só 5 tipos de bloco e DESCARTAVA o resto: um
+   * alerta criado no construtor aparecia lá e sumia no site, sem aviso.
+   */
+  alertas?: string[];
   /** selos de confiança do rodapé (ex.: "Google Site Seguro") */
   selosImagem?: string;
   rodape?: string;
@@ -63,7 +69,7 @@ export default function ResinaVSL({
   cor = "#0284c7", fundo, ctaCor,
   embedHtml, cta, checkoutUrl, revelarEm = 0, vagasEm = 0, vagasTexto,
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
-  headline, selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
+  headline, alertas = [], selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
   /* Fundo, filete e CTA saem do TEMA — nada de hexadecimal cravado. Com tema
@@ -136,6 +142,28 @@ export default function ResinaVSL({
         <div className="w-full px-5 pb-1 pt-7 text-center">
           <div className="mx-auto mb-4 h-[3px] w-[60px] rounded-sm" style={{ background: filete }} />
           <h2 className="mx-auto" style={{ fontWeight: 900, fontSize: 24, lineHeight: 1.25, color: "#fff", maxWidth: 420 }}>{headline}</h2>
+        </div>
+      ) : null}
+
+      {/* ALERTAS da lâmina — entram entre a chamada e o player. Esta tela lia
+          só embed, botão, texto e imagem, e o resto era descartado em silêncio:
+          um alerta criado no construtor aparecia lá e sumia no site. Fundo
+          escuro, então o cartão claro do bloco comum não serviria aqui. */}
+      {alertas.length ? (
+        <div className="flex w-full flex-col gap-2.5 px-5 pt-5">
+          {alertas.map((html, i) => (
+            <div
+              key={i}
+              className="mx-auto w-full text-center text-sm font-bold"
+              style={{
+                maxWidth: 400, borderRadius: 14, padding: "12px 16px",
+                background: "rgba(255,255,255,.06)",
+                border: "1px solid rgba(255,255,255,.14)",
+                color: "#F5C842",
+              }}
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          ))}
         </div>
       ) : null}
 

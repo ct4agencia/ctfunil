@@ -692,6 +692,12 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                 const btn = ls.find((l) => l.type === "button");
                 const imgs = ls.filter((l) => l.type === "image").map((l) => l.content?.image?.src);
                 const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
+                /* Nenhum bloco é descartado: os ALERTAS da lâmina sobem para a
+                   tela e são desenhados acima do player. Antes esta tela lia só
+                   embed, botão, texto e imagem — o resto sumia no site sem que
+                   nada indicasse por quê. */
+                const alertas = ls.filter((l) => l.type === "alert" && semHtml(l.content?.text))
+                  .map((l) => String(l.content?.text));
                 // o destino do botão vence; o checkout do funil é a rede de
                 // segurança para quando a lâmina foi montada sem link
                 const destino = btn?.content?.destination || funnel.checkoutUrl || "";
@@ -706,6 +712,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     revelarEm={Number(btn?.content?.revealAt) || 0}
                     vagasEm={Number((step as { vagasEm?: number }).vagasEm) || 0}
                     vagasTexto={(step as { vagasTexto?: string }).vagasTexto}
+                    alertas={alertas}
                     textoEspera={semHtml(btn?.content?.waitText) || undefined}
                     // 1º texto = chamada acima do player; 2º = título da garantia
                     headline={textos[0] ? semHtml(textos[0].content?.text) : undefined}
