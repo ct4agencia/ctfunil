@@ -55,6 +55,8 @@ export interface ResinaVSLProps {
    * alerta criado no construtor aparecia lá e sumia no site, sem aviso.
    */
   alertas?: string[];
+  /** fundo da barra de vagas; vazio usa preto translúcido sobre o fundo escuro */
+  vagasFundo?: string;
   /** selos de confiança do rodapé (ex.: "Google Site Seguro") */
   selosImagem?: string;
   rodape?: string;
@@ -69,7 +71,7 @@ export default function ResinaVSL({
   cor = "#0284c7", fundo, ctaCor,
   embedHtml, cta, checkoutUrl, revelarEm = 0, vagasEm = 0, vagasTexto,
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
-  headline, alertas = [], selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
+  headline, alertas = [], vagasFundo, selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
   /* Fundo, filete e CTA saem do TEMA — nada de hexadecimal cravado. Com tema
@@ -133,7 +135,12 @@ export default function ResinaVSL({
       {mostraVagas && vagasTexto ? (
         <div
           className="w-full px-5 py-3.5 text-center text-[15px] font-extrabold leading-snug"
-          style={{ background: "rgba(0,0,0,.35)", borderBottom: "1px solid rgba(255,255,255,.08)", color: "#fff" }}
+          style={{
+            // preto translúcido por padrão: escurece o que estiver atrás sem
+            // brigar com o fundo da lâmina, seja cor ou imagem
+            background: vagasFundo || "rgba(0,0,0,.35)",
+            borderBottom: "1px solid rgba(255,255,255,.08)", color: "#fff",
+          }}
           dangerouslySetInnerHTML={{ __html: vagasTexto }}
         />
       ) : null}

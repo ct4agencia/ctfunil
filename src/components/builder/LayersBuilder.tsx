@@ -407,8 +407,26 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <Lbl>Aparece após (segundos) — 0 = já visível</Lbl>
           <input type="number" min={0} value={Number(c.revealAt) || 0}
             onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
+          <Lbl>Fundo da barra</Lbl>
+          <div className="flex items-center gap-2">
+            <ColorField
+              value={(layer.design?.backgroundColor as string) || "#000000"}
+              onChange={(v) => setD({ backgroundColor: v })}
+              className="h-8 w-10" label="Fundo da barra de vagas"
+            />
+            <input
+              value={(layer.design?.backgroundColor as string) || ""}
+              onChange={(e) => setD({ backgroundColor: e.target.value || undefined })}
+              placeholder="rgba(0,0,0,.35) ou gradiente CSS"
+              className={`${inp} flex-1`}
+            />
+            <button
+              onClick={() => setD({ backgroundColor: undefined })}
+              className="shrink-0 text-[11px] font-semibold text-neutral-400 hover:text-neutral-700"
+            >↺</button>
+          </div>
           <p className="mt-1 text-[11px] text-neutral-400">
-            Fica fixa no topo da lâmina de VSL, sobre o fundo escuro. Use cor no texto para destacar o número.
+            Fica fixa no topo da lâmina de VSL. Vazio usa preto translúcido, que escurece o fundo sem brigar com ele — o campo de texto ao lado aceita <code>rgba()</code> e gradiente.
           </p>
         </>) : null}
       </>);

@@ -749,6 +749,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     // barra de vagas: texto e tempo saem do próprio bloco
                     vagasEm={Number(barraVagas?.content?.revealAt) || 0}
                     vagasTexto={barraVagas ? String(barraVagas.content?.text) : undefined}
+                    vagasFundo={(barraVagas?.design?.backgroundColor as string) || undefined}
                     alertas={alertas}
                     textoEspera={semHtml(btn?.content?.waitText) || undefined}
                     // 1º texto = chamada acima do player; 2º = título da garantia
