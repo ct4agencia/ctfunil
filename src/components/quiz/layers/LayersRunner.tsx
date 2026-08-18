@@ -516,7 +516,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                  FUNIL, não do bloco, porque o hero não tem um bloco que o
                  represente inteiro (ele é a lâmina toda). */
               const presetTelas = (design as { presetTelas?: string }).presetTelas === "resina";
-              if (presetTelas && idx === 0) {
+              /* `idx === 0` cobria só a PRIMEIRA lâmina, e este funil tem dois
+                 heros seguidos: o segundo caía em blocos soltos e ficava
+                 visivelmente diferente do primeiro. Marcar `tela: "hero"`
+                 permite que qualquer lâmina receba o desenho de hero. */
+              if (presetTelas && (idx === 0 || (step as { tela?: string }).tela === "hero")) {
                 const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
                 const btn = ls.find((l) => l.type === "button");
                 const imgs = [
