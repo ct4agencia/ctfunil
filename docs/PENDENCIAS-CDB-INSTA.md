@@ -11,13 +11,24 @@ são blocos: aparecem no site, não aparecem no Editar, e não podem ser editado
 nem removidos. O inverso também ocorre — a VSL lê só 5 tipos de bloco e
 **descarta** os demais em silêncio.
 
+## O QUE DE FATO FECHOU A DIVERGÊNCIA (cf81d99)
+
+As fases 1-3 fizeram a tela do SITE ler os blocos — necessário, mas não
+suficiente. O Editar continuava desenhando a pilha de blocos crua, e enquanto um
+lado renderiza blocos e o outro renderiza a tela, nenhum ajuste de conteúdo faz
+os dois baterem: a diferença está em QUEM desenha.
+
+`cf81d99` põe o Editar a desenhar a MESMA tela. A seleção de bloco passa pela
+lista no painel de Etapa (+ botão "← Todos os blocos", senão selecionar um bloco
+era beco sem saída).
+
 ## FASE 1 — cor do tema governando ✅ FEITA (b34d07a)
 
 - gradiente único (`resina.ts::gradienteTema`) para botões e pílulas
 - fundo da VSL derivado do tema (`fundoEscuroTema`), com sobrescrita por lâmina
 - CTA de checkout segue verde por padrão, com campo para trocar
 
-## FASE 2 — CAPTURA ⬜ PENDENTE
+## FASE 2 — CAPTURA ✅ FEITA (7198ceb)
 
 O que a tela inventa e precisa virar bloco:
 
@@ -31,7 +42,7 @@ O que a tela inventa e precisa virar bloco:
 | "🔒 Seus dados protegidos" | fixo | bloco Texto |
 | Botão travado até válido | fixo | opção do botão, **ligada por padrão** |
 
-## FASE 3 — VSL ⬜ PENDENTE
+## FASE 3 — VSL ✅ FEITA (ec5a701)
 
 | Elemento | Hoje | Vira |
 |---|---|---|
