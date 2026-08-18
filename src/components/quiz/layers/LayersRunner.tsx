@@ -490,8 +490,18 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
           >
             {(() => {
               const ls = step.layers || [];
-              // ── modo editor: cada bloco arrastável (⠿) p/ reordenar; sem agrupar imagens ──
-              if (editor) {
+              /* O modo editor NÃO curto-circuita mais antes das telas de preset.
+                 Enquanto curto-circuitava, o construtor mostrava blocos soltos e
+                 o site mostrava a tela pronta — duas verdades para a mesma
+                 lâmina. Agora quem tem tela própria a exibe nos dois lugares, e
+                 a edição dessas lâminas acontece pelo painel de Etapa e pela
+                 lista lateral de blocos. Lâmina SEM tela de preset continua
+                 caindo na lista arrastável, logo abaixo. */
+              const temTelaPropria = (design as { presetTelas?: string }).presetTelas === "resina"
+                && (!!(step as { tela?: string }).tela
+                  || idx === 0
+                  || ls.some((l) => l.type === "options" && l.design?.preset === "resina"));
+              if (editor && !temTelaPropria) {
                 return <EditableBlockList layers={ls} ctx={ctx} question={question} editor={editor} />;
               }
               /* LÂMINA DE PERGUNTA no formato da referência.
@@ -561,7 +571,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                       if (tit.includes(`${nota}%`)) return `${nota}%`;
                       return undefined;
                     })()}
-                    reforco={textos[1] ? semHtml(textos[1].content?.text) : undefined}
+                    reforco={textos[1]?.content?.text}
                     aprovacaoTitulo={textos[2] ? semHtml(textos[2].content?.text) : undefined}
                     aprovacaoTexto={textos[3] ? semHtml(textos[3].content?.text) : undefined}
                     cta={semHtml(btn?.content?.label) || "CONTINUAR"}
@@ -584,9 +594,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     selo={(step as { selo?: string }).selo || "🎁 Presente exclusivo"}
                     titulo={tit}
                     destaque={marcado ? semHtml(marcado) : undefined}
-                    subtexto={textos[1] ? semHtml(textos[1].content?.text) : undefined}
+                    /* HTML cru, não `semHtml`: negrito, cor e pílula da copy
+                       organizam a leitura, e tirar as tags devolvia parágrafo
+                       cinza corrido — era por isso que reformatar a copy no
+                       construtor "não mudava nada" na tela. */
+                    subtexto={textos[1]?.content?.text}
                     imagem={img || undefined}
-                    aviso={textos[2] ? semHtml(textos[2].content?.text) : undefined}
+                    aviso={textos[2]?.content?.text}
                     formTitulo={textos[3] ? semHtml(textos[3].content?.text) : undefined}
                     cta={semHtml(btn?.content?.label) || "QUERO RECEBER"}
                     enviando={submitting}
@@ -606,10 +620,10 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     cor={design.themeColor || "#0284c7"}
                     nome={name || undefined}
                     titulo={semHtml(textos[0]?.content?.text) || "Pronto!"}
-                    texto={textos[1] ? semHtml(textos[1].content?.text) : undefined}
+                    texto={textos[1]?.content?.text}
                     alerta={alertas[0] ? semHtml(alertas[0].content?.text) : undefined}
                     recadoTitulo={textos[2] ? semHtml(textos[2].content?.text) : undefined}
-                    recadoTexto={textos[3] ? semHtml(textos[3].content?.text) : undefined}
+                    recadoTexto={textos[3]?.content?.text}
                     recadoDestaque={textos[4] ? semHtml(textos[4].content?.text) : undefined}
                     recadoFim={textos[5] ? semHtml(textos[5].content?.text) : undefined}
                     chamada={textos[6] ? semHtml(textos[6].content?.text) : undefined}

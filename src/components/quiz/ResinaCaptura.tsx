@@ -106,7 +106,12 @@ export default function ResinaCaptura({
         ) : null}
 
         {subtexto ? (
-          <p className="px-1 text-base leading-relaxed md:text-lg" style={{ color: t.muted }}>{subtexto}</p>
+          /* HTML, não texto puro: a copy carrega negrito, cor e pílula, e é
+             justamente isso que organiza a leitura. Passar por um `strip` de
+             tags — que era o que acontecia — devolve um parágrafo cinza
+             corrido e apaga o trabalho de formatação feito no construtor. */
+          <div className="px-1 text-base leading-relaxed md:text-lg" style={{ color: t.muted }}
+            dangerouslySetInnerHTML={{ __html: subtexto }} />
         ) : null}
       </div>
 
@@ -181,7 +186,8 @@ export default function ResinaCaptura({
             boxShadow: t.sombraCard,
           }}
         >
-          <p className="text-sm leading-relaxed sm:text-base" style={{ color: t.text }}>{aviso}</p>
+          <div className="text-sm leading-relaxed sm:text-base" style={{ color: t.text }}
+            dangerouslySetInnerHTML={{ __html: aviso }} />
         </div>
       ) : null}
 

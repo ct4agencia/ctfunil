@@ -95,7 +95,8 @@ export default function ResinaPosCaptura({
 
         {texto ? (
           <p className="px-1 text-[15px] leading-relaxed sm:px-2 md:text-lg" style={{ color: t.text }}>
-            {nome ? <strong>{nome}</strong> : null}{nome ? ", " : ""}{texto}
+            {nome ? <strong>{nome}</strong> : null}{nome ? ", " : ""}
+            <span dangerouslySetInnerHTML={{ __html: texto }} />
           </p>
         ) : null}
       </div>
@@ -116,7 +117,7 @@ export default function ResinaPosCaptura({
           style={{ background: "#fff", borderRadius: 16, border: `1px solid ${t.softBorder}`, borderLeft: `4px solid ${cor}`, boxShadow: t.sombraCard }}
         >
           {recadoTitulo ? <h3 className="text-base font-bold" style={{ color: t.primaryDarker }}>{recadoTitulo}</h3> : null}
-          {recadoTexto ? <p className="text-sm leading-relaxed md:text-base" style={{ color: t.text }}>{recadoTexto}</p> : null}
+          {recadoTexto ? <div className="text-sm leading-relaxed md:text-base" style={{ color: t.text }} dangerouslySetInnerHTML={{ __html: recadoTexto }} /> : null}
 
           {recadoDestaque ? (
             // SUB-CARD: fundo claro do tema, sem borda. A diferença de fundo já
