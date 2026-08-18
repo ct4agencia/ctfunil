@@ -718,28 +718,29 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                 const emb = ls.find((l) => l.type === "embed" || l.type === "video");
                 const btn = ls.find((l) => l.type === "button");
                 const imgs = ls.filter((l) => l.type === "image").map((l) => l.content?.image?.src);
-                const textosTopo = ls.filter((l, i) => l.type === "text" && semHtml(l.content?.text) && antesDoBtn(i));
-                const textosGarantia = ls.filter((l, i) => l.type === "text" && semHtml(l.content?.text) && !antesDoBtn(i));
-                /* Nenhum bloco é descartado: os ALERTAS da lâmina sobem para a
-                   tela e são desenhados acima do player. Antes esta tela lia só
-                   embed, botão, texto e imagem — o resto sumia no site sem que
-                   nada indicasse por quê. */
-                /* O alerta com estilo "vagas" é a BARRA DO TOPO; os outros são
-                   avisos acima do player. Assim os dois se editam do mesmo
-                   jeito — como bloco — em vez de a barra viver num campo solto
-                   do painel de Etapa, onde não dava para formatar o texto. */
-                /* O DISCLAIMER é bloco próprio e se desenha sozinho (faixa que
-                   sangra até as bordas), então esta tela não precisa saber dele
-                   — basta renderizá-lo antes de tudo. Enquanto era um "estilo"
-                   de alerta, a tela tinha que adivinhar qual alerta era a faixa,
-                   e um segundo disclaimer na mesma lâmina virava cartão comum. */
-                const disclaimers = ls.filter((l) => l.type === "disclaimer");
-                /* A POSIÇÃO em relação ao botão decide o papel, como na
-                   captura: antes dele é conteúdo do topo (chamada, avisos),
+
+                /* A POSIÇÃO em relação ao botão decide o papel do bloco, como
+                   na captura: antes dele é conteúdo do topo (chamada, avisos),
                    depois é a seção de garantia. Sem isso, o único texto da
-                   lâmina — o título da garantia — virava a chamada do player. */
+                   lâmina — o título da garantia — virava a chamada do player.
+
+                   Declarado ANTES de quem usa: `antesDoBtn` estava embaixo dos
+                   filtros que o chamam, e `const` não é içado — o navegador
+                   lançava "Cannot access before initialization" e derrubava a
+                   lâmina. O build não pega isso porque a chamada acontece dentro
+                   de um callback, e só o runtime sabe quando ele roda. */
                 const iBtn0 = ls.findIndex((l) => l.type === "button");
                 const antesDoBtn = (i: number) => iBtn0 < 0 || i < iBtn0;
+
+                const textosTopo = ls.filter((l, i) => l.type === "text" && semHtml(l.content?.text) && antesDoBtn(i));
+                const textosGarantia = ls.filter((l, i) => l.type === "text" && semHtml(l.content?.text) && !antesDoBtn(i));
+
+                /* O DISCLAIMER é bloco próprio e se desenha sozinho (faixa que
+                   sangra até as bordas), então esta tela não precisa saber dele
+                   — basta renderizá-lo antes de tudo. Os ALERTAS antes do botão
+                   viram avisos acima do player; o de depois é a pílula da
+                   garantia. Nenhum bloco é descartado. */
+                const disclaimers = ls.filter((l) => l.type === "disclaimer");
                 const alertas = ls.filter((l, i) => l.type === "alert" && semHtml(l.content?.text) && antesDoBtn(i))
                   .map((l) => String(l.content?.text));
                 const chipGarantia = ls.find((l, i) => l.type === "alert" && semHtml(l.content?.text) && !antesDoBtn(i));
