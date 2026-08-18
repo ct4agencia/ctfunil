@@ -718,7 +718,8 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                 const emb = ls.find((l) => l.type === "embed" || l.type === "video");
                 const btn = ls.find((l) => l.type === "button");
                 const imgs = ls.filter((l) => l.type === "image").map((l) => l.content?.image?.src);
-                const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
+                const textosTopo = ls.filter((l, i) => l.type === "text" && semHtml(l.content?.text) && antesDoBtn(i));
+                const textosGarantia = ls.filter((l, i) => l.type === "text" && semHtml(l.content?.text) && !antesDoBtn(i));
                 /* Nenhum bloco é descartado: os ALERTAS da lâmina sobem para a
                    tela e são desenhados acima do player. Antes esta tela lia só
                    embed, botão, texto e imagem — o resto sumia no site sem que
@@ -733,8 +734,15 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                    de alerta, a tela tinha que adivinhar qual alerta era a faixa,
                    e um segundo disclaimer na mesma lâmina virava cartão comum. */
                 const disclaimers = ls.filter((l) => l.type === "disclaimer");
-                const alertas = ls.filter((l) => l.type === "alert" && semHtml(l.content?.text))
+                /* A POSIÇÃO em relação ao botão decide o papel, como na
+                   captura: antes dele é conteúdo do topo (chamada, avisos),
+                   depois é a seção de garantia. Sem isso, o único texto da
+                   lâmina — o título da garantia — virava a chamada do player. */
+                const iBtn0 = ls.findIndex((l) => l.type === "button");
+                const antesDoBtn = (i: number) => iBtn0 < 0 || i < iBtn0;
+                const alertas = ls.filter((l, i) => l.type === "alert" && semHtml(l.content?.text) && antesDoBtn(i))
                   .map((l) => String(l.content?.text));
+                const chipGarantia = ls.find((l, i) => l.type === "alert" && semHtml(l.content?.text) && !antesDoBtn(i));
                 // o destino do botão vence; o checkout do funil é a rede de
                 // segurança para quando a lâmina foi montada sem link
                 const destino = btn?.content?.destination || funnel.checkoutUrl || "";
@@ -755,9 +763,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                       <Block key={l.id} layer={l} ctx={ctx} question={question} indice={0} />
                     ))}
                     textoEspera={semHtml(btn?.content?.waitText) || undefined}
-                    // 1º texto = chamada acima do player; 2º = título da garantia
-                    headline={textos[0] ? semHtml(textos[0].content?.text) : undefined}
-                    garantiaTitulo={textos[1] ? semHtml(textos[1].content?.text) : undefined}
+                    // antes do botão = chamada do player; depois = garantia
+                    headline={textosTopo[0] ? semHtml(textosTopo[0].content?.text) : undefined}
+                    garantiaTitulo={textosGarantia[0] ? semHtmlMultilinha(textosGarantia[0].content?.text) : undefined}
+                    /* card = termos da garantia; 2º alerta = pílula abaixo do
+                       CTA repetido. Blocos comuns, montados pela tela. */
+                    garantiaTexto={ls.find((l) => l.type === "card")?.content?.text}
+                    garantiaChip={chipGarantia ? String(chipGarantia.content?.text) : undefined}
                     garantiaImagem={imgs[0] || undefined}
                     pagamentosImagem={imgs[1] || undefined}
                     selosImagem={(step as { selosImagem?: string }).selosImagem}

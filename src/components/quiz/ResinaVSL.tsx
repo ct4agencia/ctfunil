@@ -65,16 +65,49 @@ export interface ResinaVSLProps {
   garantiaTitulo?: string;
   garantiaImagem?: string;
   pagamentosImagem?: string;
+  /**
+   * Selos de confiança logo abaixo do 1º CTA. Sem imagem, desenho três em SVG
+   * (compra segura, satisfação, privacidade) — são ícones genéricos, não marca
+   * de terceiro, então dá para desenhá-los sem depender de arquivo.
+   */
+  selos?: boolean;
+  /** card explicativo da garantia, em HTML */
+  garantiaTexto?: string;
+  /** pílula abaixo do 2º CTA (ex.: "🔒 Garantia de 7 dias — risco zero") */
+  garantiaChip?: string;
+  /**
+   * Repete o CTA depois da garantia. A referência faz isso porque quem rolou
+   * até aqui leu a garantia e está decidindo — obrigá-lo a subir de volta para
+   * achar o botão é perder a venda no último metro.
+   */
+  ctaRepete?: boolean;
   /** chamado no clique, antes de navegar — para o pixel */
   onCheckout?: () => void;
 }
+
+/** Os três selos da referência, em traço — sem dependência de arquivo. */
+const SELOS = [
+  {
+    fraco: "Compra", forte: "Segura",
+    d: (<><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.5 2.5L16 9.5" strokeLinecap="round" strokeLinejoin="round" /></>),
+  },
+  {
+    fraco: "Satisfação", forte: "Garantida",
+    d: (<><circle cx="12" cy="10" r="6" /><path d="M9 15.5L8 22l4-2 4 2-1-6.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M12 7.5l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 9.6l2-.3.9-1.8Z" /></>),
+  },
+  {
+    fraco: "Privacidade", forte: "Protegida",
+    d: (<><rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" strokeLinecap="round" /><circle cx="12" cy="15" r="1.6" /></>),
+  },
+];
 
 export default function ResinaVSL({
   cor = "#0284c7", fundo, ctaCor,
   embedHtml, cta, checkoutUrl, revelarEm = 0,
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
   headline, alertas = [], topo,
-  selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
+  selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem,
+  selos = true, garantiaTexto, garantiaChip, ctaRepete = true, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
   /* Fundo, filete e CTA saem do TEMA — nada de hexadecimal cravado. Com tema
@@ -163,7 +196,14 @@ export default function ResinaVSL({
 
       <div className="w-full px-5 pb-4 pt-6">
         <div className="mx-auto w-full" style={{ maxWidth: 400 }}>
-          <div ref={playerRef} className="overflow-hidden rounded-2xl shadow-2xl" />
+          {/* Halo na cor do TEMA em volta do player. Sombra preta sobre fundo
+              escuro é invisível: o que separa o vídeo do fundo é o brilho
+              colorido, e ele precisa vir da paleta para acompanhar o tema. */}
+          <div
+            ref={playerRef}
+            className="overflow-hidden rounded-2xl"
+            style={{ boxShadow: `0 0 0 1px rgba(${rgbDe(cor)},.35), 0 18px 60px -12px rgba(${rgbDe(cor)},.55)` }}
+          />
         </div>
       </div>
 
@@ -198,22 +238,92 @@ export default function ResinaVSL({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={pagamentosImagem} alt="Formas de pagamento" loading="lazy" decoding="async" className="h-auto w-full" style={{ maxWidth: 280 }} />
             </div>
+          ) : selos ? (
+            /* SELOS DE CONFIANÇA — desenhados, porque são ícones genéricos e não
+               marca de terceiro. Ficam logo abaixo do CTA: é o instante em que a
+               pessoa decide clicar e a dúvida é "isso é seguro?". */
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-5" style={{ color: "rgba(255,255,255,.55)" }}>
+              {SELOS.map(({ d, forte, fraco }) => (
+                <span key={forte} className="inline-flex items-center gap-1.5">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>{d}</svg>
+                  <span className="text-left text-[11px] leading-tight">
+                    {fraco}<br /><b className="text-white/80">{forte}</b>
+                  </span>
+                </span>
+              ))}
+            </div>
           ) : null}
         </div>
       ) : (
         <p className="px-5 py-6 text-center text-sm" style={{ color: "rgba(255,255,255,.55)" }}>{textoEspera}</p>
       )}
 
-      {garantiaTitulo || garantiaImagem ? (
+      {mostraCta && (garantiaTitulo || garantiaImagem || garantiaTexto) ? (
         <div className="w-full px-5 pb-7 pt-10 text-center" style={{ animation: reduzido ? undefined : "fade-in-up .6s ease-out .15s both" }}>
-          <div className="mx-auto mb-4 h-[3px] w-[60px] rounded-sm" style={{ background: filete }} />
+          <div className="mx-auto mb-8 h-[3px] w-[60px] rounded-sm" style={{ background: filete, opacity: 0.5 }} />
           {garantiaTitulo ? (
-            <h2 className="mb-5" style={{ fontWeight: 900, fontSize: 24, lineHeight: 1.25, color: "#fff" }}>{garantiaTitulo}</h2>
+            /* Título em GRADIENTE recortado no texto, como na referência: sobre
+               fundo escuro ele brilha sem precisar de caixa em volta. */
+            <h2
+              className="mx-auto mb-8"
+              style={{
+                fontWeight: 900, fontSize: 24, lineHeight: 1.25, maxWidth: 420,
+                background: filete, WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent", backgroundClip: "text",
+              }}
+            >{garantiaTitulo}</h2>
           ) : null}
           {garantiaImagem ? (
             <div className="mx-auto w-full" style={{ maxWidth: 220 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={garantiaImagem} alt="Garantia" loading="lazy" decoding="async" className="h-auto w-full" />
+              <img src={garantiaImagem} alt="Garantia" loading="lazy" decoding="async" className="h-auto w-full"
+                style={{ filter: `drop-shadow(0 8px 24px rgba(${rgbDe(cor)},.35))` }} />
+            </div>
+          ) : null}
+
+          {/* CARD dos termos da garantia — o texto que tira o risco da decisão */}
+          {garantiaTexto ? (
+            <div
+              className="mx-auto mt-7 text-left text-sm leading-relaxed"
+              style={{
+                maxWidth: 420, borderRadius: 16, padding: "20px 18px",
+                background: "rgba(255,255,255,.05)",
+                border: "1px solid rgba(255,255,255,.12)",
+                color: "rgba(255,255,255,.82)",
+              }}
+              dangerouslySetInnerHTML={{ __html: garantiaTexto }}
+            />
+          ) : null}
+
+          {/* 2º CTA — quem rolou até aqui leu a garantia e está decidindo;
+              mandá-lo subir de volta para achar o botão é perder a venda no
+              último metro. */}
+          {ctaRepete ? (
+            <a
+              href={checkoutUrl}
+              onClick={(e) => { e.preventDefault(); onCheckout?.(); if (checkoutUrl) window.location.href = checkoutUrl; }}
+              className={`mx-auto mt-7 block w-full max-w-[360px] ${reduzido ? "" : "animate-cta-green"}`}
+              style={{
+                padding: "19px 24px", borderRadius: 16, fontWeight: 800, fontSize: 17,
+                letterSpacing: ".02em", textTransform: "uppercase", color: "#fff", textDecoration: "none",
+                background: `linear-gradient(135deg, ${verdeCta} 0%, ${verdeCta} 50%, ${verdeCta} 100%)`,
+                boxShadow: `0 10px 30px ${verdeCta}66`,
+              }}
+            >{cta}</a>
+          ) : null}
+
+          {garantiaChip ? (
+            <div className="mt-4 flex justify-center">
+              <span
+                className="inline-flex items-center gap-2 text-xs"
+                style={{
+                  borderRadius: 9999, padding: "8px 16px",
+                  background: "rgba(255,255,255,.06)",
+                  border: "1px solid rgba(255,255,255,.14)",
+                  color: "rgba(255,255,255,.75)",
+                }}
+                dangerouslySetInnerHTML={{ __html: garantiaChip }}
+              />
             </div>
           ) : null}
         </div>
