@@ -149,18 +149,28 @@ export default function ResinaVSL({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={selosImagem} alt="Site seguro" loading="lazy" decoding="async" className="h-auto w-full" style={{ maxWidth: 200 }} />
               ) : (
-                /* Selo próprio, desenhado. A referência usa a marca do Google;
-                   reproduzir marca de terceiro sem o arquivo oficial não é algo
-                   que eu invente — este cadeado cumpre o mesmo papel (sinalizar
-                   conexão segura) sem se passar por outra empresa. Passando
-                   `selosImagem`, a imagem real assume o lugar. */
-                <span className="inline-flex items-center gap-2 rounded-full px-4 py-2"
-                  style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)" }}>
-                  <svg width="16" height="18" viewBox="0 0 24 28" fill="none" aria-hidden>
-                    <path d="M12 1 22 5v9c0 6.1-4.2 11.5-10 13C6.2 25.5 2 20.1 2 14V5l10-4Z" fill="#22C55E" fillOpacity=".18" stroke="#22C55E" strokeWidth="1.6" />
-                    <path d="M8.5 13.8l2.6 2.6 5-5.2" stroke="#22C55E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                /* Selo "Google Site Seguro" desenhado em SVG, como no print
+                   que o Luca mandou. Vetor e não imagem: o rodapé é escuro, e um
+                   PNG de fundo branco apareceria como um retângulo aceso ali.
+                   Passando `selosImagem`, o arquivo real assume o lugar. */
+                <span className="inline-flex items-center gap-2.5" aria-label="Google Site Seguro">
+                  <svg width="34" height="38" viewBox="0 0 34 38" fill="none" aria-hidden>
+                    <path d="M17 1.5 32 7v12.5C32 28.6 25.6 35.6 17 37.5 8.4 35.6 2 28.6 2 19.5V7l15-5.5Z" fill="#34A853" />
+                    <circle cx="17" cy="24" r="3.4" fill="#fff" />
+                    <path d="M9.6 13.4a11.4 11.4 0 0 1 14.8 0" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" />
+                    <path d="M12.6 17.6a7.2 7.2 0 0 1 8.8 0" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" />
                   </svg>
-                  <span className="text-xs font-bold tracking-wide" style={{ color: "rgba(255,255,255,.75)" }}>SITE SEGURO · COMPRA PROTEGIDA</span>
+                  <span className="flex flex-col leading-none">
+                    <span style={{ fontSize: 21, fontWeight: 500, letterSpacing: "-.02em" }}>
+                      <span style={{ color: "#4285F4" }}>G</span>
+                      <span style={{ color: "#EA4335" }}>o</span>
+                      <span style={{ color: "#FBBC05" }}>o</span>
+                      <span style={{ color: "#4285F4" }}>g</span>
+                      <span style={{ color: "#34A853" }}>l</span>
+                      <span style={{ color: "#EA4335" }}>e</span>
+                    </span>
+                    <span style={{ fontSize: 11, marginTop: 3, color: "rgba(255,255,255,.55)", letterSpacing: ".04em" }}>Site Seguro</span>
+                  </span>
                 </span>
               )}
             </div>
