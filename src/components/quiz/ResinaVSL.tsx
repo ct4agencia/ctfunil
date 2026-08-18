@@ -9,7 +9,7 @@
  * o quiz acabou, começou a oferta.
  *
  * A REVELAÇÃO POR TEMPO
- * O CTA e a barra de vagas não existem no começo — aparecem depois de N
+ * O CTA não existe no começo — aparece depois de N
  * segundos de página, quando o pitch do vídeo já passou. Botão visível desde o
  * primeiro quadro convida a clicar antes de ouvir a oferta, e quem chega ao
  * checkout sem contexto não compra.
@@ -43,9 +43,7 @@ export interface ResinaVSLProps {
   checkoutUrl: string;
   /** segundos até revelar o CTA; 0 mostra desde o início */
   revelarEm?: number;
-  /** segundos até revelar a barra de vagas */
-  vagasEm?: number;
-  vagasTexto?: string;
+
   textoEspera?: string;
   /** chamada ACIMA do player — diz o que assistir antes de o vídeo começar */
   headline?: string;
@@ -55,17 +53,12 @@ export interface ResinaVSLProps {
    * alerta criado no construtor aparecia lá e sumia no site, sem aviso.
    */
   alertas?: string[];
-  /** fundo da barra de vagas; vazio usa preto translúcido sobre o fundo escuro */
-  vagasFundo?: string;
   /**
-   * CONTADOR de escassez. `[vagas]` no texto é trocado por um número que sobe
-   * de `vagasDe` até `vagasAte` ao longo do vídeo. Sem `vagasAte`, o texto fica
-   * estático — quem não quer contador não precisa configurar nada.
+   * Faixa(s) fixa(s) no topo — os blocos `disclaimer` da lâmina, já
+   * renderizados. Eles se desenham sozinhos (fundo, tempo de revelação e
+   * contador ficam no bloco), então esta tela só os posiciona.
    */
-  vagasDe?: number;
-  vagasAte?: number;
-  /** segundo em que o contador atinge `vagasAte`; vazio usa o tempo do CTA */
-  vagasFimEm?: number;
+  topo?: React.ReactNode;
   /** selos de confiança do rodapé (ex.: "Google Site Seguro") */
   selosImagem?: string;
   rodape?: string;
@@ -78,9 +71,9 @@ export interface ResinaVSLProps {
 
 export default function ResinaVSL({
   cor = "#0284c7", fundo, ctaCor,
-  embedHtml, cta, checkoutUrl, revelarEm = 0, vagasEm = 0, vagasTexto,
+  embedHtml, cta, checkoutUrl, revelarEm = 0,
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
-  headline, alertas = [], vagasFundo, vagasDe, vagasAte, vagasFimEm,
+  headline, alertas = [], topo,
   selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
@@ -92,45 +85,6 @@ export default function ResinaVSL({
   const filete = gradienteTema(cor);
   const verdeCta = ctaCor || "#16A34A";
   const [mostraCta, setMostraCta] = useState(revelarEm <= 0);
-  const [mostraVagas, setMostraVagas] = useState(vagasEm <= 0 && !!vagasTexto);
-
-  /**
-   * CONTADOR DE VAGAS — o número sobe enquanto o vídeo corre.
-   *
-   * A escassez só funciona se ela ACONTECER na frente do visitante: um número
-   * fixo é lido como enfeite, um que sobe enquanto ele assiste é lido como
-   * fila andando. Por isso o teto coincide com a revelação do CTA — quando o
-   * botão aparece, "só restam 2".
-   *
-   * A conta é do TEMPO DECORRIDO, não de incrementos acumulados: assim o valor
-   * está sempre certo mesmo se a aba ficar em segundo plano e o navegador
-   * suspender os timers, e o teto é atingido no segundo exato em vez de
-   * depender de quantos ticks conseguiram rodar.
-   */
-  const contaVagas = typeof vagasAte === "number" && vagasAte > 0;
-  const inicioVagas = Math.max(0, vagasEm);
-  const fimVagas = Math.max(inicioVagas + 1, vagasFimEm || revelarEm || inicioVagas + 60);
-  const [vagas, setVagas] = useState(vagasDe ?? 0);
-  useEffect(() => {
-    if (!contaVagas) return;
-    const de = vagasDe ?? 0;
-    const t0 = Date.now();
-    const passo = () => {
-      const seg = (Date.now() - t0) / 1000;
-      const p = Math.min(1, Math.max(0, (seg - inicioVagas) / (fimVagas - inicioVagas)));
-      setVagas(Math.round(de + (vagasAte! - de) * p));
-    };
-    passo();
-    // 5s: rápido o bastante para o número mexer enquanto se assiste, lento o
-    // bastante para não parecer cronômetro
-    const iv = setInterval(passo, 5000);
-    return () => clearInterval(iv);
-  }, [contaVagas, vagasDe, vagasAte, inicioVagas, fimVagas]);
-
-  // `[vagas]` no texto vira o número corrente — mesma convenção do `[time]` do
-  // bloco Timer, para quem escreve a copy não ter que aprender outra sintaxe.
-  const textoVagas = vagasTexto?.replace(/\[vagas\]/gi, String(contaVagas ? vagas : (vagasDe ?? "")));
-
   /**
    * `dangerouslySetInnerHTML` NÃO executa <script> — é regra do React, e por
    * isso o player aparecia como um retângulo preto: o placeholder do VTurb
@@ -158,9 +112,8 @@ export default function ResinaVSL({
   useEffect(() => {
     const ts: ReturnType<typeof setTimeout>[] = [];
     if (revelarEm > 0) ts.push(setTimeout(() => setMostraCta(true), revelarEm * 1000));
-    if (vagasEm > 0 && vagasTexto) ts.push(setTimeout(() => setMostraVagas(true), vagasEm * 1000));
     return () => ts.forEach(clearTimeout);
-  }, [revelarEm, vagasEm, vagasTexto]);
+  }, [revelarEm]);
 
   return (
     <div
@@ -175,22 +128,7 @@ export default function ResinaVSL({
         backgroundPosition: ehImagem ? "center" : undefined,
       }}
     >
-      {/* BARRA DE VAGAS — vem do bloco Alerta com estilo "vagas", em HTML.
-          Era um campo de texto puro do painel de Etapa, e por isso não dava
-          para destacar parte da frase: "32 DAS 50 VAGAS" em amarelo e o resto
-          em branco é a leitura que a barra precisa ter. */}
-      {mostraVagas && vagasTexto ? (
-        <div
-          className="w-full px-5 py-3.5 text-center text-[15px] font-extrabold leading-snug"
-          style={{
-            // preto translúcido por padrão: escurece o que estiver atrás sem
-            // brigar com o fundo da lâmina, seja cor ou imagem
-            background: vagasFundo || "rgba(0,0,0,.35)",
-            borderBottom: "1px solid rgba(255,255,255,.08)", color: "#fff",
-          }}
-          dangerouslySetInnerHTML={{ __html: textoVagas || vagasTexto }}
-        />
-      ) : null}
+      {topo}
 
       {/* A chamada vem ANTES do player: ela diz o que assistir. Embaixo do
           vídeo só é lida por quem já assistiu — tarde demais para orientar. */}

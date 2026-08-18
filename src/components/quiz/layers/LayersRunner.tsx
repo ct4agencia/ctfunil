@@ -727,11 +727,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                    avisos acima do player. Assim os dois se editam do mesmo
                    jeito — como bloco — em vez de a barra viver num campo solto
                    do painel de Etapa, onde não dava para formatar o texto. */
-                const alertasTodos = ls.filter((l) => l.type === "alert" && semHtml(l.content?.text));
-                // "vagas" é o valor antigo do mesmo estilo, aceito para não
-                // exigir que blocos já configurados sejam refeitos
-                const barraVagas = alertasTodos.find((l) => l.design?.style === "disclaimer" || l.design?.style === "vagas");
-                const alertas = alertasTodos.filter((l) => l !== barraVagas)
+                /* O DISCLAIMER é bloco próprio e se desenha sozinho (faixa que
+                   sangra até as bordas), então esta tela não precisa saber dele
+                   — basta renderizá-lo antes de tudo. Enquanto era um "estilo"
+                   de alerta, a tela tinha que adivinhar qual alerta era a faixa,
+                   e um segundo disclaimer na mesma lâmina virava cartão comum. */
+                const disclaimers = ls.filter((l) => l.type === "disclaimer");
+                const alertas = ls.filter((l) => l.type === "alert" && semHtml(l.content?.text))
                   .map((l) => String(l.content?.text));
                 // o destino do botão vence; o checkout do funil é a rede de
                 // segurança para quando a lâmina foi montada sem link
@@ -748,17 +750,10 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     cta={semHtml(btn?.content?.label) || "QUERO GARANTIR MINHA VAGA"}
                     checkoutUrl={destino}
                     revelarEm={Number(btn?.content?.revealAt) || 0}
-                    // barra de vagas: texto e tempo saem do próprio bloco
-                    vagasEm={Number(barraVagas?.content?.revealAt) || 0}
-                    vagasTexto={barraVagas ? String(barraVagas.content?.text) : undefined}
-                    vagasFundo={(barraVagas?.design?.backgroundColor as string) || undefined}
-                    /* contador: sem `vagasAte` o texto fica estático. O fim
-                       cai no `revealAt` do botão quando não é informado — é o
-                       momento em que o pitch pede a decisão. */
-                    vagasDe={Number(barraVagas?.content?.vagasDe) || undefined}
-                    vagasAte={Number(barraVagas?.content?.vagasAte) || undefined}
-                    vagasFimEm={Number(barraVagas?.content?.vagasFimEm) || undefined}
                     alertas={alertas}
+                    topo={disclaimers.map((l) => (
+                      <Block key={l.id} layer={l} ctx={ctx} question={question} indice={0} />
+                    ))}
                     textoEspera={semHtml(btn?.content?.waitText) || undefined}
                     // 1º texto = chamada acima do player; 2º = título da garantia
                     headline={textos[0] ? semHtml(textos[0].content?.text) : undefined}

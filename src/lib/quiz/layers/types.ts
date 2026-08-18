@@ -24,6 +24,9 @@ export type LayerType =
   // Nasceu dentro da tela de pós-captura; virou bloco porque confirmação
   // acontece em vários pontos do funil.
   | "check"
+  // Faixa fixa no topo da lâmina, sangrando até as bordas. Carrega aviso legal,
+  // prazo ou escassez, e sabe contar um número que sobe com o tempo.
+  | "disclaimer"
   // ── blocos-hero vindos do motor tipado ────────────────────────────────────
   // Ocupam a lâmina inteira e reaproveitam os componentes de components/quiz/
   // (mesmo mecanismo que roulette/slider já usam). O `content` de cada um é o

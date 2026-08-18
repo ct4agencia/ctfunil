@@ -500,6 +500,75 @@ function CarouselBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   );
 }
 
+// ───────────────────────────── DISCLAIMER ───────────────────────────
+/**
+ * Faixa fixa no topo da lâmina, sangrando até as bordas.
+ *
+ * POR QUE É BLOCO PRÓPRIO, E NÃO UM ESTILO DO ALERTA
+ * Como estilo, a tela precisava ADIVINHAR qual alerta era a faixa — pegava o
+ * primeiro e os demais viravam cartão comum no meio do conteúdo. Um segundo
+ * disclaimer na mesma lâmina simplesmente não funcionava, sem nada explicando
+ * por quê. Como tipo, é inequívoco: todo bloco `disclaimer` é faixa.
+ *
+ * O CONTADOR
+ * `[vagas]` no texto vira um número que sobe de `vagasDe` até `vagasAte` ao
+ * longo do tempo. Escassez parada lê como enfeite; escassez que anda na frente
+ * do visitante lê como fila andando. A conta é do TEMPO DECORRIDO e não de
+ * incrementos somados — assim o valor continua certo se a aba for para segundo
+ * plano e o navegador suspender os timers.
+ */
+function DisclaimerBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  const c = layer.content;
+  const d = layer.design || {};
+  const revelarEm = Number(c.revealAt) || 0;
+  const de = Number(c.vagasDe) || 0;
+  const ate = Number(c.vagasAte) || 0;
+  const conta = ate > 0;
+  const fim = Math.max(revelarEm + 1, Number(c.vagasFimEm) || revelarEm + 60);
+
+  const [visivel, setVisivel] = useState(revelarEm <= 0);
+  const [n, setN] = useState(de);
+
+  useEffect(() => {
+    if (revelarEm <= 0) return;
+    const t = setTimeout(() => setVisivel(true), revelarEm * 1000);
+    return () => clearTimeout(t);
+  }, [revelarEm]);
+
+  useEffect(() => {
+    if (!conta) return;
+    const t0 = Date.now();
+    const passo = () => {
+      const seg = (Date.now() - t0) / 1000;
+      const p = Math.min(1, Math.max(0, (seg - revelarEm) / (fim - revelarEm)));
+      setN(Math.round(de + (ate - de) * p));
+    };
+    passo();
+    // 5s: o número mexe enquanto se assiste, sem virar cronômetro
+    const iv = setInterval(passo, 5000);
+    return () => clearInterval(iv);
+  }, [conta, de, ate, revelarEm, fim]);
+
+  if (!visivel) return null;
+  const html = interpHtml(String(c.text || ""), ctx).replace(/\[vagas\]/gi, String(conta ? n : de || ""));
+  /* Fundo escuro por padrão: a faixa costuma pousar sobre a VSL, e sobre fundo
+     claro o texto branco sumiria. `backgroundColor` sobrescreve. */
+  return (
+    <div
+      className="w-full text-center text-[15px] font-extrabold leading-snug"
+      style={{
+        // sangra até a borda anulando o padding do <main>
+        width: "calc(100% + 2.5rem)", marginLeft: "-1.25rem", marginRight: "-1.25rem",
+        padding: "14px 20px",
+        background: (d.backgroundColor as string) || "rgba(0,0,0,.35)",
+        borderBottom: "1px solid rgba(255,255,255,.08)",
+        color: (d.color as string) || "#fff",
+      }}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
 // ─────────────────────────────── CHECK ──────────────────────────────
 /**
  * Selo de confirmação: disco colorido com o traço do ✓ SE DESENHANDO, e ondas
@@ -1268,6 +1337,7 @@ export function Block({ layer, ctx, question, indice = 0 }: { layer: Layer; ctx:
       case "text": return <TextBlock layer={layer} ctx={ctx} />;
       case "clear": return <ClearBlock layer={layer} ctx={ctx} />;
       case "check": return <CheckBlock layer={layer} ctx={ctx} />;
+      case "disclaimer": return <DisclaimerBlock layer={layer} ctx={ctx} />;
       case "alert": return <AlertBlock layer={layer} ctx={ctx} />;
       case "image": return <ImageBlock layer={layer} ctx={ctx} />;
       case "button": return <ButtonBlock layer={layer} ctx={ctx} />;

@@ -53,7 +53,7 @@ const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Jogos (hero)", items: [["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
   { name: "Conversão (hero)", items: [["vsl", "VSL (vídeo + CTA)"], ["confirm", "Parabéns"]] },
   { name: "Mídia e conteúdo", items: [["text", "Texto"], ["card", "Card"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
-  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"]] },
+  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"], ["disclaimer", "Disclaimer"]] },
   { name: "Argumentação", items: [["arguments", "Argumentos"], ["testimonials", "Depoimentos"], ["faq", "FAQ"], ["price", "Preço"], ["checklist", "Checklist"], ["beforeafter", "Antes/Depois"], ["carousel", "Carrossel"]] },
   { name: "Gráficos", items: [["graphics", "Métricas"], ["charts", "Gráficos"]] },
   { name: "Personalização", items: [["clear", "Espaço"], ["html", "HTML/Script"]] },
@@ -90,7 +90,7 @@ const PALETTE_ICON: Record<string, string> = {
   roulette: "🎡", slider: "🎚️", scratch: "🎟️", measure: "📐", gauge: "🎯", vsl: "🎥", confirm: "🎉",
 };
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
-const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
+const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "disclaimer", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
   // blocos-hero herdados do motor tipado (todos com preset pronto)
   "scratch", "measure", "gauge", "vsl", "confirm",
   // Estes DOIS o funil já desenhava (blocks.tsx: GraphicsBlock e
@@ -148,6 +148,8 @@ function newLayer(type: LayerType): Layer {
     case "timer": return { ...base, design: { backgroundColor: "#e3eeff", color: "#1c72f1", borderColor: "#c7dcfe", padding: 10 }, content: { id, text: "<p><strong>Oferta acaba em: [time]</strong></p>", time: 300 } };
     case "loading": return { ...base, content: { id, title: "Carregando…", seconds: 4, type: "none", show_title: true, show_percent: true, show_progress: true } };
     case "clear": return { ...base, content: { id, clear: "h-[1rem]" } };
+    case "disclaimer": return { ...base, design: { basis: 100 },
+      content: { id, text: '<span style="color:#F5C842">[vagas] DAS 50 VAGAS</span> JÁ FORAM GARANTIDAS...', revealAt: 0 } };
     case "check": return { ...base, design: { basis: 64, backgroundColor: "#16A34A", horizontalAlign: "mx-auto" },
       content: { id, text: '<p class="ql-align-center"><strong>Pronto!</strong></p>' } };
     case "carousel": return { ...base, design: { basis: 100 }, content: { id, images: [], interval: 2 } };
@@ -398,15 +400,13 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <select value={layer.design?.style || "danger"} onChange={(e) => setD({ style: e.target.value })} className={inp}>
           <option value="danger">Destaque (laranja)</option><option value="success">Sucesso (verde)</option><option value="theme">Tema</option><option value="default">Neutro</option>
           <option value="pilula">Pílula (cápsula do tema)</option>
-          {/* "vagas" é o valor gravado antes do rename; o seletor mostra
-              Disclaimer e o runtime aceita os dois, então bloco já configurado
-              não precisa ser refeito. */}
-          <option value="disclaimer">Disclaimer (faixa fixa no topo)</option>
         </select>
         <Lbl>Texto do alerta</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />
-        {/* Faixa fixa no topo. Aparece por tempo, como o CTA — mesmo mecanismo
-            de escassez, e os campos moram junto do texto que eles revelam. */}
-        {layer.design?.style === "disclaimer" || layer.design?.style === "vagas" ? (<>
+      </>);
+    case "disclaimer":
+      return (<>
+        <Lbl>Texto da faixa</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />
+
           <Lbl>Aparece após (segundos) — 0 = já visível</Lbl>
           <input type="number" min={0} value={Number(c.revealAt) || 0}
             onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
@@ -460,7 +460,6 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
               Vazio: chega no máximo na hora em que o botão de compra aparece. Sem preencher <b>Até</b>, o número fica parado.
             </p>
           </div>
-        </>) : null}
       </>);
     case "check":
       return (<>
