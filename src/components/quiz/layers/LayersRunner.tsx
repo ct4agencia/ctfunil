@@ -489,7 +489,12 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
             style={{ maxWidth: containerMax(design.container), gap: `${Number(design.gap) || 0.6}rem` }}
           >
             {(() => {
-              const ls = step.layers || [];
+              /* Bloco OCULTO fica de fora aqui, na origem. O `Block` já pulava
+                 ocultos no runtime, mas as telas de preset leem os blocos
+                 direto e nunca olhavam o campo — então "ocultar" não fazia nada
+                 nessas lâminas, e o botão parecia quebrado. Desocultar continua
+                 possível pela lista do painel, que mostra ocultos riscados. */
+              const ls = (step.layers || []).filter((l) => !l.design?.hidden);
               /* MODO EDITOR desenha a MESMA tela do site.
                  Enquanto o editor renderizava a pilha de blocos crua e o site
                  renderizava a tela pronta, os dois nunca batiam — nenhum ajuste

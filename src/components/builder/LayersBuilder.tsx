@@ -1641,8 +1641,12 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                     {/* Arrastar pelo punho ⠿, igual ao canvas — reaproveita o
                         `SortableItem` e o `onReorder` que já movem blocos lá,
                         então a lista e o preview reordenam pelo mesmo caminho. */}
+                    {/* `id` explícito: a página tem outro DndContext (o das
+                        etapas, "ll-steps"). Sem id, o dnd-kit gera um por
+                        contagem de montagem, os dois podem colidir e o arraste
+                        de um vira inerte. */}
                     <DndContext
-                      sensors={sensors} collisionDetection={closestCenter}
+                      id="ll-blocos" sensors={sensors} collisionDetection={closestCenter}
                       onDragEnd={(e) => {
                         const { active, over } = e;
                         if (over && active.id !== over.id) onReorder(String(active.id), String(over.id));
