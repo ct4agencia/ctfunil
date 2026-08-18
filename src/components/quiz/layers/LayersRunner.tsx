@@ -723,7 +723,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                    tela e são desenhados acima do player. Antes esta tela lia só
                    embed, botão, texto e imagem — o resto sumia no site sem que
                    nada indicasse por quê. */
-                const alertas = ls.filter((l) => l.type === "alert" && semHtml(l.content?.text))
+                /* O alerta com estilo "vagas" é a BARRA DO TOPO; os outros são
+                   avisos acima do player. Assim os dois se editam do mesmo
+                   jeito — como bloco — em vez de a barra viver num campo solto
+                   do painel de Etapa, onde não dava para formatar o texto. */
+                const alertasTodos = ls.filter((l) => l.type === "alert" && semHtml(l.content?.text));
+                const barraVagas = alertasTodos.find((l) => l.design?.style === "vagas");
+                const alertas = alertasTodos.filter((l) => l !== barraVagas)
                   .map((l) => String(l.content?.text));
                 // o destino do botão vence; o checkout do funil é a rede de
                 // segurança para quando a lâmina foi montada sem link
@@ -732,13 +738,17 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                   <ResinaVSL
                     cor={design.themeColor || "#0284c7"}
                     fundo={(step as { fundo?: string }).fundo}
-                    ctaCor={(step as { ctaCor?: string }).ctaCor}
+                    /* A cor do CTA sai do PRÓPRIO botão, onde já existe o campo
+                       "Cor do botão". Antes vinha de `step.ctaCor`, e a mesma
+                       decisão morava em dois painéis diferentes. */
+                    ctaCor={(btn?.design?.backgroundColor as string) || undefined}
                     embedHtml={String(emb?.content?.embedHtml || "")}
                     cta={semHtml(btn?.content?.label) || "QUERO GARANTIR MINHA VAGA"}
                     checkoutUrl={destino}
                     revelarEm={Number(btn?.content?.revealAt) || 0}
-                    vagasEm={Number((step as { vagasEm?: number }).vagasEm) || 0}
-                    vagasTexto={(step as { vagasTexto?: string }).vagasTexto}
+                    // barra de vagas: texto e tempo saem do próprio bloco
+                    vagasEm={Number(barraVagas?.content?.revealAt) || 0}
+                    vagasTexto={barraVagas ? String(barraVagas.content?.text) : undefined}
                     alertas={alertas}
                     textoEspera={semHtml(btn?.content?.waitText) || undefined}
                     // 1º texto = chamada acima do player; 2º = título da garantia

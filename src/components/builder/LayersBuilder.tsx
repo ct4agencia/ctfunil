@@ -398,8 +398,19 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <select value={layer.design?.style || "danger"} onChange={(e) => setD({ style: e.target.value })} className={inp}>
           <option value="danger">Destaque (laranja)</option><option value="success">Sucesso (verde)</option><option value="theme">Tema</option><option value="default">Neutro</option>
           <option value="pilula">Pílula (cápsula do tema)</option>
+          <option value="vagas">Barra de vagas (topo da VSL)</option>
         </select>
         <Lbl>Texto do alerta</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />
+        {/* A barra do topo aparece por tempo, como o CTA — é o mesmo mecanismo
+            de escassez, e o campo mora aqui junto do texto que ele revela. */}
+        {layer.design?.style === "vagas" ? (<>
+          <Lbl>Aparece após (segundos) — 0 = já visível</Lbl>
+          <input type="number" min={0} value={Number(c.revealAt) || 0}
+            onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
+          <p className="mt-1 text-[11px] text-neutral-400">
+            Fica fixa no topo da lâmina de VSL, sobre o fundo escuro. Use cor no texto para destacar o número.
+          </p>
+        </>) : null}
       </>);
     case "check":
       return (<>
@@ -1838,29 +1849,14 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   </div>
                 );
               })()}
-              {/* BARRA DE VAGAS da VSL. Ela não é um bloco — é uma faixa da
-                  própria lâmina, desenhada acima do player. Sem estes campos o
-                  texto e o tempo só existiam no banco: dava para ver na tela e
-                  não dava para mudar. */}
+              {/* Só o FUNDO fica aqui: ele é da lâmina inteira, não de um bloco.
+                  A barra de vagas virou bloco Alerta (estilo "Barra de vagas")
+                  e a cor do checkout saiu para o próprio botão — antes as duas
+                  decisões viviam em dois painéis, e mudar num não refletia no
+                  outro. */}
               {(step as { tela?: string })?.tela === "vsl" ? (
                 <div className="rounded-xl border border-neutral-200 p-3">
-                  <p className="mb-1 text-sm font-bold text-neutral-700">Barra de vagas (topo)</p>
-                  <Lbl>Texto</Lbl>
-                  <input
-                    value={(step as { vagasTexto?: string })?.vagasTexto || ""}
-                    onChange={(e) => patchStep(selStep, { vagasTexto: e.target.value } as Partial<InleadStep>)}
-                    placeholder="MAIS DE 80% DAS VAGAS JÁ FORAM GARANTIDAS..."
-                    className={inp}
-                  />
-                  <Lbl>Aparece após (segundos) — 0 = já visível</Lbl>
-                  <input
-                    type="number" min={0}
-                    value={Number((step as { vagasEm?: number })?.vagasEm ?? 0)}
-                    onChange={(e) => patchStep(selStep, { vagasEm: Number(e.target.value) } as Partial<InleadStep>)}
-                    className={inp}
-                  />
-                  <p className="mt-1.5 text-[11px] text-neutral-400">Texto vazio esconde a barra.</p>
-                  <Lbl>Fundo da lâmina</Lbl>
+                  <p className="mb-1 text-sm font-bold text-neutral-700">Fundo da lâmina (VSL)</p>
                   <input
                     value={(step as { fundo?: string })?.fundo || ""}
                     onChange={(e) => patchStep(selStep, { fundo: e.target.value } as Partial<InleadStep>)}
@@ -1870,20 +1866,8 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   <p className="mt-1.5 text-[11px] text-neutral-400">
                     Vazio deriva da <b>Cor do tema</b>: trocar o tema repinta o fundo junto.
                   </p>
-                  <Lbl>Cor do botão de checkout</Lbl>
-                  <div className="flex items-center gap-2">
-                    <ColorField
-                      value={(step as { ctaCor?: string })?.ctaCor || "#16A34A"}
-                      onChange={(v) => patchStep(selStep, { ctaCor: v } as Partial<InleadStep>)}
-                      className="h-8 w-9" label="Cor do CTA"
-                    />
-                    <button
-                      onClick={() => patchStep(selStep, { ctaCor: undefined } as Partial<InleadStep>)}
-                      className="text-[11px] font-semibold text-neutral-400 hover:text-neutral-700"
-                    >↺ verde de confirmação</button>
-                  </div>
-                  <p className="mt-1.5 text-[11px] text-neutral-400">
-                    O verde é o padrão de propósito: em qualquer paleta ele significa “comprar”.
+                  <p className="mt-2 text-[11px] text-neutral-400">
+                    A <b>barra de vagas</b> é um bloco Alerta com estilo “Barra de vagas”. A <b>cor do checkout</b> está no próprio botão.
                   </p>
                 </div>
               ) : null}

@@ -126,14 +126,16 @@ export default function ResinaVSL({
         backgroundPosition: ehImagem ? "center" : undefined,
       }}
     >
+      {/* BARRA DE VAGAS — vem do bloco Alerta com estilo "vagas", em HTML.
+          Era um campo de texto puro do painel de Etapa, e por isso não dava
+          para destacar parte da frase: "32 DAS 50 VAGAS" em amarelo e o resto
+          em branco é a leitura que a barra precisa ter. */}
       {mostraVagas && vagasTexto ? (
-        <div className="w-full px-5 py-3.5 text-center" style={{ background: "rgba(0,0,0,.35)", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-          <p className="m-0 text-[15px] font-extrabold" style={{ color: "#D6C1AD" }}>
-            <span style={{ background: filete, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              {vagasTexto}
-            </span>
-          </p>
-        </div>
+        <div
+          className="w-full px-5 py-3.5 text-center text-[15px] font-extrabold leading-snug"
+          style={{ background: "rgba(0,0,0,.35)", borderBottom: "1px solid rgba(255,255,255,.08)", color: "#fff" }}
+          dangerouslySetInnerHTML={{ __html: vagasTexto }}
+        />
       ) : null}
 
       {/* A chamada vem ANTES do player: ela diz o que assistir. Embaixo do
