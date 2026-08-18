@@ -1612,6 +1612,34 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           ) : (
             <div className="space-y-3 p-4">
               <p className="text-sm font-bold text-neutral-700">Etapa</p>
+              {/* LISTA DE BLOCOS — o caminho de edição quando a lâmina tem tela
+                  própria. Nessas, o celular desenha a tela pronta (para bater
+                  com o site) e não há bloco solto para clicar; sem esta lista,
+                  o conteúdo ficaria visível e inalcançável. */}
+              {(step?.layers || []).length ? (
+                <div className="rounded-xl border border-neutral-200 p-3">
+                  <p className="mb-2 text-sm font-bold text-neutral-700">Blocos desta lâmina</p>
+                  <div className="space-y-1">
+                    {(step?.layers || []).map((l) => {
+                      const resumo = String(l.content?.label || l.content?.text || l.content?.title || "")
+                        .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+                      return (
+                        <button
+                          key={l.id} onClick={() => setSelLayer(l.id)}
+                          className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition ${
+                            selLayer === l.id ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
+                        >
+                          <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                            selLayer === l.id ? "bg-white/20" : "bg-neutral-200 text-neutral-500"}`}>
+                            {rotuloDoTipo(l.type)}
+                          </span>
+                          <span className="truncate">{resumo || l.id}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
               <label className="flex cursor-pointer items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-sm">
                 <span className="font-semibold text-neutral-700">{step?.disabled ? "Lâmina desativada" : "Lâmina ativa"}</span>
                 <input type="checkbox" checked={!step?.disabled} onChange={(e) => patchStep(selStep, { disabled: !e.target.checked })} className="h-4 w-4 accent-green-600" />
@@ -1800,34 +1828,6 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   <p className="mt-1.5 text-[11px] text-neutral-400">
                     O verde é o padrão de propósito: em qualquer paleta ele significa “comprar”.
                   </p>
-                </div>
-              ) : null}
-              {/* LISTA DE BLOCOS — o caminho de edição quando a lâmina tem tela
-                  própria. Nessas, o celular desenha a tela pronta (para bater
-                  com o site) e não há bloco solto para clicar; sem esta lista,
-                  o conteúdo ficaria visível e inalcançável. */}
-              {(step?.layers || []).length ? (
-                <div className="rounded-xl border border-neutral-200 p-3">
-                  <p className="mb-2 text-sm font-bold text-neutral-700">Blocos desta lâmina</p>
-                  <div className="space-y-1">
-                    {(step?.layers || []).map((l) => {
-                      const resumo = String(l.content?.label || l.content?.text || l.content?.title || "")
-                        .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
-                      return (
-                        <button
-                          key={l.id} onClick={() => setSelLayer(l.id)}
-                          className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition ${
-                            selLayer === l.id ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
-                        >
-                          <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                            selLayer === l.id ? "bg-white/20" : "bg-neutral-200 text-neutral-500"}`}>
-                            {rotuloDoTipo(l.type)}
-                          </span>
-                          <span className="truncate">{resumo || l.id}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
                 </div>
               ) : null}
               <p className="text-xs text-neutral-400">👆 Clique num bloco no celular, ou use a lista acima.</p>
