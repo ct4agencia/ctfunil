@@ -1594,7 +1594,17 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         {/* 4 · PAINEL direito (Componente/Aparência/Exibição OU Etapa) */}
         <aside className="overflow-y-auto border-l border-neutral-200 bg-white">
           {sel ? (
-            <RightPanel key={sel.id} layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} />
+            <>
+              {/* Volta para a lista de blocos. Nas lâminas com tela própria o
+                  celular desenha a tela pronta e não há bloco solto para clicar
+                  — sem este caminho de volta, selecionar um bloco era um beco
+                  sem saída: o painel trocava para o Componente e a lista sumia. */}
+              <button
+                onClick={() => setSelLayer(null)}
+                className="flex w-full items-center gap-1.5 border-b border-neutral-200 px-4 py-2 text-left text-xs font-semibold text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
+              >← Todos os blocos da lâmina</button>
+              <RightPanel key={sel.id} layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} />
+            </>
           ) : (
             <div className="space-y-3 p-4">
               <p className="text-sm font-bold text-neutral-700">Etapa</p>

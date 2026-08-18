@@ -490,16 +490,20 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
           >
             {(() => {
               const ls = step.layers || [];
-              /* MODO EDITOR sempre mostra os blocos, em TODA lâmina.
-                 Tentei antes fazer o editor desenhar a tela pronta, para bater
-                 com o site. O efeito colateral: nas lâminas com tela de preset
-                 não sobrava bloco para clicar, e o construtor virava um mostruário
-                 — umas lâminas editáveis, outras não, sem o usuário poder prever
-                 quais. Inconsistência é pior que divergência.
-                 Quem confere o resultado é o botão "👁 Ver resultado", que monta
-                 este mesmo componente SEM `editor` e portanto exibe as telas de
-                 preset exatamente como o site. */
-              if (editor) {
+              /* MODO EDITOR desenha a MESMA tela do site.
+                 Enquanto o editor renderizava a pilha de blocos crua e o site
+                 renderizava a tela pronta, os dois nunca batiam — nenhum ajuste
+                 de conteúdo resolvia, porque a diferença estava em QUEM desenha.
+                 A primeira tentativa disto quebrou o construtor: sem bloco solto,
+                 não havia onde clicar. Agora existe a lista de blocos no painel
+                 de Etapa, que é por onde a seleção acontece nessas lâminas.
+                 Lâmina SEM tela de preset continua na lista arrastável de
+                 sempre — lá o clique no celular é o caminho natural. */
+              const temTelaPropria = (design as { presetTelas?: string }).presetTelas === "resina"
+                && (!!(step as { tela?: string }).tela
+                  || idx === 0
+                  || ls.some((l) => l.type === "options" && l.design?.preset === "resina"));
+              if (editor && !temTelaPropria) {
                 return <EditableBlockList layers={ls} ctx={ctx} question={question} editor={editor} />;
               }
               /* LÂMINA DE PERGUNTA no formato da referência.
