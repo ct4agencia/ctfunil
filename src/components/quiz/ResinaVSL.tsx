@@ -35,6 +35,11 @@ export interface ResinaVSLProps {
   vagasEm?: number;
   vagasTexto?: string;
   textoEspera?: string;
+  /** chamada ACIMA do player — diz o que assistir antes de o vídeo começar */
+  headline?: string;
+  /** selos de confiança do rodapé (ex.: "Google Site Seguro") */
+  selosImagem?: string;
+  rodape?: string;
   garantiaTitulo?: string;
   garantiaImagem?: string;
   pagamentosImagem?: string;
@@ -45,7 +50,7 @@ export interface ResinaVSLProps {
 export default function ResinaVSL({
   embedHtml, cta, checkoutUrl, revelarEm = 0, vagasEm = 0, vagasTexto,
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
-  garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
+  headline, selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
   const [mostraCta, setMostraCta] = useState(revelarEm <= 0);
@@ -72,6 +77,15 @@ export default function ResinaVSL({
               {vagasTexto}
             </span>
           </p>
+        </div>
+      ) : null}
+
+      {/* A chamada vem ANTES do player: ela diz o que assistir. Embaixo do
+          vídeo só é lida por quem já assistiu — tarde demais para orientar. */}
+      {headline ? (
+        <div className="w-full px-5 pb-1 pt-7 text-center">
+          <div className="mx-auto mb-4 h-[3px] w-[60px] rounded-sm" style={{ background: "linear-gradient(90deg, #E8A838, #F5C842)" }} />
+          <h2 className="mx-auto" style={{ fontWeight: 900, fontSize: 24, lineHeight: 1.25, color: "#fff", maxWidth: 420 }}>{headline}</h2>
         </div>
       ) : null}
 
@@ -121,6 +135,43 @@ export default function ResinaVSL({
               <img src={garantiaImagem} alt="Garantia" loading="lazy" decoding="async" className="h-auto w-full" />
             </div>
           ) : null}
+        </div>
+      ) : null}
+
+      {/* RODAPÉ — selo de confiança, razão social e os links legais. Numa página
+          que pede cartão, a ausência disso é notada mesmo sem ser lida: é o que
+          separa "página de venda" de "site". */}
+      {selosImagem || rodape ? (
+        <div className="mt-auto w-full px-5 pb-8 pt-10">
+          <div className="mx-auto w-full" style={{ maxWidth: 480, borderTop: "1px solid rgba(255,255,255,.10)" }}>
+            <div className="flex justify-center pt-7">
+              {selosImagem ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={selosImagem} alt="Site seguro" loading="lazy" decoding="async" className="h-auto w-full" style={{ maxWidth: 200 }} />
+              ) : (
+                /* Selo próprio, desenhado. A referência usa a marca do Google;
+                   reproduzir marca de terceiro sem o arquivo oficial não é algo
+                   que eu invente — este cadeado cumpre o mesmo papel (sinalizar
+                   conexão segura) sem se passar por outra empresa. Passando
+                   `selosImagem`, a imagem real assume o lugar. */
+                <span className="inline-flex items-center gap-2 rounded-full px-4 py-2"
+                  style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)" }}>
+                  <svg width="16" height="18" viewBox="0 0 24 28" fill="none" aria-hidden>
+                    <path d="M12 1 22 5v9c0 6.1-4.2 11.5-10 13C6.2 25.5 2 20.1 2 14V5l10-4Z" fill="#22C55E" fillOpacity=".18" stroke="#22C55E" strokeWidth="1.6" />
+                    <path d="M8.5 13.8l2.6 2.6 5-5.2" stroke="#22C55E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="text-xs font-bold tracking-wide" style={{ color: "rgba(255,255,255,.75)" }}>SITE SEGURO · COMPRA PROTEGIDA</span>
+                </span>
+              )}
+            </div>
+            {rodape ? (
+              <p className="mt-4 whitespace-pre-line text-center text-xs leading-relaxed" style={{ color: "rgba(255,255,255,.45)" }}>{rodape}</p>
+            ) : null}
+            <p className="mt-3 flex justify-center gap-5 text-xs">
+              <a href="/termos" style={{ color: "rgba(255,255,255,.55)" }}>Termos de Uso</a>
+              <a href="/privacidade" style={{ color: "rgba(255,255,255,.55)" }}>Políticas de Privacidade</a>
+            </p>
+          </div>
         </div>
       ) : null}
     </div>

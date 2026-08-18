@@ -658,9 +658,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     vagasEm={Number((step as { vagasEm?: number }).vagasEm) || 0}
                     vagasTexto={(step as { vagasTexto?: string }).vagasTexto}
                     textoEspera={semHtml(btn?.content?.waitText) || undefined}
-                    garantiaTitulo={textos[0] ? semHtml(textos[0].content?.text) : undefined}
+                    // 1º texto = chamada acima do player; 2º = título da garantia
+                    headline={textos[0] ? semHtml(textos[0].content?.text) : undefined}
+                    garantiaTitulo={textos[1] ? semHtml(textos[1].content?.text) : undefined}
                     garantiaImagem={imgs[0] || undefined}
                     pagamentosImagem={imgs[1] || undefined}
+                    selosImagem={(step as { selosImagem?: string }).selosImagem}
+                    rodape={(step as { rodape?: string }).rodape}
                     onCheckout={() => { if (!preview) fireMetaEvent("InitiateCheckout"); }}
                   />
                 );
