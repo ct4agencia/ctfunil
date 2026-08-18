@@ -51,7 +51,7 @@ O que a tela inventa e precisa virar bloco:
 | Texto de espera | fixo no botão | já é `waitText`, expor no painel |
 | Rodapé + selo Google | fixo | blocos |
 
-## FASE 4 — HERO e RESULTADO ⬜ PENDENTE
+## FASE 4 — HERO e RESULTADO ✅ FEITA (83d7ff1)
 
 | Tela | Elemento | Vira |
 |---|---|---|
@@ -61,7 +61,7 @@ O que a tela inventa e precisa virar bloco:
 | Resultado | check verde | bloco Check ✓ |
 | Resultado | cor do alerta | `style` do bloco Alerta |
 
-## FASE 5 — OPÇÕES DE ANIMAÇÃO ⬜ PENDENTE
+## FASE 5 — OPÇÕES DE ANIMAÇÃO ✅ FEITA
 
 Pulsar, brilho, entrada e travamento viram campos no painel — **já
 pré-selecionados** ao adicionar o bloco, para o padrão continuar sendo o certo
@@ -69,9 +69,9 @@ sem exigir configuração.
 
 ## Fora das fases (pendências de material)
 
-- **Fotos das bolsas** para o carrossel do hero — não existem no funil hoje
-- **Imagem de garantia** e **formas de pagamento** (VSL) — espaço pronto, falta arquivo
-- **Selo Google** — hoje desenhado em SVG; o arquivo real substitui via `selosImagem`
+RESOLVIDAS: o hero não usa carrossel (decisão do Luca), o selo do Google está
+desenhado em SVG e serve, e garantia/formas de pagamento eram invenção minha ao
+portar a VSL do Resina — o Luca não usa. Nada pendente de material.
 
 ## Decisões já tomadas (não reabrir)
 

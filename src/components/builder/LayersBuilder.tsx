@@ -122,7 +122,11 @@ function newLayer(type: LayerType): Layer {
     case "text": return { ...base, content: { id, text: "<p class=\"ql-align-center\">Novo texto</p>" } };
     case "card": return { ...base, design: { basis: 100, variant: "suave", padding: 20 }, content: { id, text: "<p class=\"ql-align-center\">Texto dentro do card. Use a barra de formatação para destacar palavras.</p>" } };
     case "alert": return { ...base, design: { style: "danger", padding: 14 }, content: { id, text: "<p class=\"ql-align-center\">Aviso importante</p>" } };
-    case "button": return { ...base, design: { style: "success", basis: 100, pulse: true, backgroundColor: "#ea580c", color: "#FFFFFF" }, content: { id, label: "Continuar", type: "next", destination: "next" } };
+    // Botão novo já nasce com o efeito e a trava LIGADOS: são o padrão certo em
+    // praticamente todo funil, e exigir que se ligue à mão os deixa esquecidos.
+    // `backgroundColor` fica ausente de propósito — assim o botão herda a Cor
+    // do tema em vez de nascer laranja num funil azul.
+    case "button": return { ...base, design: { style: "success", basis: 100, effect: "pulse", travar: true, color: "#FFFFFF" }, content: { id, label: "Continuar", type: "next", destination: "next" } };
     case "image": return { ...base, design: { basis: 100 }, content: { id, image: { type: "image", src: "" } } };
     case "options": return { ...base, design: { background: "contrast", icon: "right", iconPosition: "start", border: "border-[2px]" }, content: { id, cols: "grid-cols-1", options: [{ id: genId(), label: "<p>Opção 1</p>", destination: "next" }, { id: genId(), label: "<p>Opção 2</p>", destination: "next" }] } };
     case "field": return { ...base, content: { id, name: "telefone", title: "Seu WhatsApp (com DDD)", placeholder: "(00) 00000-0000", type: "phone", mask: "phone_br", required: true } };
