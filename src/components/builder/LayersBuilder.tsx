@@ -44,6 +44,8 @@ const BLOCK_META: Record<string, { icon: string; label: string }> = {
 };
 /** Paleta categorizada (ordem/categorias dos prints do inlead). */
 const CATS: { name: string; items: [string, string][] }[] = [
+  // (a lista de blocos da lâmina usa `rotuloDoTipo`, logo abaixo, para nomear
+  //  cada bloco com o MESMO rótulo do botão que o criou)
   { name: "Formulário", items: [["field", "Campo"], ["email", "E-mail"], ["phone", "Telefone"], ["button", "Botão"], ["number", "Número"], ["textarea", "Textarea"], ["date", "Data"], ["height", "Altura"], ["weight", "Peso"]] },
   { name: "Quiz", items: [["options", "Opções"], ["multi", "Múltipla Escolha"], ["single", "Escolha Única"], ["yesno", "Sim/Não"], ["videoanswer", "Vídeo Resposta"]] },
   // Blocos-hero: ocupam a lâmina inteira. Vêm do motor tipado e nascem com
@@ -56,6 +58,12 @@ const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Gráficos", items: [["graphics", "Métricas"], ["charts", "Gráficos"]] },
   { name: "Personalização", items: [["clear", "Espaço"], ["html", "HTML/Script"]] },
 ];
+/** Nome legível de um tipo de bloco, tirado da PRÓPRIA paleta — assim o rótulo
+ *  na lista de blocos nunca diverge do rótulo do botão que criou o bloco. */
+function rotuloDoTipo(t: string): string {
+  for (const cat of CATS) for (const [k, label] of cat.items) if (k === t) return label;
+  return t;
+}
 /**
  * Blocos-hero editados pelo StepEditor — o editor único desses blocos.
  *
@@ -1757,7 +1765,35 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   </p>
                 </div>
               ) : null}
-              <p className="text-xs text-neutral-400">👆 Clique num bloco no celular pra editar.</p>
+              {/* LISTA DE BLOCOS — o caminho de edição quando a lâmina tem tela
+                  própria. Nessas, o celular desenha a tela pronta (para bater
+                  com o site) e não há bloco solto para clicar; sem esta lista,
+                  o conteúdo ficaria visível e inalcançável. */}
+              {(step?.layers || []).length ? (
+                <div className="rounded-xl border border-neutral-200 p-3">
+                  <p className="mb-2 text-sm font-bold text-neutral-700">Blocos desta lâmina</p>
+                  <div className="space-y-1">
+                    {(step?.layers || []).map((l) => {
+                      const resumo = String(l.content?.label || l.content?.text || l.content?.title || "")
+                        .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+                      return (
+                        <button
+                          key={l.id} onClick={() => setSelLayer(l.id)}
+                          className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition ${
+                            selLayer === l.id ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
+                        >
+                          <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                            selLayer === l.id ? "bg-white/20" : "bg-neutral-200 text-neutral-500"}`}>
+                            {rotuloDoTipo(l.type)}
+                          </span>
+                          <span className="truncate">{resumo || l.id}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+              <p className="text-xs text-neutral-400">👆 Clique num bloco no celular, ou use a lista acima.</p>
             </div>
           )}
         </aside>
