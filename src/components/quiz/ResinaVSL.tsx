@@ -14,14 +14,14 @@
  * primeiro quadro convida a clicar antes de ouvir a oferta, e quem chega ao
  * checkout sem contexto não compra.
  *
- * `dangerouslySetInnerHTML` no player é intencional: o embed é HTML de player
- * (VTurb) colado pelo admin no construtor, que é rota protegida por
- * ADMIN_EMAIL. Mesmo precedente do `EmbedBlock`.
+ * O embed é HTML de player (VTurb) colado pelo admin no construtor, rota
+ * protegida por ADMIN_EMAIL — daí injetá-lo cru ser aceitável aqui. Mesmo
+ * precedente do `EmbedBlock`.
  *
  * Medidas de `Velas-Lucrativas/funil/src/components/steps/StepVSL.tsx`.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { prefereMenosMovimento } from "@/lib/quiz/motion";
 
 export interface ResinaVSLProps {
@@ -55,6 +55,30 @@ export default function ResinaVSL({
   const reduzido = prefereMenosMovimento();
   const [mostraCta, setMostraCta] = useState(revelarEm <= 0);
   const [mostraVagas, setMostraVagas] = useState(vagasEm <= 0 && !!vagasTexto);
+
+  /**
+   * `dangerouslySetInnerHTML` NÃO executa <script> — é regra do React, e por
+   * isso o player aparecia como um retângulo preto: o placeholder do VTurb
+   * entrava no DOM, mas o script que o transforma em player nunca rodava.
+   * Setar innerHTML e recriar cada <script> à mão é a única forma de o
+   * navegador executá-los. Mesma técnica do `EmbedBlock` (blocks.tsx:471), que
+   * já serve o vídeo nos outros funis.
+   */
+  const playerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = playerRef.current;
+    if (!el || !embedHtml) return;
+    el.innerHTML = embedHtml;
+    el.querySelectorAll("script").forEach((antigo) => {
+      const novoScript = document.createElement("script");
+      for (const a of Array.from(antigo.attributes)) novoScript.setAttribute(a.name, a.value);
+      if (!antigo.src) novoScript.textContent = antigo.textContent;
+      novoScript.async = true;
+      document.head.appendChild(novoScript);
+      antigo.remove();
+    });
+    return () => { el.innerHTML = ""; };
+  }, [embedHtml]);
 
   useEffect(() => {
     const ts: ReturnType<typeof setTimeout>[] = [];
@@ -91,7 +115,7 @@ export default function ResinaVSL({
 
       <div className="w-full px-5 pb-4 pt-6">
         <div className="mx-auto w-full" style={{ maxWidth: 400 }}>
-          <div dangerouslySetInnerHTML={{ __html: embedHtml }} />
+          <div ref={playerRef} className="overflow-hidden rounded-2xl shadow-2xl" />
         </div>
       </div>
 
