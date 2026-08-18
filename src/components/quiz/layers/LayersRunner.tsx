@@ -728,7 +728,9 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                    jeito — como bloco — em vez de a barra viver num campo solto
                    do painel de Etapa, onde não dava para formatar o texto. */
                 const alertasTodos = ls.filter((l) => l.type === "alert" && semHtml(l.content?.text));
-                const barraVagas = alertasTodos.find((l) => l.design?.style === "vagas");
+                // "vagas" é o valor antigo do mesmo estilo, aceito para não
+                // exigir que blocos já configurados sejam refeitos
+                const barraVagas = alertasTodos.find((l) => l.design?.style === "disclaimer" || l.design?.style === "vagas");
                 const alertas = alertasTodos.filter((l) => l !== barraVagas)
                   .map((l) => String(l.content?.text));
                 // o destino do botão vence; o checkout do funil é a rede de

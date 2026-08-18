@@ -398,21 +398,24 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <select value={layer.design?.style || "danger"} onChange={(e) => setD({ style: e.target.value })} className={inp}>
           <option value="danger">Destaque (laranja)</option><option value="success">Sucesso (verde)</option><option value="theme">Tema</option><option value="default">Neutro</option>
           <option value="pilula">Pílula (cápsula do tema)</option>
-          <option value="vagas">Barra de vagas (topo da VSL)</option>
+          {/* "vagas" é o valor gravado antes do rename; o seletor mostra
+              Disclaimer e o runtime aceita os dois, então bloco já configurado
+              não precisa ser refeito. */}
+          <option value="disclaimer">Disclaimer (faixa fixa no topo)</option>
         </select>
         <Lbl>Texto do alerta</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />
-        {/* A barra do topo aparece por tempo, como o CTA — é o mesmo mecanismo
-            de escassez, e o campo mora aqui junto do texto que ele revela. */}
-        {layer.design?.style === "vagas" ? (<>
+        {/* Faixa fixa no topo. Aparece por tempo, como o CTA — mesmo mecanismo
+            de escassez, e os campos moram junto do texto que eles revelam. */}
+        {layer.design?.style === "disclaimer" || layer.design?.style === "vagas" ? (<>
           <Lbl>Aparece após (segundos) — 0 = já visível</Lbl>
           <input type="number" min={0} value={Number(c.revealAt) || 0}
             onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
-          <Lbl>Fundo da barra</Lbl>
+          <Lbl>Cor de fundo</Lbl>
           <div className="flex items-center gap-2">
             <ColorField
               value={(layer.design?.backgroundColor as string) || "#000000"}
               onChange={(v) => setD({ backgroundColor: v })}
-              className="h-8 w-10" label="Fundo da barra de vagas"
+              className="h-8 w-10" label="Fundo do disclaimer"
             />
             <input
               value={(layer.design?.backgroundColor as string) || ""}
@@ -422,37 +425,39 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
             />
             <button
               onClick={() => setD({ backgroundColor: undefined })}
+              title="Voltar ao padrão"
               className="shrink-0 text-[11px] font-semibold text-neutral-400 hover:text-neutral-700"
             >↺</button>
           </div>
           <p className="mt-1 text-[11px] text-neutral-400">
-            Fica fixa no topo da lâmina de VSL. Vazio usa preto translúcido, que escurece o fundo sem brigar com ele — o campo de texto ao lado aceita <code>rgba()</code> e gradiente.
+            Deixe vazio para usar preto transparente. O campo ao lado aceita <code>rgba()</code> e gradiente.
           </p>
 
-          {/* CONTADOR — escreva [vagas] no texto e o número sobe enquanto o
-              vídeo corre. Escassez parada é lida como enfeite; escassez que
-              anda na frente do visitante é lida como fila andando. */}
+          {/* CONTADOR — o número sobe enquanto o vídeo corre. Escassez parada é
+              lida como enfeite; escassez que anda na frente do visitante é lida
+              como fila andando. */}
           <div className="mt-3 rounded-lg bg-amber-50 p-2.5 ring-1 ring-amber-200">
-            <p className="mb-1.5 text-[11px] font-bold text-amber-900">
-              Contador de vagas — use <code className="rounded bg-amber-200/60 px-1">[vagas]</code> no texto
+            <p className="mb-0.5 text-[11px] font-bold text-amber-900">Número que sobe sozinho</p>
+            <p className="mb-2 text-[11px] text-amber-800/80">
+              Escreva <code className="rounded bg-amber-200/60 px-1">[vagas]</code> no texto acima. Ele vira o número atual e vai subindo enquanto a pessoa assiste ao vídeo.
             </p>
             <div className="flex gap-2">
               <div className="flex-1">
-                <Lbl>Começa em</Lbl>
+                <Lbl>De</Lbl>
                 <input type="number" min={0} value={Number(c.vagasDe) || ""} placeholder="32"
                   onChange={(e) => setC({ vagasDe: Number(e.target.value) || undefined })} className={inp} />
               </div>
               <div className="flex-1">
-                <Lbl>Chega em</Lbl>
+                <Lbl>Até</Lbl>
                 <input type="number" min={0} value={Number(c.vagasAte) || ""} placeholder="48"
                   onChange={(e) => setC({ vagasAte: Number(e.target.value) || undefined })} className={inp} />
               </div>
             </div>
-            <Lbl>Atinge o máximo aos (segundos)</Lbl>
-            <input type="number" min={0} value={Number(c.vagasFimEm) || ""} placeholder="vazio = quando o botão aparece"
+            <Lbl>Quando chegar no máximo (segundos)</Lbl>
+            <input type="number" min={0} value={Number(c.vagasFimEm) || ""} placeholder="vazio = junto com o botão"
               onChange={(e) => setC({ vagasFimEm: Number(e.target.value) || undefined })} className={inp} />
             <p className="mt-1 text-[11px] text-amber-800/70">
-              Vazio, o teto cai no momento em que o CTA é liberado — quando o pitch pede a decisão, “só restam poucas”. Sem “Chega em”, o número fica parado.
+              Vazio: chega no máximo na hora em que o botão de compra aparece. Sem preencher <b>Até</b>, o número fica parado.
             </p>
           </div>
         </>) : null}
