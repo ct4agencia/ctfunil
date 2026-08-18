@@ -597,10 +597,19 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                  apareciam no site, não apareciam no construtor, e o que você
                  escrevia no bloco era ignorado. */
               if (presetTelas && (step as { tela?: string }).tela === "captura") {
-                const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
                 const alertas = ls.filter((l) => l.type === "alert" && semHtml(l.content?.text));
                 const btn = ls.find((l) => l.type === "button");
                 const img = ls.find((l) => l.type === "image")?.content?.image?.src;
+                /* A POSIÇÃO em relação ao botão decide o papel do texto: antes
+                   dele é conteúdo (título, subtexto, título do formulário),
+                   depois dele é rodapé. Antes eu usava "o último texto é o
+                   rodapé", e bastava editar ou mover um bloco para outro texto
+                   virar o último e assumir o lugar errado — regra que o Luca não
+                   tinha como prever olhando a tela. */
+                const iBtn = btn ? ls.indexOf(btn) : ls.length;
+                const ehTexto = (l: (typeof ls)[number]) => l.type === "text" && semHtml(l.content?.text);
+                const textos = ls.filter((l, i) => ehTexto(l) && i < iBtn);
+                const rodapes = ls.filter((l, i) => ehTexto(l) && i > iBtn);
                 const tit = semHtmlMultilinha(textos[0]?.content?.text);
                 const marcado = /<span[^>]*color:[^>]*>([^<]+)<\/span>/i.exec(String(textos[0]?.content?.text || ""))?.[1];
                 /* Os campos do formulário: telefone é o que tem tipo ou máscara
@@ -635,8 +644,8 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     dicaTelefone={semHtml(cFone?.content?.placeholder) || undefined}
                     prefixo={(cFone?.design as { prefixo?: string })?.prefixo ?? "🇧🇷 +55"}
                     emCard={(cNome?.design as { card?: boolean })?.card ?? true}
-                    // o último texto da lâmina é o aviso de segurança do rodapé
-                    seguranca={textos.length > 3 ? textos[textos.length - 1]?.content?.text : undefined}
+                    // rodapé = texto que está DEPOIS do botão
+                    seguranca={rodapes[0]?.content?.text}
                     travarAteValido={(btn?.design as { travar?: boolean })?.travar ?? true}
                     cta={semHtml(btn?.content?.label) || "QUERO RECEBER"}
                     enviando={submitting}
