@@ -1729,6 +1729,32 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   </div>
                 );
               })()}
+              {/* BARRA DE VAGAS da VSL. Ela não é um bloco — é uma faixa da
+                  própria lâmina, desenhada acima do player. Sem estes campos o
+                  texto e o tempo só existiam no banco: dava para ver na tela e
+                  não dava para mudar. */}
+              {(step as { tela?: string })?.tela === "vsl" ? (
+                <div className="rounded-xl border border-neutral-200 p-3">
+                  <p className="mb-1 text-sm font-bold text-neutral-700">Barra de vagas (topo)</p>
+                  <Lbl>Texto</Lbl>
+                  <input
+                    value={(step as { vagasTexto?: string })?.vagasTexto || ""}
+                    onChange={(e) => patchStep(selStep, { vagasTexto: e.target.value } as Partial<InleadStep>)}
+                    placeholder="MAIS DE 80% DAS VAGAS JÁ FORAM GARANTIDAS..."
+                    className={inp}
+                  />
+                  <Lbl>Aparece após (segundos) — 0 = já visível</Lbl>
+                  <input
+                    type="number" min={0}
+                    value={Number((step as { vagasEm?: number })?.vagasEm ?? 0)}
+                    onChange={(e) => patchStep(selStep, { vagasEm: Number(e.target.value) } as Partial<InleadStep>)}
+                    className={inp}
+                  />
+                  <p className="mt-1.5 text-[11px] text-neutral-400">
+                    Texto vazio esconde a barra. A cor é o dourado da referência, fixa — ela existe para contrastar com o fundo escuro da VSL.
+                  </p>
+                </div>
+              ) : null}
               <p className="text-xs text-neutral-400">👆 Clique num bloco no celular pra editar.</p>
             </div>
           )}

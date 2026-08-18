@@ -145,6 +145,26 @@ export interface InleadStep {
   /** false/true: lâmina desativada é PULADA no funil publicado (sem deletar). */
   disabled?: boolean;
   /**
+   * Tela pronta que SUBSTITUI a pilha de blocos desta lâmina. Usada pelo padrão
+   * da referência (`design.presetTelas === "resina"`): "captura", "resultado",
+   * "diagnostico", "pos-captura", "vsl". Ausente = a lâmina empilha blocos como
+   * sempre fez.
+   */
+  tela?: string;
+  /** VSL: texto da barra de vagas no topo. Vazio esconde a barra. */
+  vagasTexto?: string;
+  /** VSL: segundos até a barra de vagas aparecer (0 = já visível). */
+  vagasEm?: number;
+  /** VSL: imagem dos selos de confiança no rodapé. */
+  selosImagem?: string;
+  /** VSL: razão social e direitos, no rodapé. */
+  rodape?: string;
+  /** Resultado: nota que o anel persegue, e a mínima citada no texto. */
+  nota?: number;
+  minimo?: number;
+  /** Captura: pílula acima do título (ex.: "🎁 Presente exclusivo"). */
+  selo?: string;
+  /**
    * Destino da saída PADRÃO — a que vale "independente do botão clicado".
    * Ausente = próxima lâmina por posição (o comportamento de sempre). É o que a
    * bolinha do rodapé grava quando arrastada no mapa de fluxo.
