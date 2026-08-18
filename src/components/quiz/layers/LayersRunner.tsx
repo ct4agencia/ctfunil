@@ -490,18 +490,16 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
           >
             {(() => {
               const ls = step.layers || [];
-              /* O modo editor NÃO curto-circuita mais antes das telas de preset.
-                 Enquanto curto-circuitava, o construtor mostrava blocos soltos e
-                 o site mostrava a tela pronta — duas verdades para a mesma
-                 lâmina. Agora quem tem tela própria a exibe nos dois lugares, e
-                 a edição dessas lâminas acontece pelo painel de Etapa e pela
-                 lista lateral de blocos. Lâmina SEM tela de preset continua
-                 caindo na lista arrastável, logo abaixo. */
-              const temTelaPropria = (design as { presetTelas?: string }).presetTelas === "resina"
-                && (!!(step as { tela?: string }).tela
-                  || idx === 0
-                  || ls.some((l) => l.type === "options" && l.design?.preset === "resina"));
-              if (editor && !temTelaPropria) {
+              /* MODO EDITOR sempre mostra os blocos, em TODA lâmina.
+                 Tentei antes fazer o editor desenhar a tela pronta, para bater
+                 com o site. O efeito colateral: nas lâminas com tela de preset
+                 não sobrava bloco para clicar, e o construtor virava um mostruário
+                 — umas lâminas editáveis, outras não, sem o usuário poder prever
+                 quais. Inconsistência é pior que divergência.
+                 Quem confere o resultado é o botão "👁 Ver resultado", que monta
+                 este mesmo componente SEM `editor` e portanto exibe as telas de
+                 preset exatamente como o site. */
+              if (editor) {
                 return <EditableBlockList layers={ls} ctx={ctx} question={question} editor={editor} />;
               }
               /* LÂMINA DE PERGUNTA no formato da referência.
