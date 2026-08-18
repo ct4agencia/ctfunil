@@ -1289,6 +1289,9 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
+  /** Canvas do Construtor: editar blocos (padrão) ou ver a lâmina como o
+   *  visitante vê. Estado de UI, nada é gravado. */
+  const [verResultado, setVerResultado] = useState(false);
   const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">("construtor");
   const [showSettings, setShowSettings] = useState(false);
   const [device, setDevice] = useState(DEFAULT_DEVICE); // id do aparelho do preview
@@ -1465,7 +1468,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
       // fixa (390px + moldura), então tudo que passava disso na coluna `1fr`
       // virava espaço morto em volta dele. Os `minmax` seguram o preview no
       // tamanho mínimo do aparelho.
-      <div className="grid h-[calc(100vh-49px)] grid-cols-[180px_230px_minmax(420px,1fr)_minmax(360px,520px)] bg-neutral-100">
+      <div className="relative grid h-[calc(100vh-49px)] grid-cols-[180px_230px_minmax(420px,1fr)_minmax(360px,520px)] bg-neutral-100">
         {/* 1 · ETAPAS */}
         <aside className="overflow-y-auto border-r border-neutral-200 bg-white p-2">
           <div className="mb-2 flex items-center justify-between px-1">
@@ -1519,6 +1522,15 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         </aside>
 
         {/* 3 · CANVAS (celular, edição inline) — dimensões CSS reais do aparelho */}
+        <div className="pointer-events-none absolute left-1/2 top-2 z-30 flex -translate-x-1/2 gap-1 rounded-full bg-white/95 p-1 shadow ring-1 ring-neutral-200">
+          {([[false, "✏️ Editar"], [true, "👁 Ver resultado"]] as const).map(([v, label]) => (
+            <button
+              key={String(v)} onClick={() => { setVerResultado(v); setSelLayer(null); }}
+              className={`pointer-events-auto rounded-full px-3 py-1 text-xs font-semibold transition ${
+                verResultado === v ? "bg-neutral-900 text-white" : "text-neutral-500 hover:text-neutral-900"}`}
+            >{label}</button>
+          ))}
+        </div>
         <DevicePreview
           deviceId={device}
           onDeviceChange={setDevice}
@@ -1532,7 +1544,17 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           onBackdropClick={() => setSelLayer(null)}
           scrollStyle={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
         >
-          <LayersRunner key={`${selStep}-${nonce}-${device}`} funnel={funnel} startIndex={selStep} preview editor={{ selectedId: selLayer || undefined, onSelect, onAction, onReorder }} />
+          {/* Duas leituras da mesma lâmina, e as duas são necessárias.
+              EDITAR mostra os blocos soltos e arrastáveis — é como se mexe no
+              conteúdo. VER mostra o que o visitante vê, incluindo as telas de
+              preset (hero, pergunta, captura…), que substituem a pilha inteira
+              de blocos e por isso não aparecem no modo de edição. Sem este
+              botão, a única forma de conferir o resultado era abrir o site. */}
+          <LayersRunner
+            key={`${selStep}-${nonce}-${device}-${verResultado ? "ver" : "edit"}`}
+            funnel={funnel} startIndex={selStep} preview
+            editor={verResultado ? undefined : { selectedId: selLayer || undefined, onSelect, onAction, onReorder }}
+          />
         </DevicePreview>
 
         {/* 4 · PAINEL direito (Componente/Aparência/Exibição OU Etapa) */}
