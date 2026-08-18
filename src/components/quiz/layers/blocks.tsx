@@ -8,7 +8,7 @@ import { interpEstado } from "@/lib/quiz/estado";
 import { DedoArrasta } from "../ui";
 import dynamic from "next/dynamic";
 import { entradaBloco, prefereMenosMovimento, DUR, EASE } from "@/lib/quiz/motion";
-import { estiloOpcao, estiloCheck } from "@/lib/quiz/resina";
+import { estiloOpcao, estiloCheck, gradienteTema } from "@/lib/quiz/resina";
 import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
 
 // Tela do bloco `loading` no estilo "diagnóstico", dividida com o motor tipado.
@@ -157,6 +157,22 @@ function AlertBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const style = layer.design?.style || "default";
   const pad = Number(layer.design?.padding) || 16;
   const theme = ctx.design.themeColor || "#ea580c";
+  /* PÍLULA: cápsula preenchida com o gradiente do tema, centrada. É o "selo"
+     do topo da captura — que antes vivia fixo dentro da tela e por isso não
+     aparecia no construtor nem podia ser editado. */
+  if (style === "pilula") {
+    return (
+      <div className="flex w-full justify-center">
+        <motion.span
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider text-white sm:text-sm"
+          style={{ background: gradienteTema(theme), boxShadow: `0 4px 16px ${theme}66` }}
+        >
+          <Html html={interpHtml(layer.content.text, ctx)} />
+        </motion.span>
+      </div>
+    );
+  }
   const tint =
     style === "danger" ? { bg: "#fff7ed", border: theme }
     : style === "success" ? { bg: "#f0fdf4", border: "#86efac" }
@@ -736,12 +752,24 @@ function FieldBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const boxStyle = { borderRadius: radius(ctx.design), borderColor: "#e5e7eb", fontSize: `${remContent(ctx)}px` };
   return (
     <div className="mx-auto w-full text-left">
-      {c.title ? <label className="mb-1.5 block text-sm font-semibold" style={{ color: ctx.design.contentColor || "#000" }}>{c.title}</label> : null}
+      {/* `label` vem primeiro: é o campo que as telas de preset leem, e enquanto
+          este bloco olhava só para `title` o construtor mostrava um rótulo e o
+          site mostrava outro. `title` continua valendo para os funis antigos. */}
+      {(c.label || c.title) ? (
+        <label className="mb-1.5 block text-sm font-semibold" style={{ color: ctx.design.contentColor || "#000" }}>
+          {String(c.label || c.title)}
+        </label>
+      ) : null}
       {isPhone ? (
-        // +55 FIXO (o lead digita só DDD+número). Guardamos o valor nacional; o
-        // +55 é colado no webhook — assim o lead nunca soma um 55 a mais.
+        // Prefixo configurável (o lead digita só DDD+número). Guardamos o valor
+        // nacional; o +55 é colado no webhook — assim o lead nunca soma um 55 a
+        // mais. Vazio esconde o prefixo.
         <div className="flex w-full items-stretch overflow-hidden border bg-white focus-within:ring-2" style={boxStyle}>
-          <span className="flex select-none items-center border-r border-neutral-200 bg-neutral-50 px-3 font-semibold text-neutral-500" style={{ fontSize: `${remContent(ctx)}px` }}>+55</span>
+          {((layer.design?.prefixo as string | undefined) ?? "+55") ? (
+            <span className="flex select-none items-center border-r border-neutral-200 bg-neutral-50 px-3 font-semibold text-neutral-500" style={{ fontSize: `${remContent(ctx)}px` }}>
+              {String((layer.design?.prefixo as string | undefined) ?? "+55")}
+            </span>
+          ) : null}
           <input
             value={val} onChange={(e) => onChange(e.target.value)}
             placeholder={c.placeholder || "(00) 00000-0000"} inputMode="tel" type="tel"

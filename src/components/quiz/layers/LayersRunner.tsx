@@ -581,19 +581,33 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                   />
                 );
               }
-              /* CAPTURA — a tela que converte. Os campos vivem no componente,
-                 não em blocos `field`: ele controla máscara, foco e validação
-                 como um conjunto, e o envio entra por `submitFields({...})`. */
+              /* CAPTURA — a tela que converte.
+                 Tudo que ela mostra vem de BLOCO: pílula, rótulos, prefixo,
+                 texto de segurança. Antes vários desses eram fixos no código —
+                 apareciam no site, não apareciam no construtor, e o que você
+                 escrevia no bloco era ignorado. */
               if (presetTelas && (step as { tela?: string }).tela === "captura") {
                 const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
+                const alertas = ls.filter((l) => l.type === "alert" && semHtml(l.content?.text));
                 const btn = ls.find((l) => l.type === "button");
                 const img = ls.find((l) => l.type === "image")?.content?.image?.src;
                 const tit = semHtmlMultilinha(textos[0]?.content?.text);
                 const marcado = /<span[^>]*color:[^>]*>([^<]+)<\/span>/i.exec(String(textos[0]?.content?.text || ""))?.[1];
+                /* Os campos do formulário: telefone é o que tem tipo ou máscara
+                   de telefone; o outro campo é o nome. Mesma heurística do
+                   `submitFields`, para os dois concordarem sobre qual é qual. */
+                const campos = ls.filter((l) => l.type === "field");
+                const ehFone = (l: (typeof campos)[number]) =>
+                  l.content?.type === "phone" || l.content?.mask === "phone_br"
+                  || /tel|whats|phone|celular|wpp|fone/i.test(String(l.content?.name || l.content?.label || ""));
+                const cFone = campos.find(ehFone);
+                const cNome = campos.find((l) => l !== cFone);
                 return (
                   <ResinaCaptura
                     cor={design.themeColor || "#0284c7"}
-                    selo={(step as { selo?: string }).selo || "🎁 Presente exclusivo"}
+                    /* a pílula do topo é o 1º ALERTA da lâmina; sem bloco de
+                       alerta, ela simplesmente não aparece */
+                    selo={alertas[0] ? semHtml(alertas[0].content?.text) : undefined}
                     titulo={tit}
                     destaque={marcado ? semHtml(marcado) : undefined}
                     /* HTML cru, não `semHtml`: negrito, cor e pílula da copy
@@ -602,8 +616,18 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                        construtor "não mudava nada" na tela. */
                     subtexto={textos[1]?.content?.text}
                     imagem={img || undefined}
-                    aviso={textos[2]?.content?.text}
-                    formTitulo={textos[3] ? semHtml(textos[3].content?.text) : undefined}
+                    aviso={alertas[1]?.content?.text}
+                    formTitulo={textos[2] ? semHtml(textos[2].content?.text) : undefined}
+                    // rótulos e dicas saem dos PRÓPRIOS campos
+                    rotuloNome={semHtml(cNome?.content?.label) || undefined}
+                    rotuloTelefone={semHtml(cFone?.content?.label) || undefined}
+                    dicaNome={semHtml(cNome?.content?.placeholder) || undefined}
+                    dicaTelefone={semHtml(cFone?.content?.placeholder) || undefined}
+                    prefixo={(cFone?.design as { prefixo?: string })?.prefixo ?? "🇧🇷 +55"}
+                    emCard={(cNome?.design as { card?: boolean })?.card ?? true}
+                    // o último texto da lâmina é o aviso de segurança do rodapé
+                    seguranca={textos.length > 3 ? textos[textos.length - 1]?.content?.text : undefined}
+                    travarAteValido={(btn?.design as { travar?: boolean })?.travar ?? true}
                     cta={semHtml(btn?.content?.label) || "QUERO RECEBER"}
                     enviando={submitting}
                     onEnviar={(d) => submitFields(d)}

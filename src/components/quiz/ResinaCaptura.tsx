@@ -36,8 +36,24 @@ export interface ResinaCapturaProps {
   /** aviso do card de filete dourado, acima do formulário */
   aviso?: string;
   formTitulo?: string;
+  /** rótulos vindos dos BLOCOS de campo — antes eram texto fixo aqui dentro,
+   *  e o que você escrevia no construtor era simplesmente ignorado */
   rotuloNome?: string;
   rotuloTelefone?: string;
+  dicaNome?: string;
+  dicaTelefone?: string;
+  /** prefixo do telefone (ex.: "🇧🇷 +55"); vazio esconde */
+  prefixo?: string;
+  /** agrupa os campos num card branco */
+  emCard?: boolean;
+  /** texto de segurança abaixo do botão; vazio esconde */
+  seguranca?: string;
+  /**
+   * Trava o botão enquanto nome e telefone não forem válidos. Ligado por
+   * padrão: botão que envia formulário incompleto gera lead sem telefone, que
+   * não dá para atender.
+   */
+  travarAteValido?: boolean;
   cta: string;
   enviando?: boolean;
   onEnviar: (d: { nome: string; telefone: string }) => void;
@@ -62,8 +78,8 @@ const BRILHOS = [
 
 export default function ResinaCaptura({
   cor, selo, titulo, destaque, subtexto, imagem, aviso, formTitulo,
-  rotuloNome = "Como você gostaria que eu te chamasse?",
-  rotuloTelefone = "Seu WhatsApp (com DDD)",
+  rotuloNome, rotuloTelefone, dicaNome, dicaTelefone,
+  prefixo = "🇧🇷 +55", emCard = true, seguranca, travarAteValido = true,
   cta, enviando = false, onEnviar,
 }: ResinaCapturaProps) {
   const t = tokensResina(cor);
@@ -74,7 +90,10 @@ export default function ResinaCaptura({
   const [focado, setFocado] = useState<string | null>(null);
 
   // 10 dígitos = fixo com DDD, 11 = celular. Menos que isso não é telefone.
-  const valido = nome.trim().length >= 2 && tel.replace(/\D/g, "").length >= 10;
+  const completo = nome.trim().length >= 2 && tel.replace(/\D/g, "").length >= 10;
+  // com a trava desligada o botão fica sempre clicável; a validação do envio
+  // continua no runner, então lead incompleto ainda é barrado lá
+  const valido = travarAteValido ? completo : true;
 
   const corte = destaque && titulo ? titulo.indexOf(destaque) : -1;
   const campo = (id: string): CSSProperties => ({
@@ -191,14 +210,17 @@ export default function ResinaCaptura({
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-3.5 p-5" style={{ background: "#fff", borderRadius: 16, border: `1px solid ${t.softBorder}`, boxShadow: t.sombraCard }}>
+      <div
+        className={`flex flex-col gap-3.5 ${emCard ? "p-5" : ""}`}
+        style={emCard ? { background: "#fff", borderRadius: 16, border: `1px solid ${t.softBorder}`, boxShadow: t.sombraCard } : undefined}
+      >
         {formTitulo ? (
           <h3 className="text-center text-base font-bold md:text-lg" style={{ color: t.primaryDarker }}>{formTitulo}</h3>
         ) : null}
         <div>
-          <label htmlFor="rq-nome" style={rotulo}>{rotuloNome}</label>
+          {rotuloNome ? <label htmlFor="rq-nome" style={rotulo}>{rotuloNome}</label> : null}
           <input
-            id="rq-nome" type="text" placeholder="Digite seu nome..." value={nome}
+            id="rq-nome" type="text" placeholder={dicaNome || "Digite seu nome..."} value={nome}
             onChange={(e) => setNome(e.target.value)}
             onFocus={() => setFocado("nome")} onBlur={() => setFocado(null)}
             autoComplete="name" autoCapitalize="words" autoCorrect="off" spellCheck={false}
@@ -206,7 +228,7 @@ export default function ResinaCaptura({
           />
         </div>
         <div>
-          <label htmlFor="rq-tel" style={rotulo}>{rotuloTelefone}</label>
+          {rotuloTelefone ? <label htmlFor="rq-tel" style={rotulo}>{rotuloTelefone}</label> : null}
           {/* Prefixo +55 fixo ao lado do campo, não dentro dele. Dentro, o lead
               apaga sem querer ao limpar o campo; fora, ele é um rótulo — deixa
               claro que o número é brasileiro sem virar caractere digitável. */}
@@ -214,14 +236,14 @@ export default function ResinaCaptura({
             className="flex items-stretch overflow-hidden"
             style={{ border: `2px solid ${focado === "tel" ? cor : t.softBorder}`, borderRadius: 12, background: "#fff", transition: "border-color .2s" }}
           >
-            <span
-              className="flex shrink-0 items-center gap-1.5 px-3 text-base font-semibold"
-              style={{ background: t.softBg, color: t.primaryDarker, borderRight: `1px solid ${t.softBorder}` }}
-            >
-              <span aria-hidden>🇧🇷</span>+55
-            </span>
+            {prefixo ? (
+              <span
+                className="flex shrink-0 items-center gap-1.5 px-3 text-base font-semibold"
+                style={{ background: t.softBg, color: t.primaryDarker, borderRight: `1px solid ${t.softBorder}` }}
+              >{prefixo}</span>
+            ) : null}
             <input
-              id="rq-tel" type="tel" placeholder="(00) 00000-0000" value={tel}
+              id="rq-tel" type="tel" placeholder={dicaTelefone || "(00) 00000-0000"} value={tel}
               onChange={(e) => setTel(mascaraTelefone(e.target.value))}
               onFocus={() => setFocado("tel")} onBlur={() => setFocado(null)}
               // `inputMode=tel` abre o teclado numérico no celular; sem ele o lead
@@ -249,9 +271,9 @@ export default function ResinaCaptura({
         {enviando ? "Enviando…" : cta}
       </button>
 
-      <p className="text-center text-xs" style={{ color: t.muted }}>
-        🔒 Seus dados estão protegidos e nunca serão compartilhados
-      </p>
+      {seguranca ? (
+        <div className="text-center text-xs" style={{ color: t.muted }} dangerouslySetInnerHTML={{ __html: seguranca }} />
+      ) : null}
     </div>
   );
 }
