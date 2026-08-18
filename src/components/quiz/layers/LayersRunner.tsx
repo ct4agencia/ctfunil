@@ -14,6 +14,7 @@ import ResinaQuiz from "../ResinaQuiz";
 import ResinaHero from "../ResinaHero";
 import ResinaResultado from "../ResinaResultado";
 import ResinaCaptura from "../ResinaCaptura";
+import ResinaPosCaptura from "../ResinaPosCaptura";
 
 /** Tira tags e entidades: o `ResinaQuiz` recebe texto puro, não HTML. */
 const semHtml = (h?: string) =>
@@ -580,6 +581,30 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     cta={semHtml(btn?.content?.label) || "QUERO RECEBER"}
                     enviando={submitting}
                     onEnviar={(d) => submitFields(d)}
+                  />
+                );
+              }
+              /* PÓS-CAPTURA — confirmação. O nome vem do estado preenchido na
+                 lâmina anterior; ausente (acesso direto a esta URL), a frase
+                 simplesmente começa sem o vocativo. */
+              if (presetTelas && (step as { tela?: string }).tela === "pos-captura") {
+                const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
+                const alertas = ls.filter((l) => l.type === "alert" && semHtml(l.content?.text));
+                const btn = ls.find((l) => l.type === "button");
+                return (
+                  <ResinaPosCaptura
+                    cor={design.themeColor || "#0284c7"}
+                    nome={name || undefined}
+                    titulo={semHtml(textos[0]?.content?.text) || "Pronto!"}
+                    texto={textos[1] ? semHtml(textos[1].content?.text) : undefined}
+                    alerta={alertas[0] ? semHtml(alertas[0].content?.text) : undefined}
+                    recadoTitulo={textos[2] ? semHtml(textos[2].content?.text) : undefined}
+                    recadoTexto={textos[3] ? semHtml(textos[3].content?.text) : undefined}
+                    recadoDestaque={textos[4] ? semHtml(textos[4].content?.text) : undefined}
+                    recadoFim={textos[5] ? semHtml(textos[5].content?.text) : undefined}
+                    chamada={textos[6] ? semHtml(textos[6].content?.text) : undefined}
+                    cta={semHtml(btn?.content?.label) || "CONTINUAR"}
+                    onAvancar={() => ctx.navigate(btn?.content?.destination || "next")}
                   />
                 );
               }
