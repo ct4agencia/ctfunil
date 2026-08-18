@@ -408,6 +408,14 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
         const hasOverride = ["show_logo", "show_progress", "show_back", "go_to_top"].some((k) => ov[k] !== undefined);
         const isVslStep = (step.layers || []).some((l) => l.type === "embed" || l.type === "video");
         if (idx === 0) return null;                  // hero nunca tem header
+        /* As telas do preset "resina" desenham o próprio cabeçalho — voltar em
+           chevron, pílula "Pergunta X de Y" — dentro do componente. Com o header
+           global por cima, o visitante via os dois: dois "Voltar" e duas
+           pílulas, uma acima da barra e outra abaixo. Quem tem tela própria não
+           recebe header global. */
+        const telaPropria = (step as { tela?: string }).tela
+          || (step.layers || []).some((l) => l.type === "options" && l.design?.preset === "resina");
+        if ((design as { presetTelas?: string }).presetTelas === "resina" && telaPropria) return null;
         if (isVslStep && !hasOverride) return null;   // VSL sem header por padrão (salvo override por lâmina)
         if (!hdr.show_logo && !hdr.show_progress && !hdr.show_back) return null;
         return (

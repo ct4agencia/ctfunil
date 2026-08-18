@@ -201,15 +201,29 @@ export default function ResinaCaptura({
         </div>
         <div>
           <label htmlFor="rq-tel" style={rotulo}>{rotuloTelefone}</label>
-          <input
-            id="rq-tel" type="tel" placeholder="(00) 00000-0000" value={tel}
-            onChange={(e) => setTel(mascaraTelefone(e.target.value))}
-            onFocus={() => setFocado("tel")} onBlur={() => setFocado(null)}
-            // `inputMode=tel` abre o teclado numérico no celular; sem ele o lead
-            // digita telefone no teclado de texto
-            autoComplete="tel" inputMode="tel"
-            style={campo("tel")}
-          />
+          {/* Prefixo +55 fixo ao lado do campo, não dentro dele. Dentro, o lead
+              apaga sem querer ao limpar o campo; fora, ele é um rótulo — deixa
+              claro que o número é brasileiro sem virar caractere digitável. */}
+          <div
+            className="flex items-stretch overflow-hidden"
+            style={{ border: `2px solid ${focado === "tel" ? cor : t.softBorder}`, borderRadius: 12, background: "#fff", transition: "border-color .2s" }}
+          >
+            <span
+              className="flex shrink-0 items-center gap-1.5 px-3 text-base font-semibold"
+              style={{ background: t.softBg, color: t.primaryDarker, borderRight: `1px solid ${t.softBorder}` }}
+            >
+              <span aria-hidden>🇧🇷</span>+55
+            </span>
+            <input
+              id="rq-tel" type="tel" placeholder="(00) 00000-0000" value={tel}
+              onChange={(e) => setTel(mascaraTelefone(e.target.value))}
+              onFocus={() => setFocado("tel")} onBlur={() => setFocado(null)}
+              // `inputMode=tel` abre o teclado numérico no celular; sem ele o lead
+              // digita telefone no teclado de texto
+              autoComplete="tel" inputMode="tel"
+              style={{ ...campo("tel"), border: "none", borderRadius: 0 }}
+            />
+          </div>
         </div>
       </div>
 
