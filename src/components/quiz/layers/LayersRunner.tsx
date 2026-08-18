@@ -750,6 +750,12 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     vagasEm={Number(barraVagas?.content?.revealAt) || 0}
                     vagasTexto={barraVagas ? String(barraVagas.content?.text) : undefined}
                     vagasFundo={(barraVagas?.design?.backgroundColor as string) || undefined}
+                    /* contador: sem `vagasAte` o texto fica estático. O fim
+                       cai no `revealAt` do botão quando não é informado — é o
+                       momento em que o pitch pede a decisão. */
+                    vagasDe={Number(barraVagas?.content?.vagasDe) || undefined}
+                    vagasAte={Number(barraVagas?.content?.vagasAte) || undefined}
+                    vagasFimEm={Number(barraVagas?.content?.vagasFimEm) || undefined}
                     alertas={alertas}
                     textoEspera={semHtml(btn?.content?.waitText) || undefined}
                     // 1º texto = chamada acima do player; 2º = título da garantia

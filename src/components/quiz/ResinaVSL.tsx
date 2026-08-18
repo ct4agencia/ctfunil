@@ -57,6 +57,15 @@ export interface ResinaVSLProps {
   alertas?: string[];
   /** fundo da barra de vagas; vazio usa preto translúcido sobre o fundo escuro */
   vagasFundo?: string;
+  /**
+   * CONTADOR de escassez. `[vagas]` no texto é trocado por um número que sobe
+   * de `vagasDe` até `vagasAte` ao longo do vídeo. Sem `vagasAte`, o texto fica
+   * estático — quem não quer contador não precisa configurar nada.
+   */
+  vagasDe?: number;
+  vagasAte?: number;
+  /** segundo em que o contador atinge `vagasAte`; vazio usa o tempo do CTA */
+  vagasFimEm?: number;
   /** selos de confiança do rodapé (ex.: "Google Site Seguro") */
   selosImagem?: string;
   rodape?: string;
@@ -71,7 +80,8 @@ export default function ResinaVSL({
   cor = "#0284c7", fundo, ctaCor,
   embedHtml, cta, checkoutUrl, revelarEm = 0, vagasEm = 0, vagasTexto,
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
-  headline, alertas = [], vagasFundo, selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
+  headline, alertas = [], vagasFundo, vagasDe, vagasAte, vagasFimEm,
+  selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
   /* Fundo, filete e CTA saem do TEMA — nada de hexadecimal cravado. Com tema
@@ -83,6 +93,43 @@ export default function ResinaVSL({
   const verdeCta = ctaCor || "#16A34A";
   const [mostraCta, setMostraCta] = useState(revelarEm <= 0);
   const [mostraVagas, setMostraVagas] = useState(vagasEm <= 0 && !!vagasTexto);
+
+  /**
+   * CONTADOR DE VAGAS — o número sobe enquanto o vídeo corre.
+   *
+   * A escassez só funciona se ela ACONTECER na frente do visitante: um número
+   * fixo é lido como enfeite, um que sobe enquanto ele assiste é lido como
+   * fila andando. Por isso o teto coincide com a revelação do CTA — quando o
+   * botão aparece, "só restam 2".
+   *
+   * A conta é do TEMPO DECORRIDO, não de incrementos acumulados: assim o valor
+   * está sempre certo mesmo se a aba ficar em segundo plano e o navegador
+   * suspender os timers, e o teto é atingido no segundo exato em vez de
+   * depender de quantos ticks conseguiram rodar.
+   */
+  const contaVagas = typeof vagasAte === "number" && vagasAte > 0;
+  const inicioVagas = Math.max(0, vagasEm);
+  const fimVagas = Math.max(inicioVagas + 1, vagasFimEm || revelarEm || inicioVagas + 60);
+  const [vagas, setVagas] = useState(vagasDe ?? 0);
+  useEffect(() => {
+    if (!contaVagas) return;
+    const de = vagasDe ?? 0;
+    const t0 = Date.now();
+    const passo = () => {
+      const seg = (Date.now() - t0) / 1000;
+      const p = Math.min(1, Math.max(0, (seg - inicioVagas) / (fimVagas - inicioVagas)));
+      setVagas(Math.round(de + (vagasAte! - de) * p));
+    };
+    passo();
+    // 5s: rápido o bastante para o número mexer enquanto se assiste, lento o
+    // bastante para não parecer cronômetro
+    const iv = setInterval(passo, 5000);
+    return () => clearInterval(iv);
+  }, [contaVagas, vagasDe, vagasAte, inicioVagas, fimVagas]);
+
+  // `[vagas]` no texto vira o número corrente — mesma convenção do `[time]` do
+  // bloco Timer, para quem escreve a copy não ter que aprender outra sintaxe.
+  const textoVagas = vagasTexto?.replace(/\[vagas\]/gi, String(contaVagas ? vagas : (vagasDe ?? "")));
 
   /**
    * `dangerouslySetInnerHTML` NÃO executa <script> — é regra do React, e por
@@ -141,7 +188,7 @@ export default function ResinaVSL({
             background: vagasFundo || "rgba(0,0,0,.35)",
             borderBottom: "1px solid rgba(255,255,255,.08)", color: "#fff",
           }}
-          dangerouslySetInnerHTML={{ __html: vagasTexto }}
+          dangerouslySetInnerHTML={{ __html: textoVagas || vagasTexto }}
         />
       ) : null}
 

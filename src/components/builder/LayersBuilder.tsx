@@ -428,6 +428,33 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <p className="mt-1 text-[11px] text-neutral-400">
             Fica fixa no topo da lâmina de VSL. Vazio usa preto translúcido, que escurece o fundo sem brigar com ele — o campo de texto ao lado aceita <code>rgba()</code> e gradiente.
           </p>
+
+          {/* CONTADOR — escreva [vagas] no texto e o número sobe enquanto o
+              vídeo corre. Escassez parada é lida como enfeite; escassez que
+              anda na frente do visitante é lida como fila andando. */}
+          <div className="mt-3 rounded-lg bg-amber-50 p-2.5 ring-1 ring-amber-200">
+            <p className="mb-1.5 text-[11px] font-bold text-amber-900">
+              Contador de vagas — use <code className="rounded bg-amber-200/60 px-1">[vagas]</code> no texto
+            </p>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Lbl>Começa em</Lbl>
+                <input type="number" min={0} value={Number(c.vagasDe) || ""} placeholder="32"
+                  onChange={(e) => setC({ vagasDe: Number(e.target.value) || undefined })} className={inp} />
+              </div>
+              <div className="flex-1">
+                <Lbl>Chega em</Lbl>
+                <input type="number" min={0} value={Number(c.vagasAte) || ""} placeholder="48"
+                  onChange={(e) => setC({ vagasAte: Number(e.target.value) || undefined })} className={inp} />
+              </div>
+            </div>
+            <Lbl>Atinge o máximo aos (segundos)</Lbl>
+            <input type="number" min={0} value={Number(c.vagasFimEm) || ""} placeholder="vazio = quando o botão aparece"
+              onChange={(e) => setC({ vagasFimEm: Number(e.target.value) || undefined })} className={inp} />
+            <p className="mt-1 text-[11px] text-amber-800/70">
+              Vazio, o teto cai no momento em que o CTA é liberado — quando o pitch pede a decisão, “só restam poucas”. Sem “Chega em”, o número fica parado.
+            </p>
+          </div>
         </>) : null}
       </>);
     case "check":
