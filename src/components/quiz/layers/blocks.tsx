@@ -14,7 +14,7 @@ import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types"
 // Tela do bloco `loading` no estilo "diagnóstico", dividida com o motor tipado.
 // `dynamic` porque a maioria das lâminas de loading usa a barra simples e não
 // deve baixar o anel + as caixas.
-const Diagnostico = dynamic(() => import("../Diagnostico"), { ssr: false });
+const ResinaDiagnostico = dynamic(() => import("../ResinaDiagnostico"), { ssr: false });
 // Barras rotuladas + micro-perguntas — mesma tela do motor tipado.
 const Checklist = dynamic(() => import("../Checklist"), { ssr: false });
 
@@ -714,20 +714,34 @@ function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const editando = !!useContext(LayersEditContext);
   // DIAGNÓSTICO: outra tela, não outra skin da barra. Sai antes de qualquer
   // estado da barra ser montado — os dois só compartilham o campo `seconds`. A
-  // tela mora em `quiz/Diagnostico.tsx`, dividida com o motor tipado.
+  // tela mora em `quiz/ResinaDiagnostico.tsx`, dividida com o LayersRunner.
   if (c.style === "diagnostico") {
     const limpo = (s: unknown) => interpHtml(String(s), ctx).replace(/<[^>]+>/g, "").trim();
+    /* MESMA TELA no construtor e no site. Antes daqui o bloco renderizava o
+       `Diagnostico.tsx` enquanto o runner renderizava o `ResinaDiagnostico` —
+       o construtor mostrava caixas e aros, o site mostrava pílulas e arcos, e
+       não havia como conferir o resultado sem abrir a URL pública.
+       O `ResinaDiagnostico` faz os dois desenhos, então serve aos dois lados.
+
+       O PADRÃO preserva os funis existentes: sem campo gravado, `anel` cai em
+       "antigo" — que reproduz o desenho que eles sempre tiveram. Só o funil que
+       escolher "novo" no construtor muda. */
+    const msgs = ((c.bars as string[]) ?? []).map((b, i) => ({
+      texto: limpo(b),
+      icone: (c.icons as string[] | undefined)?.[i] || undefined,
+    }));
     return (
-      <Diagnostico
-        titulo={c.title ? interpHtml(String(c.title), ctx) : undefined}
-        subtitulo={c.description ? limpo(c.description) : undefined}
-        caixas={((c.bars as string[]) ?? []).map(limpo)}
-        icones={c.icons as string[] | undefined}
-        duracaoMs={(Number(c.seconds) || 5) * 1000}
+      <ResinaDiagnostico
         // por prop, não por CSS var: `paletteVars` só é aplicado no ramo de
         // bloco-hero do LayersRunner, e aqui isto renderiza como bloco comum —
         // o anel saía desenhado e sem cor
         cor={ctx.design.themeColor || "#ea580c"}
+        mensagens={msgs.length ? msgs : [{ texto: limpo(c.title) || "Processando…", icone: "🔎" }]}
+        legenda={c.description ? limpo(c.description) : undefined}
+        duracaoMs={(Number(c.seconds) || 5) * 1000}
+        anel={((c as { anel?: "novo" | "antigo" }).anel) ?? "antigo"}
+        pilulas={((c as { pilulas?: boolean }).pilulas) ?? false}
+        caixas={((c as { caixas?: boolean }).caixas) ?? true}
         // type "none" = a lâmina segue no lugar depois da análise (igual à barra)
         onFim={c.type === "none" || editando ? undefined : () => ctx.navigate(String(c.destination || "next"))}
       />

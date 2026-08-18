@@ -594,6 +594,30 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <option value="diagnostico">Diagnóstico (anel + caixas)</option>
         </select>
         <Lbl>Duração (s)</Lbl><input type="number" value={c.seconds ?? 4} onChange={(e) => setC({ seconds: Number(e.target.value) })} className={inp} />
+        {/* PEÇAS DO DIAGNÓSTICO — antes eu escolhia por você e o construtor
+            mostrava um desenho enquanto o site mostrava outro. Aqui a escolha é
+            explícita: qual medalhão, e quais indicadores acompanham. A barra de
+            progresso é sempre a mesma (a da referência) e não entra como opção,
+            porque duas barras diferentes só criariam divergência de novo. */}
+        <Lbl>Medalhão</Lbl>
+        <select value={(c.anel as string) || "novo"} onChange={(e) => setC({ anel: e.target.value })} className={inp}>
+          <option value="novo">Anel novo (arcos girando)</option>
+          <option value="antigo">Anel antigo (aros + progresso)</option>
+        </select>
+        <Lbl>Indicadores</Lbl>
+        <div className="space-y-1.5">
+          {([["caixas", "Caixas (uma verificação por linha)", true],
+             ["pilulas", "Pílulas (fase corrente acesa)", false]] as const).map(([k, label, padrao]) => (
+            <label key={k} className="flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
+              <input
+                type="checkbox"
+                checked={(c[k] as boolean | undefined) ?? padrao}
+                onChange={(e) => setC({ [k]: e.target.checked })}
+                className="h-3.5 w-3.5 accent-neutral-900"
+              /> {label}
+            </label>
+          ))}
+        </div>
         <Lbl>Auto-avançar ao terminar?</Lbl>
         <select value={c.type === "none" ? "no" : "yes"} onChange={(e) => setC({ type: e.target.value === "no" ? "none" : "advance" })} className={inp}><option value="no">Não (revela a lâmina)</option><option value="yes">Sim</option></select>
         {diag ? (<>

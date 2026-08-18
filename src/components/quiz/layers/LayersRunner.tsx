@@ -634,6 +634,12 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     cor={design.themeColor || "#0284c7"}
                     mensagens={msgs.length ? msgs : [{ texto: semHtml(c.title) || "Analisando o seu perfil…", icone: "🔎" }]}
                     duracaoMs={(Number(c.seconds) || 5) * 1000}
+                    /* Peças escolhidas no construtor. Os padrões (anel novo +
+                       caixas, sem pílulas) são o que o Luca definiu — sem
+                       campo gravado, é isso que sai. */
+                    anel={(c as { anel?: "novo" | "antigo" }).anel ?? "novo"}
+                    pilulas={(c as { pilulas?: boolean }).pilulas ?? false}
+                    caixas={(c as { caixas?: boolean }).caixas ?? true}
                     onFim={() => ctx.navigate(btn?.content?.destination || "next")}
                   />
                 );

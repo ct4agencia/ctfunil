@@ -37,11 +37,23 @@ export interface ResinaDiagnosticoProps {
   mensagens: MensagemDiag[];
   duracaoMs?: number;
   legenda?: string;
+  /**
+   * Qual medalhão desenhar. "novo" são os ARCOS da referência (só uma borda
+   * colorida, então o giro é visível); "antigo" são os anéis inteiros que os
+   * outros funis usam. Os dois existem porque a escolha é do construtor, não
+   * minha.
+   */
+  anel?: "novo" | "antigo";
+  /** pílulas curtas com a fase corrente acesa */
+  pilulas?: boolean;
+  /** caixas com uma verificação por linha, marcando conforme avança */
+  caixas?: boolean;
   onFim?: () => void;
 }
 
 export default function ResinaDiagnostico({
-  cor, mensagens, duracaoMs = 5000, legenda = "Aguarde só um instante...", onFim,
+  cor, mensagens, duracaoMs = 5000, legenda = "Aguarde só um instante...",
+  anel = "novo", pilulas = false, caixas = true, onFim,
 }: ResinaDiagnosticoProps) {
   const t = tokensResina(cor);
   const rgb = rgbDe(cor);
@@ -86,23 +98,55 @@ export default function ResinaDiagnostico({
           />
         )}
 
-        {/* ARCOS, não anéis: só uma borda recebe cor, então o giro é visível.
-            Um aro inteiro girando é indistinguível de um aro parado. */}
-        <motion.div
-          animate={reduzido ? {} : { rotate: 360 }}
-          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 rounded-full"
-          style={{ border: "3px solid transparent", borderTopColor: cor, borderRightColor: `rgba(${rgb},.4)` }}
-          aria-hidden
-        />
-        <motion.div
-          animate={reduzido ? {} : { rotate: -360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="absolute rounded-full"
-          style={{ inset: 12, border: "2.5px solid transparent", borderBottomColor: t.primaryDark, borderLeftColor: `rgba(${rgb},.35)` }}
-          aria-hidden
-        />
-        <div className="absolute rounded-full" style={{ inset: 6, border: `1.5px dashed rgba(${rgb},.15)` }} aria-hidden />
+        {/* ANEL NOVO: arcos — só uma borda recebe cor, então o giro é visível.
+            Um aro INTEIRO girando é indistinguível de um aro parado, e é por
+            isso que os dois desenhos comunicam coisas diferentes. */}
+        {anel === "novo" ? (
+          <>
+            <motion.div
+              animate={reduzido ? {} : { rotate: 360 }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 rounded-full"
+              style={{ border: "3px solid transparent", borderTopColor: cor, borderRightColor: `rgba(${rgb},.4)` }}
+              aria-hidden
+            />
+            <motion.div
+              animate={reduzido ? {} : { rotate: -360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="absolute rounded-full"
+              style={{ inset: 12, border: "2.5px solid transparent", borderBottomColor: t.primaryDark, borderLeftColor: `rgba(${rgb},.35)` }}
+              aria-hidden
+            />
+            <div className="absolute rounded-full" style={{ inset: 6, border: `1.5px dashed rgba(${rgb},.15)` }} aria-hidden />
+          </>
+        ) : (
+          /* ANEL ANTIGO: aros completos girando em sentidos opostos, mais o arco
+             de progresso por fora. É o desenho que os outros funis usam. */
+          <>
+            <motion.span
+              className="absolute inset-0 rounded-full"
+              style={{ border: `1px dashed ${cor}55` }}
+              animate={reduzido ? {} : { rotate: 360 }}
+              transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
+              aria-hidden
+            />
+            <motion.span
+              className="absolute rounded-full"
+              style={{ inset: 10, border: `2px solid ${cor}2e` }}
+              animate={reduzido ? {} : { rotate: -360 }}
+              transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
+              aria-hidden
+            />
+            <svg viewBox="0 0 80 80" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden>
+              <circle cx="40" cy="40" r="34" fill="none" strokeWidth="4" stroke={`${cor}22`} />
+              <circle
+                cx="40" cy="40" r="34" fill="none" strokeWidth="4" strokeLinecap="round" stroke={cor}
+                strokeDasharray={2 * Math.PI * 34}
+                strokeDashoffset={2 * Math.PI * 34 * (1 - pct / 100)}
+              />
+            </svg>
+          </>
+        )}
 
         <div
           className="absolute grid place-items-center rounded-full"
@@ -189,6 +233,7 @@ export default function ResinaDiagnostico({
         </div>
       </motion.div>
 
+      {pilulas ? (
       <motion.div
         initial={reduzido ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -215,6 +260,48 @@ export default function ResinaDiagnostico({
           );
         })}
       </motion.div>
+      ) : null}
+
+      {/* CAIXAS — uma verificação por linha, marcando conforme a análise avança.
+          Enquanto as pílulas dizem em que fase está, as caixas dizem O QUE foi
+          verificado; por isso as duas podem conviver, e por isso a escolha é do
+          construtor. */}
+      {caixas ? (
+        <div className="mt-1 w-full max-w-[380px] space-y-2.5">
+          {linhas.map((m, i) => {
+            const feita = i < atual || pct >= 100;
+            const rodando = i === atual && pct < 100;
+            return (
+              <motion.div
+                key={i}
+                className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3 text-left shadow-[0_2px_10px_rgba(0,0,0,.06)]"
+                animate={{ opacity: feita || rodando ? 1 : 0.45 }}
+                transition={{ duration: 0.25 }}
+              >
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-lg" style={{ background: `rgba(${rgb},.10)` }}>
+                  {m.icone ?? "🔎"}
+                </div>
+                <p className="flex-1 text-[13px] font-semibold leading-snug" style={{ color: t.text }}>{m.texto}</p>
+                {feita ? (
+                  <span className="shrink-0 text-lg leading-none" style={{ color: cor }}>✓</span>
+                ) : rodando ? (
+                  <span className="flex shrink-0 gap-1" aria-hidden>
+                    {[0, 1, 2].map((d) => (
+                      <motion.span
+                        key={d} className="h-1.5 w-1.5 rounded-full" style={{ background: cor }}
+                        animate={reduzido ? {} : { opacity: [0.25, 1, 0.25] }}
+                        transition={{ duration: 0.9, repeat: Infinity, delay: d * 0.15 }}
+                      />
+                    ))}
+                  </span>
+                ) : (
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-200" />
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
