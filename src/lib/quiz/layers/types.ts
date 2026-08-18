@@ -20,6 +20,10 @@ export type LayerType =
   // Caixa com fundo, borda e sombra derivados do tema, para separar um trecho
   // do resto. Era o que faltava para a lâmina parar de parecer lista solta.
   | "card"
+  // Selo de confirmação: disco com o ✓ se desenhando e ondas saindo de trás.
+  // Nasceu dentro da tela de pós-captura; virou bloco porque confirmação
+  // acontece em vários pontos do funil.
+  | "check"
   // ── blocos-hero vindos do motor tipado ────────────────────────────────────
   // Ocupam a lâmina inteira e reaproveitam os componentes de components/quiz/
   // (mesmo mecanismo que roulette/slider já usam). O `content` de cada um é o
@@ -28,7 +32,7 @@ export type LayerType =
   | "measure"    // "pedida": régua horizontal arrastável (MeasureStepView)
   | "gauge"      // medidor/velocímetro (GaugeStepView)
   | "vsl"        // player de vídeo com CTA por tempo (VslStepView)
-  | "confirm";   // "parabéns": celebração + confete (ConfirmStepView)
+  | "confirm" | "check";   // "parabéns": celebração + confete (ConfirmStepView)
 
 /** Imagem/emoji de uma opção ou bloco. */
 export interface InleadMedia {

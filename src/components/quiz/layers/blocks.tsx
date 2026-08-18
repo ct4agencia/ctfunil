@@ -466,6 +466,63 @@ function CarouselBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   );
 }
 
+// ─────────────────────────────── CHECK ──────────────────────────────
+/**
+ * Selo de confirmação: disco colorido com o traço do ✓ SE DESENHANDO, e ondas
+ * saindo de trás.
+ *
+ * O traço se desenha em vez de aparecer pronto porque é o GESTO de marcar que
+ * comunica "feito" — um ✓ estático é só um ícone. E são duas ondas com atraso
+ * entre si: uma só lê como piscada, duas leem como sinal repetindo, que é o que
+ * uma confirmação precisa parecer.
+ *
+ * Nasceu dentro do `ResinaPosCaptura`; virou bloco porque confirmação acontece
+ * em mais de um ponto do funil (pós-captura, pós-roleta, fim de formulário) e
+ * copiar o desenho em cada um é como as divergências começam.
+ */
+function CheckBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  const d = layer.design || {};
+  const c = layer.content;
+  const cor = (d.backgroundColor as string) || "#16A34A";
+  const tam = Number(d.basis) || 64;
+  const reduzido = prefereMenosMovimento();
+  return (
+    <div className={`flex w-full flex-col items-center gap-2 ${justifyOf(d)}`}>
+      <motion.div
+        initial={reduzido ? false : { scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: "spring", stiffness: 180, damping: 12, delay: 0.1 }}
+        className="relative"
+        style={{ width: tam, height: tam }}
+      >
+        {!reduzido && [0, 0.6].map((atraso, i) => (
+          <motion.div
+            key={i} aria-hidden className="absolute inset-0 rounded-full" style={{ background: cor }}
+            animate={{ scale: [1, i ? 1.6 : 1.4, 1], opacity: [i ? 0.3 : 0.45, 0, i ? 0.3 : 0.45] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: atraso }}
+          />
+        ))}
+        <div
+          className="relative grid h-full w-full place-items-center rounded-full"
+          style={{ background: `linear-gradient(135deg, ${cor} 0%, ${escurecerHex(cor, 0.18)} 100%)`, boxShadow: `0 10px 30px -10px ${cor}` }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" style={{ width: tam * 0.5, height: tam * 0.5 }} aria-hidden>
+            <motion.path
+              d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"
+              initial={reduzido ? false : { pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.5, ease: "easeOut" }}
+            />
+          </svg>
+        </div>
+      </motion.div>
+      {c.text ? (
+        <Html html={interpHtml(String(c.text), ctx)} className="text-center" style={{ fontSize: `${remContent(ctx)}px` }} />
+      ) : null}
+    </div>
+  );
+}
+
 // ─────────────────────── EMBED / VÍDEO (VTurb) ──────────────────────
 /** Injeta o embed do player (seta innerHTML + RE-EXECUTA os <script>). */
 function EmbedBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
@@ -1153,6 +1210,7 @@ export function Block({ layer, ctx, question, indice = 0 }: { layer: Layer; ctx:
     switch (layer.type) {
       case "text": return <TextBlock layer={layer} ctx={ctx} />;
       case "clear": return <ClearBlock layer={layer} />;
+      case "check": return <CheckBlock layer={layer} ctx={ctx} />;
       case "alert": return <AlertBlock layer={layer} ctx={ctx} />;
       case "image": return <ImageBlock layer={layer} ctx={ctx} />;
       case "button": return <ButtonBlock layer={layer} ctx={ctx} />;

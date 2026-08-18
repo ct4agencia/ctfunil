@@ -51,7 +51,7 @@ const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Jogos (hero)", items: [["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
   { name: "Conversão (hero)", items: [["vsl", "VSL (vídeo + CTA)"], ["confirm", "Parabéns"]] },
   { name: "Mídia e conteúdo", items: [["text", "Texto"], ["card", "Card"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
-  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"]] },
+  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"]] },
   { name: "Argumentação", items: [["arguments", "Argumentos"], ["testimonials", "Depoimentos"], ["faq", "FAQ"], ["price", "Preço"], ["checklist", "Checklist"], ["beforeafter", "Antes/Depois"], ["carousel", "Carrossel"]] },
   { name: "Gráficos", items: [["graphics", "Métricas"], ["charts", "Gráficos"]] },
   { name: "Personalização", items: [["clear", "Espaço"], ["html", "HTML/Script"]] },
@@ -82,7 +82,7 @@ const PALETTE_ICON: Record<string, string> = {
   roulette: "🎡", slider: "🎚️", scratch: "🎟️", measure: "📐", gauge: "🎯", vsl: "🎥", confirm: "🎉",
 };
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
-const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
+const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
   // blocos-hero herdados do motor tipado (todos com preset pronto)
   "scratch", "measure", "gauge", "vsl", "confirm",
   // Estes DOIS o funil já desenhava (blocks.tsx: GraphicsBlock e
@@ -136,6 +136,8 @@ function newLayer(type: LayerType): Layer {
     case "timer": return { ...base, design: { backgroundColor: "#e3eeff", color: "#1c72f1", borderColor: "#c7dcfe", padding: 10 }, content: { id, text: "<p><strong>Oferta acaba em: [time]</strong></p>", time: 300 } };
     case "loading": return { ...base, content: { id, title: "Carregando…", seconds: 4, type: "none", show_title: true, show_percent: true, show_progress: true } };
     case "clear": return { ...base, content: { id, clear: "h-[1rem]" } };
+    case "check": return { ...base, design: { basis: 64, backgroundColor: "#16A34A", horizontalAlign: "mx-auto" },
+      content: { id, text: '<p class="ql-align-center"><strong>Pronto!</strong></p>' } };
     case "carousel": return { ...base, design: { basis: 100 }, content: { id, images: [], interval: 2 } };
     case "embed": case "video": return { ...base, content: { id, embedHtml: "" } };
     case "roulette": return { ...base, content: { id, type: "roulette", style: "soft", mode: "always", title: "Gire a roleta e descubra sua condição especial.", subtitle: "Você tem uma chance de liberar um benefício exclusivo agora.", cta: "Girar", initialIndex: 0, winningIndex: 0, winTitle: "🎉 Você ganhou!", winBody: "", winCta: "Continuar →", background: "#0b1f3a", segments: [{ label: "ACESSO GRÁTIS", color: "#008516", value: "" }, { label: "25% OFF", color: "#67c57a", value: "" }, { label: "Não foi dessa vez", color: "#f56161", value: "" }, { label: "15% OFF", color: "#9af4b9", value: "" }, { label: "Tente de novo", color: "#4a4845", value: "" }] } } as unknown as Layer;
