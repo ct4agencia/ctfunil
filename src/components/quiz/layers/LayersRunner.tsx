@@ -673,6 +673,9 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                 const destino = btn?.content?.destination || funnel.checkoutUrl || "";
                 return (
                   <ResinaVSL
+                    cor={design.themeColor || "#0284c7"}
+                    fundo={(step as { fundo?: string }).fundo}
+                    ctaCor={(step as { ctaCor?: string }).ctaCor}
                     embedHtml={String(emb?.content?.embedHtml || "")}
                     cta={semHtml(btn?.content?.label) || "QUERO GARANTIR MINHA VAGA"}
                     checkoutUrl={destino}

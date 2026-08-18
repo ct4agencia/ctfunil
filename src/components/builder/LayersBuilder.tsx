@@ -1760,8 +1760,31 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                     onChange={(e) => patchStep(selStep, { vagasEm: Number(e.target.value) } as Partial<InleadStep>)}
                     className={inp}
                   />
+                  <p className="mt-1.5 text-[11px] text-neutral-400">Texto vazio esconde a barra.</p>
+                  <Lbl>Fundo da lâmina</Lbl>
+                  <input
+                    value={(step as { fundo?: string })?.fundo || ""}
+                    onChange={(e) => patchStep(selStep, { fundo: e.target.value } as Partial<InleadStep>)}
+                    placeholder="URL de imagem, cor (#0b2033) ou gradiente CSS"
+                    className={inp}
+                  />
                   <p className="mt-1.5 text-[11px] text-neutral-400">
-                    Texto vazio esconde a barra. A cor é o dourado da referência, fixa — ela existe para contrastar com o fundo escuro da VSL.
+                    Vazio deriva da <b>Cor do tema</b>: trocar o tema repinta o fundo junto.
+                  </p>
+                  <Lbl>Cor do botão de checkout</Lbl>
+                  <div className="flex items-center gap-2">
+                    <ColorField
+                      value={(step as { ctaCor?: string })?.ctaCor || "#16A34A"}
+                      onChange={(v) => patchStep(selStep, { ctaCor: v } as Partial<InleadStep>)}
+                      className="h-8 w-9" label="Cor do CTA"
+                    />
+                    <button
+                      onClick={() => patchStep(selStep, { ctaCor: undefined } as Partial<InleadStep>)}
+                      className="text-[11px] font-semibold text-neutral-400 hover:text-neutral-700"
+                    >↺ verde de confirmação</button>
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-neutral-400">
+                    O verde é o padrão de propósito: em qualquer paleta ele significa “comprar”.
                   </p>
                 </div>
               ) : null}

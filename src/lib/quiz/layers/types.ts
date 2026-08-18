@@ -163,6 +163,10 @@ export interface InleadStep {
   selosImagem?: string;
   /** VSL: razão social e direitos, no rodapé. */
   rodape?: string;
+  /** VSL: fundo próprio — URL de imagem, cor ou gradiente CSS. Vazio deriva do tema. */
+  fundo?: string;
+  /** VSL: cor do CTA. Vazio mantém o verde de confirmação. */
+  ctaCor?: string;
   /** Resultado: nota que o anel persegue, e a mínima citada no texto. */
   nota?: number;
   minimo?: number;

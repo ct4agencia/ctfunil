@@ -23,8 +23,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import { prefereMenosMovimento } from "@/lib/quiz/motion";
+import { fundoEscuroTema, gradienteTema, rgbDe } from "@/lib/quiz/resina";
 
 export interface ResinaVSLProps {
+  /** cor do tema — governa fundo e filete quando não há sobrescrita */
+  cor?: string;
+  /** fundo próprio da lâmina: URL de imagem, cor ou gradiente CSS. Vazio deriva do tema. */
+  fundo?: string;
+  /**
+   * Cor do CTA. Vazio mantém o VERDE de confirmação: verde significa
+   * "comprar/confirmado" em qualquer paleta, e um botão de checkout na cor de
+   * um tema vermelho leria como alerta. Decisão combinada com o Luca — os
+   * demais botões seguem o tema, este é a exceção deliberada.
+   */
+  ctaCor?: string;
   /** HTML do player, como vem do construtor */
   embedHtml: string;
   cta: string;
@@ -48,11 +60,19 @@ export interface ResinaVSLProps {
 }
 
 export default function ResinaVSL({
+  cor = "#0284c7", fundo, ctaCor,
   embedHtml, cta, checkoutUrl, revelarEm = 0, vagasEm = 0, vagasTexto,
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
   headline, selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
+  /* Fundo, filete e CTA saem do TEMA — nada de hexadecimal cravado. Com tema
+     verde, um fundo azul-marinho denunciaria que a paleta não governa a página.
+     `fundo` sobrescreve: aceita URL de imagem, cor ou gradiente CSS. */
+  const ehImagem = !!fundo && /^https?:\/\//i.test(fundo);
+  const fundoFinal = ehImagem ? undefined : (fundo || fundoEscuroTema(cor));
+  const filete = gradienteTema(cor);
+  const verdeCta = ctaCor || "#16A34A";
   const [mostraCta, setMostraCta] = useState(revelarEm <= 0);
   const [mostraVagas, setMostraVagas] = useState(vagasEm <= 0 && !!vagasTexto);
 
@@ -92,12 +112,18 @@ export default function ResinaVSL({
       // margens negativas anulam o padding do <main>: o fundo escuro precisa
       // sangrar até a borda, senão fica uma faixa clara em volta
       className="-mx-5 -my-6 flex w-[calc(100%+2.5rem)] flex-col items-center"
-      style={{ minHeight: "100dvh", background: "linear-gradient(180deg, #0b2033 0%, #123047 40%, #0b2033 100%)" }}
+      style={{
+        minHeight: "100dvh",
+        background: fundoFinal,
+        backgroundImage: ehImagem ? `url(${fundo})` : fundoFinal,
+        backgroundSize: ehImagem ? "cover" : undefined,
+        backgroundPosition: ehImagem ? "center" : undefined,
+      }}
     >
       {mostraVagas && vagasTexto ? (
         <div className="w-full px-5 py-3.5 text-center" style={{ background: "rgba(0,0,0,.35)", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
           <p className="m-0 text-[15px] font-extrabold" style={{ color: "#D6C1AD" }}>
-            <span style={{ background: "linear-gradient(90deg, #E8A838, #F5C842)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <span style={{ background: filete, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               {vagasTexto}
             </span>
           </p>
@@ -108,7 +134,7 @@ export default function ResinaVSL({
           vídeo só é lida por quem já assistiu — tarde demais para orientar. */}
       {headline ? (
         <div className="w-full px-5 pb-1 pt-7 text-center">
-          <div className="mx-auto mb-4 h-[3px] w-[60px] rounded-sm" style={{ background: "linear-gradient(90deg, #E8A838, #F5C842)" }} />
+          <div className="mx-auto mb-4 h-[3px] w-[60px] rounded-sm" style={{ background: filete }} />
           <h2 className="mx-auto" style={{ fontWeight: 900, fontSize: 24, lineHeight: 1.25, color: "#fff", maxWidth: 420 }}>{headline}</h2>
         </div>
       ) : null}
@@ -138,8 +164,8 @@ export default function ResinaVSL({
               padding: "19px 24px", borderRadius: 16, fontWeight: 800, fontSize: 17,
               letterSpacing: ".02em", textTransform: "uppercase", color: "#fff",
               textDecoration: "none",
-              background: "linear-gradient(135deg, #16A34A 0%, #22C55E 50%, #34D399 100%)",
-              boxShadow: "0 10px 30px rgba(5,150,105,.4)",
+              background: `linear-gradient(135deg, ${verdeCta} 0%, ${verdeCta}dd 50%, ${verdeCta}bb 100%)`,
+              boxShadow: `0 10px 30px rgba(${rgbDe(verdeCta)},.4)`,
             }}
           >
             {cta}
@@ -158,7 +184,7 @@ export default function ResinaVSL({
 
       {garantiaTitulo || garantiaImagem ? (
         <div className="w-full px-5 pb-7 pt-10 text-center" style={{ animation: reduzido ? undefined : "fade-in-up .6s ease-out .15s both" }}>
-          <div className="mx-auto mb-4 h-[3px] w-[60px] rounded-sm" style={{ background: "linear-gradient(90deg, #E8A838, #F5C842)" }} />
+          <div className="mx-auto mb-4 h-[3px] w-[60px] rounded-sm" style={{ background: filete }} />
           {garantiaTitulo ? (
             <h2 className="mb-5" style={{ fontWeight: 900, fontSize: 24, lineHeight: 1.25, color: "#fff" }}>{garantiaTitulo}</h2>
           ) : null}

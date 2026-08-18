@@ -106,6 +106,35 @@ export function tokensResina(cor = RESINA_PRIMARY): TokensResina {
 }
 
 /**
+ * O GRADIENTE CANÔNICO do tema — um só, para botão, pílula e qualquer superfície
+ * de destaque.
+ *
+ * Antes havia três receitas diferentes espalhadas: o botão montava a sua com
+ * `escurecerHex`, a pílula do editor rico usava `color-mix` com um creme fixo
+ * (`#ffd9a8`, que num tema azul puxava para o roxo) e o script de copy gravava
+ * um terceiro par direto no HTML. Resultado: duas pílulas lado a lado com
+ * degradês visivelmente distintos. Uma função só elimina a divergência pela
+ * raiz — trocar a cor do tema passa a repintar tudo junto.
+ */
+export function gradienteTema(cor: string): string {
+  return `linear-gradient(95deg, ${escurecer(cor, 0.08)} 0%, ${clarear(cor, 0.22)} 100%)`;
+}
+
+/**
+ * Fundo escuro derivado do tema, para a VSL.
+ *
+ * Não é o hexadecimal fixo de antes: com tema verde, um fundo azul-marinho
+ * denunciaria que a paleta não governa a página. Escurece bastante e mantém um
+ * resto de matiz, para o fundo pertencer à mesma família da cor de marca sem
+ * competir com o vídeo.
+ */
+export function fundoEscuroTema(cor: string): string {
+  const base = escurecer(cor, 0.86);
+  const meio = escurecer(cor, 0.74);
+  return `linear-gradient(180deg, ${base} 0%, ${meio} 40%, ${base} 100%)`;
+}
+
+/**
  * BOTÃO DE OPÇÃO — layout "list" (StepQuiz.tsx:250-319).
  *
  * Os números são os da referência, não arredondamentos: borda de 1,5px (não 2),

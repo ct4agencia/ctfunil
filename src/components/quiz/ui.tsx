@@ -135,8 +135,15 @@ export function RichText({ text, className }: { text: string; className?: string
       {parts.map((p, i) => {
         if (p.startsWith("==") && p.endsWith("==")) {
           return (
+            /* O degradê da pílula sai da MESMA receita que a dos botões. Antes
+               era montado aqui com `color-mix` contra um creme fixo (#ffd9a8):
+               num tema laranja passava, mas num tema azul o resultado puxava
+               para o roxo — e duas pílulas na mesma tela saíam de cores
+               diferentes. A receita canônica vive em `resina.ts::gradienteTema`;
+               aqui ela é escrita em CSS puro porque este componente recebe a cor
+               por variável, não por prop. */
             <span key={i} className="mx-0.5 inline-block rounded-xl px-2.5 py-0.5 font-extrabold text-white shadow-[0_6px_16px_-6px_var(--q-primary)]"
-              style={{ background: "linear-gradient(95deg, var(--q-primary), color-mix(in srgb, var(--q-primary) 62%, #ffd9a8))" }}>
+              style={{ background: "linear-gradient(95deg, color-mix(in srgb, var(--q-primary) 92%, #000) 0%, color-mix(in srgb, var(--q-primary) 78%, #fff) 100%)" }}>
               {p.slice(2, -2)}
             </span>
           );
