@@ -1638,53 +1638,58 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                 <div className="rounded-xl border border-neutral-200 p-3">
                   <p className="mb-2 text-sm font-bold text-neutral-700">Blocos desta lâmina</p>
                   <div className="space-y-1">
-                    {(step?.layers || []).map((l, i) => {
-                      const resumo = String(l.content?.label || l.content?.text || l.content?.title || "")
-                        .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
-                      const ativo = selLayer === l.id;
-                      const oculto = !!l.design?.hidden;
-                      const lista = step?.layers || [];
-                      /* Subir/descer em vez de arrastar: a lista vive num painel
-                         estreito e com rolagem, onde alvo de arraste erra com
-                         facilidade. Duas setas fazem o mesmo trabalho e não
-                         dependem de precisão — quem quiser arrastar tem o
-                         ⠿ do preview nas lâminas que o mostram. */
-                      const mover = (delta: number) => {
-                        const alvo = lista[i + delta];
-                        if (alvo) onReorder(l.id, alvo.id);
-                      };
-                      return (
-                        <div
-                          key={l.id}
-                          className={`flex items-center gap-1 rounded-lg px-1.5 py-1 transition ${
-                            ativo ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
-                        >
-                          <button onClick={() => setSelLayer(l.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left text-xs">
-                            <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                              ativo ? "bg-white/20" : "bg-neutral-200 text-neutral-500"}`}>
-                              {rotuloDoTipo(l.type)}
-                            </span>
-                            <span className={`truncate ${oculto ? "line-through opacity-50" : ""}`}>{resumo || l.id}</span>
-                          </button>
-                          <span className={`flex shrink-0 items-center ${ativo ? "text-white/70" : "text-neutral-400"}`}>
-                            {([
-                              ["↑", "Subir", () => mover(-1), i === 0],
-                              ["↓", "Descer", () => mover(1), i === lista.length - 1],
-                              ["⧉", "Duplicar", () => onAction(l.id, "copy"), false],
-                              [oculto ? "◻" : "◼", oculto ? "Mostrar" : "Ocultar", () => onAction(l.id, "hide"), false],
-                              ["✕", "Excluir", () => onAction(l.id, "delete"), false],
-                            ] as [string, string, () => void, boolean][]).map(([icone, titulo, acao, off]) => (
-                              <button
-                                key={titulo} title={titulo} disabled={off}
-                                onClick={(e) => { e.stopPropagation(); acao(); }}
-                                className={`grid h-5 w-5 place-items-center rounded text-[11px] leading-none transition disabled:opacity-25 ${
-                                  ativo ? "hover:bg-white/20" : "hover:bg-neutral-200 hover:text-neutral-900"}`}
-                              >{icone}</button>
-                            ))}
-                          </span>
-                        </div>
-                      );
-                    })}
+                    {/* Arrastar pelo punho ⠿, igual ao canvas — reaproveita o
+                        `SortableItem` e o `onReorder` que já movem blocos lá,
+                        então a lista e o preview reordenam pelo mesmo caminho. */}
+                    <DndContext
+                      sensors={sensors} collisionDetection={closestCenter}
+                      onDragEnd={(e) => {
+                        const { active, over } = e;
+                        if (over && active.id !== over.id) onReorder(String(active.id), String(over.id));
+                      }}
+                    >
+                      <SortableContext items={(step?.layers || []).map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                        {(step?.layers || []).map((l) => {
+                          const resumo = String(l.content?.label || l.content?.text || l.content?.title || "")
+                            .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+                          const ativo = selLayer === l.id;
+                          const oculto = !!l.design?.hidden;
+                          return (
+                            <SortableItem key={l.id} id={l.id}>
+                              {(handle) => (
+                                <div
+                                  className={`flex items-center gap-1 rounded-lg px-1.5 py-1 transition ${
+                                    ativo ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
+                                >
+                                  {handle}
+                                  <button onClick={() => setSelLayer(l.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left text-xs">
+                                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                                      ativo ? "bg-white/20" : "bg-neutral-200 text-neutral-500"}`}>
+                                      {rotuloDoTipo(l.type)}
+                                    </span>
+                                    <span className={`truncate ${oculto ? "line-through opacity-50" : ""}`}>{resumo || l.id}</span>
+                                  </button>
+                                  <span className={`flex shrink-0 items-center ${ativo ? "text-white/70" : "text-neutral-400"}`}>
+                                    {([
+                                      ["⧉", "Duplicar", () => onAction(l.id, "copy")],
+                                      [oculto ? "◻" : "◼", oculto ? "Mostrar" : "Ocultar", () => onAction(l.id, "hide")],
+                                      ["✕", "Excluir", () => onAction(l.id, "delete")],
+                                    ] as [string, string, () => void][]).map(([icone, titulo, acao]) => (
+                                      <button
+                                        key={titulo} title={titulo}
+                                        onClick={(e) => { e.stopPropagation(); acao(); }}
+                                        className={`grid h-5 w-5 place-items-center rounded text-[11px] leading-none transition ${
+                                          ativo ? "hover:bg-white/20" : "hover:bg-neutral-200 hover:text-neutral-900"}`}
+                                      >{icone}</button>
+                                    ))}
+                                  </span>
+                                </div>
+                              )}
+                            </SortableItem>
+                          );
+                        })}
+                      </SortableContext>
+                    </DndContext>
                   </div>
                 </div>
               ) : null}
