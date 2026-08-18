@@ -209,9 +209,29 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
       </div>
     );
   }
+  /* Brilhos ao redor da peça, como na referência. Ficam FORA do <img> (que já
+     tem o seu próprio `flutua`): assim eles orbitam a moldura em vez de subir e
+     descer junto com ela, e cada um com duração e atraso próprios — pulsando no
+     mesmo compasso, a peça inteira "respiraria" e viraria distração. */
+  const brilhos = d.brilhos ? [
+    { e: "✨", pos: "-top-3 -left-4", tam: 26, dur: 2.8, atraso: 0, giro: 20 },
+    { e: "✨", pos: "top-10 -right-5", tam: 22, dur: 2.4, atraso: 0.6, giro: -15 },
+    { e: "⭐", pos: "-bottom-2 left-3", tam: 22, dur: 3.2, atraso: 1.2, giro: 25 },
+    { e: "💫", pos: "top-1/2 -right-6", tam: 18, dur: 2.6, atraso: 1.8, giro: 0 },
+  ] : [];
+
   return (
     <div className={`flex w-full ${justifyOf(d)}`}>
       <div className="relative" style={{ width: `${basis}%` }}>
+        {brilhos.map((b, i) => (
+          <motion.span
+            key={i} aria-hidden
+            className={`pointer-events-none absolute z-20 ${b.pos}`}
+            style={{ fontSize: b.tam, lineHeight: 1 }}
+            animate={prefereMenosMovimento() ? {} : { scale: [1, 1.35, 1], opacity: [0.6, 1, 0.6], rotate: [0, b.giro, 0] }}
+            transition={{ duration: b.dur, repeat: Infinity, ease: "easeInOut", delay: b.atraso }}
+          >{b.e}</motion.span>
+        ))}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {/* Segue a PROPORÇÃO NATURAL da imagem (sem forçar aspect-ratio/object-contain,
             que letterboxava quando im.width/height salvos estavam errados). O slide de
