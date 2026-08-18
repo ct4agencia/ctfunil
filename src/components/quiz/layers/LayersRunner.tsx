@@ -15,6 +15,8 @@ import ResinaHero from "../ResinaHero";
 import ResinaResultado from "../ResinaResultado";
 import ResinaCaptura from "../ResinaCaptura";
 import ResinaPosCaptura from "../ResinaPosCaptura";
+import ResinaDiagnostico from "../ResinaDiagnostico";
+import ResinaVSL from "../ResinaVSL";
 
 /** Tira tags e entidades: o `ResinaQuiz` recebe texto puro, não HTML. */
 const semHtml = (h?: string) =>
@@ -605,6 +607,53 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     chamada={textos[6] ? semHtml(textos[6].content?.text) : undefined}
                     cta={semHtml(btn?.content?.label) || "CONTINUAR"}
                     onAvancar={() => ctx.navigate(btn?.content?.destination || "next")}
+                  />
+                );
+              }
+              /* DIAGNÓSTICO — a espera. Reaproveita o `content` do bloco
+                 `loading` que a lâmina já tem (segundos e mensagens), então
+                 marcar `tela` troca só o desenho, sem remontar o dado. */
+              if (presetTelas && (step as { tela?: string }).tela === "diagnostico") {
+                const load = ls.find((l) => l.type === "loading");
+                const c = (load?.content || {}) as { seconds?: number; messages?: unknown[]; title?: string };
+                const msgs = (Array.isArray(c.messages) ? c.messages : []).map((m) => {
+                  const o = m as { text?: string; label?: string; icon?: string; emoji?: string };
+                  return { texto: semHtml(o?.text || o?.label) || "Processando…", icone: o?.icon || o?.emoji };
+                });
+                const btn = ls.find((l) => l.type === "button");
+                return (
+                  <ResinaDiagnostico
+                    cor={design.themeColor || "#0284c7"}
+                    mensagens={msgs.length ? msgs : [{ texto: semHtml(c.title) || "Analisando o seu perfil…", icone: "🔎" }]}
+                    duracaoMs={(Number(c.seconds) || 5) * 1000}
+                    onFim={() => ctx.navigate(btn?.content?.destination || "next")}
+                  />
+                );
+              }
+              /* VSL — a única tela escura. O `revealAt` do botão já existia
+                 para esconder o CTA até o pitch passar; aqui ele governa a
+                 tela inteira, incluindo a barra de vagas. */
+              if (presetTelas && (step as { tela?: string }).tela === "vsl") {
+                const emb = ls.find((l) => l.type === "embed" || l.type === "video");
+                const btn = ls.find((l) => l.type === "button");
+                const imgs = ls.filter((l) => l.type === "image").map((l) => l.content?.image?.src);
+                const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
+                // o destino do botão vence; o checkout do funil é a rede de
+                // segurança para quando a lâmina foi montada sem link
+                const destino = btn?.content?.destination || funnel.checkoutUrl || "";
+                return (
+                  <ResinaVSL
+                    embedHtml={String(emb?.content?.embedHtml || "")}
+                    cta={semHtml(btn?.content?.label) || "QUERO GARANTIR MINHA VAGA"}
+                    checkoutUrl={destino}
+                    revelarEm={Number(btn?.content?.revealAt) || 0}
+                    vagasEm={Number((step as { vagasEm?: number }).vagasEm) || 0}
+                    vagasTexto={(step as { vagasTexto?: string }).vagasTexto}
+                    textoEspera={semHtml(btn?.content?.waitText) || undefined}
+                    garantiaTitulo={textos[0] ? semHtml(textos[0].content?.text) : undefined}
+                    garantiaImagem={imgs[0] || undefined}
+                    pagamentosImagem={imgs[1] || undefined}
+                    onCheckout={() => { if (!preview) fireMetaEvent("InitiateCheckout"); }}
                   />
                 );
               }
