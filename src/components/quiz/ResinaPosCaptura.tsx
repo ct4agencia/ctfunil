@@ -27,6 +27,8 @@ import { prefereMenosMovimento } from "@/lib/quiz/motion";
 
 export interface ResinaPosCapturaProps {
   cor: string;
+  /** desenha o selo de confirmação no topo; vem do bloco CHECK da lâmina */
+  check?: boolean;
   /** nome do lead; entra em negrito no começo do texto */
   nome?: string;
   titulo?: string;
@@ -47,7 +49,7 @@ const OK = "#16A34A";
 const OK_ESC = "#15803D";
 
 export default function ResinaPosCaptura({
-  cor, nome, titulo = "Pronto!", texto, alerta, recadoTitulo, recadoTexto,
+  cor, check = false, nome, titulo = "Pronto!", texto, alerta, recadoTitulo, recadoTexto,
   recadoDestaque, recadoFim, chamada, cta, onAvancar,
 }: ResinaPosCapturaProps) {
   const t = tokensResina(cor);
@@ -56,6 +58,7 @@ export default function ResinaPosCaptura({
   return (
     <div className="flex w-full flex-col gap-5 py-3">
       <div className="flex flex-col items-center gap-2.5 text-center">
+        {check ? (
         <motion.div
           initial={reduzido ? false : { scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
@@ -90,6 +93,7 @@ export default function ResinaPosCaptura({
             </svg>
           </div>
         </motion.div>
+        ) : null}
 
         <h2 className="text-[28px] font-black sm:text-3xl md:text-4xl" style={{ color: t.primaryDarker }}>{titulo}</h2>
 

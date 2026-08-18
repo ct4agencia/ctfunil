@@ -54,7 +54,7 @@ export interface ResinaHeroProps {
 const SLIDE_MS = 2200;
 
 export default function ResinaHero({
-  cor, emoji = "🎁", titulo, capsula, subtexto, cardTexto, produto, cardTextoFim,
+  cor, emoji, titulo, capsula, subtexto, cardTexto, produto, cardTextoFim,
   valor, imagens = [], cta, ctaImagem, rodape, onAvancar,
 }: ResinaHeroProps) {
   const t = tokensResina(cor);
@@ -74,7 +74,9 @@ export default function ResinaHero({
 
   return (
     <div className="flex min-h-full w-full flex-col items-center justify-center px-5 pb-6 pt-7" style={{ color: t.text }}>
-      {/* MEDALHÃO — aura pulsante atrás de um disco claro com o emoji */}
+      {/* MEDALHÃO — aura pulsante atrás de um disco claro com o emoji.
+          Vem do bloco CHECK; sem o bloco, a tela começa direto na headline. */}
+      {emoji ? (
       <motion.div
         initial={reduzido ? false : { scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -104,6 +106,7 @@ export default function ResinaHero({
           </motion.span>
         </div>
       </motion.div>
+      ) : null}
 
       <motion.div
         initial={reduzido ? false : { opacity: 0, y: 18 }}

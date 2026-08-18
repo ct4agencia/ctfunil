@@ -148,8 +148,26 @@ function TextBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 function remContent(ctx: LayersCtx): number { return Number(ctx.design.contentSize) || 17; }
 
 // ─────────────────────────────── CLEAR ──────────────────────────────
-function ClearBlock({ layer }: { layer: Layer }) {
-  return <div style={{ height: `${remOf(layer.content.clear, 1)}rem` }} />;
+function ClearBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  const alt = remOf(layer.content.clear, 1);
+  /* FILETE: o mesmo espaço, com um traço curto no meio. É o divisor da
+     referência — antes ficava fixo dentro das telas de hero e VSL, então não
+     aparecia no construtor nem podia ser tirado. */
+  if (layer.content.linha) {
+    const cor = ctx.design.themeColor || "#ea580c";
+    return (
+      <div className="flex w-full items-center justify-center" style={{ height: `${alt}rem` }}>
+        <span
+          className="rounded-sm"
+          style={{
+            width: Number(layer.design?.basis) || 48, height: 3,
+            background: gradienteTema(cor), opacity: 0.7,
+          }}
+        />
+      </div>
+    );
+  }
+  return <div style={{ height: `${alt}rem` }} />;
 }
 
 // ─────────────────────────────── ALERT ──────────────────────────────
@@ -1237,7 +1255,7 @@ export function Block({ layer, ctx, question, indice = 0 }: { layer: Layer; ctx:
   const inner = ((): React.ReactNode => {
     switch (layer.type) {
       case "text": return <TextBlock layer={layer} ctx={ctx} />;
-      case "clear": return <ClearBlock layer={layer} />;
+      case "clear": return <ClearBlock layer={layer} ctx={ctx} />;
       case "check": return <CheckBlock layer={layer} ctx={ctx} />;
       case "alert": return <AlertBlock layer={layer} ctx={ctx} />;
       case "image": return <ImageBlock layer={layer} ctx={ctx} />;

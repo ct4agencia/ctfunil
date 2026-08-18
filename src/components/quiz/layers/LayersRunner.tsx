@@ -537,6 +537,12 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                   <ResinaHero
                     cor={design.themeColor || "#0284c7"}
                     titulo={h}
+                    /* O medalhão vem do bloco CHECK da lâmina. Sem bloco, não
+                       aparece — antes era fixo no componente, então existia no
+                       site e não no construtor, e não dava para trocar o emoji
+                       nem remover. */
+                    emoji={(ls.find((l) => l.type === "check")?.content as { icone?: string })?.icone
+                      ?? (ls.some((l) => l.type === "check") ? "🎁" : undefined)}
                     ctaImagem={(btn?.content as { imageSrc?: string })?.imageSrc || undefined}
                     // a cápsula recebe o trecho que o script marcou em <span>
                     capsula={(() => {
@@ -648,6 +654,9 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                 return (
                   <ResinaPosCaptura
                     cor={design.themeColor || "#0284c7"}
+                    /* selo de confirmação vem do bloco CHECK; sem ele a tela
+                       começa direto no título */
+                    check={ls.some((l) => l.type === "check")}
                     nome={name || undefined}
                     titulo={semHtml(textos[0]?.content?.text) || "Pronto!"}
                     texto={textos[1]?.content?.text}
