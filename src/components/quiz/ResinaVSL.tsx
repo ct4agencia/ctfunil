@@ -40,11 +40,10 @@ export interface ResinaVSLProps {
   /** HTML do player, como vem do construtor */
   embedHtml: string;
   /**
-   * No construtor o player NÃO é carregado — entra um marcador do mesmo
-   * tamanho. Cada montagem do VTurb cria um player de vídeo, e alternar entre
-   * etapas acumulava um por visita até a aba travar; remover o `<script>` no
-   * cleanup não desfaz o player já criado. O layout fica idêntico, que é o que
-   * importa para conferir a tela.
+   * Preview do construtor: os tempos de revelação são IGNORADOS. O canvas
+   * existe para conferir layout, e obedecer o relógio esconderia o CTA, os
+   * selos e a garantia inteira atrás de 16 minutos de espera — que foi
+   * exatamente o que o Luca viu ao abrir a lâmina.
    */
   preview?: boolean;
   cta: string;
@@ -125,7 +124,7 @@ export default function ResinaVSL({
   const fundoFinal = ehImagem ? undefined : (fundo || fundoEscuroTema(cor));
   const filete = gradienteTema(cor);
   const verdeCta = ctaCor || "#16A34A";
-  const [mostraCta, setMostraCta] = useState(revelarEm <= 0);
+  const [mostraCta, setMostraCta] = useState(preview || revelarEm <= 0);
   /**
    * `dangerouslySetInnerHTML` NÃO executa <script> — é regra do React, e por
    * isso o player aparecia como um retângulo preto: o placeholder do VTurb
@@ -137,7 +136,7 @@ export default function ResinaVSL({
   const playerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = playerRef.current;
-    if (!el || !embedHtml || preview) return;
+    if (!el || !embedHtml) return;
     el.innerHTML = embedHtml;
     /* Os scripts injetados são MARCADOS e removidos no cleanup. Sem isso, cada
        montagem deixava mais um player no <head> — no construtor, alternar entre
@@ -159,13 +158,13 @@ export default function ResinaVSL({
       el.innerHTML = "";
       injetados.forEach((s) => s.remove());
     };
-  }, [embedHtml, preview]);
+  }, [embedHtml]);
 
   useEffect(() => {
     const ts: ReturnType<typeof setTimeout>[] = [];
-    if (revelarEm > 0) ts.push(setTimeout(() => setMostraCta(true), revelarEm * 1000));
+    if (!preview && revelarEm > 0) ts.push(setTimeout(() => setMostraCta(true), revelarEm * 1000));
     return () => ts.forEach(clearTimeout);
-  }, [revelarEm]);
+  }, [revelarEm, preview]);
 
   return (
     <div
@@ -222,25 +221,7 @@ export default function ResinaVSL({
             ref={playerRef}
             className="overflow-hidden rounded-2xl"
             style={{ boxShadow: `0 0 0 1px rgba(${rgbDe(cor)},.35), 0 18px 60px -12px rgba(${rgbDe(cor)},.55)` }}
-          >
-            {preview ? (
-              /* Mesma proporção do player (125% = 4:5), para a tela do
-                 construtor ter a altura real da lâmina. */
-              <div
-                className="relative w-full"
-                style={{ paddingTop: "125%", background: "rgba(0,0,0,.55)" }}
-              >
-                <span
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-xs"
-                  style={{ color: "rgba(255,255,255,.45)" }}
-                >
-                  <span style={{ fontSize: 34, lineHeight: 1 }}>▶</span>
-                  Player do vídeo
-                  <span style={{ fontSize: 10 }}>(não carrega no construtor)</span>
-                </span>
-              </div>
-            ) : null}
-          </div>
+          />
         </div>
       </div>
 

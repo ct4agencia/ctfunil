@@ -526,14 +526,16 @@ function DisclaimerBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const conta = ate > 0;
   const fim = Math.max(revelarEm + 1, Number(c.vagasFimEm) || revelarEm + 60);
 
-  const [visivel, setVisivel] = useState(revelarEm <= 0);
+  /* No construtor a faixa já nasce visível: o canvas existe para conferir
+     layout, e obedecer o relógio a esconderia atrás de 16 minutos de espera. */
+  const [visivel, setVisivel] = useState(!!ctx.preview || revelarEm <= 0);
   const [n, setN] = useState(de);
 
   useEffect(() => {
-    if (revelarEm <= 0) return;
+    if (ctx.preview || revelarEm <= 0) return;
     const t = setTimeout(() => setVisivel(true), revelarEm * 1000);
     return () => clearTimeout(t);
-  }, [revelarEm]);
+  }, [revelarEm, ctx.preview]);
 
   useEffect(() => {
     if (!conta) return;
