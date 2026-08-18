@@ -123,7 +123,16 @@ export default function ResinaVSL({
         <div className="w-full px-5 pb-3 pt-7 text-center" style={{ animation: reduzido ? undefined : "fade-in-up .6s ease-out" }}>
           <a
             href={checkoutUrl}
-            onClick={onCheckout}
+            /* O href sozinho não estava navegando (só "abrir em nova aba"
+               funcionava), então a ida ao checkout passa a ser explícita —
+               mesmo `window.location.href` que o `navigate` do runner usa para
+               destino externo. O href fica: é ele que permite abrir em outra
+               aba, copiar o link e ser lido como link de verdade. */
+            onClick={(e) => {
+              e.preventDefault();
+              onCheckout?.();
+              if (checkoutUrl) window.location.href = checkoutUrl;
+            }}
             className={`mx-auto block w-full max-w-[360px] ${reduzido ? "" : "animate-cta-green"}`}
             style={{
               padding: "19px 24px", borderRadius: 16, fontWeight: 800, fontSize: 17,
