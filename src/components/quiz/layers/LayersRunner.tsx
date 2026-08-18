@@ -755,6 +755,10 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                        decisão morava em dois painéis diferentes. */
                     ctaCor={(btn?.design?.backgroundColor as string) || undefined}
                     embedHtml={String(emb?.content?.embedHtml || "")}
+                    // no construtor o player vira marcador: cada montagem do
+                    // VTurb deixava um player vivo, e alternar entre etapas
+                    // acumulava até a aba travar
+                    preview={preview}
                     cta={semHtml(btn?.content?.label) || "QUERO GARANTIR MINHA VAGA"}
                     checkoutUrl={destino}
                     revelarEm={Number(btn?.content?.revealAt) || 0}

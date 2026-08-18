@@ -39,6 +39,14 @@ export interface ResinaVSLProps {
   ctaCor?: string;
   /** HTML do player, como vem do construtor */
   embedHtml: string;
+  /**
+   * No construtor o player NÃO é carregado — entra um marcador do mesmo
+   * tamanho. Cada montagem do VTurb cria um player de vídeo, e alternar entre
+   * etapas acumulava um por visita até a aba travar; remover o `<script>` no
+   * cleanup não desfaz o player já criado. O layout fica idêntico, que é o que
+   * importa para conferir a tela.
+   */
+  preview?: boolean;
   cta: string;
   checkoutUrl: string;
   /** segundos até revelar o CTA; 0 mostra desde o início */
@@ -103,7 +111,7 @@ const SELOS = [
 
 export default function ResinaVSL({
   cor = "#0284c7", fundo, ctaCor,
-  embedHtml, cta, checkoutUrl, revelarEm = 0,
+  embedHtml, preview = false, cta, checkoutUrl, revelarEm = 0,
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
   headline, alertas = [], topo,
   selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem,
@@ -129,18 +137,29 @@ export default function ResinaVSL({
   const playerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = playerRef.current;
-    if (!el || !embedHtml) return;
+    if (!el || !embedHtml || preview) return;
     el.innerHTML = embedHtml;
+    /* Os scripts injetados são MARCADOS e removidos no cleanup. Sem isso, cada
+       montagem deixava mais um player no <head> — no construtor, alternar entre
+       etapas acumulava players de vídeo até a aba morrer, e o sintoma era a
+       página inteira não carregar. No site passava despercebido porque a lâmina
+       monta uma vez só. */
+    const injetados: HTMLScriptElement[] = [];
     el.querySelectorAll("script").forEach((antigo) => {
       const novoScript = document.createElement("script");
       for (const a of Array.from(antigo.attributes)) novoScript.setAttribute(a.name, a.value);
       if (!antigo.src) novoScript.textContent = antigo.textContent;
       novoScript.async = true;
+      novoScript.dataset.resinaVsl = "1";
       document.head.appendChild(novoScript);
+      injetados.push(novoScript);
       antigo.remove();
     });
-    return () => { el.innerHTML = ""; };
-  }, [embedHtml]);
+    return () => {
+      el.innerHTML = "";
+      injetados.forEach((s) => s.remove());
+    };
+  }, [embedHtml, preview]);
 
   useEffect(() => {
     const ts: ReturnType<typeof setTimeout>[] = [];
@@ -203,7 +222,25 @@ export default function ResinaVSL({
             ref={playerRef}
             className="overflow-hidden rounded-2xl"
             style={{ boxShadow: `0 0 0 1px rgba(${rgbDe(cor)},.35), 0 18px 60px -12px rgba(${rgbDe(cor)},.55)` }}
-          />
+          >
+            {preview ? (
+              /* Mesma proporção do player (125% = 4:5), para a tela do
+                 construtor ter a altura real da lâmina. */
+              <div
+                className="relative w-full"
+                style={{ paddingTop: "125%", background: "rgba(0,0,0,.55)" }}
+              >
+                <span
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-xs"
+                  style={{ color: "rgba(255,255,255,.45)" }}
+                >
+                  <span style={{ fontSize: 34, lineHeight: 1 }}>▶</span>
+                  Player do vídeo
+                  <span style={{ fontSize: 10 }}>(não carrega no construtor)</span>
+                </span>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
 
