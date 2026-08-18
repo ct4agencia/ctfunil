@@ -95,9 +95,19 @@ export default function ResinaQuiz({
       ) : null}
 
       {posicao && total && total > 1 ? (
-        <p className="text-center">
+        <div className="flex flex-col items-center gap-2.5">
           <span style={estiloPilulaPergunta(cor)}>Pergunta {posicao} de {total}</span>
-        </p>
+          {/* A barra vive AQUI, não no header global. Quando esta tela passou a
+              dispensar o header (ele duplicava voltar e pílula), a barra foi
+              junto — e some a única pista de quanto falta. A pílula diz onde
+              você está; a barra, quanto resta. */}
+          <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: `${cor}1f` }}>
+            <div
+              className="h-full rounded-full transition-[width] duration-500"
+              style={{ width: `${(posicao / total) * 100}%`, background: cor }}
+            />
+          </div>
+        </div>
       ) : null}
 
       <div className="flex flex-col gap-1.5 px-1 text-center">
