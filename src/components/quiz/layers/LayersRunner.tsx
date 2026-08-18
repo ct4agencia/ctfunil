@@ -13,6 +13,7 @@ import { estiloPilulaPergunta } from "@/lib/quiz/resina";
 import ResinaQuiz from "../ResinaQuiz";
 import ResinaHero from "../ResinaHero";
 import ResinaResultado from "../ResinaResultado";
+import ResinaCaptura from "../ResinaCaptura";
 
 /** Tira tags e entidades: o `ResinaQuiz` recebe texto puro, não HTML. */
 const semHtml = (h?: string) =>
@@ -180,7 +181,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     });
   }, []);
 
-  const submitFields = async () => {
+  /**
+   * `direto` existe para quem tem os valores em mãos e não os guardou no estado
+   * — é o caso da tela de captura da referência, que mantém nome e telefone
+   * localmente. Sem isso, `setFields(...)` seguido de `submitFields()` no mesmo
+   * tique enviaria o estado ANTERIOR, e o lead entraria vazio.
+   */
+  const submitFields = async (direto?: { nome?: string; telefone?: string }) => {
     if (submitting) return;
     if (preview) { const btn = (step.layers || []).find((l) => l.type === "button"); navigate(btn?.content.destination || "next"); return; }
     const fls = (step.layers || []).filter((l) => l.type === "field");
@@ -192,16 +199,19 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     const nameL = fls.find((l) => l !== phoneL && l !== emailL && (l.content.type === "text" || l.content.type == null));
 
     // A2: telefone guardado LIMPO (só dígitos). A máscara fica só na tela.
-    const phone = (phoneL ? (fields[keyOf(phoneL)] || "") : (fields["telefone"] || fields["whatsapp"] || "")).replace(/\D/g, "");
-    const nome = (nameL ? fields[keyOf(nameL)] : "") || name || "";
+    const phone = (direto?.telefone ?? (phoneL ? (fields[keyOf(phoneL)] || "") : (fields["telefone"] || fields["whatsapp"] || ""))).replace(/\D/g, "");
+    const nome = direto?.nome || (nameL ? fields[keyOf(nameL)] : "") || name || "";
     const email = emailL ? (fields[keyOf(emailL)] || "") : "";
 
-    // nome e telefone são OBRIGATÓRIOS pra continuar (quando os campos existem na lâmina)
-    if (nameL && nome.trim().length < 2) {
+    // Nome e telefone são OBRIGATÓRIOS. A guarda vale quando a lâmina tem o
+    // bloco correspondente OU quando os valores vieram por `direto` — a tela de
+    // captura da referência não usa blocos `field`, e sem esta segunda condição
+    // ela contornaria a validação e gravaria lead pela metade.
+    if ((nameL || direto) && nome.trim().length < 2) {
       alert("Por favor, preencha seu nome 🙂");
       return;
     }
-    if (phoneL && phone.length < 10) {
+    if ((phoneL || direto) && phone.length < 10) {
       alert("Confere seu número de Whatsapp com DDD 🙂");
       return;
     }
@@ -545,6 +555,31 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     aprovacaoTexto={textos[3] ? semHtml(textos[3].content?.text) : undefined}
                     cta={semHtml(btn?.content?.label) || "CONTINUAR"}
                     onAvancar={() => ctx.navigate(btn?.content?.destination || "next")}
+                  />
+                );
+              }
+              /* CAPTURA — a tela que converte. Os campos vivem no componente,
+                 não em blocos `field`: ele controla máscara, foco e validação
+                 como um conjunto, e o envio entra por `submitFields({...})`. */
+              if (presetTelas && (step as { tela?: string }).tela === "captura") {
+                const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
+                const btn = ls.find((l) => l.type === "button");
+                const img = ls.find((l) => l.type === "image")?.content?.image?.src;
+                const tit = semHtmlMultilinha(textos[0]?.content?.text);
+                const marcado = /<span[^>]*color:[^>]*>([^<]+)<\/span>/i.exec(String(textos[0]?.content?.text || ""))?.[1];
+                return (
+                  <ResinaCaptura
+                    cor={design.themeColor || "#0284c7"}
+                    selo={(step as { selo?: string }).selo || "🎁 Presente exclusivo"}
+                    titulo={tit}
+                    destaque={marcado ? semHtml(marcado) : undefined}
+                    subtexto={textos[1] ? semHtml(textos[1].content?.text) : undefined}
+                    imagem={img || undefined}
+                    aviso={textos[2] ? semHtml(textos[2].content?.text) : undefined}
+                    formTitulo={textos[3] ? semHtml(textos[3].content?.text) : undefined}
+                    cta={semHtml(btn?.content?.label) || "QUERO RECEBER"}
+                    enviando={submitting}
+                    onEnviar={(d) => submitFields(d)}
                   />
                 );
               }
