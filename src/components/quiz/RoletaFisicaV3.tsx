@@ -206,20 +206,26 @@ export default function RoletaFisicaV3({
       ctx.arc(C, C, sliceR, a0, a0 + slice);
       ctx.closePath();
       ctx.clip();
-      const gl = ctx.createRadialGradient(C, C - R * 0.55, 10, C, C - R * 0.55, R * 0.42);
+      /* o eixo da fatia vira "para cima": a arte fica em pé quando a fatia
+         está sob o ponteiro, como no arquivo v3 */
+      ctx.translate(C, C);
+      ctx.rotate(a0 + slice / 2 + Math.PI / 2);
+
+      const gl = ctx.createRadialGradient(0, -R * 0.55, 10, 0, -R * 0.55, R * 0.42);
       gl.addColorStop(0, "rgba(255,70,90,0.50)");
       gl.addColorStop(1, "rgba(255,70,90,0)");
       ctx.fillStyle = gl;
-      // o glow é desenhado no eixo da fatia, não no topo fixo do arquivo
-      ctx.translate(C, C);
-      ctx.rotate(a0 + slice / 2 + Math.PI / 2);
       ctx.fillRect(-R, -R, 2 * R, R);
-      /* arte em pé: leitura normal quando a fatia está sob o ponteiro.
-         `imagemRotacao` gira só a arte, sem mexer no glow nem na borda. */
-      ctx.rotate(((segments[i].imagemRotacao || 0) * Math.PI) / 180);
+
+      /* "Girar" roda a arte NO PRÓPRIO EIXO. Por isso a translação vai ATÉ o
+         ponto dela antes do rotate: girando o contexto ainda no centro da roda,
+         a arte descrevia um arco e passeava pela fatia — que foi o que
+         apareceu na tela. Com a origem em cima da arte, ela roda parada. */
       const lw = segments[i].imagemTamanho || 165;
       const lh = lw * (arte.height / arte.width);
-      ctx.drawImage(arte, -lw / 2, -R * 0.56 - lh / 2, lw, lh);
+      ctx.translate(0, -R * 0.56);
+      ctx.rotate(((segments[i].imagemRotacao || 0) * Math.PI) / 180);
+      ctx.drawImage(arte, -lw / 2, -lh / 2, lw, lh);
       ctx.restore();
 
       ctx.save();
