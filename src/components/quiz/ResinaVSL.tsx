@@ -77,7 +77,22 @@ export interface ResinaVSLProps {
    * (compra segura, satisfação, privacidade) — são ícones genéricos, não marca
    * de terceiro, então dá para desenhá-los sem depender de arquivo.
    */
-  selos?: boolean;
+  /**
+   * Provas de confiança, vindas do bloco `trust` da lâmina. `undefined` = a
+   * lâmina não tem esse bloco, então NADA é desenhado.
+   *
+   * Antes eram desenhadas incondicionalmente aqui dentro: apareciam na página
+   * sem existir em "Blocos desta lâmina", e não havia como remover nem editar
+   * uma peça sequer. Quem decide agora é o construtor.
+   */
+  selos?: {
+    seloGarantia: boolean;
+    dias: number;
+    bandeiras: boolean;
+    selosConfianca: boolean;
+    formas: string[];
+    seguranca: string;
+  };
   /** card explicativo da garantia, em HTML */
   garantiaTexto?: string;
   /** pílula abaixo do 2º CTA (ex.: "🔒 Garantia de 7 dias — risco zero") */
@@ -148,18 +163,13 @@ function SeloGarantia({ dias = 7 }: { dias?: number }) {
   );
 }
 
-/* Bandeiras aceitas, em texto dentro de cartõezinhos. Reproduzir os logotipos
-   das marcas seria uso de marca de terceiro sem licença; o nome escrito informa
-   o mesmo e é o que a maioria dos checkouts mostra. */
-const BANDEIRAS = ["VISA", "MASTER", "ELO", "HIPER", "PIX", "BOLETO"];
-
 export default function ResinaVSL({
   cor = "#0284c7", fundo, ctaCor,
   embedHtml, preview = false, cta, checkoutUrl, revelarEm = 0,
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
   headline, alertas = [], topo,
   selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem,
-  selos = true, garantiaTexto, garantiaChip, ctaRepete, onCheckout,
+  selos, garantiaTexto, garantiaChip, ctaRepete, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
   /* Fundo, filete e CTA saem do TEMA — nada de hexadecimal cravado. Com tema
@@ -307,7 +317,7 @@ export default function ResinaVSL({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={pagamentosImagem} alt="Formas de pagamento" loading="lazy" decoding="async" className="h-auto w-full" style={{ maxWidth: 280 }} />
             </div>
-          ) : selos ? (
+          ) : selos?.selosConfianca ? (
             /* SELOS DE CONFIANÇA — desenhados, porque são ícones genéricos e não
                marca de terceiro. Ficam logo abaixo do CTA: é o instante em que a
                pessoa decide clicar e a dúvida é "isso é seguro?". */
@@ -326,10 +336,10 @@ export default function ResinaVSL({
           {/* FORMAS DE PAGAMENTO — logo abaixo dos selos, no mesmo instante da
               decisão: "consigo pagar do meu jeito?" vem junto de "isso é
               seguro?". Some quando a lâmina traz a arte real (2ª imagem). */}
-          {!pagamentosImagem ? (
+          {!pagamentosImagem && selos?.bandeiras && selos.formas.length ? (
             <div className="mt-5">
               <div className="flex flex-wrap items-center justify-center gap-1.5">
-                {BANDEIRAS.map((b) => (
+                {selos.formas.map((b) => (
                   <span
                     key={b}
                     className="text-[10px] font-bold tracking-wide"
@@ -342,12 +352,14 @@ export default function ResinaVSL({
                   >{b}</span>
                 ))}
               </div>
-              <p className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px]" style={{ color: "rgba(255,255,255,.5)" }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                  <rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" strokeLinecap="round" />
-                </svg>
-                Pagamento processado em ambiente seguro
-              </p>
+              {selos.seguranca ? (
+                <p className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px]" style={{ color: "rgba(255,255,255,.5)" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                    <rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" strokeLinecap="round" />
+                  </svg>
+                  {selos.seguranca}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -355,7 +367,7 @@ export default function ResinaVSL({
         <p className="px-5 py-6 text-center text-sm" style={{ color: "rgba(255,255,255,.55)" }}>{textoEspera}</p>
       )}
 
-      {mostraCta && (garantiaTitulo || garantiaImagem || garantiaTexto) ? (
+      {mostraCta && (garantiaTitulo || garantiaImagem || garantiaTexto || selos?.seloGarantia) ? (
         <div className="w-full px-5 pb-7 pt-10 text-center" style={{ animation: reduzido ? undefined : "fade-in-up .6s ease-out .15s both" }}>
           <div className="mx-auto mb-8 h-[3px] w-[60px] rounded-sm" style={{ background: filete, opacity: 0.5 }} />
           {garantiaTitulo ? (
@@ -376,13 +388,13 @@ export default function ResinaVSL({
               <img src={garantiaImagem} alt="Garantia" loading="lazy" decoding="async" className="h-auto w-full"
                 style={{ filter: `drop-shadow(0 8px 24px rgba(${rgbDe(cor)},.35))` }} />
             </div>
-          ) : (
-            /* Sem bloco de imagem na lâmina, o selo é desenhado — a seção da
-               garantia sem selo nenhum era um buraco no meio da oferta. */
+          ) : selos?.seloGarantia ? (
+            /* Sem imagem na lâmina, o medalhão é desenhado — mas só se o bloco
+               `trust` pedir. Uma imagem sempre vence o desenho. */
             <div className="flex justify-center" style={{ filter: "drop-shadow(0 8px 24px rgba(224,169,60,.3))" }}>
-              <SeloGarantia />
+              <SeloGarantia dias={selos.dias} />
             </div>
-          )}
+          ) : null}
 
           {/* CARD dos termos da garantia — o texto que tira o risco da decisão */}
           {garantiaTexto ? (

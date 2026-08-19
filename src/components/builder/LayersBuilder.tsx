@@ -54,7 +54,7 @@ const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Jogos (hero)", items: [["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
   { name: "Conversão (hero)", items: [["vsl", "VSL (vídeo + CTA)"], ["confirm", "Parabéns"]] },
   { name: "Mídia e conteúdo", items: [["text", "Texto"], ["card", "Card"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
-  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"], ["disclaimer", "Disclaimer"]] },
+  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"], ["disclaimer", "Disclaimer"], ["trust", "Garantia e pagamento"]] },
   { name: "Argumentação", items: [["arguments", "Argumentos"], ["testimonials", "Depoimentos"], ["faq", "FAQ"], ["price", "Preço"], ["checklist", "Checklist"], ["beforeafter", "Antes/Depois"], ["carousel", "Carrossel"]] },
   { name: "Gráficos", items: [["graphics", "Métricas"], ["charts", "Gráficos"]] },
   { name: "Personalização", items: [["clear", "Espaço"], ["html", "HTML/Script"]] },
@@ -91,7 +91,7 @@ const PALETTE_ICON: Record<string, string> = {
   roulette: "🎡", slider: "🎚️", scratch: "🎟️", measure: "📐", gauge: "🎯", vsl: "🎥", confirm: "🎉",
 };
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
-const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "disclaimer", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
+const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "disclaimer", "trust", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
   // blocos-hero herdados do motor tipado (todos com preset pronto)
   "scratch", "measure", "gauge", "vsl", "confirm",
   // Estes DOIS o funil já desenhava (blocks.tsx: GraphicsBlock e
@@ -153,6 +153,10 @@ function newLayer(type: LayerType): Layer {
       content: { id, text: '<span style="color:#F5C842">[vagas] DAS 50 VAGAS</span> JÁ FORAM GARANTIDAS...', revealAt: 0 } };
     case "check": return { ...base, design: { basis: 64, backgroundColor: "#16A34A", horizontalAlign: "mx-auto" },
       content: { id, text: '<p class="ql-align-center"><strong>Pronto!</strong></p>' } };
+    case "trust": return { ...base, design: { basis: 100 },
+      content: { id, seloGarantia: true, dias: 7, bandeiras: true, selosConfianca: true,
+        formas: "VISA, MASTER, ELO, HIPER, PIX, BOLETO",
+        seguranca: "Pagamento processado em ambiente seguro" } };
     case "carousel": return { ...base, design: { basis: 100 }, content: { id, images: [], interval: 2 } };
     case "embed": case "video": return { ...base, content: { id, embedHtml: "" } };
     case "roulette": return { ...base, content: { id, type: "roulette", style: "soft", mode: "always", title: "Gire a roleta e descubra sua condição especial.", subtitle: "Você tem uma chance de liberar um benefício exclusivo agora.", cta: "Girar", initialIndex: 0, winningIndex: 0, winTitle: "🎉 Você ganhou!", winBody: "", winCta: "Continuar →", background: "#0b1f3a", segments: [{ label: "ACESSO GRÁTIS", color: "#008516", value: "" }, { label: "25% OFF", color: "#67c57a", value: "" }, { label: "Não foi dessa vez", color: "#f56161", value: "" }, { label: "15% OFF", color: "#9af4b9", value: "" }, { label: "Tente de novo", color: "#4a4845", value: "" }] } } as unknown as Layer;
@@ -403,6 +407,40 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <option value="pilula">Pílula (cápsula do tema)</option>
         </select>
         <Lbl>Texto do alerta</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />
+      </>);
+    case "trust":
+      return (<>
+        <p className="mb-2 text-[11px] leading-snug text-neutral-500">
+          As provas de confiança da oferta. Cada peça vai para o lugar dela na lâmina:
+          o medalhão dentro da garantia, as bandeiras logo abaixo do botão.
+        </p>
+        <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-700">
+          <input type="checkbox" checked={c.seloGarantia !== false} onChange={(e) => setC({ seloGarantia: e.target.checked })} className="h-3.5 w-3.5 accent-neutral-900" />
+          Medalhão de garantia
+        </label>
+        {c.seloGarantia !== false ? (<>
+          <Lbl>Dias de garantia</Lbl>
+          <input type="number" min={1} value={Number(c.dias) || 7} onChange={(e) => setC({ dias: Number(e.target.value) })} className={inp} />
+          <p className="mt-1 text-[11px] text-neutral-500">
+            Uma imagem na lâmina substitui o desenho: a 1ª vira o selo, a 2ª as bandeiras.
+          </p>
+        </>) : null}
+
+        <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-neutral-700">
+          <input type="checkbox" checked={c.bandeiras !== false} onChange={(e) => setC({ bandeiras: e.target.checked })} className="h-3.5 w-3.5 accent-neutral-900" />
+          Bandeiras de pagamento
+        </label>
+        {c.bandeiras !== false ? (<>
+          <Lbl>Formas aceitas (separe por vírgula)</Lbl>
+          <input value={String(c.formas ?? "")} onChange={(e) => setC({ formas: e.target.value })} className={inp} placeholder="VISA, MASTER, PIX" />
+          <Lbl>Linha de segurança (vazio = sem linha)</Lbl>
+          <input value={String(c.seguranca ?? "")} onChange={(e) => setC({ seguranca: e.target.value })} className={inp} />
+        </>) : null}
+
+        <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-neutral-700">
+          <input type="checkbox" checked={c.selosConfianca !== false} onChange={(e) => setC({ selosConfianca: e.target.checked })} className="h-3.5 w-3.5 accent-neutral-900" />
+          Selos Compra Segura / Satisfação / Privacidade
+        </label>
       </>);
     case "disclaimer":
       return (<>

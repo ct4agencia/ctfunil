@@ -792,6 +792,24 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     } : null}
                     garantiaImagem={imgs[0] || undefined}
                     pagamentosImagem={imgs[1] || undefined}
+                    /* Provas de confiança: só existem se a lâmina tiver o bloco
+                       `trust`. Removê-lo em "Blocos desta lâmina" apaga o
+                       medalhão, as bandeiras e os selos de uma vez. */
+                    selos={(() => {
+                      const t = ls.find((l) => l.type === "trust")?.content as {
+                        seloGarantia?: boolean; dias?: number; bandeiras?: boolean;
+                        selosConfianca?: boolean; formas?: string; seguranca?: string;
+                      } | undefined;
+                      if (!t) return undefined;
+                      return {
+                        seloGarantia: t.seloGarantia !== false,
+                        dias: Number(t.dias) || 7,
+                        bandeiras: t.bandeiras !== false,
+                        selosConfianca: t.selosConfianca !== false,
+                        formas: String(t.formas ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+                        seguranca: String(t.seguranca ?? ""),
+                      };
+                    })()}
                     selosImagem={(step as { selosImagem?: string }).selosImagem}
                     rodape={(step as { rodape?: string }).rodape}
                     onCheckout={() => { if (!preview) fireMetaEvent("InitiateCheckout"); }}

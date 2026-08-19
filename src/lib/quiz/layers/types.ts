@@ -24,6 +24,13 @@ export type LayerType =
   // Nasceu dentro da tela de pós-captura; virou bloco porque confirmação
   // acontece em vários pontos do funil.
   | "check"
+  // Provas de confiança da oferta: medalhão de garantia, bandeiras de pagamento
+  // e os selos "Compra Segura / Satisfação Garantida / Privacidade Protegida".
+  // Eram desenhados direto na tela da VSL, sem existir como bloco — apareciam na
+  // página e NÃO apareciam em "Blocos desta lâmina", então não havia como tirar
+  // nem editar. Virou bloco pelo mesmo motivo do `check`: quem monta a lâmina
+  // decide o que ela mostra, não o componente.
+  | "trust"
   // Faixa fixa no topo da lâmina, sangrando até as bordas. Carrega aviso legal,
   // prazo ou escassez, e sabe contar um número que sobe com o tempo.
   | "disclaimer"
