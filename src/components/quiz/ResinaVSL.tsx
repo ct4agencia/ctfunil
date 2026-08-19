@@ -114,6 +114,45 @@ const SELOS = [
   },
 ];
 
+/**
+ * Selo de garantia DESENHADO — o medalhão dourado "7 DIAS".
+ *
+ * Existe porque a arte nunca chegou ao servidor e a seção da garantia ficava
+ * com um buraco no lugar do selo. Vetor em vez de arquivo: nasce nítido em
+ * qualquer tela, não pesa no carregamento e não some se alguém apagar o upload.
+ * Assim que um bloco de imagem for adicionado à lâmina, ele vence este desenho.
+ *
+ * Dourado fixo, não derivado do tema: selo de garantia é convenção de mercado
+ * (a pessoa reconhece antes de ler), e um medalhão azul-marinho não lê como
+ * selo. Mesmo critério dos três ícones de confiança abaixo do CTA.
+ */
+function SeloGarantia({ dias = 7 }: { dias?: number }) {
+  return (
+    <svg viewBox="0 0 200 200" width="170" height="170" aria-label={`Garantia de ${dias} dias`} role="img">
+      <defs>
+        <linearGradient id="rv-ouro" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#f7d78a" />
+          <stop offset="45%" stopColor="#e0a93c" />
+          <stop offset="100%" stopColor="#b9781c" />
+        </linearGradient>
+      </defs>
+      {/* serrilha da borda: traço pontilhado grosso, o jeito mais barato de
+          sugerir um medalhão sem desenhar 40 dentes à mão */}
+      <circle cx="100" cy="100" r="88" fill="none" stroke="url(#rv-ouro)" strokeWidth="10" strokeDasharray="5 9" strokeLinecap="round" />
+      <circle cx="100" cy="100" r="76" fill="url(#rv-ouro)" />
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.55)" strokeWidth="2" />
+      <text x="100" y="72" textAnchor="middle" fontSize="15" fontWeight="700" letterSpacing="2.5" fill="#5a3908">GARANTIA</text>
+      <text x="100" y="128" textAnchor="middle" fontSize="52" fontWeight="900" fill="#4a2f06">{dias}</text>
+      <text x="100" y="150" textAnchor="middle" fontSize="16" fontWeight="800" letterSpacing="3" fill="#5a3908">DIAS</text>
+    </svg>
+  );
+}
+
+/* Bandeiras aceitas, em texto dentro de cartõezinhos. Reproduzir os logotipos
+   das marcas seria uso de marca de terceiro sem licença; o nome escrito informa
+   o mesmo e é o que a maioria dos checkouts mostra. */
+const BANDEIRAS = ["VISA", "MASTER", "ELO", "HIPER", "PIX", "BOLETO"];
+
 export default function ResinaVSL({
   cor = "#0284c7", fundo, ctaCor,
   embedHtml, preview = false, cta, checkoutUrl, revelarEm = 0,
@@ -283,6 +322,34 @@ export default function ResinaVSL({
               ))}
             </div>
           ) : null}
+
+          {/* FORMAS DE PAGAMENTO — logo abaixo dos selos, no mesmo instante da
+              decisão: "consigo pagar do meu jeito?" vem junto de "isso é
+              seguro?". Some quando a lâmina traz a arte real (2ª imagem). */}
+          {!pagamentosImagem ? (
+            <div className="mt-5">
+              <div className="flex flex-wrap items-center justify-center gap-1.5">
+                {BANDEIRAS.map((b) => (
+                  <span
+                    key={b}
+                    className="text-[10px] font-bold tracking-wide"
+                    style={{
+                      borderRadius: 5, padding: "5px 8px",
+                      background: "rgba(255,255,255,.07)",
+                      border: "1px solid rgba(255,255,255,.16)",
+                      color: "rgba(255,255,255,.72)",
+                    }}
+                  >{b}</span>
+                ))}
+              </div>
+              <p className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px]" style={{ color: "rgba(255,255,255,.5)" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" strokeLinecap="round" />
+                </svg>
+                Pagamento processado em ambiente seguro
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : (
         <p className="px-5 py-6 text-center text-sm" style={{ color: "rgba(255,255,255,.55)" }}>{textoEspera}</p>
@@ -309,7 +376,13 @@ export default function ResinaVSL({
               <img src={garantiaImagem} alt="Garantia" loading="lazy" decoding="async" className="h-auto w-full"
                 style={{ filter: `drop-shadow(0 8px 24px rgba(${rgbDe(cor)},.35))` }} />
             </div>
-          ) : null}
+          ) : (
+            /* Sem bloco de imagem na lâmina, o selo é desenhado — a seção da
+               garantia sem selo nenhum era um buraco no meio da oferta. */
+            <div className="flex justify-center" style={{ filter: "drop-shadow(0 8px 24px rgba(224,169,60,.3))" }}>
+              <SeloGarantia />
+            </div>
+          )}
 
           {/* CARD dos termos da garantia — o texto que tira o risco da decisão */}
           {garantiaTexto ? (
