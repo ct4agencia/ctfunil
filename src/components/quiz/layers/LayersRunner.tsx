@@ -724,7 +724,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                 const btns = ls.filter((l) => l.type === "button");
                 const btn = btns[0];
                 const btn2 = btns[1];
-                const imgs = ls.filter((l) => l.type === "image").map((l) => l.content?.image?.src);
+                /* A LARGURA vem junto: a tela desenhava as imagens com maxWidth
+                   cravado e ignorava o campo "Largura (%)" do bloco — mexer no
+                   construtor não mudava nada na tela. */
+                const imgs = ls.filter((l) => l.type === "image")
+                  .map((l) => ({ src: l.content?.image?.src, largura: Number(l.design?.basis) || undefined }));
 
                 /* A POSIÇÃO em relação ao botão decide o papel do bloco, como
                    na captura: antes dele é conteúdo do topo (chamada, avisos),
@@ -778,6 +782,10 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     // antes do botão = chamada do player; depois = garantia
                     headline={textosTopo[0] ? semHtml(textosTopo[0].content?.text) : undefined}
                     garantiaTitulo={textosGarantia[0] ? semHtmlMultilinha(textosGarantia[0].content?.text) : undefined}
+                    /* O tamanho da fonte vem do bloco. A tela cravava 24px e o
+                       campo do construtor não surtia efeito. */
+                    tamanhoHeadline={Number(textosTopo[0]?.design?.fontSize) || undefined}
+                    tamanhoGarantia={Number(textosGarantia[0]?.design?.fontSize) || undefined}
                     /* card = termos da garantia; 2º alerta = pílula abaixo do
                        CTA repetido. Blocos comuns, montados pela tela. */
                     garantiaTexto={ls.find((l) => l.type === "card")?.content?.text}
@@ -790,8 +798,10 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                       cor: (btn2.design?.backgroundColor as string) || undefined,
                       url: btn2.content?.destination || destino,
                     } : null}
-                    garantiaImagem={imgs[0] || undefined}
-                    pagamentosImagem={imgs[1] || undefined}
+                    garantiaImagem={imgs[0]?.src || undefined}
+                    larguraGarantia={imgs[0]?.largura}
+                    pagamentosImagem={imgs[1]?.src || undefined}
+                    larguraPagamentos={imgs[1]?.largura}
                     /* Provas de confiança: só existem se a lâmina tiver o bloco
                        `trust`. Removê-lo em "Blocos desta lâmina" apaga o
                        medalhão, as bandeiras e os selos de uma vez. */

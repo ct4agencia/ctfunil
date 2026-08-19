@@ -69,6 +69,22 @@ export interface ResinaVSLProps {
   /** selos de confiança do rodapé (ex.: "Google Site Seguro") */
   selosImagem?: string;
   rodape?: string;
+  /**
+   * Largura das imagens da lâmina, em % — o campo "Largura (%)" de cada bloco.
+   *
+   * A tela desenhava com `maxWidth` cravado (220px no selo, 280px nas formas de
+   * pagamento) e ignorava o campo: mexer no slider do construtor não mudava
+   * nada na tela. Cada imagem manda a sua; sem valor, cai no padrão de antes.
+   */
+  larguraGarantia?: number;
+  larguraPagamentos?: number;
+  /**
+   * Corpo dos títulos, em px — o campo "Tamanho da fonte" de cada bloco de
+   * texto. Mesma história das imagens: a tela cravava 24px nos dois títulos e o
+   * campo do construtor não tinha efeito nenhum. Vazio = 24, como era.
+   */
+  tamanhoHeadline?: number;
+  tamanhoGarantia?: number;
   garantiaTitulo?: string;
   garantiaImagem?: string;
   pagamentosImagem?: string;
@@ -169,6 +185,7 @@ export default function ResinaVSL({
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
   headline, alertas = [], topo,
   selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem,
+  larguraGarantia, larguraPagamentos, tamanhoHeadline, tamanhoGarantia,
   selos, garantiaTexto, garantiaChip, ctaRepete, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
@@ -247,7 +264,7 @@ export default function ResinaVSL({
       {headline ? (
         <div className="w-full px-5 pb-1 pt-7 text-center">
           <div className="mx-auto mb-4 h-[3px] w-[60px] rounded-sm" style={{ background: filete }} />
-          <h2 className="mx-auto" style={{ fontWeight: 900, fontSize: 24, lineHeight: 1.25, color: "#fff", maxWidth: 420 }}>{headline}</h2>
+          <h2 className="mx-auto" style={{ fontWeight: 900, fontSize: tamanhoHeadline || 24, lineHeight: 1.25, color: "#fff", maxWidth: 420 }}>{headline}</h2>
         </div>
       ) : null}
 
@@ -315,7 +332,8 @@ export default function ResinaVSL({
           {pagamentosImagem ? (
             <div className="mt-4 flex justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={pagamentosImagem} alt="Formas de pagamento" loading="lazy" decoding="async" className="h-auto w-full" style={{ maxWidth: 280 }} />
+              <img src={pagamentosImagem} alt="Formas de pagamento" loading="lazy" decoding="async" className="h-auto w-full"
+                style={larguraPagamentos ? { width: `${larguraPagamentos}%` } : { maxWidth: 280 }} />
             </div>
           ) : selos?.selosConfianca ? (
             /* SELOS DE CONFIANÇA — desenhados, porque são ícones genéricos e não
@@ -376,14 +394,14 @@ export default function ResinaVSL({
             <h2
               className="mx-auto mb-8"
               style={{
-                fontWeight: 900, fontSize: 24, lineHeight: 1.25, maxWidth: 420,
+                fontWeight: 900, fontSize: tamanhoGarantia || 24, lineHeight: 1.25, maxWidth: 420,
                 background: gradTitulo, WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent", backgroundClip: "text",
               }}
             >{garantiaTitulo}</h2>
           ) : null}
           {garantiaImagem ? (
-            <div className="mx-auto w-full" style={{ maxWidth: 220 }}>
+            <div className="mx-auto" style={larguraGarantia ? { width: `${larguraGarantia}%` } : { width: "100%", maxWidth: 220 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={garantiaImagem} alt="Garantia" loading="lazy" decoding="async" className="h-auto w-full"
                 style={{ filter: `drop-shadow(0 8px 24px rgba(${rgbDe(cor)},.35))` }} />
