@@ -279,7 +279,16 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   // ── Heros TIPADOS (roleta/slider) — reaproveitam os StepView do motor antigo ──
   // Renderizam em tela cheia com as CSS-vars de paleta. Roleta = fundo escuro;
   // slider = fundo claro (combina com o resto do funil inlead).
-  const hero = (step.layers || []).find((l) => HERO_TIPADO.has(l.type));
+  const camadas = (step.layers || []).filter((l) => !l.design?.hidden);
+  const iHero = camadas.findIndex((l) => HERO_TIPADO.has(l.type));
+  const hero = iHero >= 0 ? camadas[iHero] : undefined;
+  /* Os blocos IRMÃOS do hero. Este ramo desenhava só o hero e descartava o
+     resto em silêncio: adicionar um "Check ✓" na lâmina da roleta o mostrava em
+     "Blocos desta lâmina" e não o desenhava em lugar nenhum.
+     A ordem da lista decide o lugar — antes do hero fica em cima, depois fica
+     embaixo, como em qualquer outra lâmina. */
+  const acimaDoHero = iHero > 0 ? camadas.slice(0, iHero) : [];
+  const abaixoDoHero = iHero >= 0 ? camadas.slice(iHero + 1) : [];
   if (hero) {
     const palette = getPalette(funnel.paletteId);
     // SLIDER hero: layout dedicado (foto full-bleed no rodapé + gradiente, botão acima).
@@ -340,6 +349,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
         } as React.CSSProperties}
       >
         <main className="flex flex-1 flex-col">
+          {acimaDoHero.length ? (
+            <div className="w-full px-5 pt-6">
+              {acimaDoHero.map((l, i) => (
+                <Block key={l.id} layer={l} ctx={ctx} question={question} indice={i} />
+              ))}
+            </div>
+          ) : null}
           {hero.type === "roulette" ? <RouletteStepView step={conteudo as RouletteStep} ctx={stepCtx} />
             : hero.type === "scratch" ? <ScratchGrid step={conteudo} ctx={stepCtx} />
               : hero.type === "measure" ? <MeasureStepView step={conteudo} ctx={stepCtx} />
@@ -347,6 +363,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                   : hero.type === "vsl" ? <VslStepView step={conteudo} ctx={stepCtx} />
                     : hero.type === "confirm" ? <ConfirmStepView step={conteudo} ctx={stepCtx} />
                       : null}
+          {abaixoDoHero.length ? (
+            <div className="w-full px-5 pb-8 pt-4">
+              {abaixoDoHero.map((l, i) => (
+                <Block key={l.id} layer={l} ctx={ctx} question={question} indice={acimaDoHero.length + 1 + i} />
+              ))}
+            </div>
+          ) : null}
         </main>
         <ScrollHint dep={idx} enabled={scrollHintLigado} />
       </div>
