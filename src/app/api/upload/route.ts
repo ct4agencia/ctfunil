@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import sharp from "sharp";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 const BUCKET = "vsl-assets";
@@ -29,8 +28,18 @@ export async function POST(request: Request) {
 
   // Imagens raster → webp otimizado (max 1080px). Mantém o funil rápido: um PNG
   // de 1MB do ChatGPT vira ~90KB webp automaticamente. Áudio/vídeo/svg passam direto.
+  //
+  // O `sharp` é carregado AQUI DENTRO, não no topo do arquivo. Ele é um módulo
+  // nativo: o binário do Windows entra no lockfile na máquina de desenvolvimento
+  // e na Vercel (linux-x64) o carregamento falhava com
+  // `ERR_DLOPEN_FAILED: libvips-cpp.so.8.18.3`. Como o import estava no topo, a
+  // rota morria ANTES do handler rodar — o navegador recebia um 500 sem corpo,
+  // e o construtor mostrava "falha no upload" sem dizer o porquê.
+  // Com o import dentro do try, uma otimização indisponível custa alguns KB a
+  // mais no arquivo; nunca mais custa o upload inteiro.
   if (/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
     try {
+      const { default: sharp } = await import("sharp");
       const buf = Buffer.from(await file.arrayBuffer());
       const webp = await sharp(buf).resize({ width: 1080, withoutEnlargement: true }).webp({ quality: 75 }).toBuffer();
       if (webp.length < buf.length) {

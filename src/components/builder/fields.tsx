@@ -145,6 +145,37 @@ export function VisualRichField({ value, onChange, rows = 2, vars = ["nome", "es
 // motor `layers` alcançava. Enquanto isso o StepEditor — que edita TODOS os
 // blocos-hero, nos dois motores — pedia a imagem como URL crua digitada à mão.
 // Agora os dois usam o mesmo campo: cola a URL ou envia o arquivo.
+/**
+ * Converte a imagem para webp de no máximo 1080px ANTES de enviar.
+ *
+ * Isto era feito no servidor com `sharp`, um módulo nativo que não carregava na
+ * Vercel (binário linux ausente) e derrubava a rota inteira. O navegador faz o
+ * mesmo trabalho com `canvas`, sem dependência alguma — e faz melhor: o arquivo
+ * já sai pequeno da máquina, então uma capa de 8 MB não esbarra mais no teto de
+ * 4,5 MB por requisição da Vercel, e sobe em uma fração do tempo.
+ *
+ * Devolve o arquivo original quando a conversão não compensa (ficou maior) ou
+ * quando o navegador não colabora — subir a imagem crua é sempre melhor do que
+ * não subir nada.
+ */
+async function paraWebp(file: File): Promise<File> {
+  if (!/^image\/(png|jpe?g)$/i.test(file.type)) return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const escala = Math.min(1, 1080 / bmp.width);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * escala);
+    canvas.height = Math.round(bmp.height * escala);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    bmp.close();
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/webp", 0.75));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], `${file.name.replace(/\.[^.]+$/, "")}.webp`, { type: "image/webp" });
+  } catch { return file; }
+}
+
 export function ImageField({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
   const [busy, setBusy] = useState(false);
   /* A falha do upload PRECISA aparecer. Antes o `catch` era vazio e um `j.url`
@@ -157,7 +188,7 @@ export function ImageField({ value, onChange }: { value?: string; onChange: (v: 
     setBusy(true);
     setErro(null);
     try {
-      const fd = new FormData(); fd.append("file", file);
+      const fd = new FormData(); fd.append("file", await paraWebp(file));
       const r = await fetch("/api/upload", { method: "POST", body: fd });
       const j = await r.json().catch(() => ({} as { url?: string; error?: string }));
       if (j.url) onChange(j.url);
