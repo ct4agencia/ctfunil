@@ -23,7 +23,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { prefereMenosMovimento } from "@/lib/quiz/motion";
-import { fundoEscuroTema, gradienteTema, rgbDe } from "@/lib/quiz/resina";
+import { clarear, fundoEscuroTema, gradienteTema, rgbDe } from "@/lib/quiz/resina";
 
 export interface ResinaVSLProps {
   /** cor do tema — governa fundo e filete quando não há sobrescrita */
@@ -83,11 +83,17 @@ export interface ResinaVSLProps {
   /** pílula abaixo do 2º CTA (ex.: "🔒 Garantia de 7 dias — risco zero") */
   garantiaChip?: string;
   /**
-   * Repete o CTA depois da garantia. A referência faz isso porque quem rolou
+   * CTA repetido depois da garantia. A referência faz isso porque quem rolou
    * até aqui leu a garantia e está decidindo — obrigá-lo a subir de volta para
    * achar o botão é perder a venda no último metro.
+   *
+   * NÃO é mais um `boolean` que a tela decide sozinha: é o SEGUNDO bloco de
+   * botão da lâmina. Antes a tela inventava este CTA, e duplicar o botão no
+   * construtor criava um bloco que ela descartava em silêncio — o bloco existia
+   * no painel, mas editá-lo não mudava nada na tela. Agora duplicar o botão É o
+   * gesto que cria o segundo CTA, e ocultá-lo o remove.
    */
-  ctaRepete?: boolean;
+  ctaRepete?: { label: string; cor?: string; url: string } | null;
   /** chamado no clique, antes de navegar — para o pixel */
   onCheckout?: () => void;
 }
@@ -114,7 +120,7 @@ export default function ResinaVSL({
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
   headline, alertas = [], topo,
   selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem,
-  selos = true, garantiaTexto, garantiaChip, ctaRepete = true, onCheckout,
+  selos = true, garantiaTexto, garantiaChip, ctaRepete, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
   /* Fundo, filete e CTA saem do TEMA — nada de hexadecimal cravado. Com tema
@@ -124,6 +130,12 @@ export default function ResinaVSL({
   const fundoFinal = ehImagem ? undefined : (fundo || fundoEscuroTema(cor));
   const filete = gradienteTema(cor);
   const verdeCta = ctaCor || "#16A34A";
+  /* Gradiente do TÍTULO da garantia. `filete` não serve aqui: ele vai de
+     escuro para médio — foi desenhado para a barrinha sobre fundo claro. Sobre
+     o preto desta tela, recortado dentro do texto, some. Este vai do claro do
+     tema ao branco e volta, então a frase brilha do meio para fora como na
+     referência, e continua legível. */
+  const gradTitulo = `linear-gradient(95deg, ${clarear(cor, 0.5)} 0%, #ffffff 45%, #ffffff 55%, ${clarear(cor, 0.5)} 100%)`;
   const [mostraCta, setMostraCta] = useState(preview || revelarEm <= 0);
   /**
    * `dangerouslySetInnerHTML` NÃO executa <script> — é regra do React, e por
@@ -286,7 +298,7 @@ export default function ResinaVSL({
               className="mx-auto mb-8"
               style={{
                 fontWeight: 900, fontSize: 24, lineHeight: 1.25, maxWidth: 420,
-                background: filete, WebkitBackgroundClip: "text",
+                background: gradTitulo, WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent", backgroundClip: "text",
               }}
             >{garantiaTitulo}</h2>
@@ -318,16 +330,16 @@ export default function ResinaVSL({
               último metro. */}
           {ctaRepete ? (
             <a
-              href={checkoutUrl}
-              onClick={(e) => { e.preventDefault(); onCheckout?.(); if (checkoutUrl) window.location.href = checkoutUrl; }}
+              href={ctaRepete.url}
+              onClick={(e) => { e.preventDefault(); onCheckout?.(); if (ctaRepete.url) window.location.href = ctaRepete.url; }}
               className={`mx-auto mt-7 block w-full max-w-[360px] ${reduzido ? "" : "animate-cta-green"}`}
               style={{
                 padding: "19px 24px", borderRadius: 16, fontWeight: 800, fontSize: 17,
                 letterSpacing: ".02em", textTransform: "uppercase", color: "#fff", textDecoration: "none",
-                background: `linear-gradient(135deg, ${verdeCta} 0%, ${verdeCta} 50%, ${verdeCta} 100%)`,
-                boxShadow: `0 10px 30px ${verdeCta}66`,
+                background: ctaRepete.cor || `linear-gradient(135deg, ${verdeCta} 0%, ${verdeCta} 50%, ${verdeCta} 100%)`,
+                boxShadow: `0 10px 30px ${ctaRepete.cor || verdeCta}66`,
               }}
-            >{cta}</a>
+            >{ctaRepete.label}</a>
           ) : null}
 
           {garantiaChip ? (

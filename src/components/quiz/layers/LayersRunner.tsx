@@ -716,7 +716,14 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                  tela inteira, incluindo a barra de vagas. */
               if (presetTelas && (step as { tela?: string }).tela === "vsl") {
                 const emb = ls.find((l) => l.type === "embed" || l.type === "video");
-                const btn = ls.find((l) => l.type === "button");
+                /* TODOS os botões, não só o primeiro. O 2º CTA (abaixo da
+                   garantia) era inventado pela tela, então duplicar o botão no
+                   construtor criava um bloco que ela ignorava: o bloco existia
+                   no painel e editá-lo não mudava nada na tela. Agora duplicar
+                   É o gesto que cria o 2º CTA — e ocultá-lo o remove. */
+                const btns = ls.filter((l) => l.type === "button");
+                const btn = btns[0];
+                const btn2 = btns[1];
                 const imgs = ls.filter((l) => l.type === "image").map((l) => l.content?.image?.src);
 
                 /* A POSIÇÃO em relação ao botão decide o papel do bloco, como
@@ -775,6 +782,14 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                        CTA repetido. Blocos comuns, montados pela tela. */
                     garantiaTexto={ls.find((l) => l.type === "card")?.content?.text}
                     garantiaChip={chipGarantia ? String(chipGarantia.content?.text) : undefined}
+                    /* 2º botão da lâmina = CTA repetido abaixo da garantia.
+                       Sem 2º botão, a tela não desenha nenhum — quem decide é
+                       o construtor, não o componente. */
+                    ctaRepete={btn2 ? {
+                      label: semHtml(btn2.content?.label) || "QUERO GARANTIR MINHA VAGA",
+                      cor: (btn2.design?.backgroundColor as string) || undefined,
+                      url: btn2.content?.destination || destino,
+                    } : null}
                     garantiaImagem={imgs[0] || undefined}
                     pagamentosImagem={imgs[1] || undefined}
                     selosImagem={(step as { selosImagem?: string }).selosImagem}

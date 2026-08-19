@@ -51,7 +51,7 @@ export interface TokensResina {
 }
 
 /** Clareia um hex em direção ao branco (0 = igual, 1 = branco). */
-function clarear(hex: string, f: number): string {
+export function clarear(hex: string, f: number): string {
   const m = /^#?([\da-f]{6})$/i.exec((hex || "").trim());
   if (!m) return hex;
   const n = parseInt(m[1], 16);

@@ -147,14 +147,24 @@ export function VisualRichField({ value, onChange, rows = 2, vars = ["nome", "es
 // Agora os dois usam o mesmo campo: cola a URL ou envia o arquivo.
 export function ImageField({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
   const [busy, setBusy] = useState(false);
+  /* A falha do upload PRECISA aparecer. Antes o `catch` era vazio e um `j.url`
+     ausente não dizia nada: sessão expirada (401) ou arquivo grande demais
+     (413, teto de 4,5 MB por requisição na Vercel) devolviam a mesma coisa que
+     um clique sem efeito — o botão voltava ao normal, a imagem não trocava, e
+     nenhuma linha na tela explicava o porquê. */
+  const [erro, setErro] = useState<string | null>(null);
   const up = async (file: File) => {
     setBusy(true);
+    setErro(null);
     try {
       const fd = new FormData(); fd.append("file", file);
       const r = await fetch("/api/upload", { method: "POST", body: fd });
-      const j = await r.json();
+      const j = await r.json().catch(() => ({} as { url?: string; error?: string }));
       if (j.url) onChange(j.url);
-    } catch { /* upload falhou: o campo de URL continua servindo */ }
+      else if (r.status === 401) setErro("Sessão expirada — recarregue a página e entre de novo.");
+      else if (r.status === 413) setErro(`Arquivo grande demais (${(file.size / 1024 / 1024).toFixed(1)} MB). O limite é 4,5 MB.`);
+      else setErro(j.error || `Falha no upload (HTTP ${r.status}).`);
+    } catch { setErro("Sem resposta do servidor. Verifique a conexão e tente de novo."); }
     setBusy(false);
   };
   return (
@@ -164,6 +174,7 @@ export function ImageField({ value, onChange }: { value?: string; onChange: (v: 
         {busy ? "Enviando…" : "⬆ Upload"}
         <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && up(e.target.files[0])} />
       </label>
+      {erro ? <p className="rounded-md bg-red-50 px-2 py-1 text-[11px] leading-snug text-red-700">{erro}</p> : null}
       {value ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={value} alt="" className="mt-1 max-h-24 rounded-md border border-neutral-200 object-contain" />
