@@ -270,7 +270,18 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
         {/* Segue a PROPORÇÃO NATURAL da imagem (sem forçar aspect-ratio/object-contain,
             que letterboxava quando im.width/height salvos estavam errados). O slide de
             largura (basis%) escala proporcional; o alinhamento posiciona (justifyOf). */}
-        <motion.img
+        {/* A PEÇA: imagem + selo + tag sobem e descem JUNTOS.
+            Antes a flutuação vivia no <img> e o selo e a tag eram irmãos dele,
+            parados: a pílula "GRÁTIS" ficava presa à tela enquanto a arte subia,
+            e a cada ciclo descolava da quina. Agrupá-los aqui resolve sem tocar
+            nos brilhos, que continuam FORA e orbitam a moldura em ritmo próprio
+            — se subissem junto, a peça inteira respiraria e viraria distração. */}
+        <motion.div
+          className="relative block"
+          animate={d.flutua && !prefereMenosMovimento() ? { y: [0, -9, 0] } : undefined}
+          transition={d.flutua ? { duration: 3.4, repeat: Infinity, ease: "easeInOut" } : undefined}
+        >
+        <img
           src={src} alt="" loading="lazy" decoding="async"
           style={{
             width: "100%", height: "auto",
@@ -282,10 +293,6 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
             boxShadow: d.redonda ? `0 0 0 5px #fff, 0 12px 34px -12px ${ctx.design.themeColor || "#ea580c"}66` : undefined,
           }}
           className="block"
-          // `flutua`: sobe e desce devagar. É o "motion bonitinho" da apostila —
-          // movimento lento e contínuo lê como objeto vivo, não como animação.
-          animate={d.flutua && !prefereMenosMovimento() ? { y: [0, -9, 0] } : undefined}
-          transition={d.flutua ? { duration: 3.4, repeat: Infinity, ease: "easeInOut" } : undefined}
         />
         {/* SELO VERIFICADO — sobreposto no canto, como no print da Sônia */}
         {d.selo === "verificado" ? (
@@ -322,6 +329,7 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >{String(d.tag)}</motion.span>
         ) : null}
+        </motion.div>
         {overlays}
       </div>
     </div>
