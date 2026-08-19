@@ -95,6 +95,21 @@ export interface RouletteSegment {
   label: string;
   color: string;
   win?: boolean;
+  /**
+   * Arte DENTRO da fatia — a logo do prêmio, no lugar do texto.
+   *
+   * É por fatia, não da lâmina: `centerImage` sempre foi a imagem do MIOLO da
+   * roda, e usá-la como logo de fatia (o que o porte da v3 fez no começo) dava
+   * dois significados ao mesmo campo — trocar de motor movia a arte do centro
+   * para a borda sem ninguém pedir.
+   *
+   * `imagemTamanho` é a largura em px do desenho de 600px (padrão 165, a medida
+   * do arquivo v3). `imagemRotacao` gira só a arte, em graus: 0 a deixa em pé
+   * quando a fatia está sob o ponteiro.
+   */
+  imagem?: string;
+  imagemTamanho?: number;
+  imagemRotacao?: number;
   /** emoji do popup deste prêmio; sem valor, o popup usa 🎉 */
   emoji?: string;
   /**
@@ -140,11 +155,12 @@ export const ROULETTE_STYLES: { id: RouletteStyle; name: string }[] = [
  *
  * AUSENTE = `classica`. É isso que mantém intacto todo funil já publicado.
  */
-export type RouletteEngine = "classica" | "interativa";
+export type RouletteEngine = "classica" | "interativa" | "fisica3";
 
 export const ROULETTE_ENGINES: { id: RouletteEngine; name: string; hint: string }[] = [
   { id: "classica", name: "Roleta padrão", hint: "A de sempre. Giro suave, som sincronizado por tempo." },
   { id: "interativa", name: "Roleta interativa", hint: "Física real: o pino segura, a roda recua e o som acompanha o giro." },
+  { id: "fisica3", name: "Roleta v3 (quase não passa)", hint: "O pino vira um morro de energia e VOCÊ decide se a roda tem força para vencê-lo — o suspense sai igual em todo giro." },
 ];
 
 export interface RouletteStep extends BaseStep {
@@ -153,6 +169,19 @@ export interface RouletteStep extends BaseStep {
   subtitle?: string;
   /** motor de animação; ausente = `classica` (comportamento de sempre) */
   engine?: RouletteEngine;
+  /**
+   * Só para `fisica3`. O pino é um morro de energia; estes dois dizem quanta
+   * força a roda leva para enfrentá-lo.
+   *
+   * `quasePassa: true`  → encosta, hesita e PASSA (cai no prêmio)
+   * `quasePassa: false` → encosta, hesita e VOLTA (fica no prêmio anterior)
+   *
+   * `hesitacao` (−10..+10) aproxima a razão de energia de 1 nos dois sentidos:
+   * quanto mais perto, mais tempo a roda morre em cima do pino antes de
+   * decidir. É o botão do drama — o resto continua sendo física de verdade.
+   */
+  quasePassa?: boolean;
+  hesitacao?: number;
   /** só para `interativa`: nome do preset de movimento (ex.: "Suspense") */
   preset?: string;
   /** só para `interativa`: intensidade do preset, de -10 a +10 (0 = puro) */

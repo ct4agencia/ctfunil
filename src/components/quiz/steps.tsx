@@ -17,6 +17,9 @@ import dynamic from "next/dynamic";
 // Motor alternativo da roleta. `dynamic` de propósito: funil que usa a roleta
 // clássica (todos os de hoje) não baixa uma linha da simulação.
 const RoletaInterativa = dynamic(() => import("./RoletaInterativa"), { ssr: false });
+// mesmo tratamento: canvas + AudioContext só existem no navegador, e carregar
+// sob demanda mantém o bundle de `/q/[slug]` fora do peso de dois motores
+const RoletaFisicaV3 = dynamic(() => import("./RoletaFisicaV3"), { ssr: false });
 // Mesma tela usada pelo motor layers; mora fora daqui para os dois a
 // compartilharem sem que o layers importe este arquivo inteiro.
 const Diagnostico = dynamic(() => import("./Diagnostico"), { ssr: false });
@@ -183,6 +186,12 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   // Motor "interativa": a roda é simulada quadro a quadro e avisa quando parou.
   // A clássica segue sendo o padrão — `engine` ausente é o caminho de sempre.
   const interativa = step.engine === "interativa";
+  /* Motor v3: o pino vira um morro de energia e o construtor decide se a roda
+     tem força para vencê-lo. Compartilha com a `interativa` tudo o que está
+     FORA da roda — sorteio, trava de 24h, confete, popup — e só troca a
+     simulação. Por isso as duas entram juntas nas guardas de som e de fim. */
+  const fisica3 = step.engine === "fisica3";
+  const simulada = interativa || fisica3;
   const [vencedor, setVencedor] = useState(step.winningIndex);
 
   // Popup de prêmio: AUSENTE = desligado, para as roletas que já rodam não
@@ -219,9 +228,9 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     // e outra pelo movimento. O som customizado (tickUrl) vale nos dois motores.
     if (step.sound?.enabled) {
       if (step.sound.tickUrl) playUrl(step.sound.tickUrl);
-      else if (!interativa) playSpinTicks(4200);
+      else if (!simulada) playSpinTicks(4200);
     }
-    if (interativa) return; // o fim chega pelo callback do componente
+    if (simulada) return; // o fim chega pelo callback do componente
 
     setRotation(360 * 6 - win * seg); // win=0 → 6 voltas exatas, labels terminam retas
     setTimeout(celebrar, 4300);
@@ -263,7 +272,23 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
             simulada quadro a quadro; o som dos pinos nasce do próprio giro e o
             fim avisa por callback. O sorteio, a trava de 24 h e o confete
             continuam aqui fora, iguais para os dois motores. */}
-        {interativa ? (
+        {fisica3 ? (
+          <div className="mt-7">
+            <RoletaFisicaV3
+              segments={step.segments}
+              vencedor={vencedor}
+              girando={spinning}
+              /* o índice que chega é o REALMENTE entregue: no modo "não passa"
+                 a roda para no prêmio anterior, e celebrar o alvo seria mentir
+                 sobre o que está debaixo do ponteiro */
+              onFim={(real) => { setVencedor(real); celebrar(); }}
+              som={!!step.sound?.enabled && !step.sound?.tickUrl}
+              centerImage={step.centerImage}
+              quasePassa={step.quasePassa !== false}
+              hesitacao={step.hesitacao ?? 0}
+            />
+          </div>
+        ) : interativa ? (
           <div className="mt-7">
             <RoletaInterativa
               segments={step.segments}

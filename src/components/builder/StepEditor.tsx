@@ -146,6 +146,55 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               é exatamente a que se ouve no laboratório.
               O card ATIVO é o do preset salvo na lâmina; mexer na régua de outro
               card também o seleciona (senão seria preciso clicar duas vezes). */}
+          {/* CONTROLE DO MOTOR v3 — o painel que ficava solto na página do
+              arquivo original mora aqui: quem calibra o drama é quem monta o
+              funil, e o lead nunca pode ver esse controle. */}
+          {s.engine === "fisica3" ? (
+            <div className="rounded-xl border border-neutral-200 bg-white p-3.5">
+              <div className="flex items-center justify-between">
+                <strong className="text-[13px] text-neutral-900">Quase não passa</strong>
+                <label className="relative inline-block h-[26px] w-[46px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={s.quasePassa !== false}
+                    onChange={(e) => p({ quasePassa: e.target.checked } as Partial<Step>)}
+                    className="h-0 w-0 opacity-0"
+                  />
+                  <span className="absolute inset-0 rounded-full transition"
+                    style={{ background: s.quasePassa !== false ? "#0a7d38" : "#ccc" }}>
+                    <span className="absolute left-[3px] top-[3px] h-5 w-5 rounded-full bg-white shadow transition"
+                      style={{ transform: s.quasePassa !== false ? "translateX(20px)" : "none" }} />
+                  </span>
+                </label>
+              </div>
+              <p className="my-1.5 text-[11.5px] leading-snug text-neutral-500">
+                A roda equilibra em cima do pino, hesita e{" "}
+                <b style={{ color: s.quasePassa !== false ? "#0a7d38" : "#c0392b" }}>
+                  {s.quasePassa !== false
+                    ? "passa — cai no prêmio escolhido"
+                    : "volta — fica no prêmio anterior"}
+                </b>
+              </p>
+              <div className="mt-2.5 flex items-center gap-2 text-[11px] text-neutral-400">
+                <span className="shrink-0">menos hesitação</span>
+                <input
+                  type="range" min={-10} max={10}
+                  value={s.hesitacao ?? 0}
+                  onChange={(e) => p({ hesitacao: Number(e.target.value) } as Partial<Step>)}
+                  className="flex-1 accent-orange-600"
+                  aria-label="Hesitação sobre o pino"
+                />
+                <span className="shrink-0">mais</span>
+                <b className="min-w-[22px] text-right text-[13px] text-neutral-900">{s.hesitacao ?? 0}</b>
+              </div>
+              <p className="mt-2 text-[11px] leading-snug text-neutral-400">
+                O pino é um morro de energia. A régua aproxima a força da roda do
+                exato ponto de virada: quanto mais alta, mais tempo ela morre em
+                cima do pino antes de decidir.
+              </p>
+            </div>
+          ) : null}
+
           {s.engine === "interativa" ? (
             <div className="rounded-xl border border-neutral-200 bg-white p-3">
               <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">
@@ -345,8 +394,16 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             <span className="mb-1 block text-xs font-semibold text-neutral-500">Segmentos (marque o vencedor)</span>
             <div className="space-y-2">
               {s.segments.map((seg, i) => (
-                <div key={i} className="flex items-center gap-2 rounded-lg border border-neutral-200 p-2">
-                  <input type="radio" name="winner" checked={s.winningIndex === i} onChange={() => setWinner(i)} className="h-4 w-4 accent-neutral-900" />
+                <div key={i} className={`rounded-lg border p-2 ${s.winningIndex === i ? "border-emerald-400 bg-emerald-50/60" : "border-neutral-200"}`}>
+                <div className="flex items-center gap-2">
+                  {/* O CHECK é quem decide o prêmio — nos dois modos do motor v3.
+                      Radio e não caixa: duas fatias marcadas deixariam a roleta
+                      sem saber qual entregar. A linha marcada ganha fundo verde
+                      porque antes era um ponto cinza sem rótulo. */}
+                  <label className="flex shrink-0 cursor-pointer flex-col items-center gap-0.5" title="Esta fatia é o prêmio">
+                    <input type="radio" name="winner" checked={s.winningIndex === i} onChange={() => setWinner(i)} className="h-4 w-4 accent-emerald-600" />
+                    <span className={`text-[9px] font-bold uppercase leading-none ${s.winningIndex === i ? "text-emerald-700" : "text-neutral-400"}`}>prêmio</span>
+                  </label>
                   <ColorField value={seg.color} onChange={(v) => patchSeg(i, { color: v })} className="h-8 w-9" label="Cor da fatia" />
                   <input className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" value={seg.label} onChange={(e) => patchSeg(i, { label: e.target.value })} />
                   {/* tamanho SÓ desta fatia: vazio = herda o da lâmina. Existe
@@ -360,6 +417,42 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                     className="w-14 shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-center text-sm"
                   />
                   <button type="button" onClick={() => p({ segments: s.segments.filter((_, k) => k !== i), winningIndex: Math.min(s.winningIndex, s.segments.length - 2) } as Partial<Step>)} disabled={s.segments.length <= 2} className="shrink-0 text-sm text-red-500 disabled:opacity-30">✕</button>
+                </div>
+
+                {/* ARTE DA FATIA — só no motor v3, que é quem sabe desenhá-la.
+                    Quando há imagem ela ocupa o lugar do texto, então tamanho e
+                    rotação só aparecem depois de escolhida: campos vazios em
+                    seis fatias transformariam o painel num formulário. */}
+                {s.engine === "fisica3" ? (
+                  <div className="mt-2 border-t border-neutral-200/70 pt-2">
+                    <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                      Arte da fatia (entra no lugar do texto)
+                    </span>
+                    <ImageField value={seg.imagem} onChange={(v) => patchSeg(i, { imagem: v || undefined })} />
+                    {seg.imagem ? (
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <label className="flex items-center gap-1.5 text-[11px] text-neutral-500">
+                          <span className="shrink-0">Tamanho</span>
+                          <input
+                            type="range" min={60} max={260} step={5}
+                            value={seg.imagemTamanho ?? 165}
+                            onChange={(e) => patchSeg(i, { imagemTamanho: Number(e.target.value) })}
+                            className="w-full accent-neutral-900" aria-label="Tamanho da arte" />
+                          <b className="w-8 shrink-0 text-right tabular-nums text-neutral-800">{seg.imagemTamanho ?? 165}</b>
+                        </label>
+                        <label className="flex items-center gap-1.5 text-[11px] text-neutral-500">
+                          <span className="shrink-0">Girar</span>
+                          <input
+                            type="range" min={-180} max={180} step={5}
+                            value={seg.imagemRotacao ?? 0}
+                            onChange={(e) => patchSeg(i, { imagemRotacao: Number(e.target.value) })}
+                            className="w-full accent-neutral-900" aria-label="Rotação da arte" />
+                          <b className="w-8 shrink-0 text-right tabular-nums text-neutral-800">{seg.imagemRotacao ?? 0}°</b>
+                        </label>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
                 </div>
               ))}
               <button type="button" onClick={() => p({ segments: [...s.segments, { label: "Novo", color: "#f4c69b" }] } as Partial<Step>)} className="rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">+ Segmento</button>
