@@ -211,13 +211,24 @@ export function CtaButton({
   disabled,
   type = "button",
   pulse = true,
+  cor,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
   type?: "button" | "submit";
   pulse?: boolean;
+  /**
+   * Cor própria deste botão. Sem valor, segue a paleta do funil — que é o
+   * comportamento de todos os outros usos e continua intacto.
+   *
+   * Existe para o GIRAR da roleta: ele não pode virar bloco solto (dispara o
+   * `spin()`, desabilita durante o giro e troca o texto), então a cor precisa
+   * ser configurável onde ele já mora, no painel da lâmina.
+   */
+  cor?: string;
 }) {
+  const base = cor || "var(--q-primary)";
   return (
     <motion.button
       type={type}
@@ -226,8 +237,8 @@ export function CtaButton({
       whileTap={{ scale: 0.97 }}
       className={`fx-shine relative w-full overflow-hidden rounded-2xl px-6 py-4 text-center text-[17px] font-extrabold tracking-wide text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${pulse && !disabled ? "fx-pulse" : ""}`}
       style={{
-        background: "linear-gradient(95deg, var(--q-primary), color-mix(in srgb, var(--q-primary) 64%, #ffd9a8))",
-        boxShadow: disabled ? "none" : "0 14px 30px -10px var(--q-primary), inset 0 1px 0 rgba(255,255,255,.35)",
+        background: `linear-gradient(95deg, ${base}, color-mix(in srgb, ${base} 64%, #ffd9a8))`,
+        boxShadow: disabled ? "none" : `0 14px 30px -10px ${base}, inset 0 1px 0 rgba(255,255,255,.35)`,
       }}
     >
       <span className="relative z-[2]">{children}</span>

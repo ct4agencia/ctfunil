@@ -208,6 +208,14 @@ export interface RouletteStep extends BaseStep {
   mode?: "always" | "random";
   centerImage?: string;
   cta: string;
+  /**
+   * Cor do botão de girar. Sem valor, segue a paleta do funil.
+   *
+   * Mora aqui e não num bloco solto porque este botão É o mecanismo: dispara o
+   * giro, desabilita durante ele e troca o próprio texto. Um bloco genérico não
+   * teria fio até isso, e quebraria se fosse arrastado para outra lâmina.
+   */
+  ctaCor?: string;
   winTitle?: string;
   winBody?: string;
   winCta?: string;

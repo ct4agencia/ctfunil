@@ -466,7 +466,26 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               <Select value={String(s.initialIndex ?? 0)} onChange={(v) => p({ initialIndex: Number(v) } as Partial<Step>)}
                 options={s.segments.map((seg, i) => ({ value: String(i), label: `${i + 1}. ${(seg.label || "").replace(/<[^>]+>/g, "").slice(0, 22)}` }))} />
             </Field>
-            <Field label="Botão (girar)"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
+            {/* O GIRAR não vira bloco solto: ele dispara o giro, se desabilita
+                durante ele e troca o próprio texto. Então texto e cor moram
+                juntos aqui, onde o botão já é configurado. */}
+            <Field label="Botão (girar)">
+              <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></div>
+                <ColorField
+                  value={s.ctaCor || "#ea580c"}
+                  onChange={(v) => p({ ctaCor: v } as Partial<Step>)}
+                  className="h-9 w-10 shrink-0" label="Cor do botão de girar"
+                />
+                {s.ctaCor ? (
+                  <button
+                    type="button" onClick={() => p({ ctaCor: undefined } as Partial<Step>)}
+                    title="Voltar à cor da paleta do funil"
+                    className="shrink-0 text-[11px] text-neutral-400 underline hover:text-neutral-700"
+                  >paleta</button>
+                ) : null}
+              </div>
+            </Field>
             <Field label="Botão pós-vitória"><Text value={s.winCta} onChange={(v) => p({ winCta: v } as Partial<Step>)} /></Field>
             <Field label="Título da vitória"><HtmlField value={s.winTitle} onChange={(v) => p({ winTitle: v } as Partial<Step>)} /></Field>
             <Field label="Texto da vitória"><HtmlField value={s.winBody} onChange={(v) => p({ winBody: v } as Partial<Step>)} /></Field>

@@ -400,7 +400,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
         {step.ctaBelow ? (
           <div className="mx-auto mt-6 w-full max-w-xs">
             {!done ? (
-              <CtaButton onClick={spin} disabled={spinning} pulse={!spinning}>{spinning ? "Girando..." : step.cta}</CtaButton>
+              <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : step.cta}</CtaButton>
             ) : !step.autoAdvance && !popupOn ? (
               <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
             ) : null}
@@ -415,7 +415,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
           {done ? (
             popupOn ? null : <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
           ) : (
-            <CtaButton onClick={spin} disabled={spinning} pulse={!spinning}>{spinning ? "Girando..." : step.cta}</CtaButton>
+            <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : step.cta}</CtaButton>
           )}
         </StickyCta>
       ) : null}
