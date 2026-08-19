@@ -284,6 +284,8 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               onFim={(real) => { setVencedor(real); celebrar(); }}
               som={!!step.sound?.enabled && !step.sound?.tickUrl}
               centerImage={step.centerImage}
+              // o corpo do texto vem do painel, como nos outros motores
+              labelSize={step.labelSize}
               quasePassa={step.quasePassa !== false}
               hesitacao={step.hesitacao ?? 0}
             />

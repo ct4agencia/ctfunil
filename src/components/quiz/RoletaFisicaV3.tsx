@@ -44,7 +44,17 @@ export interface SegmentoV3 {
   imagemTamanho?: number;
   /** giro só da arte, em graus; 0 = em pé quando a fatia está sob o ponteiro */
   imagemRotacao?: number;
+  /** corpo do texto DESTA fatia; vence o da lâmina */
+  labelSize?: number;
 }
+
+/**
+ * Os outros motores desenham num viewBox de 200 e o canvas daqui tem 600, então
+ * `labelSize` — que o construtor mede na escala deles — precisa ser convertido.
+ * Sem isto o valor 9 do painel viraria 9px num desenho três vezes maior, e o
+ * campo parecia não fazer nada.
+ */
+const ESCALA_FONTE = 3;
 
 export interface RoletaFisicaV3Props {
   segments: SegmentoV3[];
@@ -55,6 +65,8 @@ export interface RoletaFisicaV3Props {
   onFim: (indiceReal: number) => void;
   som?: boolean;
   centerImage?: string;
+  /** corpo do texto das fatias, na escala do construtor (padrão 11) */
+  labelSize?: number;
   /** true = encosta no pino, hesita e PASSA. false = hesita e VOLTA */
   quasePassa?: boolean;
   /** −10..+10 — quanto mais alto, mais tempo morrendo em cima do pino */
@@ -69,7 +81,7 @@ const CORES = ["#7e0f1d", "#f6ead8", "#bf1e63", "#f5a623", "#8e1030", "#ff7fae"]
 const CREME = "#f6ead8";
 
 export default function RoletaFisicaV3({
-  segments, vencedor, girando, onFim, som = true, centerImage,
+  segments, vencedor, girando, onFim, som = true, centerImage, labelSize,
   quasePassa = true, hesitacao = 0, mostrarControles = false, onControles,
 }: RoletaFisicaV3Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -271,9 +283,15 @@ export default function RoletaFisicaV3({
         ? [palavras.slice(0, Math.ceil(palavras.length / 2)).join(" "),
            palavras.slice(Math.ceil(palavras.length / 2)).join(" ")]
         : [bruto];
-      const lh2 = 24;
+      /* O corpo sai do PAINEL: da fatia quando ela tem o seu, senão da lâmina,
+         senão 11 — o mesmo padrão dos outros motores. Antes era 22 cravado (o
+         número do arquivo v3), então mexer no campo não mudava nada na tela.
+         O encolhimento automático continua como rede: ele só entra quando o
+         tamanho pedido não cabe, e nunca abaixo de 12px no desenho de 600. */
+      const corpo = (segments[i].labelSize ?? labelSize ?? 11) * ESCALA_FONTE;
+      const lh2 = Math.round(corpo * 1.1);
       lines.forEach((ln, li) => {
-        let fs = 22;
+        let fs = corpo;
         ctx.font = `800 ${fs}px Poppins, Arial, sans-serif`;
         while (ctx.measureText(ln).width > maxLen && fs > 12) {
           fs -= 1;
@@ -322,7 +340,7 @@ export default function RoletaFisicaV3({
       ctx.beginPath(); ctx.arc(bx - 1.4, by - 1.4, 1.8, 0, Math.PI * 2);
       ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.fill();
     }
-  }, [N, offset, slice, segments]);
+  }, [N, offset, slice, segments, labelSize]);
 
   /* As artes chegam depois do primeiro quadro; sem redesenhar quando cada uma
      carrega, a fatia fica vazia para sempre. O cache é por URL: trocar a arte
