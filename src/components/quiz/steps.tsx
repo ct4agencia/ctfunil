@@ -289,6 +289,8 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               centerImage={step.centerImage}
               // o corpo do texto vem do painel, como nos outros motores
               labelSize={step.labelSize}
+              // "Fatia parada": mesma conta do motor interativa
+              anguloInicial={-((step.initialIndex ?? 0) * seg)}
               quasePassa={step.quasePassa !== false}
               hesitacao={step.hesitacao ?? 0}
             />

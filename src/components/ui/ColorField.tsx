@@ -97,6 +97,8 @@ export default function ColorField({
 }) {
   const hex = normalizarHex(value);
   const [aberto, setAberto] = useState(false);
+  /** de que lado o painel abre; decidido no clique, pelo espaço que sobra */
+  const [ancora, setAncora] = useState<"esquerda" | "direita">("esquerda");
   const [rascunho, setRascunho] = useState(hex);
   const caixaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -156,7 +158,17 @@ export default function ColorField({
     <div className="relative" ref={caixaRef}>
       <button
         type="button"
-        onClick={() => setAberto((o) => !o)}
+        onClick={() => {
+          /* Antes de abrir, decide de que lado o painel cabe. Ele tem 248px de
+             largura fixa e nascia sempre ancorado à esquerda: no painel da
+             direita do construtor não havia espaço, e ele vazava para fora da
+             tela — metade do seletor ficava inalcançável.
+             Medido no clique, não no render: a coluna do construtor rola, e a
+             posição no momento da abertura é a única que vale. */
+          const r = caixaRef.current?.getBoundingClientRect();
+          if (r) setAncora(r.left + 248 > window.innerWidth - 12 ? "direita" : "esquerda");
+          setAberto((o) => !o);
+        }}
         title={hex || "Sem cor (herda do tema)"}
         className={`block shrink-0 rounded-lg border border-neutral-300 transition hover:border-neutral-400 ${className}`}
         style={hex ? { background: hex } : XADREZ}
@@ -165,7 +177,7 @@ export default function ColorField({
       {aberto ? (
         <div
           onClick={(e) => e.preventDefault()}
-          className="absolute left-0 top-[calc(100%+6px)] z-30 w-[248px] rounded-xl border border-neutral-200 bg-white p-2.5 shadow-lg"
+          className={`absolute top-[calc(100%+6px)] z-30 w-[248px] rounded-xl border border-neutral-200 bg-white p-2.5 shadow-lg ${ancora === "direita" ? "right-0" : "left-0"}`}
         >
           <div className="mb-2 flex items-center justify-between gap-2">
             <span className="text-[11px] font-semibold text-neutral-500">{label || "Cor"}</span>

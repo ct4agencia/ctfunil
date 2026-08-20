@@ -495,8 +495,10 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                       Arte da fatia (entra no lugar do texto)
                     </span>
                     <ImageField value={seg.imagem} onChange={(v) => patchSeg(i, { imagem: v || undefined })} />
-                    {seg.imagem ? (
-                      <div className="mt-2 grid grid-cols-2 gap-2">
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {/* Tamanho só existe para a arte: o corpo do texto tem o
+                          campo "Tam" próprio, na linha de cima. */}
+                      {seg.imagem ? (
                         <label className="flex items-center gap-1.5 text-[11px] text-neutral-500">
                           <span className="shrink-0">Tamanho</span>
                           <input
@@ -506,17 +508,25 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                             className="w-full accent-neutral-900" aria-label="Tamanho da arte" />
                           <b className="w-8 shrink-0 text-right tabular-nums text-neutral-800">{seg.imagemTamanho ?? 165}</b>
                         </label>
-                        <label className="flex items-center gap-1.5 text-[11px] text-neutral-500">
-                          <span className="shrink-0">Girar</span>
-                          <input
-                            type="range" min={-180} max={180} step={5}
-                            value={seg.imagemRotacao ?? 0}
-                            onChange={(e) => patchSeg(i, { imagemRotacao: Number(e.target.value) })}
-                            className="w-full accent-neutral-900" aria-label="Rotação da arte" />
-                          <b className="w-8 shrink-0 text-right tabular-nums text-neutral-800">{seg.imagemRotacao ?? 0}°</b>
-                        </label>
-                      </div>
-                    ) : null}
+                      ) : null}
+                      {/* GIRAR vale para os dois: com arte gira a arte, sem arte
+                          gira o texto. Mesma régua, porque para quem monta é a
+                          mesma pergunta — "como isto fica na fatia?". */}
+                      <label className={`flex items-center gap-1.5 text-[11px] text-neutral-500 ${seg.imagem ? "" : "col-span-2"}`}>
+                        <span className="shrink-0">Girar {seg.imagem ? "arte" : "texto"}</span>
+                        <input
+                          type="range" min={-180} max={180} step={5}
+                          value={(seg.imagem ? seg.imagemRotacao : seg.labelRotacao) ?? 0}
+                          onChange={(e) => patchSeg(i, seg.imagem
+                            ? { imagemRotacao: Number(e.target.value) }
+                            : { labelRotacao: Number(e.target.value) })}
+                          className="w-full accent-neutral-900"
+                          aria-label={seg.imagem ? "Rotação da arte" : "Rotação do texto"} />
+                        <b className="w-8 shrink-0 text-right tabular-nums text-neutral-800">
+                          {(seg.imagem ? seg.imagemRotacao : seg.labelRotacao) ?? 0}°
+                        </b>
+                      </label>
+                    </div>
                   </div>
                 ) : null}
                 </div>

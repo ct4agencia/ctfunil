@@ -110,6 +110,11 @@ export interface RouletteSegment {
   imagem?: string;
   imagemTamanho?: number;
   imagemRotacao?: number;
+  /**
+   * Giro do TEXTO desta fatia, em graus — o mesmo controle que a arte tem.
+   * Só o motor v3 desenha isso; nos outros o rótulo segue o eixo da fatia.
+   */
+  labelRotacao?: number;
   /** emoji do popup deste prêmio; sem valor, o popup usa 🎉 */
   emoji?: string;
   /**

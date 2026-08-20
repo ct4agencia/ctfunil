@@ -46,6 +46,8 @@ export interface SegmentoV3 {
   imagemRotacao?: number;
   /** corpo do texto DESTA fatia; vence o da lâmina */
   labelSize?: number;
+  /** giro do TEXTO desta fatia, em graus — o mesmo controle que a arte tem */
+  labelRotacao?: number;
 }
 
 /**
@@ -67,6 +69,8 @@ export interface RoletaFisicaV3Props {
   centerImage?: string;
   /** corpo do texto das fatias, na escala do construtor (padrão 11) */
   labelSize?: number;
+  /** ângulo em que a roda repousa antes do primeiro giro (fatia parada) */
+  anguloInicial?: number;
   /** true = encosta no pino, hesita e PASSA. false = hesita e VOLTA */
   quasePassa?: boolean;
   /** −10..+10 — quanto mais alto, mais tempo morrendo em cima do pino */
@@ -82,6 +86,7 @@ const CREME = "#f6ead8";
 
 export default function RoletaFisicaV3({
   segments, vencedor, girando, onFim, som = true, centerImage, labelSize,
+  anguloInicial = 0,
   quasePassa = true, hesitacao = 0, mostrarControles = false, onControles,
 }: RoletaFisicaV3Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -92,7 +97,7 @@ export default function RoletaFisicaV3({
   const artesRef = useRef<Map<string, HTMLImageElement>>(new Map());
 
   // estado da física fora do React: 60 re-renders por segundo derrubariam a taxa
-  const rotRef = useRef(0);
+  const rotRef = useRef(anguloInicial);
   const flapPRef = useRef(0);
   const flapVRef = useRef(0);
   const girandoRef = useRef(false);
@@ -271,6 +276,13 @@ export default function RoletaFisicaV3({
       ctx.save();
       ctx.translate(C, C);
       ctx.rotate(mid);
+      /* "Girar" do TEXTO — mesmo controle que a arte tem. A origem vai até o
+         ponto do rótulo antes do rotate, senão ele descreveria um arco e
+         passearia pela fatia em vez de girar parado (foi o que aconteceu com a
+         arte). Por isso o texto passa a ser desenhado centrado na origem, e o
+         alinhamento vira `center`. */
+      ctx.translate(R * 0.78, 0);
+      ctx.rotate(((segments[i].labelRotacao || 0) * Math.PI) / 180);
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
       if (isCream) { ctx.fillStyle = "#7c1f4e"; ctx.shadowBlur = 0; }
@@ -297,7 +309,8 @@ export default function RoletaFisicaV3({
           fs -= 1;
           ctx.font = `800 ${fs}px Poppins, Arial, sans-serif`;
         }
-        ctx.fillText(ln, R * 0.78, (li - (lines.length - 1) / 2) * lh2);
+        // x = 0: a origem já foi levada até o ponto do rótulo, acima
+        ctx.fillText(ln, 0, (li - (lines.length - 1) / 2) * lh2);
       });
       ctx.restore();
     }
@@ -363,6 +376,7 @@ export default function RoletaFisicaV3({
 
   useEffect(() => { drawWheel(); }, [drawWheel]);
 
+
   const aplicarRot = useCallback(() => {
     if (canvasRef.current) canvasRef.current.style.transform = `rotate(${rotRef.current}deg)`;
   }, []);
@@ -373,6 +387,22 @@ export default function RoletaFisicaV3({
   }, []);
 
   const phase = useCallback((r: number) => (r - sliceDeg / 2) / sliceDeg, [sliceDeg]);
+
+  /* FATIA PARADA — reposiciona a roda quando o construtor troca a escolha.
+     Inicializar o `useRef` não bastava: ele guarda o valor da primeira
+     montagem, e trocar a fatia no painel não remonta o componente — o preview
+     ficava preso na fatia antiga. Nunca durante o giro, senão a roda saltaria
+     no meio da animação.
+
+     Declarado DEPOIS de `aplicarRot`: `const` não é içado, e uma chamada dentro
+     de callback passa por tsc e pelo build para quebrar só no navegador — foi
+     assim que a lâmina da VSL caiu nesta mesma sessão. */
+  useEffect(() => {
+    if (girandoRef.current) return;
+    rotRef.current = anguloInicial;
+    aplicarRot();
+    drawWheel();
+  }, [anguloInicial, aplicarRot, drawWheel]);
 
   /* ══════════════════ FÍSICA — o spin() do arquivo ══════════════════ */
   const girar = useCallback(() => {
