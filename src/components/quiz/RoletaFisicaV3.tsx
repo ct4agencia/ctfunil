@@ -276,17 +276,10 @@ export default function RoletaFisicaV3({
       ctx.save();
       ctx.translate(C, C);
       ctx.rotate(mid);
-      /* "Girar" do TEXTO — mesmo controle que a arte tem. A origem vai até o
-         ponto do rótulo antes do rotate, senão ele descreveria um arco e
-         passearia pela fatia em vez de girar parado (foi o que aconteceu com a
-         arte). Por isso o texto passa a ser desenhado centrado na origem, e o
-         alinhamento vira `center`. */
-      ctx.translate(R * 0.78, 0);
-      ctx.rotate(((segments[i].labelRotacao || 0) * Math.PI) / 180);
-      ctx.textAlign = "right";
       ctx.textBaseline = "middle";
       if (isCream) { ctx.fillStyle = "#7c1f4e"; ctx.shadowBlur = 0; }
       else { ctx.fillStyle = "#ffffff"; ctx.shadowColor = "rgba(0,0,0,0.40)"; ctx.shadowBlur = 3; }
+
       /* o arquivo trazia `lines` escrito à mão; aqui a quebra sai do rótulo do
          bloco, para o construtor continuar mandando no texto */
       const bruto = `${segments[i].emoji ? `${segments[i].emoji} ` : ""}${segments[i].label}`.trim();
@@ -295,22 +288,39 @@ export default function RoletaFisicaV3({
         ? [palavras.slice(0, Math.ceil(palavras.length / 2)).join(" "),
            palavras.slice(Math.ceil(palavras.length / 2)).join(" ")]
         : [bruto];
+
       /* O corpo sai do PAINEL: da fatia quando ela tem o seu, senão da lâmina,
-         senão 11 — o mesmo padrão dos outros motores. Antes era 22 cravado (o
-         número do arquivo v3), então mexer no campo não mudava nada na tela.
-         O encolhimento automático continua como rede: ele só entra quando o
-         tamanho pedido não cabe, e nunca abaixo de 12px no desenho de 600. */
+         senão 11 — o mesmo padrão dos outros motores. O encolhimento automático
+         continua como rede: só entra quando o tamanho pedido não cabe, e nunca
+         abaixo de 12px no desenho de 600. */
       const corpo = (segments[i].labelSize ?? labelSize ?? 11) * ESCALA_FONTE;
       const lh2 = Math.round(corpo * 1.1);
-      lines.forEach((ln, li) => {
+
+      /* MEDIR ANTES DE GIRAR. O rótulo é um bloco de várias linhas, e girar em
+         torno de um canto dele o faz pivotar pela borda — foi o que apareceu na
+         tela, com cada fatia balançando por um ponto diferente.
+         Aqui o corpo de cada linha é resolvido primeiro (o encolhimento muda a
+         largura), a maior largura define o bloco, e a origem vai para o CENTRO
+         dele. Só então a rotação é aplicada: o texto gira no próprio eixo. */
+      const medidas = lines.map((ln) => {
         let fs = corpo;
         ctx.font = `800 ${fs}px Poppins, Arial, sans-serif`;
         while (ctx.measureText(ln).width > maxLen && fs > 12) {
           fs -= 1;
           ctx.font = `800 ${fs}px Poppins, Arial, sans-serif`;
         }
-        // x = 0: a origem já foi levada até o ponto do rótulo, acima
-        ctx.fillText(ln, 0, (li - (lines.length - 1) / 2) * lh2);
+        return { ln, fs, largura: ctx.measureText(ln).width };
+      });
+      const largura = Math.max(...medidas.map((m) => m.largura));
+
+      // borda externa do bloco em 0.78R (a de sempre) → centro meia largura antes
+      ctx.translate(R * 0.78 - largura / 2, 0);
+      ctx.rotate(((segments[i].labelRotacao || 0) * Math.PI) / 180);
+      ctx.textAlign = "center";
+
+      medidas.forEach((m, li) => {
+        ctx.font = `800 ${m.fs}px Poppins, Arial, sans-serif`;
+        ctx.fillText(m.ln, 0, (li - (medidas.length - 1) / 2) * lh2);
       });
       ctx.restore();
     }
