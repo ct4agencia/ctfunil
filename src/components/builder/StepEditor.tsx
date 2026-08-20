@@ -461,6 +461,17 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                   </label>
                   <ColorField value={seg.color} onChange={(v) => patchSeg(i, { color: v })} className="h-8 w-9" label="Cor da fatia" />
                   <input className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" value={seg.label} onChange={(e) => patchSeg(i, { label: e.target.value })} />
+                  {/* Emoji do POPUP deste prêmio. Já existia no dado (era como o
+                      🎁 chegou lá), mas não tinha campo — para trocá-lo era
+                      preciso mexer no banco. Vazio = 🎉; um espaço = sem emoji. */}
+                  <input
+                    className="w-12 shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-center text-lg"
+                    value={seg.emoji ?? ""}
+                    onChange={(e) => patchSeg(i, { emoji: e.target.value || undefined })}
+                    placeholder="🎉" maxLength={4}
+                    title="Emoji do popup deste prêmio (vazio = 🎉)"
+                    aria-label="Emoji do popup"
+                  />
                   {/* tamanho SÓ desta fatia: vazio = herda o da lâmina. Existe
                       porque um nome longo dividindo a roda com nomes curtos
                       obrigaria a encolher todos por causa de um. */}

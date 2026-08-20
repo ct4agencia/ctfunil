@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { prefereMenosMovimento } from "@/lib/quiz/motion";
 import type {
   RouletteStep, RouletteStyle, ScratchStep, MeasureStep, SliderStep, Palette, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep, ResultStep,
   OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, QuizOption,
@@ -197,6 +198,8 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   // Popup de prêmio: AUSENTE = desligado, para as roletas que já rodam não
   // ganharem uma tela nova sem ninguém ter pedido.
   const popupOn = !!step.popupEnabled;
+  // mesma guarda do bloco `check`: quem pediu menos movimento vê o emoji parado
+  const reduzMovimento = prefereMenosMovimento();
   const premio = step.segments[vencedor];
 
   /** Vitória: som, confete e liberação do botão. Um só lugar para os dois motores. */
@@ -437,7 +440,34 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               initial={{ scale: 0.82, y: 18 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 24 }}
             >
-              <div className="text-4xl leading-none">{premio?.emoji || "🎉"}</div>
+              {/* EMOJI com o motion do bloco `check`: entra girando em mola,
+                  duas ondas saindo de trás e um balanço contínuo. É o momento
+                  mais alto do funil — o emoji parado deixava a cena morta.
+                  As ondas são brancas translúcidas, não coloridas como no
+                  bloco: aqui o fundo do popup já é a cor do prêmio, e um disco
+                  da mesma cor sumiria dentro dele. */}
+              {premio?.emoji !== "" ? (
+                <motion.div
+                  className="relative mx-auto grid h-14 w-14 place-items-center"
+                  initial={reduzMovimento ? false : { scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 180, damping: 12, delay: 0.1 }}
+                >
+                  {!reduzMovimento && [0, 0.6].map((atraso, i) => (
+                    <motion.span
+                      key={i} aria-hidden className="absolute inset-0 rounded-full"
+                      style={{ background: "rgba(255,255,255,.55)" }}
+                      animate={{ scale: [1, i ? 1.6 : 1.4, 1], opacity: [i ? 0.3 : 0.45, 0, i ? 0.3 : 0.45] }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: atraso }}
+                    />
+                  ))}
+                  <motion.span
+                    className="relative text-4xl leading-none"
+                    animate={reduzMovimento ? {} : { scale: [1, 1.12, 1], rotateZ: [0, -5, 5, 0] }}
+                    transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5 }}
+                  >{premio?.emoji || "🎉"}</motion.span>
+                </motion.div>
+              ) : null}
               {/* MIOLO na ordem gravada. Emoji e botão são a moldura e ficam
                   fixos; a arte e a copy trocam de lugar conforme o arraste do
                   painel. Sem `popupOrdem`, a arte vem antes — que é como o
