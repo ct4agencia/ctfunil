@@ -1,6 +1,11 @@
 "use client";
 
 import { useState } from "react";
+// Mesmo dnd-kit do painel de blocos — nenhuma dependência nova para reordenar
+// as duas peças do popup.
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type {
   Step, RouletteStep, ScratchStep, ScratchCard, MeasureStep, SliderStep, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep,
   ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint, ScarcityBar, StepAppearance,
@@ -78,6 +83,56 @@ function BgField({ value, onChange, onImagem }: { value?: string; onChange: (v: 
       <input className="w-full rounded-lg border border-neutral-300 px-3 py-2 font-mono text-xs" value={value ?? ""} onChange={(e) => onChange(e.target.value || undefined)} placeholder="linear-gradient(180deg, #f3c969, #e89b3a) ou uma cor" />
       {value ? <div className="h-10 w-full rounded-lg border border-neutral-200" style={{ background: value }} /> : null}
     </div>
+  );
+}
+
+/* ── ordem das peças do popup de prêmio ──────────────────────────────────
+   Duas peças só, mas arrastáveis: a alternativa seria um "imagem embaixo?" que
+   descreve a mesma coisa por negação e não mostra o resultado. Aqui a lista É a
+   ordem que a tela percorre — o que se vê arrastando é o que o visitante vê. */
+
+type PecaPopup = "imagem" | "texto";
+const NOME_PECA: Record<PecaPopup, string> = { imagem: "🖼 Imagem", texto: "📝 Título e texto" };
+
+function PecaArrastavel({ id }: { id: PecaPopup }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}
+      className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-xs text-neutral-700"
+    >
+      <button
+        type="button" {...attributes} {...listeners}
+        className="cursor-grab text-neutral-300 active:cursor-grabbing hover:text-neutral-500"
+        title="Arraste para reordenar" aria-label={`Arraste ${NOME_PECA[id]}`}
+      >⠿</button>
+      {NOME_PECA[id]}
+    </div>
+  );
+}
+
+function OrdemPopup({ ordem, onChange }: { ordem: PecaPopup[]; onChange: (v: PecaPopup[]) => void }) {
+  // 6px antes de arrastar: sem isso o clique no punho já contaria como arraste
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const fim = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const de = ordem.indexOf(active.id as PecaPopup);
+    const para = ordem.indexOf(over.id as PecaPopup);
+    if (de < 0 || para < 0) return;
+    onChange(arrayMove(ordem, de, para));
+  };
+  return (
+    /* `id` explícito: a página tem outros DndContext (etapas e blocos) e sem ele
+       o dnd-kit avisa de colisão de id no console. */
+    <DndContext id="popup-ordem" sensors={sensors} collisionDetection={closestCenter} onDragEnd={fim}>
+      <SortableContext items={ordem} strategy={verticalListSortingStrategy}>
+        <div className="space-y-1.5">
+          {ordem.map((peca) => <PecaArrastavel key={peca} id={peca} />)}
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 }
 
@@ -524,6 +579,28 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                   <Field label="Cor do texto"><ColorField value={s.popupText ?? "#ffffff"} onChange={(v) => p({ popupText: v } as Partial<Step>)} label="Cor do texto" /></Field>
                   <Field label="Fundo do botão"><ColorField value={s.popupBtnBg ?? "#ffffff"} onChange={(v) => p({ popupBtnBg: v } as Partial<Step>)} label="Fundo do botão" /></Field>
                 </Grid>
+
+                <Field label="Imagem do popup (a capa do prêmio)">
+                  <ImageField value={s.popupImagem} onChange={(v) => p({ popupImagem: v || undefined } as Partial<Step>)} />
+                </Field>
+
+                {/* A ordem só importa quando há imagem — com uma peça só, não há
+                    o que reordenar, e a lista viraria enfeite. */}
+                {s.popupImagem ? (
+                  <div>
+                    <span className="mb-1 block text-xs font-semibold text-neutral-500">
+                      Ordem dentro do popup (arraste)
+                    </span>
+                    <OrdemPopup
+                      ordem={(s.popupOrdem?.length ? s.popupOrdem : ["imagem", "texto"]) as PecaPopup[]}
+                      onChange={(v) => p({ popupOrdem: v } as Partial<Step>)}
+                    />
+                    <p className="mt-1.5 text-[11px] leading-snug text-neutral-400">
+                      O emoji fica sempre no topo e o botão sempre no fim — são a
+                      moldura do popup.
+                    </p>
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>

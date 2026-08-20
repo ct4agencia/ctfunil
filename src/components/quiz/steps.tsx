@@ -438,12 +438,31 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               transition={{ type: "spring", stiffness: 300, damping: 24 }}
             >
               <div className="text-4xl leading-none">{premio?.emoji || "🎉"}</div>
-              <p className="mt-3 text-xl font-black uppercase leading-tight tracking-tight">
-                <RichText text={interp(premio?.popupTitle || step.winTitle || "Parabéns!", ctx)} />
-              </p>
-              <p className="mt-2 text-sm font-medium leading-snug opacity-95">
-                <RichText text={interp(premio?.popupBody || step.winBody || "Você ganhou...", ctx)} />
-              </p>
+              {/* MIOLO na ordem gravada. Emoji e botão são a moldura e ficam
+                  fixos; a arte e a copy trocam de lugar conforme o arraste do
+                  painel. Sem `popupOrdem`, a arte vem antes — que é como o
+                  popup nasceu. */}
+              {(step.popupOrdem?.length ? step.popupOrdem : ["imagem", "texto"]).map((peca) =>
+                peca === "imagem" ? (
+                  step.popupImagem ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key="imagem" src={step.popupImagem} alt="" loading="lazy" decoding="async"
+                      className="mx-auto mt-4 h-auto w-full max-w-[210px] rounded-xl object-contain"
+                      style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,.28))" }}
+                    />
+                  ) : null
+                ) : (
+                  <div key="texto">
+                    <p className="mt-3 text-xl font-black uppercase leading-tight tracking-tight">
+                      <RichText text={interp(premio?.popupTitle || step.winTitle || "Parabéns!", ctx)} />
+                    </p>
+                    <p className="mt-2 text-sm font-medium leading-snug opacity-95">
+                      <RichText text={interp(premio?.popupBody || step.winBody || "Você ganhou...", ctx)} />
+                    </p>
+                  </div>
+                )
+              )}
               <button
                 onClick={ctx.advance}
                 className="mt-5 w-full rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"

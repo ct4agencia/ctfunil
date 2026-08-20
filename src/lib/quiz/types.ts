@@ -248,6 +248,18 @@ export interface RouletteStep extends BaseStep {
   popupBg?: string;
   popupText?: string;
   popupBtnBg?: string;
+  /** arte dentro do popup de prêmio (a capa do que a pessoa acabou de ganhar) */
+  popupImagem?: string;
+  /**
+   * Ordem das peças do MIOLO do popup. O emoji fica sempre no topo e o botão
+   * sempre no fim — são a moldura; o que se reordena é o que está no meio.
+   *
+   * Ausente = `["imagem", "texto"]`, a arte acima da copy. Guardado como lista e
+   * não como um "imagem embaixo?" porque a lista é o que a tela percorre e o
+   * que o arraste do painel reordena: um booleano precisaria ser traduzido nas
+   * duas pontas, e é aí que elas se desencontram.
+   */
+  popupOrdem?: ("imagem" | "texto")[];
 }
 
 /** Um card da grade de raspadinha. Espelha o painel de prêmios da roleta:
