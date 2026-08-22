@@ -103,14 +103,18 @@ body.vsl-bg-dark {
 }
 
 /* Botão CTA verde — pulse + brilho metálico */
+/* O halo pulsante do CTA. A cor vem de `--cta-halo-*`, que o botão define com a
+   PRÓPRIA cor: antes o verde estava cravado aqui, então um botão coral pulsava
+   verde — a fumaça denunciava que a cor do botão era tinta por cima.
+   Sem as variáveis cai no verde de origem, e os usos antigos não mudam. */
 @keyframes cta-pulse-green {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 10px 30px rgba(5, 150, 105, 0.4);
+    box-shadow: 0 10px 30px var(--cta-halo-soft, rgba(5, 150, 105, 0.4));
   }
   50% {
     transform: scale(1.03);
-    box-shadow: 0 16px 44px rgba(16, 185, 129, 0.65);
+    box-shadow: 0 16px 44px var(--cta-halo-strong, rgba(16, 185, 129, 0.65));
   }
 }
 @keyframes cta-metallic-shine {

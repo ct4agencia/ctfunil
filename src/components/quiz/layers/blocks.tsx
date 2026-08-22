@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { fireMetaEvent } from "@/lib/tracking";
 import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { interpEstado } from "@/lib/quiz/estado";
@@ -525,6 +525,274 @@ function CarouselBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
  * incrementos somados — assim o valor continua certo se a aba for para segundo
  * plano e o navegador suspender os timers.
  */
+/** Nomes de vizinhança do ranking. Femininos porque é o público dos funis de
+ *  artesanato e confeitaria; o painel troca a lista quando não for o caso. */
+const NOMES_RANKING = [
+  "Beatriz", "Camila", "Mariana", "Fernanda", "Juliana", "Patrícia",
+  "Larissa", "Amanda", "Carolina", "Vanessa", "Débora", "Renata",
+  "Aline", "Tatiane", "Priscila", "Bruna", "Simone", "Michele",
+];
+
+/**
+ * RANKING — escassez em forma de placar.
+ *
+ * Mesmo relógio do `DisclaimerBlock` (que conta vagas), outra roupa: em vez de
+ * "restam N vagas", a lead vê a própria posição PIORAR enquanto assiste. Perder
+ * lugar pressiona mais que ver estoque cair — o número deixa de ser um recurso
+ * abstrato e vira a fila que cresce na frente dela.
+ *
+ * Os vizinhos saem da lista de nomes pela própria posição, então TROCAM quando
+ * ela cai. Nomes fixos denunciariam o teatro: a lead cairia vinte lugares com
+ * as mesmas duas pessoas em volta.
+ */
+function RankingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  const c = layer.content;
+  const d = layer.design || {};
+  const revelarEm = Number(c.revealAt) || 0;
+  const de = Number(c.posDe) || 28;
+  const ate = Number(c.posAte) || 48;
+  const fim = Math.max(revelarEm + 1, Number(c.fimEm) || revelarEm + 60);
+  const pct = Number(c.pct) || 83;
+  const rotulo = String(c.rotulo || "VOCÊ");
+  const nomes = (Array.isArray(c.nomes) && c.nomes.length ? c.nomes : NOMES_RANKING) as string[];
+
+  /* ESTRUTURA do print 1 (avatar → posição → pílula → % → anel), PALETA do
+     print 2 (coral salmão + dourado quente). O print 1 veio em rosa e o 2 em
+     coral: o arranjo é do primeiro, as cores do segundo.
+     Tudo sobrescrevível pelo painel. */
+  const coral = (d.backgroundColor as string) || "#E4735C";
+  const coralClaro = "#EE8A72";
+  const ouro = (d.borderColor as string) || "#D9A94E";
+  const ouroEscuro = "#B8873F";
+  const creme = (d.color as string) || "#FBF6EE";
+  const marrom = "#5C4A3A";
+  // quem pediu menos movimento vê a posição trocar sem o deslize
+  const reduzido = prefereMenosMovimento();
+
+  /* No construtor já nasce visível: o canvas existe para conferir layout, e
+     obedecer o relógio o esconderia atrás de minutos de espera. */
+  const [visivel, setVisivel] = useState(!!ctx.preview || revelarEm <= 0);
+  const [pos, setPos] = useState(de);
+
+  useEffect(() => {
+    if (ctx.preview || revelarEm <= 0) return;
+    const t = setTimeout(() => setVisivel(true), revelarEm * 1000);
+    return () => clearTimeout(t);
+  }, [revelarEm, ctx.preview]);
+
+  useEffect(() => {
+    const t0 = Date.now();
+    const passo = () => {
+      const seg = (Date.now() - t0) / 1000;
+      const p = Math.min(1, Math.max(0, (seg - revelarEm) / (fim - revelarEm)));
+      setPos(Math.round(de + (ate - de) * p));
+    };
+    passo();
+    // 5s: a posição mexe enquanto se assiste, sem virar cronômetro
+    const iv = setInterval(passo, 5000);
+    return () => clearInterval(iv);
+  }, [de, ate, revelarEm, fim]);
+
+  if (!visivel) return null;
+
+  const nomeDe = (p: number) => nomes[((p % nomes.length) + nomes.length) % nomes.length];
+  /* As vizinhas têm % MAIOR que a da lead — é o que explica a queda. Ela está
+     parada em 83% enquanto as outras avançam, então perde lugar.
+     A de baixo também é maior: é quem está prestes a ultrapassá-la, e é dela
+     que vem a pressão de agir agora. Com % menor embaixo, a queda não teria
+     causa visível na tela e o placar contaria uma história que se contradiz. */
+  const linhas = [
+    { p: pos - 1, nome: nomeDe(pos - 1), pct: Number(c.pctAcima) || pct + 6, eu: false },
+    { p: pos, nome: rotulo, pct, eu: true },
+    { p: pos + 1, nome: nomeDe(pos + 1), pct: Number(c.pctAbaixo) || pct + 3, eu: false },
+  ];
+
+  return (
+    /* TRÊS CARDS separados, não linhas de uma tabela: os de fora ficam
+       rebaixados e recuados, e o do meio salta por cima deles. É a diferença
+       entre "há uma lista e você está nela" e "você está aqui, olhe" — o
+       segundo é o que a referência faz. */
+    /* `px-1 py-2` no lugar de `overflow-hidden`: o recorte impedia o conteúdo
+       de vazar, mas cortava JUNTO o halo do card da lead — a sombra morria nas
+       laterais e o brilho não aparecia. O vazamento já é contido por `min-w-0`
+       em cada linha; aqui basta reservar a folga para a sombra respirar. */
+    <div className="w-full px-1 py-2">
+      {/* `popLayout` tira quem sai do fluxo na hora: sem ele o card antigo e o
+          novo ocupariam espaço juntos e a lista daria um pulo de altura no meio
+          da transição. */}
+      <AnimatePresence mode="popLayout" initial={false}>
+      {linhas.map((l) => (
+        <motion.div
+          key={`${l.eu ? "eu" : "vz"}-${l.p}`}
+          /* O MOVIMENTO DA QUEDA — a lista rola, ela desce.
+             A LEAD entra vindo DE CIMA e sai POR BAIXO: ela desceu até ali e
+             continua descendo. Com `zIndex: 2` ela passa POR CIMA do card de
+             baixo durante o trajeto, que é o que se pediu.
+             As VIZINHAS fazem o oposto — entram por baixo e saem por cima —
+             então a lista escorre para cima enquanto a lead cai. Ver os dois
+             movimentos em sentidos contrários é o que faz a queda ser sentida
+             em vez de só lida. */
+          initial={reduzido ? false : { y: l.eu ? -30 : 26, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={reduzido ? undefined : { y: l.eu ? 30 : -26, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 24, mass: 0.9 }}
+          /* `min-w-0` em toda a linha: sem ele o nome longo empurrava o anel
+             para fora do card — era o "load" pendurado do lado de fora. */
+          className="relative flex min-w-0 items-center gap-2"
+          style={
+            l.eu
+              ? {
+                  zIndex: 2, margin: "-6px 0", padding: "12px 12px 12px 9px", borderRadius: 20,
+                  /* BORDA DOURADA de 1px em GRADIENTE. Cor sólida lia como
+                     contorno de formulário; o metal precisa variar de claro a
+                     escuro ao longo da volta.
+                     Truque das duas camadas: o preenchimento pinta só até o
+                     `padding-box` e o gradiente ocupa o `border-box`, então o
+                     que sobra na borda É o gradiente. É a única forma de ter
+                     borda em degradê sem um segundo elemento por baixo. */
+                  border: "1px solid transparent",
+                  background: `linear-gradient(180deg, #fffdfb 0%, ${creme} 100%) padding-box,
+                               linear-gradient(150deg, #F0DCA8 0%, ${ouro} 38%, ${ouroEscuro} 62%, #EBD49A 100%) border-box`,
+                  /* Halo claro (a sombra escura some no fundo escuro) MAIS uma
+                     sombra de profundidade funda e larga: sem ela o card
+                     flutuava sem peso. Alcance de 80px e preto quase cheio —
+                     é o que separa o card da lead do resto da página. */
+                  boxShadow: `0 0 30px -2px ${creme}66, 0 0 72px -6px ${ouro}59, 0 26px 60px -12px rgba(20,8,2,.92), 0 10px 26px -8px rgba(20,8,2,.7)`,
+                }
+              : {
+                  /* Opacas (o marrom da página atravessava e as engolia), mas
+                     REBAIXADAS: a lista existe para emoldurar a lead, não para
+                     competir com ela. Recuo maior, fundo mais próximo do fundo
+                     da página e sem sombra própria. */
+                  margin: "0 20px", padding: "10px 12px", borderRadius: 16,
+                  background: "#EFE3D5",
+                  border: "1px solid rgba(184,135,63,.16)",
+                }
+          }
+        >
+          {/* AVATAR — silhueta desenhada, sem depender de arquivo. Nas linhas de
+              fora entra apagada, como na referência. */}
+          <span
+            className="grid shrink-0 place-items-center overflow-hidden rounded-full"
+            style={{
+              width: l.eu ? 46 : 38, height: l.eu ? 46 : 38,
+              background: l.eu ? `linear-gradient(160deg, #fff, ${creme})` : "#FDF8F1",
+              border: `${l.eu ? 2 : 1}px solid ${l.eu ? ouro : "rgba(184,135,63,.35)"}`,
+            }}
+          >
+            {/* A ILUSTRAÇÃO da referência. Vem de arquivo porque tem fios de
+                cabelo, sombreado e roupa — detalhe que vetor desenhado à mão não
+                alcança. Convertida para 160px webp (o original tinha 1,2 MB para
+                um avatar de 30px na tela).
+                Nas linhas de fora entra dessaturada e mais clara: elas emolduram
+                a lead, não competem com ela. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={String(c.avatar || "/images/lead-perfil.webp")}
+              alt="" loading="lazy" decoding="async"
+              className="h-full w-full object-cover"
+              style={l.eu ? undefined : { filter: "grayscale(.45) sepia(.35) opacity(.55)" }}
+            />
+          </span>
+
+          {/* NÚMERO em gradiente recortado — dourado claro no topo, escuro na
+              base, como na referência. Cor chapada lia como texto comum; é o
+              gradiente que dá o brilho de metal. */}
+          {/* NÚMERO em gradiente recortado. As classes `bg-clip-text` e
+              `text-transparent` do Tailwind e NÃO style inline: inline, o
+              React emitia `background-clip` sem o prefixo `-webkit-`, o recorte
+              não acontecia e o gradiente pintava um retângulo dourado sólido
+              por cima do texto — foi o que apareceu na tela.
+
+              O movimento é da LINHA inteira (acima), não deste número: animar
+              os dois faria a peça deslizar dentro de um card que já desliza. */}
+          <span
+            className="shrink-0 bg-clip-text tabular-nums text-transparent"
+            style={{
+              fontFamily: "var(--font-display), Georgia, serif",
+              fontSize: l.eu ? 29 : 22, fontWeight: 700, lineHeight: 1,
+              backgroundImage: l.eu
+                ? `linear-gradient(175deg, #E8C77A 0%, ${ouro} 42%, ${ouroEscuro} 100%)`
+                : `linear-gradient(175deg, #D8B478, ${ouroEscuro})`,
+            }}
+          >{l.p}º</span>
+
+          {/* filete também em gradiente: some nas pontas, como no print */}
+          <span aria-hidden className="shrink-0" style={{
+            width: 1, height: l.eu ? 28 : 22,
+            background: `linear-gradient(180deg, transparent, ${l.eu ? "rgba(184,135,63,.55)" : "rgba(184,135,63,.3)"} 50%, transparent)`,
+          }} />
+
+          <span
+            className="min-w-0 truncate"
+            style={{
+              fontFamily: "var(--font-display), Georgia, serif",
+              // 600 e não 700: no print o nome é elegante, não pesado
+              fontSize: l.eu ? 20 : 17, fontWeight: l.eu ? 600 : 400,
+              color: l.eu ? marrom : "rgba(92,74,58,.7)",
+              letterSpacing: l.eu ? "-.01em" : 0,
+            }}
+          >{l.nome}</span>
+
+          {/* PÍLULA "Você está aqui" — o que transforma a lista em espelho */}
+          {l.eu ? (
+            <span
+              className="ml-1 inline-flex shrink-0 items-center gap-1.5 rounded-full"
+              style={{
+                padding: "5px 11px", color: "#fff", fontSize: 10.5, fontWeight: 600,
+                letterSpacing: ".01em", whiteSpace: "nowrap",
+                // gradiente do print 2: salmão claro no topo, coral na base
+                background: `linear-gradient(180deg, ${coralClaro} 0%, ${coral} 100%)`,
+                boxShadow: `0 4px 12px -5px ${coral}, inset 0 1px 0 rgba(255,255,255,.3)`,
+              }}
+            >
+              {/* COROA em dourado CLARO com sombra: a 12px em dourado médio
+                  sobre coral ela desaparecia — era só um borrão. */}
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden
+                style={{ filter: "drop-shadow(0 1px 1px rgba(90,40,20,.55))" }}>
+                <path d="M3 7.5l4.2 3.6L12 4l4.8 7.1L21 7.5V17a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7.5Z" fill="#F2D98A" />
+                <path d="M3 16h18v1.2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V16Z" fill="#D9A94E" />
+              </svg>
+              {String(c.selo || "Você está aqui")}
+            </span>
+          ) : null}
+
+          {/* FAÍSCAS — o brilho que a referência tem nas quinas do card da lead */}
+          {l.eu ? (
+            <>
+              <span aria-hidden className="pointer-events-none absolute" style={{ left: 52, top: 8, color: ouro, fontSize: 11, opacity: 0.75 }}>✦</span>
+              <span aria-hidden className="pointer-events-none absolute" style={{ right: 46, bottom: 7, color: ouro, fontSize: 9, opacity: 0.6 }}>✦</span>
+            </>
+          ) : null}
+
+          <span className="ml-auto flex shrink-0 items-center gap-1.5">
+            <b
+              className="bg-clip-text tabular-nums text-transparent"
+              style={{
+                fontFamily: "var(--font-display), Georgia, serif",
+                fontSize: l.eu ? 20 : 16, fontWeight: 700,
+                backgroundImage: l.eu
+                  ? `linear-gradient(175deg, #E8C77A, ${ouroEscuro})`
+                  : `linear-gradient(175deg, #D8B478, ${ouroEscuro})`,
+              }}
+            >{l.pct}%</b>
+            {/* ANEL de progresso: o mesmo número, em forma que se lê de relance */}
+            <svg width={l.eu ? 26 : 21} height={l.eu ? 26 : 21} viewBox="0 0 36 36" aria-hidden className="-rotate-90 shrink-0">
+              <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(184,135,63,.16)" strokeWidth="3" />
+              <circle
+                cx="18" cy="18" r="15" fill="none" strokeWidth="3" strokeLinecap="round"
+                stroke={l.eu ? ouro : "rgba(184,135,63,.4)"}
+                strokeDasharray={`${(l.pct / 100) * 94.2} 94.2`}
+              />
+            </svg>
+          </span>
+        </motion.div>
+      ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function DisclaimerBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const c = layer.content;
   const d = layer.design || {};
@@ -1348,6 +1616,7 @@ export function Block({ layer, ctx, question, indice = 0 }: { layer: Layer; ctx:
       case "clear": return <ClearBlock layer={layer} ctx={ctx} />;
       case "check": return <CheckBlock layer={layer} ctx={ctx} />;
       case "disclaimer": return <DisclaimerBlock layer={layer} ctx={ctx} />;
+      case "ranking": return <RankingBlock layer={layer} ctx={ctx} />;
       case "alert": return <AlertBlock layer={layer} ctx={ctx} />;
       case "image": return <ImageBlock layer={layer} ctx={ctx} />;
       case "button": return <ButtonBlock layer={layer} ctx={ctx} />;

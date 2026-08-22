@@ -31,6 +31,12 @@ export type LayerType =
   // nem editar. Virou bloco pelo mesmo motivo do `check`: quem monta a lâmina
   // decide o que ela mostra, não o componente.
   | "trust"
+  // Escassez em forma de RANKING: três linhas de placar com a lead no meio, e a
+  // posição dela piorando com o tempo. Mesmo relógio do `disclaimer` (que conta
+  // vagas), outra roupa — em vez de "restam N vagas", "você está caindo".
+  // A perda de lugar pressiona mais que a contagem de estoque: o número não é
+  // um recurso abstrato, é a fila que cresce na frente dela.
+  | "ranking"
   // Faixa fixa no topo da lâmina, sangrando até as bordas. Carrega aviso legal,
   // prazo ou escassez, e sabe contar um número que sobe com o tempo.
   | "disclaimer"

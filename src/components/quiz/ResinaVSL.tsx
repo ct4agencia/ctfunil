@@ -21,7 +21,7 @@
  * Medidas de `Velas-Lucrativas/funil/src/components/steps/StepVSL.tsx`.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { prefereMenosMovimento } from "@/lib/quiz/motion";
 import { clarear, fundoEscuroTema, gradienteTema, rgbDe } from "@/lib/quiz/resina";
 
@@ -125,6 +125,12 @@ export interface ResinaVSLProps {
    * gesto que cria o segundo CTA, e ocultá-lo o remove.
    */
   ctaRepete?: { label: string; cor?: string; url: string } | null;
+  /**
+   * Blocos que entram LOGO ABAIXO do CTA e acima da garantia — hoje o ranking
+   * de posição. Vêm prontos do runner porque se desenham sozinhos; a tela só
+   * reserva o lugar, como já faz com o disclaimer em `topo`.
+   */
+  aposCta?: ReactNode;
   /** chamado no clique, antes de navegar — para o pixel */
   onCheckout?: () => void;
 }
@@ -186,7 +192,7 @@ export default function ResinaVSL({
   headline, alertas = [], topo,
   selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem,
   larguraGarantia, larguraPagamentos, tamanhoHeadline, tamanhoGarantia,
-  selos, garantiaTexto, garantiaChip, ctaRepete, onCheckout,
+  selos, garantiaTexto, garantiaChip, ctaRepete, aposCta, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
   /* Fundo, filete e CTA saem do TEMA — nada de hexadecimal cravado. Com tema
@@ -324,6 +330,9 @@ export default function ResinaVSL({
               textDecoration: "none",
               background: `linear-gradient(135deg, ${verdeCta} 0%, ${verdeCta}dd 50%, ${verdeCta}bb 100%)`,
               boxShadow: `0 10px 30px rgba(${rgbDe(verdeCta)},.4)`,
+              // o halo pulsante lê estas duas — sem elas o keyframe cai no verde
+              ["--cta-halo-soft" as string]: `rgba(${rgbDe(verdeCta)},.4)`,
+              ["--cta-halo-strong" as string]: `rgba(${rgbDe(verdeCta)},.65)`,
             }}
           >
             {cta}
@@ -385,6 +394,14 @@ export default function ResinaVSL({
         <p className="px-5 py-6 text-center text-sm" style={{ color: "rgba(255,255,255,.55)" }}>{textoEspera}</p>
       )}
 
+      {/* RANKING e afins — FORA do bloco do CTA, de propósito.
+          Dentro dele, o ranking só existia depois que o botão aparecia, e o
+          `revealAt` próprio dele não valia nada: marcar 12s contra 20s do botão
+          não adiantava, os dois entravam juntos aos 20s.
+          Fora, cada um obedece ao seu relógio — que é como o disclaimer do
+          cdb-insta consegue entrar aos 973s com o botão só aos 1005s. */}
+      {aposCta ? <div className="w-full px-5 pt-6">{aposCta}</div> : null}
+
       {mostraCta && (garantiaTitulo || garantiaImagem || garantiaTexto || selos?.seloGarantia) ? (
         <div className="w-full px-5 pb-7 pt-10 text-center" style={{ animation: reduzido ? undefined : "fade-in-up .6s ease-out .15s both" }}>
           <div className="mx-auto mb-8 h-[3px] w-[60px] rounded-sm" style={{ background: filete, opacity: 0.5 }} />
@@ -441,6 +458,8 @@ export default function ResinaVSL({
                 letterSpacing: ".02em", textTransform: "uppercase", color: "#fff", textDecoration: "none",
                 background: ctaRepete.cor || `linear-gradient(135deg, ${verdeCta} 0%, ${verdeCta} 50%, ${verdeCta} 100%)`,
                 boxShadow: `0 10px 30px ${ctaRepete.cor || verdeCta}66`,
+                ["--cta-halo-soft" as string]: `${ctaRepete.cor || verdeCta}66`,
+                ["--cta-halo-strong" as string]: `${ctaRepete.cor || verdeCta}a6`,
               }}
             >{ctaRepete.label}</a>
           ) : null}

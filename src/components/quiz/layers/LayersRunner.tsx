@@ -549,8 +549,15 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
               /* `idx === 0` cobria só a PRIMEIRA lâmina, e este funil tem dois
                  heros seguidos: o segundo caía em blocos soltos e ficava
                  visivelmente diferente do primeiro. Marcar `tela: "hero"`
-                 permite que qualquer lâmina receba o desenho de hero. */
-              if (presetTelas && (idx === 0 || (step as { tela?: string }).tela === "hero")) {
+                 permite que qualquer lâmina receba o desenho de hero.
+
+                 O `!tela` é o que impede o atalho de sequestrar a lâmina: um
+                 funil de UMA lâmina só tem a sua no índice 0, e sem esta guarda
+                 uma VSL avulsa era desenhada como hero — os blocos apareciam
+                 soltos e metade sumia. Quem declara `tela` já disse o que é;
+                 a posição só decide quando ninguém disse nada. */
+              const telaDeclarada = (step as { tela?: string }).tela;
+              if (presetTelas && ((idx === 0 && !telaDeclarada) || telaDeclarada === "hero")) {
                 const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
                 const btn = ls.find((l) => l.type === "button");
                 const imgs = [
@@ -799,6 +806,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     revelarEm={Number(btn?.content?.revealAt) || 0}
                     alertas={alertas}
                     topo={disclaimers.map((l) => (
+                      <Block key={l.id} layer={l} ctx={ctx} question={question} indice={0} />
+                    ))}
+                    /* O ranking se desenha sozinho (o card das três linhas),
+                       então a tela só precisa dar-lhe lugar — logo abaixo do
+                       CTA, onde a pressão de perder posição encontra o botão.
+                       Mesmo tratamento do disclaimer. */
+                    aposCta={ls.filter((l) => l.type === "ranking").map((l) => (
                       <Block key={l.id} layer={l} ctx={ctx} question={question} indice={0} />
                     ))}
                     textoEspera={semHtml(btn?.content?.waitText) || undefined}
