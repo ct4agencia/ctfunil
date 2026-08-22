@@ -858,9 +858,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                       };
                     })()}
                     /* A logo vem do DESIGN do funil, o mesmo campo que o header
-                       usa nas outras lâminas — assim ela é configurada num
-                       lugar só e a VSL não precisa de um upload próprio. */
-                    logo={(design as { logo?: { src?: string } }).logo?.src}
+                       usa nas outras lâminas — configurada num lugar só.
+                       Obedece ao `show_logo` DA LÂMINA: é a chave que já existe
+                       no construtor para as outras telas, então ligar e desligar
+                       a logo da VSL não precisa de campo novo. */
+                    logo={((step as { headerOverride?: { show_logo?: boolean } }).headerOverride?.show_logo === false)
+                      ? undefined
+                      : (design as { logo?: { src?: string } }).logo?.src}
                     logoAltura={Number((design as { logoSize?: string }).logoSize) * 0.74 || undefined}
                     selosImagem={(step as { selosImagem?: string }).selosImagem}
                     rodape={(step as { rodape?: string }).rodape}

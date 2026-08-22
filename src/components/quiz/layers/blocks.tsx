@@ -735,7 +735,10 @@ function RankingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
           >{l.nome}</span>
 
           {/* PÍLULA "Você está aqui" — o que transforma a lista em espelho */}
-          {l.eu ? (
+          {/* `selo` vazio DESLIGA a pílula — no celular ela dividia a largura
+              com o nome e o truncava ("VOCÊ" virava "V."). Preencher o campo
+              no painel a traz de volta. */}
+          {l.eu && c.selo !== "" ? (
             <span
               className="ml-1 inline-flex shrink-0 items-center gap-1.5 rounded-full"
               style={{
