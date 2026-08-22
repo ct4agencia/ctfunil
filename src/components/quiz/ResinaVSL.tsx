@@ -325,7 +325,11 @@ export default function ResinaVSL({
             }}
             className={`mx-auto block w-full max-w-[360px] ${reduzido ? "" : "animate-cta-green"}`}
             style={{
-              padding: "19px 24px", borderRadius: 16, fontWeight: 800, fontSize: 17,
+              /* Menor que antes (era 19px/17px): no celular o CTA e os selos
+                 empurravam o ranking para fora da primeira tela, e a escassez
+                 que devia ser vista junto do botão ficava a uma rolagem de
+                 distância. Continua com área de toque folgada. */
+              padding: "15px 20px", borderRadius: 16, fontWeight: 800, fontSize: 15.5,
               letterSpacing: ".02em", textTransform: "uppercase", color: "#fff",
               textDecoration: "none",
               background: `linear-gradient(135deg, ${verdeCta} 0%, ${verdeCta}dd 50%, ${verdeCta}bb 100%)`,
@@ -348,11 +352,11 @@ export default function ResinaVSL({
             /* SELOS DE CONFIANÇA — desenhados, porque são ícones genéricos e não
                marca de terceiro. Ficam logo abaixo do CTA: é o instante em que a
                pessoa decide clicar e a dúvida é "isso é seguro?". */
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-5" style={{ color: "rgba(255,255,255,.55)" }}>
+            <div className="mt-3.5 flex flex-wrap items-center justify-center gap-3.5" style={{ color: "rgba(255,255,255,.55)" }}>
               {SELOS.map(({ d, forte, fraco }) => (
-                <span key={forte} className="inline-flex items-center gap-1.5">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>{d}</svg>
-                  <span className="text-left text-[11px] leading-tight">
+                <span key={forte} className="inline-flex items-center gap-1">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>{d}</svg>
+                  <span className="text-left text-[9.5px] leading-tight">
                     {fraco}<br /><b className="text-white/80">{forte}</b>
                   </span>
                 </span>
