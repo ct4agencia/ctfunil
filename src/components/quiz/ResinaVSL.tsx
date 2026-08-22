@@ -131,6 +131,17 @@ export interface ResinaVSLProps {
    * reserva o lugar, como já faz com o disclaimer em `topo`.
    */
   aposCta?: ReactNode;
+  /**
+   * Logo no topo, acima do player.
+   *
+   * Fica AQUI e não no header do funil porque a lâmina de VSL desliga o header
+   * (`show_logo: false` no cdb-insta): a tela é cheia e escura, e o cabeçalho
+   * claro do quiz brigaria com ela. Sem este campo, a marca simplesmente não
+   * aparecia na página da oferta — que é onde ela mais precisa aparecer.
+   */
+  logo?: string;
+  /** altura da logo em px (padrão 78) */
+  logoAltura?: number;
   /** chamado no clique, antes de navegar — para o pixel */
   onCheckout?: () => void;
 }
@@ -192,7 +203,7 @@ export default function ResinaVSL({
   headline, alertas = [], topo,
   selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem,
   larguraGarantia, larguraPagamentos, tamanhoHeadline, tamanhoGarantia,
-  selos, garantiaTexto, garantiaChip, ctaRepete, aposCta, onCheckout,
+  selos, garantiaTexto, garantiaChip, ctaRepete, aposCta, logo, logoAltura, onCheckout,
 }: ResinaVSLProps) {
   const reduzido = prefereMenosMovimento();
   /* Fundo, filete e CTA saem do TEMA — nada de hexadecimal cravado. Com tema
@@ -264,6 +275,18 @@ export default function ResinaVSL({
       }}
     >
       {topo}
+
+      {/* LOGO — a marca antes do vídeo. Sobre fundo escuro ela precisa do
+          próprio brilho, senão vira um retângulo apagado no topo. */}
+      {logo ? (
+        <div className="flex w-full justify-center px-5 pb-1 pt-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={logo} alt="" fetchPriority="high" decoding="async"
+            style={{ height: logoAltura || 78, width: "auto", filter: "drop-shadow(0 6px 18px rgba(0,0,0,.45))" }}
+          />
+        </div>
+      ) : null}
 
       {/* A chamada vem ANTES do player: ela diz o que assistir. Embaixo do
           vídeo só é lida por quem já assistiu — tarde demais para orientar. */}

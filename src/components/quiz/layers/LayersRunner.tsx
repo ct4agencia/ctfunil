@@ -857,6 +857,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                         seguranca: String(t.seguranca ?? ""),
                       };
                     })()}
+                    /* A logo vem do DESIGN do funil, o mesmo campo que o header
+                       usa nas outras lâminas — assim ela é configurada num
+                       lugar só e a VSL não precisa de um upload próprio. */
+                    logo={(design as { logo?: { src?: string } }).logo?.src}
+                    logoAltura={Number((design as { logoSize?: string }).logoSize) * 0.74 || undefined}
                     selosImagem={(step as { selosImagem?: string }).selosImagem}
                     rodape={(step as { rodape?: string }).rodape}
                     onCheckout={() => { if (!preview) fireMetaEvent("InitiateCheckout"); }}
