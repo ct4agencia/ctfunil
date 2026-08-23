@@ -815,7 +815,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     aposCta={ls.filter((l) => l.type === "ranking").map((l) => (
                       <Block key={l.id} layer={l} ctx={ctx} question={question} indice={0} />
                     ))}
-                    textoEspera={semHtml(btn?.content?.waitText) || undefined}
+                    /* Campo VAZIO é escolha, não ausência: quer dizer "sem aviso
+                       de espera". O `|| undefined` transformava vazio em
+                       ausente e a tela caía no texto padrão — não havia como
+                       tirar o aviso pelo painel. */
+                    textoEspera={btn?.content?.waitText === "" ? "" : (semHtml(btn?.content?.waitText) || undefined)}
                     // antes do botão = chamada do player; depois = garantia
                     headline={textosTopo[0] ? semHtml(textosTopo[0].content?.text) : undefined}
                     garantiaTitulo={textosGarantia[0] ? semHtmlMultilinha(textosGarantia[0].content?.text) : undefined}

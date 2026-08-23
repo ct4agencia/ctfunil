@@ -440,9 +440,11 @@ export default function ResinaVSL({
             </div>
           ) : null}
         </div>
-      ) : (
+      ) : textoEspera ? (
+        /* Vazio TIRA o aviso, em vez de cair no texto padrão. Nem toda VSL quer
+           anunciar que há algo trancado — às vezes o silêncio segura melhor. */
         <p className="px-5 py-6 text-center text-sm" style={{ color: "rgba(255,255,255,.55)" }}>{textoEspera}</p>
-      )}
+      ) : null}
 
       {/* RANKING e afins — FORA do bloco do CTA, de propósito.
           Dentro dele, o ranking só existia depois que o botão aparecia, e o
