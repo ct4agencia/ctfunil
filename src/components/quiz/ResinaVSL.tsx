@@ -274,6 +274,24 @@ export default function ResinaVSL({
         backgroundPosition: ehImagem ? "center" : undefined,
       }}
     >
+      {/* FUNDO ATÉ AS BORDAS DA JANELA.
+          O gradiente pintado só neste container parava no `max-w` do funil, e
+          nas laterais aparecia o `backgroundColor` do design — duas faixas mais
+          escuras emoldurando a página, visíveis em qualquer tela mais larga que
+          o container.
+          Uma camada fixa atrás de tudo resolve sem mexer no layout: cobre a
+          viewport inteira e não rola com o conteúdo. */}
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-10"
+        style={{
+          background: fundoFinal,
+          backgroundImage: ehImagem ? `url(${fundo})` : fundoFinal,
+          backgroundSize: ehImagem ? "cover" : undefined,
+          backgroundPosition: ehImagem ? "center" : undefined,
+        }}
+      />
+
       {topo}
 
       {/* LOGO — a marca antes do vídeo. Sobre fundo escuro ela precisa do
