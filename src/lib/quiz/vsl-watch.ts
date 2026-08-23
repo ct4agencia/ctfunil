@@ -46,8 +46,15 @@ function duracaoDoPlayer(p: SmartInstance): number {
   return 0;
 }
 
-/** Tempo assistido, idem. */
-function tempoDoPlayer(p: SmartInstance): number {
+/**
+ * Tempo assistido, idem.
+ *
+ * EXPORTADA porque o relógio da VSL (`relogio-vsl.ts`) precisa do mesmo número
+ * para revelar CTA, ranking e barra de vagas. Escrever uma segunda cascata lá
+ * repetiria o erro que custou 394 sessões sem retenção: o v4 muda o tempo de
+ * lugar entre versões, e só quem procura em cascata acerta.
+ */
+export function tempoDoPlayer(p: SmartInstance): number {
   const cand = [
     p.video?.currentTime,
     (document.querySelector("vturb-smartplayer") as unknown as { currentTime?: number } | null)?.currentTime,
@@ -61,7 +68,7 @@ function tempoDoPlayer(p: SmartInstance): number {
 
 // Window.smartplayer já é declarado globalmente em components/vsl/BlockRenderer.tsx;
 // aqui acessamos de forma estrutural pra não conflitar com aquela declaração.
-function smartInstances(): SmartInstance[] | undefined {
+export function smartInstances(): SmartInstance[] | undefined {
   return (window as unknown as { smartplayer?: { instances?: SmartInstance[] } }).smartplayer?.instances;
 }
 

@@ -24,6 +24,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { prefereMenosMovimento } from "@/lib/quiz/motion";
 import { clarear, fundoEscuroTema, gradienteTema, rgbDe } from "@/lib/quiz/resina";
+// relógio da VSL: revela pelo tempo do VÍDEO, com queda para tempo de página
+import { useRevelado } from "@/lib/quiz/relogio-vsl";
 
 export interface ResinaVSLProps {
   /** cor do tema — governa fundo e filete quando não há sobrescrita */
@@ -219,7 +221,11 @@ export default function ResinaVSL({
      tema ao branco e volta, então a frase brilha do meio para fora como na
      referência, e continua legível. */
   const gradTitulo = `linear-gradient(95deg, ${clarear(cor, 0.5)} 0%, #ffffff 45%, #ffffff 55%, ${clarear(cor, 0.5)} 100%)`;
-  const [mostraCta, setMostraCta] = useState(preview || revelarEm <= 0);
+  /* O CTA aparece pelo tempo do VÍDEO, não pelo tempo de página. Antes era um
+     `setTimeout` desde a montagem: quem pausasse para atender o telefone via o
+     botão de compra surgir antes do pitch — o oposto do que a revelação por
+     tempo existe para fazer. Ver `relogio-vsl.ts`. */
+  const mostraCta = useRevelado(revelarEm, preview);
   /**
    * `dangerouslySetInnerHTML` NÃO executa <script> — é regra do React, e por
    * isso o player aparecia como um retângulo preto: o placeholder do VTurb
@@ -257,7 +263,6 @@ export default function ResinaVSL({
 
   useEffect(() => {
     const ts: ReturnType<typeof setTimeout>[] = [];
-    if (!preview && revelarEm > 0) ts.push(setTimeout(() => setMostraCta(true), revelarEm * 1000));
     return () => ts.forEach(clearTimeout);
   }, [revelarEm, preview]);
 

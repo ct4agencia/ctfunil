@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { fireMetaEvent } from "@/lib/tracking";
 import { attachVslWatch } from "@/lib/quiz/vsl-watch";
+// relógio da VSL: revela por tempo de VÍDEO, com queda para tempo de página
+import { useTempoVsl } from "@/lib/quiz/relogio-vsl";
 import { interpEstado } from "@/lib/quiz/estado";
 import { DedoArrasta } from "../ui";
 import dynamic from "next/dynamic";
@@ -569,29 +571,20 @@ function RankingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   // quem pediu menos movimento vê a posição trocar sem o deslize
   const reduzido = prefereMenosMovimento();
 
+  /* O relógio é o do VÍDEO — pausou, a posição para; adiantou, ela acompanha.
+     Antes era `Date.now()` desde a montagem, e quem pausasse para atender o
+     telefone via a posição despencar sozinha enquanto o vídeo estava parado. */
+  const { segundos, fonte } = useTempoVsl();
+
   /* No construtor já nasce visível: o canvas existe para conferir layout, e
      obedecer o relógio o esconderia atrás de minutos de espera. */
-  const [visivel, setVisivel] = useState(!!ctx.preview || revelarEm <= 0);
-  const [pos, setPos] = useState(de);
+  const visivel = !!ctx.preview || revelarEm <= 0
+    || (fonte !== "esperando" && segundos >= revelarEm);
 
-  useEffect(() => {
-    if (ctx.preview || revelarEm <= 0) return;
-    const t = setTimeout(() => setVisivel(true), revelarEm * 1000);
-    return () => clearTimeout(t);
-  }, [revelarEm, ctx.preview]);
-
-  useEffect(() => {
-    const t0 = Date.now();
-    const passo = () => {
-      const seg = (Date.now() - t0) / 1000;
-      const p = Math.min(1, Math.max(0, (seg - revelarEm) / (fim - revelarEm)));
-      setPos(Math.round(de + (ate - de) * p));
-    };
-    passo();
-    // 5s: a posição mexe enquanto se assiste, sem virar cronômetro
-    const iv = setInterval(passo, 5000);
-    return () => clearInterval(iv);
-  }, [de, ate, revelarEm, fim]);
+  /* A posição sai do tempo, não de um contador próprio: assim ela é sempre
+     coerente com o vídeo, mesmo depois de pausar, voltar ou recarregar. */
+  const progresso = Math.min(1, Math.max(0, (segundos - revelarEm) / Math.max(1, fim - revelarEm)));
+  const pos = Math.round(de + (ate - de) * progresso);
 
   if (!visivel) return null;
 
@@ -805,30 +798,17 @@ function DisclaimerBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const conta = ate > 0;
   const fim = Math.max(revelarEm + 1, Number(c.vagasFimEm) || revelarEm + 60);
 
+  /* Mesmo relógio do ranking: tempo de VÍDEO, com queda para tempo de página se
+     o player não aparecer. Ver `relogio-vsl.ts`. */
+  const { segundos, fonte } = useTempoVsl();
+
   /* No construtor a faixa já nasce visível: o canvas existe para conferir
      layout, e obedecer o relógio a esconderia atrás de 16 minutos de espera. */
-  const [visivel, setVisivel] = useState(!!ctx.preview || revelarEm <= 0);
-  const [n, setN] = useState(de);
+  const visivel = !!ctx.preview || revelarEm <= 0
+    || (fonte !== "esperando" && segundos >= revelarEm);
 
-  useEffect(() => {
-    if (ctx.preview || revelarEm <= 0) return;
-    const t = setTimeout(() => setVisivel(true), revelarEm * 1000);
-    return () => clearTimeout(t);
-  }, [revelarEm, ctx.preview]);
-
-  useEffect(() => {
-    if (!conta) return;
-    const t0 = Date.now();
-    const passo = () => {
-      const seg = (Date.now() - t0) / 1000;
-      const p = Math.min(1, Math.max(0, (seg - revelarEm) / (fim - revelarEm)));
-      setN(Math.round(de + (ate - de) * p));
-    };
-    passo();
-    // 5s: o número mexe enquanto se assiste, sem virar cronômetro
-    const iv = setInterval(passo, 5000);
-    return () => clearInterval(iv);
-  }, [conta, de, ate, revelarEm, fim]);
+  const progresso = Math.min(1, Math.max(0, (segundos - revelarEm) / Math.max(1, fim - revelarEm)));
+  const n = conta ? Math.round(de + (ate - de) * progresso) : de;
 
   if (!visivel) return null;
   const html = interpHtml(String(c.text || ""), ctx).replace(/\[vagas\]/gi, String(conta ? n : de || ""));
