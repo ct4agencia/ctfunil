@@ -10,6 +10,9 @@ import { ScrollHint } from "../ui";
 import { type StepCtx } from "../steps";
 import { getPalette, paletteVars } from "@/lib/quiz/theme";
 import { estiloPilulaPergunta } from "@/lib/quiz/resina";
+// leva utm/xcod/sck da página para o checkout — os botões não são links, então
+// a UTMify não os reescreve
+import { comRastreio } from "@/lib/quiz/rastreio";
 import ResinaQuiz from "../ResinaQuiz";
 import ResinaHero from "../ResinaHero";
 import ResinaResultado from "../ResinaResultado";
@@ -159,7 +162,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       if (padrao && idById[padrao] != null) return go(idById[padrao]);
       return go(idx + 1);
     }
-    if (/^https?:\/\//i.test(dest)) { window.location.href = dest; return; }
+    /* Destino EXTERNO leva o rastreio junto. Os botões do funil são <button>,
+       não <a> — a UTMify só reescreve links, então aqui ela não tinha o que
+       reescrever e a pessoa chegava na Hotmart com a URL nua. Sem os
+       parâmetros, a venda chega sem dono. */
+    if (/^https?:\/\//i.test(dest)) { window.location.href = comRastreio(dest); return; }
     if (idById[dest] != null) return go(idById[dest]);
     go(idx + 1);
   };

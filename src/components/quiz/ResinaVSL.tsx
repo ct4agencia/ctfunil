@@ -26,6 +26,8 @@ import { prefereMenosMovimento } from "@/lib/quiz/motion";
 import { clarear, fundoEscuroTema, gradienteTema, rgbDe } from "@/lib/quiz/resina";
 // relógio da VSL: revela pelo tempo do VÍDEO, com queda para tempo de página
 import { useRevelado } from "@/lib/quiz/relogio-vsl";
+// leva utm/xcod/sck da página para o checkout
+import { comRastreio } from "@/lib/quiz/rastreio";
 
 export interface ResinaVSLProps {
   /** cor do tema — governa fundo e filete quando não há sobrescrita */
@@ -365,9 +367,19 @@ export default function ResinaVSL({
                destino externo. O href fica: é ele que permite abrir em outra
                aba, copiar o link e ser lido como link de verdade. */
             onClick={(e) => {
+              /* NAVEGA PELO `href` DO ELEMENTO, não pela variável.
+                 A UTMify reescreve o href deste link para anexar utm_source,
+                 xcod, sck e companhia — é assim que ela liga a visita à venda.
+                 A versão anterior fazia `window.location.href = checkoutUrl`,
+                 ou seja, ia para a URL ORIGINAL e jogava fora tudo o que a
+                 UTMify tinha escrito: a venda chegava na Hotmart sem dono e
+                 nenhum evento era atribuído.
+                 `currentTarget` é lido no instante do clique, então traz o que
+                 houver sido anexado até ali. */
+              const destino = e.currentTarget.getAttribute("href") || checkoutUrl;
               e.preventDefault();
               onCheckout?.();
-              if (checkoutUrl) window.location.href = checkoutUrl;
+              if (destino) window.location.href = comRastreio(destino);
             }}
             className={`mx-auto block w-full max-w-[360px] ${reduzido ? "" : "animate-cta-green"}`}
             style={{
@@ -503,7 +515,14 @@ export default function ResinaVSL({
           {ctaRepete ? (
             <a
               href={ctaRepete.url}
-              onClick={(e) => { e.preventDefault(); onCheckout?.(); if (ctaRepete.url) window.location.href = ctaRepete.url; }}
+              /* mesmo motivo do CTA principal: o href pode ter sido reescrito
+                 pela UTMify, e a variável não acompanha */
+              onClick={(e) => {
+                const destino = e.currentTarget.getAttribute("href") || ctaRepete.url;
+                e.preventDefault();
+                onCheckout?.();
+                if (destino) window.location.href = comRastreio(destino);
+              }}
               className={`mx-auto mt-7 block w-full max-w-[360px] ${reduzido ? "" : "animate-cta-green"}`}
               style={{
                 padding: "19px 24px", borderRadius: 16, fontWeight: 800, fontSize: 17,
