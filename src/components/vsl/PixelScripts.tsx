@@ -11,6 +11,54 @@ import RawScripts from "@/components/vsl/RawScripts";
  * saem como <script> inline no SSR. Os scripts livres (head/body/footer) vão
  * pelo RawScripts (cliente), pois podem conter <script> arbitrário.
  */
+/**
+ * Acha cada <script> de um trecho colado no painel.
+ *
+ * Regex e não parser de verdade porque isto roda no SERVIDOR, onde não existe
+ * DOM, e trazer um parser de HTML para ler três tags seria peso desproporcional.
+ * O conteúdo aqui é sempre um punhado de tags de pixel copiadas de UTMify,
+ * Meta ou Hotmart — não é HTML arbitrário da internet.
+ */
+const RE_SCRIPT = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
+
+/** `src="x" async` → { src: "x", async: "" } */
+function lerAtributos(bruto: string): Record<string, string> {
+  const attrs: Record<string, string> = {};
+  const re = /([a-zA-Z_:][\w:.-]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+)))?/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(bruto))) attrs[m[1]] = m[2] ?? m[3] ?? m[4] ?? "";
+  return attrs;
+}
+
+/**
+ * Os <script> do campo, como elementos React — executam porque nascem no HTML,
+ * em vez de serem inseridos depois por innerHTML (que o navegador ignora).
+ */
+function scriptsDoPainel(html?: string) {
+  if (!html) return null;
+  const saida: React.ReactElement[] = [];
+  let m: RegExpExecArray | null;
+  RE_SCRIPT.lastIndex = 0;
+  while ((m = RE_SCRIPT.exec(html))) {
+    const a = lerAtributos(m[1] || "");
+    const corpo = m[2] || "";
+    const chave = `ps-${saida.length}-${a.src || a.id || saida.length}`;
+    saida.push(
+      a.src
+        ? <script key={chave} src={a.src} async={"async" in a} defer={"defer" in a} id={a.id} />
+        : <script key={chave} id={a.id} dangerouslySetInnerHTML={{ __html: corpo }} />,
+    );
+  }
+  return saida.length ? saida : null;
+}
+
+/** O mesmo trecho SEM os <script> — o resto ainda precisa do RawScripts. */
+function semScripts(html?: string) {
+  if (!html) return undefined;
+  const resto = html.replace(RE_SCRIPT, "").trim();
+  return resto || undefined;
+}
+
 export default function PixelScripts({
   settings,
   utmifyPixelId,
@@ -189,10 +237,22 @@ window.__ct4defer=function(fn){feito?fn():fila.push(fn)}})();`;
           }}
         />
       )}
+      {/* SCRIPTS LIVRES DO PAINEL — emitidos no SERVIDOR.
+          Antes iam todos pelo `RawScripts`, que injeta via `useEffect`: roda
+          depois da hidratação, e o `pixel.js` da UTMify colado ali nunca
+          engatava — o evento do checkout não marcava e não havia sinal de erro.
+          O campo prometia funcionar e não funcionava.
+          Agora cada <script> do campo vira elemento React, então vem no HTML
+          original e executa na hora, igual aos pixels conhecidos.
+          O que não for <script> (uma <noscript> de pixel, por exemplo) continua
+          pelo RawScripts, que sabe inserir HTML arbitrário. */}
+      {scriptsDoPainel(p.head_script)}
+      {scriptsDoPainel(p.body_script)}
+      {scriptsDoPainel(p.footer_script)}
       <RawScripts
-        head={p.head_script}
-        body={p.body_script}
-        footer={p.footer_script}
+        head={semScripts(p.head_script)}
+        body={semScripts(p.body_script)}
+        footer={semScripts(p.footer_script)}
       />
     </>
   );
