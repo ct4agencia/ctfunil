@@ -6,6 +6,7 @@ import type { ScratchStep, ScratchCard } from "@/lib/quiz/types";
 import { StepShell, RichText, useEdit } from "./ui";
 import { interp, type StepCtx } from "./steps";
 import { playWin, playUrl } from "@/lib/quiz/sound";
+import { comRastreio } from "@/lib/quiz/rastreio";
 
 /**
  * Raspadinha em GRADE (N cards) — espelha o painel de prêmios da roleta.
@@ -391,7 +392,8 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
   const destino = premio?.redeemUrl || step.ctaUrl || "";
 
   const seguir = () => {
-    if (destino) { window.location.href = destino; return; }
+    // o link do prêmio leva o rastreio junto — ver `rastreio.ts`
+    if (destino) { window.location.href = comRastreio(destino); return; }
     ctx.advance();
   };
 

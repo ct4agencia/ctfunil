@@ -8,6 +8,7 @@ import { isBubble, isInput, TB_DEFAULT_THEME } from "@/lib/quiz/typebot/types";
 import { getSessionId, collectTrackingParams, fireMetaEvent } from "@/lib/tracking";
 import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { trackAnswer, trackStep } from "@/lib/quiz/track";
+import { comRastreio } from "@/lib/quiz/rastreio";
 
 type FeedBase = { id: string; time?: string };
 type FeedItem =
@@ -143,7 +144,9 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
         const url = interp(b.url);
         if (preview) { push({ side: "host", kind: "text", html: `→ <em>redirect:</em> ${url}` }); return; }
         fireMetaEvent("InitiateCheckout");
-        if (b.newTab) window.open(url, "_blank"); else window.location.href = url;
+        // o rastreio da página vai junto — ver `rastreio.ts`
+        const destino = comRastreio(url);
+        if (b.newTab) window.open(destino, "_blank"); else window.location.href = destino;
         return;
       }
       // VSL (página): repaginação no mesmo domínio — cobre o chat com a VSL.
@@ -609,7 +612,7 @@ function TypebotVsl({ block, interp, preview, slug }: { block: TbVsl; interp: (s
   const openCheckout = () => {
     if (!preview) fireMetaEvent("InitiateCheckout");
     const url = interp(block.checkoutUrl || "");
-    if (url) window.open(url, "_blank");
+    if (url) window.open(comRastreio(url), "_blank");
   };
   const titleHtml = interp(block.title || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   const fx = block.effect || "none";

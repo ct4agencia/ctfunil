@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { prefereMenosMovimento } from "@/lib/quiz/motion";
+import { comRastreio } from "@/lib/quiz/rastreio";
 import type {
   RouletteStep, RouletteStyle, ScratchStep, MeasureStep, SliderStep, Palette, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep, ResultStep,
   OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, QuizOption,
@@ -1638,7 +1639,8 @@ export function VslStepView({ step, ctx }: { step: VslStep; ctx: StepCtx }) {
 
   const openCheckout = () => {
     if (!ctx.preview) fireMetaEvent("InitiateCheckout");
-    if (step.checkoutUrl) window.open(step.checkoutUrl, "_blank");
+    // checkout leva o rastreio da página junto — ver `rastreio.ts`
+    if (step.checkoutUrl) window.open(comRastreio(step.checkoutUrl), "_blank");
   };
 
   const bar = step.headerBar;

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { type Block, type Vsl } from "@/lib/types";
 import { buildTheme } from "@/lib/vsl-theme";
+import { comRastreio } from "@/lib/quiz/rastreio";
 import DebugBar from "@/components/vsl/DebugBar";
 import confetti from "canvas-confetti";
 import {
@@ -460,9 +461,13 @@ export default function BlockRenderer({
                   fireMetaEvent("InitiateCheckout");
                   // Abre o checkout via JS pra driblar interceptação do
                   // launcher da Hotmart (que captura cliques em pay.hotmart).
-                  if (href) {
+                  // Lê o href do DOM, não da closure: a UTMify reescreve o
+                  // atributo pra anexar o rastreio, e o valor da closure é o
+                  // original, sem UTM. Ver `rastreio.ts`.
+                  const destino = e.currentTarget.getAttribute("href") || href;
+                  if (destino) {
                     e.preventDefault();
-                    window.open(href, "_blank", "noopener");
+                    window.open(comRastreio(destino), "_blank", "noopener");
                   }
                 }
               }}
