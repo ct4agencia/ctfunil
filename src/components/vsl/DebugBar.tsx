@@ -3,24 +3,36 @@
 import { useEffect, useState } from "react";
 import { fireMetaEvent } from "@/lib/tracking";
 
+function isDebugEnabled(): boolean {
+  try {
+    if (typeof window === "undefined") return false;
+    const p = new URLSearchParams(window.location.search);
+    return p.get("debug") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function Dot({ ok }: { ok: boolean }) {
+  return (
+    <span style={{ color: ok ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
+      {ok ? "●" : "●"}
+    </span>
+  );
+}
+
 /**
  * Barra de teste de pixel — aparece SÓ com ?debug=1 na URL (invisível pros
  * leads reais). Mostra o status do pixel e dispara eventos de teste pra
  * validar no Meta Pixel Helper / Events Manager / painel UTMify.
  */
 export default function DebugBar() {
-  const [show, setShow] = useState(false);
+  const show = isDebugEnabled();
   const [st, setSt] = useState({ fbq: false, utmify: false, google: false });
   const [log, setLog] = useState<string[]>([]);
 
   useEffect(() => {
-    try {
-      const p = new URLSearchParams(window.location.search);
-      if (p.get("debug") !== "1") return;
-    } catch {
-      return;
-    }
-    setShow(true);
+    if (!show) return;
     const check = () =>
       setSt({
         fbq: typeof window.fbq === "function",
@@ -30,7 +42,7 @@ export default function DebugBar() {
     check();
     const t = setInterval(check, 1500);
     return () => clearInterval(t);
-  }, []);
+  }, [show]);
 
   if (!show) return null;
 
@@ -42,11 +54,6 @@ export default function DebugBar() {
     ].slice(0, 6));
   }
 
-  const Dot = ({ ok }: { ok: boolean }) => (
-    <span style={{ color: ok ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
-      {ok ? "●" : "●"}
-    </span>
-  );
   const btn: React.CSSProperties = {
     padding: "6px 10px",
     borderRadius: 8,

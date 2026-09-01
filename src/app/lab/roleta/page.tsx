@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // Parâmetros e presets moram em `fisica.ts` para poderem ser verificados por
 // `scripts/check-roleta.mjs` — dentro deste arquivo eles não são exportáveis, e
 // um teste teria de replicá-los (testando a cópia, não o que roda).
-import { type Params, PADRAO, LIMITES, comIntensidade, PRESETS, ESCALA } from "./fisica";
+import { type Params, PADRAO, comIntensidade, PRESETS, ESCALA } from "./fisica";
 
 /**
  * LABORATÓRIO da roleta com física — rota /lab/roleta.
@@ -143,6 +143,27 @@ const slicePath = (i: number) => {
 
 const CHAVE_SALVA = "ct4-roleta-intensidades";
 
+function carregarIntensidadesSalvas(): Record<string, number> {
+  try {
+    if (typeof window === "undefined") return {};
+    const raw = localStorage.getItem(CHAVE_SALVA);
+    if (!raw) return {};
+    const guardado = JSON.parse(raw) || {};
+    // A régua já foi ±100. Um valor salvo naquela escala (ex.: 40) seria
+    // quatro vezes o máximo de hoje, então converte em vez de descartar —
+    // quem já tinha ajustado não perde o que escolheu.
+    const migrado: Record<string, number> = {};
+    for (const [k, v] of Object.entries(guardado)) {
+      const n = Number(v) || 0;
+      migrado[k] = Math.max(-ESCALA, Math.min(ESCALA, Math.abs(n) > ESCALA ? Math.round(n / 10) : n));
+    }
+    return migrado;
+  } catch {
+    /* localStorage é editável pelo usuário: JSON quebrado não derruba a página */
+    return {};
+  }
+}
+
 export default function LabRoleta() {
   const [p, setP] = useState<Params>(PADRAO);
   const [angulo, setAngulo] = useState(0);
@@ -153,7 +174,7 @@ export default function LabRoleta() {
   const [log, setLog] = useState<string[]>([]);
   const [som, setSom] = useState(true);
   const [aberto, setAberto] = useState<string | null>(null);
-  const [intensidades, setIntensidades] = useState<Record<string, number>>({});
+  const [intensidades, setIntensidades] = useState<Record<string, number>>(carregarIntensidadesSalvas);
   const [salvo, setSalvo] = useState(false);
 
   const raf = useRef<number | null>(null);
@@ -163,23 +184,6 @@ export default function LabRoleta() {
   });
 
   useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); }, []);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(CHAVE_SALVA);
-      if (!raw) return;
-      const guardado = JSON.parse(raw) || {};
-      // A régua já foi ±100. Um valor salvo naquela escala (ex.: 40) seria
-      // quatro vezes o máximo de hoje, então converte em vez de descartar —
-      // quem já tinha ajustado não perde o que escolheu.
-      const migrado: Record<string, number> = {};
-      for (const [k, v] of Object.entries(guardado)) {
-        const n = Number(v) || 0;
-        migrado[k] = Math.max(-ESCALA, Math.min(ESCALA, Math.abs(n) > ESCALA ? Math.round(n / 10) : n));
-      }
-      setIntensidades(migrado);
-    } catch { /* localStorage é editável pelo usuário: JSON quebrado não derruba a página */ }
-  }, []);
 
   const intensidadeDe = (nome: string) => intensidades[nome] ?? 0;
   const setIntensidade = (nome: string, v: number) => {

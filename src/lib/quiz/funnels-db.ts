@@ -87,14 +87,15 @@ export const resolveFunnel = cache(async (slug: string): Promise<Funnel | null> 
   if (configured()) {
     try {
       const sb = createAdminClient();
-      let { data, error } = await sb
+      const { data, error } = await sb
         .from("funnels")
         .select(FUNNEL_COLS)
         .eq("slug", slug)
         .maybeSingle();
       if (isMissingColumn(error)) {
         // migração 0010 ainda não rodou — carrega só as colunas base.
-        ({ data } = await sb.from("funnels").select(BASE_COLS).eq("slug", slug).maybeSingle());
+        const { data: baseData } = await sb.from("funnels").select(BASE_COLS).eq("slug", slug).maybeSingle();
+        if (baseData) return rowToFunnel(baseData as unknown as FunnelRow);
       }
       if (data) return rowToFunnel(data as unknown as FunnelRow);
     } catch {
@@ -110,7 +111,7 @@ export async function resolveFunnelByDomain(host: string): Promise<Funnel | null
   const clean = host.toLowerCase().split(":")[0].replace(/^www\./, "");
   try {
     const sb = createAdminClient();
-    let { data, error } = await sb
+    const { data, error } = await sb
       .from("funnels")
       .select(FUNNEL_COLS)
       .eq("domain", clean)

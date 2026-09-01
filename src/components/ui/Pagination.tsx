@@ -18,21 +18,28 @@ function pageWindow(current: number, total: number): (number | "…")[] {
   return out;
 }
 
-export default function Pagination({
-  current, total, onChange, accent = "var(--q-primary, #3b82f6)",
-}: { current: number; total: number; onChange: (p: number) => void; accent?: string }) {
-  if (total <= 1) return null;
-  const go = (p: number) => onChange(Math.max(1, Math.min(total, p)));
-  const Arrow = ({ dir, disabled }: { dir: -1 | 1; disabled: boolean }) => (
-    <button onClick={() => go(current + dir)} disabled={disabled}
+function Arrow({
+  dir,
+  disabled,
+  onClick,
+}: { dir: -1 | 1; disabled: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
       className="grid h-9 w-9 place-items-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition hover:border-neutral-400 disabled:opacity-30"
       aria-label={dir < 0 ? "Anterior" : "Próxima"}>
       {dir < 0 ? "‹" : "›"}
     </button>
   );
+}
+
+export default function Pagination({
+  current, total, onChange, accent = "var(--q-primary, #3b82f6)",
+}: { current: number; total: number; onChange: (p: number) => void; accent?: string }) {
+  if (total <= 1) return null;
+  const go = (p: number) => onChange(Math.max(1, Math.min(total, p)));
   return (
     <nav className="flex items-center justify-center gap-1.5">
-      <Arrow dir={-1} disabled={current <= 1} />
+      <Arrow dir={-1} disabled={current <= 1} onClick={() => go(current - 1)} />
       {pageWindow(current, total).map((p, i) =>
         p === "…" ? (
           <span key={`e${i}`} className="grid h-9 w-9 place-items-center text-neutral-400">…</span>
@@ -48,7 +55,7 @@ export default function Pagination({
           </button>
         ),
       )}
-      <Arrow dir={1} disabled={current >= total} />
+      <Arrow dir={1} disabled={current >= total} onClick={() => go(current + 1)} />
     </nav>
   );
 }
