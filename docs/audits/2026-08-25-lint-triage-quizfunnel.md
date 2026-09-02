@@ -861,5 +861,112 @@ Resumo real:
 
 ### Próximo checkpoint
 
-Lote 2C-2 está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: publicar 2C-2 antes de entrar em `LayersBuilder.tsx` ou `TypebotBuilder.tsx`.
+Lote 2C-2 foi publicado no commit `a35d194f32cce607a8b66b8702391b1106b12545`. Próximo passo: Lote 2C-3 em `src/components/vsl/VslView.tsx`, antes de entrar em `LayersBuilder.tsx` ou `TypebotBuilder.tsx`.
+
+---
+
+## Atualização 2026-09-02 — Lote 2C-3: `VslView.tsx`
+
+Correção mínima aplicada somente em:
+
+- `src/components/vsl/VslView.tsx`
+
+Não houve alteração de `.env*`, impressão de segredos, migration, schema change, commit, push ou deploy neste lote.
+
+### Antes do Lote 2C-3
+
+Lint focado em `VslView.tsx`:
+
+- **3 errors**
+- **5 warnings**
+- **0 fatal**
+
+Principais problemas:
+
+- Declaração `namespace JSX` era necessária para o custom element do VTurb, mas violava `@typescript-eslint/no-namespace`.
+- `maybeRevealPopup` ficava fora de `useCallback`, deixando dependências incompletas em effects.
+- Suppressão `react-hooks/exhaustive-deps` ficou sem uso no `checkoutHref`.
+- `CtaButton` era criado dentro do render (`react-hooks/static-components`).
+- Três imagens usam `<img>` de forma intencional para preservar o runtime visual legado.
+
+### Correções aplicadas
+
+- `CtaButton` foi extraído para fora de `VslView`.
+- `maybeRevealPopup` passou a usar `useCallback`.
+- Dependências dos effects foram declaradas explicitamente.
+- Suppressão inútil do `checkoutHref` foi removida.
+- A tipagem do custom element `vturb-smartplayer` foi preservada com suppressão pontual documentada em `namespace JSX`, necessária para o build de outros componentes que usam o elemento.
+- Warnings de `<img>` foram suprimidos localmente, sem trocar para `next/image`, para evitar regressão visual/custo em assets configuráveis.
+
+### Validação real após Lote 2C-3
+
+#### ESLint focado
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src/components/vsl/VslView.tsx --format stylish
+```
+
+Resultado: **OK**, exit code `0`.
+
+Depois do patch:
+
+- **0 errors**
+- **0 warnings**
+
+#### ESLint focado em `src`
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src --format json > %LOCALAPPDATA%/Temp/quizfunnel-eslint-src-after-vslview.json
+```
+
+Resultado: falhou como esperado por backlog remanescente fora do Lote 2C-3.
+
+Comparativo `src`:
+
+| Métrica | Depois Lote 2C-2 | Depois Lote 2C-3 | Diferença |
+|---|---:|---:|---:|
+| Arquivos com problemas | 10 | 9 | -1 |
+| Errors | 48 | 45 | -3 |
+| Warnings | 30 | 25 | -5 |
+| Fatal | 0 | 0 | 0 |
+
+Principais arquivos remanescentes em `src`:
+
+| Arquivo | Errors | Warnings |
+|---|---:|---:|
+| `src/components/builder/TypebotBuilder.tsx` | 27 | 2 |
+| `src/components/builder/LayersBuilder.tsx` | 11 | 5 |
+| `src/components/quiz/layers/LayersRunner.tsx` | 4 | 3 |
+| `src/components/quiz/steps.tsx` | 2 | 4 |
+| `src/app/admin/actions.ts` | 0 | 5 |
+| `src/components/builder/TypebotFlow.tsx` | 0 | 4 |
+| `src/components/builder/fields.tsx` | 1 | 0 |
+| `src/components/quiz/VisitBeacon.tsx` | 0 | 1 |
+| `src/components/quiz/typebot/ChatRunner.tsx` | 0 | 1 |
+
+#### Build
+
+Comando executado:
+
+```bash
+PATH="/c/Program Files/nodejs:$PATH" npm_config_script_shell='C:\Program Files\Git\bin\bash.exe' npm run build
+```
+
+Resultado: **OK**, exit code `0`.
+
+Resumo real:
+
+- Next.js 16.2.7 com Turbopack.
+- Compilação concluída com sucesso.
+- TypeScript concluído.
+- Geração estática concluída: 22/22 páginas.
+- Rotas finalizadas sem erro fatal.
+
+### Próximo checkpoint
+
+Lote 2C-3 está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: publicar 2C-3 antes de entrar em `LayersBuilder.tsx` ou `TypebotBuilder.tsx`.
 

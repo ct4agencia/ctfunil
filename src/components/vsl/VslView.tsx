@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_CONTENT,
   DEFAULT_POPUP,
@@ -25,6 +25,8 @@ declare global {
 }
 
 declare module "react" {
+  // React 19 exposes intrinsic JSX element augmentation through React.JSX.
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
       "vturb-smartplayer": React.DetailedHTMLProps<
@@ -33,6 +35,33 @@ declare module "react" {
       >;
     }
   }
+}
+
+function CtaButton({
+  checkoutHref,
+  onClick,
+  style,
+  ctaGreen,
+  children,
+}: {
+  checkoutHref: string;
+  onClick: () => void;
+  style: React.CSSProperties;
+  ctaGreen: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={checkoutHref}
+      onClick={onClick}
+      style={style}
+      className={ctaGreen ? "animate-cta-green" : undefined}
+      onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.12)")}
+      onMouseLeave={(e) => (e.currentTarget.style.filter = "brightness(1)")}
+    >
+      {children}
+    </a>
+  );
 }
 
 export default function VslView({ vsl }: { vsl: Vsl }) {
@@ -62,12 +91,12 @@ export default function VslView({ vsl }: { vsl: Vsl }) {
   const popupDoneRef = useRef(false);
   const vagasIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  function maybeRevealPopup() {
+  const maybeRevealPopup = useCallback(() => {
     if (popup.enabled && !popupDoneRef.current) {
       popupDoneRef.current = true;
       setShowPopup(true);
     }
-  }
+  }, [popup.enabled]);
 
   // Fundo escuro no body + registra visita (funil)
   useEffect(() => {
@@ -130,7 +159,7 @@ export default function VslView({ vsl }: { vsl: Vsl }) {
     return () => {
       if (pollTimeout) clearTimeout(pollTimeout);
     };
-  }, [scriptUrl, vsl.id, vsl.pitch_reveal_at, vsl.vagas_reveal_at]);
+  }, [maybeRevealPopup, popup.enabled, popup.reveal_at, scriptUrl, vsl.id, vsl.pitch_reveal_at, vsl.vagas_reveal_at]);
 
   // Decremento das vagas (escassez)
   useEffect(() => {
@@ -155,8 +184,7 @@ export default function VslView({ vsl }: { vsl: Vsl }) {
     if (!popup.enabled || scriptUrl) return;
     const t = setTimeout(maybeRevealPopup, Math.max(0, popup.reveal_at) * 1000);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [popup.enabled, popup.reveal_at, scriptUrl]);
+  }, [maybeRevealPopup, popup.enabled, popup.reveal_at, scriptUrl]);
 
   // URL do checkout com UTMs + session_id no xcod (precisa estar no href antes do click)
   const checkoutHref = useMemo(() => {
@@ -182,7 +210,6 @@ export default function VslView({ vsl }: { vsl: Vsl }) {
     } catch {
       return base;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vsl.checkout_url, vsl.hotmart_product_id, vsl.hotmart_src]);
 
   const hasCheckout = checkoutHref !== "#";
@@ -218,19 +245,6 @@ export default function VslView({ vsl }: { vsl: Vsl }) {
       : `0 10px 30px ${theme.rgba(0.4)}`,
     transition: "transform 0.25s ease, filter 0.25s ease",
   };
-
-  const CtaButton = () => (
-    <a
-      href={checkoutHref}
-      onClick={handleCheckoutClick}
-      style={ctaStyle}
-      className={ctaGreen ? "animate-cta-green" : undefined}
-      onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.12)")}
-      onMouseLeave={(e) => (e.currentTarget.style.filter = "brightness(1)")}
-    >
-      {c.cta_text}
-    </a>
-  );
 
   return (
     <div
@@ -327,8 +341,9 @@ export default function VslView({ vsl }: { vsl: Vsl }) {
       {/* CTA 1 + pagamentos */}
       {showCTA && (
         <div style={{ padding: "28px 20px 12px", textAlign: "center", animation: "fade-in-up 0.6s ease-out" }}>
-          {hasCheckout && <CtaButton />}
+          {hasCheckout && <CtaButton checkoutHref={checkoutHref} onClick={handleCheckoutClick} style={ctaStyle} ctaGreen={ctaGreen}>{c.cta_text}</CtaButton>}
           <div style={{ marginTop: 18, display: "flex", justifyContent: "center" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={imgPagamentos}
               alt="Formas de pagamento"
@@ -369,6 +384,7 @@ export default function VslView({ vsl }: { vsl: Vsl }) {
           </h2>
 
           <div style={{ width: "100%", maxWidth: 220, margin: "0 auto" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={imgGarantia}
               alt="Garantia"
@@ -401,7 +417,7 @@ export default function VslView({ vsl }: { vsl: Vsl }) {
             </p>
           </div>
 
-          {hasCheckout && <CtaButton />}
+          {hasCheckout && <CtaButton checkoutHref={checkoutHref} onClick={handleCheckoutClick} style={ctaStyle} ctaGreen={ctaGreen}>{c.cta_text}</CtaButton>}
 
           <div style={{ marginTop: 18, display: "flex", justifyContent: "center" }}>
             <div
@@ -435,6 +451,7 @@ export default function VslView({ vsl }: { vsl: Vsl }) {
         }}
       >
         <div style={{ marginBottom: 20 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imgSelo}
             alt="Selo Google"
