@@ -79,7 +79,6 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
       const keys = Object.keys(varsRef.current);
       const vals = keys.map((k) => varsRef.current[k]);
       const body = /return\s/.test(expr) ? expr : `return (${expr})`;
-      // eslint-disable-next-line no-new-func
       const fn = new Function(...keys, body);
       return String(fn(...vals) ?? "");
     } catch {

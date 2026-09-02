@@ -48,7 +48,8 @@ export default function TypebotFlow({ tb, setGroups, onSelect }: {
   setGroups: (gs: TbGroup[]) => void;
   onSelect: (groupId: string) => void;
 }) {
-  const groups = tb.groups || [];
+  void setGroups;
+  const groups = useMemo(() => tb.groups || [], [tb.groups]);
   const byId = useMemo(() => Object.fromEntries(groups.map((g) => [g.id, g])), [groups]);
   const hOf = (g?: TbGroup) => HEAD + Math.max(1, g?.blocks.length || 1) * ROW + PAD;
 

@@ -20,6 +20,5 @@ var u="/api/visit";
 if(navigator.sendBeacon){navigator.sendBeacon(u,new Blob([b],{type:"application/json"}))}
 else{fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){})}
 }catch(e){}})();`;
-  // eslint-disable-next-line @next/next/no-before-interactive-script-outside-document
   return <script dangerouslySetInnerHTML={{ __html: code }} />;
 }

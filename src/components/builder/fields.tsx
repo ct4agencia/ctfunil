@@ -225,7 +225,8 @@ const EDITOR_VARS: [string, string][] = [["{nome}", "Nome"], ["{cidade}", "Cidad
 
 export function HtmlField({ value, onChange, theme: themeProp, rows = 2 }: { value?: string; onChange: (v: string) => void; theme?: string; rows?: number }) {
   // prop explícita > tema do funil > laranja histórico
-  const theme = themeProp ?? useContext(TemaFunilContext) ?? "#ea580c";
+  const themeContext = useContext(TemaFunilContext);
+  const theme = themeProp ?? themeContext ?? "#ea580c";
   const ref = useRef<HTMLDivElement>(null);
   const saved = useRef<Range | null>(null);
   const [menu, setMenu] = useState<"para" | "var" | null>(null);
