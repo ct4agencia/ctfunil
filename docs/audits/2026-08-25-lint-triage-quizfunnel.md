@@ -1073,5 +1073,107 @@ Resumo real:
 
 ### Próximo checkpoint
 
-Lote 2C-4 está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: publicar 2C-4 antes de entrar em `steps.tsx`, `LayersBuilder.tsx` ou `TypebotBuilder.tsx`.
+Lote 2C-4 foi publicado no commit `fca058d2a23e96ee5fb7a3492eaf8fafec5ab5ae`. Próximo passo: Lote 2C-5 em `src/components/quiz/steps.tsx`, antes de entrar em `LayersBuilder.tsx` ou `TypebotBuilder.tsx`.
+
+---
+
+## Atualização 2026-09-02 — Lote 2C-5: `steps.tsx`
+
+Correção mínima aplicada somente em:
+
+- `src/components/quiz/steps.tsx`
+
+Não houve alteração de `.env*`, impressão de segredos, migration, schema change, commit, push ou deploy neste lote.
+
+### Antes do Lote 2C-5
+
+Lint focado em `steps.tsx`:
+
+- **2 errors**
+- **4 warnings**
+- **0 fatal**
+
+Principais problemas:
+
+- Helper `labelLines` não era mais usado.
+- Effect da trava de roleta chamava `setState` sincronamente ao restaurar prêmio do `localStorage`.
+- `ResultStepView` sorteava `Math.random()` dentro de `useMemo`/render.
+- Três suppressões `@next/next/no-img-element` estavam sem uso em `motion.img`.
+
+### Correções aplicadas
+
+- Helper morto `labelLines` removido.
+- Restauração da roleta travada foi adiada para callback assíncrono dentro do effect.
+- Sorteio teatral do resultado passou para lazy initializer de `useState`.
+- Suppressões inúteis de `motion.img` removidas.
+
+### Validação real após Lote 2C-5
+
+#### ESLint focado
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src/components/quiz/steps.tsx --format stylish
+```
+
+Resultado: **OK**, exit code `0`.
+
+Depois do patch:
+
+- **0 errors**
+- **0 warnings**
+
+#### ESLint focado em `src`
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src --format json > %LOCALAPPDATA%/Temp/quizfunnel-eslint-src-after-steps.json
+```
+
+Resultado: falhou como esperado por backlog remanescente fora do Lote 2C-5.
+
+Comparativo `src`:
+
+| Métrica | Depois Lote 2C-4 | Depois Lote 2C-5 | Diferença |
+|---|---:|---:|---:|
+| Arquivos com problemas | 8 | 7 | -1 |
+| Errors | 41 | 39 | -2 |
+| Warnings | 22 | 18 | -4 |
+| Fatal | 0 | 0 | 0 |
+
+Principais arquivos remanescentes em `src`:
+
+| Arquivo | Errors | Warnings |
+|---|---:|---:|
+| `src/components/builder/TypebotBuilder.tsx` | 27 | 2 |
+| `src/components/builder/LayersBuilder.tsx` | 11 | 5 |
+| `src/app/admin/actions.ts` | 0 | 5 |
+| `src/components/builder/TypebotFlow.tsx` | 0 | 4 |
+| `src/components/builder/fields.tsx` | 1 | 0 |
+| `src/components/quiz/VisitBeacon.tsx` | 0 | 1 |
+| `src/components/quiz/typebot/ChatRunner.tsx` | 0 | 1 |
+
+#### Build
+
+Comando executado:
+
+```bash
+PATH="/c/Program Files/nodejs:$PATH" npm_config_script_shell='C:\Program Files\Git\bin\bash.exe' npm run build
+```
+
+Resultado: **OK**, exit code `0`.
+
+Resumo real:
+
+- Next.js 16.2.7 com Turbopack.
+- Compilação concluída com sucesso.
+- TypeScript concluído.
+- Geração estática concluída: 22/22 páginas.
+- Rotas finalizadas sem erro fatal.
+
+### Próximo checkpoint
+
+Lote 2C-5 está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: publicar 2C-5 antes de entrar em `LayersBuilder.tsx` ou `TypebotBuilder.tsx`.
 

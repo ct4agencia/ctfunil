@@ -174,12 +174,6 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     const [x1, y1] = polar(86, i * seg + seg / 2);
     return `M${c},${c} L${x0.toFixed(2)},${y0.toFixed(2)} A86,86 0 ${seg > 180 ? 1 : 0} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z`;
   };
-  const labelLines = (label: string): string[] => {
-    const w = label.split(" ");
-    if (w.length <= 1) return [label];
-    const half = Math.ceil(w.length / 2);
-    return [w.slice(0, half).join(" "), w.slice(half).join(" ")];
-  };
   const ch = wheelChrome(step.style, ctx.palette);
   const pegCount = ch.peg === "bulb" ? 16 : 24;
   const pegR = ch.peg === "bulb" ? 95 : 93;
@@ -258,9 +252,11 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
       if (!raw) return;
       const { w, ts } = JSON.parse(raw);
       if (typeof w === "number" && Date.now() - Number(ts) < 24 * 3600 * 1000) {
-        setInstant(true);
-        setRotation(360 * 6 - w * seg);
-        setDone(true);
+        setTimeout(() => {
+          setInstant(true);
+          setRotation(360 * 6 - w * seg);
+          setDone(true);
+        }, 0);
       }
     } catch { /* noop */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -857,7 +853,6 @@ export function HeroStepView({ step, ctx }: { step: HeroStep; ctx: StepCtx }) {
           <motion.img
             initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            // eslint-disable-next-line @next/next/no-img-element
             src={step.image} alt="" className="mx-auto mb-5 max-h-72 w-auto rounded-2xl object-contain"
           />
         ) : null}
@@ -1326,10 +1321,10 @@ export function GaugeStepView({ step, ctx }: { step: GaugeStep; ctx: StepCtx }) 
 
 // ── Resultado (teatral) ───────────────────────────────────────────
 export function ResultStepView({ step, ctx }: { step: ResultStep; ctx: StepCtx }) {
-  const target = useMemo(() => {
+  const [target] = useState(() => {
     const [a, b] = step.range;
     return Math.round(a + Math.random() * (b - a));
-  }, [step.range]);
+  });
   const [n, setN] = useState(0);
   const fired = useRef(false);
 
@@ -1453,7 +1448,6 @@ export function OfferStepView({ step, ctx }: { step: OfferStep; ctx: StepCtx }) 
         {step.image ? (
           <div className="relative mx-auto my-5 h-36 w-36">
             <motion.img initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 160 }}
-              // eslint-disable-next-line @next/next/no-img-element
               src={step.image} alt="" className="h-36 w-36 rounded-full border-4 border-white object-cover shadow-[0_16px_30px_-12px_rgba(0,0,0,.3)]" />
             {step.verified ? (
               <span className="absolute bottom-1 right-1 grid h-9 w-9 place-items-center rounded-full border-2 border-white bg-[#1d9bf0] text-sm text-white shadow">✓</span>
@@ -1543,7 +1537,6 @@ export function CaptureStepView({ step, ctx }: { step: CaptureStep; ctx: StepCtx
             <motion.img
               animate={{ y: [0, -10, 0], rotate: [-1.5, 1.5, -1.5] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              // eslint-disable-next-line @next/next/no-img-element
               src={step.image} alt="" className="max-h-52 w-auto rounded-xl object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,.22)]" />
             {/* selo GRÁTIS */}
             {step.freeBadge ? (
