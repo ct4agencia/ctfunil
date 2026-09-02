@@ -98,6 +98,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
 
   const [idx, setIdx] = useState(startIndex);
   const history = useRef<number[]>([]);
+  const [canBack, setCanBack] = useState(false);
 
   /**
    * PRIMEIRA pintura não anima — as trocas de lâmina continuam animando.
@@ -152,6 +153,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   const go = (n: number) => {
     if (n < 0 || n >= total || n === idx) return;
     history.current.push(idx);
+    setCanBack(true);
     setIdx(n);
   };
   const navigate = (dest?: string) => {
@@ -166,13 +168,16 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
        não <a> — a UTMify só reescreve links, então aqui ela não tinha o que
        reescrever e a pessoa chegava na Hotmart com a URL nua. Sem os
        parâmetros, a venda chega sem dono. */
-    if (/^https?:\/\//i.test(dest)) { window.location.href = comRastreio(dest); return; }
+    if (/^https?:\/\//i.test(dest)) { window.location.assign(comRastreio(dest)); return; }
     if (idById[dest] != null) return go(idById[dest]);
     go(idx + 1);
   };
   const back = () => {
     const prev = history.current.pop();
-    if (prev != null) setIdx(prev);
+    if (prev != null) {
+      setIdx(prev);
+      setCanBack(history.current.length > 0);
+    }
   };
 
   const hasFields = (step.layers || []).some((l) => l.type === "field");
@@ -189,7 +194,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       const still = pend.filter((_, i) => res[i].status !== "fulfilled");
       try { localStorage.setItem("ctf_pending_leads", JSON.stringify(still)); } catch { /* noop */ }
     });
-  }, []);
+  }, [preview]);
 
   /**
    * `direto` existe para quem tem os valores em mãos e não os guardou no estado
@@ -411,12 +416,12 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
 
       {/* fundo personalizado da lâmina */}
       {bgImg ? (
-        // eslint-disable-next-line @next/next/no-img-element
         // Na PRIMEIRA lâmina esta imagem é o elemento LCP — medido no cdb-01,
         // onde ela sozinha responde por ~4 s do carregamento. `fetchPriority
         // high` tira ela da fila comum; `eager` impede que algum heurístico do
         // navegador a trate como abaixo da dobra. Nas demais lâminas o padrão
         // continua, porque ali ela não bloqueia nada.
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={bgImg}
           alt=""
@@ -450,7 +455,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
         if (!hdr.show_logo && !hdr.show_progress && !hdr.show_back) return null;
         return (
           <header className="relative z-10 mx-auto flex w-full flex-col items-center gap-2 px-5 pt-5" style={{ maxWidth: containerMax(design.container) }}>
-            {hdr.show_back && history.current.length ? <button onClick={back} className="self-start text-sm opacity-60">← Voltar</button> : null}
+            {hdr.show_back && canBack ? <button onClick={back} className="self-start text-sm opacity-60">← Voltar</button> : null}
             {hdr.show_logo && design.logo?.src ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={design.logo.src} alt="" decoding="async" className="w-auto object-contain"
@@ -512,6 +517,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
             key={idx}
             // `false` só na primeira pintura: é o que tira o opacity:0 do HTML
             // servido. Da 2ª lâmina em diante o fade/slide de entrada continua.
+            // eslint-disable-next-line react-hooks/refs
             initial={primeiroPaint.current ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.28 }}
@@ -918,7 +924,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     }))}
                     posicao={idsComBarra.indexOf(idx) + 1 || undefined}
                     total={idsComBarra.length || undefined}
-                    onVoltar={history.current.length ? back : undefined}
+                    onVoltar={canBack ? back : undefined}
                     onEscolha={(o) => {
                       const orig = (opt.content?.options || []).find((x) => x.id === o.id);
                       ctx.trackAnswer(step.id, titulo, o.label);

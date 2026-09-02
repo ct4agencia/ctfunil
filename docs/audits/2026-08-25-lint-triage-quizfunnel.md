@@ -968,5 +968,110 @@ Resumo real:
 
 ### Próximo checkpoint
 
-Lote 2C-3 está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: publicar 2C-3 antes de entrar em `LayersBuilder.tsx` ou `TypebotBuilder.tsx`.
+Lote 2C-3 foi publicado no commit `14abaa188c6b04c86b19ed71dca7ed26a86a34ec`. Próximo passo: Lote 2C-4 em `src/components/quiz/layers/LayersRunner.tsx`, antes de entrar em `LayersBuilder.tsx` ou `TypebotBuilder.tsx`.
+
+---
+
+## Atualização 2026-09-02 — Lote 2C-4: `LayersRunner.tsx`
+
+Correção mínima aplicada somente em:
+
+- `src/components/quiz/layers/LayersRunner.tsx`
+
+Não houve alteração de `.env*`, impressão de segredos, migration, schema change, commit, push ou deploy neste lote.
+
+### Antes do Lote 2C-4
+
+Lint focado em `LayersRunner.tsx`:
+
+- **4 errors**
+- **3 warnings**
+- **0 fatal**
+
+Principais problemas:
+
+- `window.location.href = ...` violava `react-hooks/immutability`.
+- Effect de reenvio de leads tinha dependência `preview` ausente.
+- Suppressão de `<img>` estava antes de comentários e não pegava a tag correta.
+- Render lia `history.current` para decidir botão voltar e callback do preset Resina.
+- Render lia `primeiroPaint.current` para manter a primeira pintura sem animação.
+
+### Correções aplicadas
+
+- Redirecionamento externo passou para `window.location.assign(comRastreio(dest))`.
+- Effect de reenvio de leads recebeu dependência `preview`.
+- Suppressão do `<img>` de fundo foi movida para a linha correta.
+- Estado `canBack` foi adicionado para renderizar voltar sem ler `history.current` durante render.
+- Leitura de `primeiroPaint.current` manteve o comportamento de performance já documentado, com suppressão pontual `react-hooks/refs` na linha do `motion.initial`.
+
+### Validação real após Lote 2C-4
+
+#### ESLint focado
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src/components/quiz/layers/LayersRunner.tsx --format stylish
+```
+
+Resultado: **OK**, exit code `0`.
+
+Depois do patch:
+
+- **0 errors**
+- **0 warnings**
+
+#### ESLint focado em `src`
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src --format json > %LOCALAPPDATA%/Temp/quizfunnel-eslint-src-after-layersrunner.json
+```
+
+Resultado: falhou como esperado por backlog remanescente fora do Lote 2C-4.
+
+Comparativo `src`:
+
+| Métrica | Depois Lote 2C-3 | Depois Lote 2C-4 | Diferença |
+|---|---:|---:|---:|
+| Arquivos com problemas | 9 | 8 | -1 |
+| Errors | 45 | 41 | -4 |
+| Warnings | 25 | 22 | -3 |
+| Fatal | 0 | 0 | 0 |
+
+Principais arquivos remanescentes em `src`:
+
+| Arquivo | Errors | Warnings |
+|---|---:|---:|
+| `src/components/builder/TypebotBuilder.tsx` | 27 | 2 |
+| `src/components/builder/LayersBuilder.tsx` | 11 | 5 |
+| `src/components/quiz/steps.tsx` | 2 | 4 |
+| `src/app/admin/actions.ts` | 0 | 5 |
+| `src/components/builder/TypebotFlow.tsx` | 0 | 4 |
+| `src/components/builder/fields.tsx` | 1 | 0 |
+| `src/components/quiz/VisitBeacon.tsx` | 0 | 1 |
+| `src/components/quiz/typebot/ChatRunner.tsx` | 0 | 1 |
+
+#### Build
+
+Comando executado:
+
+```bash
+PATH="/c/Program Files/nodejs:$PATH" npm_config_script_shell='C:\Program Files\Git\bin\bash.exe' npm run build
+```
+
+Resultado: **OK**, exit code `0`.
+
+Resumo real:
+
+- Next.js 16.2.7 com Turbopack.
+- Compilação concluída com sucesso.
+- TypeScript concluído.
+- Geração estática concluída: 22/22 páginas.
+- Rotas finalizadas sem erro fatal.
+
+### Próximo checkpoint
+
+Lote 2C-4 está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: publicar 2C-4 antes de entrar em `steps.tsx`, `LayersBuilder.tsx` ou `TypebotBuilder.tsx`.
 
