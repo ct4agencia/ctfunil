@@ -11,7 +11,7 @@ import { DedoArrasta } from "../ui";
 import dynamic from "next/dynamic";
 import { entradaBloco, prefereMenosMovimento, DUR, EASE } from "@/lib/quiz/motion";
 import { estiloOpcao, estiloCheck, gradienteTema } from "@/lib/quiz/resina";
-import type { Layer, InleadOption, InleadDesign } from "@/lib/quiz/layers/types";
+import type { Layer, InleadOption, InleadDesign, InleadMedia } from "@/lib/quiz/layers/types";
 
 // Tela do bloco `loading` no estilo "diagnóstico", dividida com o motor tipado.
 // `dynamic` porque a maioria das lâminas de loading usa a barra simples e não
@@ -31,17 +31,19 @@ export interface LayersEdit {
 export const LayersEditContext = createContext<LayersEdit | null>(null);
 
 /** Toolbar flutuante do bloco selecionado (⠿ arrastar · copiar · ocultar · excluir). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function BlockToolbar({ onAction, dragProps }: { onAction: (a: "copy" | "hide" | "delete") => void; dragProps?: any }) {
-  const Btn = ({ a, title, children }: { a: "copy" | "hide" | "delete"; title: string; children: React.ReactNode }) => (
+function ToolbarBtn({ a, title, children, onAction }: { a: "copy" | "hide" | "delete"; title: string; children: React.ReactNode; onAction: (a: "copy" | "hide" | "delete") => void }) {
+  return (
     <button title={title} onClick={(e) => { e.stopPropagation(); onAction(a); }} className="grid h-6 w-6 place-items-center rounded text-white/90 hover:bg-white/20">{children}</button>
   );
+}
+
+export function BlockToolbar({ onAction, dragProps }: { onAction: (a: "copy" | "hide" | "delete") => void; dragProps?: React.HTMLAttributes<HTMLSpanElement> }) {
   return (
     <div data-block-toolbar className="absolute -top-7 left-0 z-30 flex items-center gap-0.5 rounded-md bg-blue-600 px-1 py-0.5 text-xs shadow-lg" onClick={(e) => e.stopPropagation()}>
       <span {...(dragProps || {})} className="cursor-grab touch-none px-1 text-base leading-none text-white/90 active:cursor-grabbing" title="Arrastar para reordenar">⠿</span>
-      <Btn a="copy" title="Duplicar">⧉</Btn>
-      <Btn a="hide" title="Ocultar">◐</Btn>
-      <Btn a="delete" title="Excluir">🗑</Btn>
+      <ToolbarBtn a="copy" title="Duplicar" onAction={onAction}>⧉</ToolbarBtn>
+      <ToolbarBtn a="hide" title="Ocultar" onAction={onAction}>◐</ToolbarBtn>
+      <ToolbarBtn a="delete" title="Excluir" onAction={onAction}>🗑</ToolbarBtn>
     </div>
   );
 }
@@ -238,8 +240,8 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   if (fullBleed) {
     return (
       <div className="relative overflow-hidden" style={{ width: "calc(100% + 2.5rem)", marginLeft: "-1.25rem", marginRight: "-1.25rem" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         {/* basis > 100% amplia (imagem mais larga que a tela, recortada e centralizada) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt="" loading="lazy" decoding="async" className="block" style={{ width: `${basis}%`, height: "auto", marginLeft: basis > 100 ? `${(100 - basis) / 2}%` : 0 }} />
         {overlays}
       </div>
@@ -268,7 +270,6 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
             transition={{ duration: b.dur, repeat: Infinity, ease: "easeInOut", delay: b.atraso }}
           >{b.e}</motion.span>
         ))}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         {/* Segue a PROPORÇÃO NATURAL da imagem (sem forçar aspect-ratio/object-contain,
             que letterboxava quando im.width/height salvos estavam errados). O slide de
             largura (basis%) escala proporcional; o alinhamento posiciona (justifyOf). */}
@@ -283,6 +284,7 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
           animate={d.flutua && !prefereMenosMovimento() ? { y: [0, -9, 0] } : undefined}
           transition={d.flutua ? { duration: 3.4, repeat: Infinity, ease: "easeInOut" } : undefined}
         >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src} alt="" loading="lazy" decoding="async"
           style={{
@@ -387,7 +389,6 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   if (imgSrc) {
     return (
       <div className={`${hAlign(d)} w-full ${pulseCls}`} style={{ maxWidth: `${basis}%` }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <motion.img
           src={imgSrc} alt={c.label || ""} onClick={ctx.submitting ? undefined : onClick}
           initial={revealAt > 0 ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }}
@@ -1214,11 +1215,16 @@ function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     );
   }
 
+  return <ProgressLoadingBlock layer={layer} ctx={ctx} editando={editando} />;
+}
+
+function ProgressLoadingBlock({ layer, ctx, editando }: { layer: Layer; ctx: LayersCtx; editando: boolean }) {
+  const c = layer.content;
   const secs = Number(c.seconds) || 4;
-  const [pct, setPct] = useState(Number(c.starts) || 0);
+  const start = Number(c.starts) || 0;
+  const [pct, setPct] = useState(start);
   const done = useRef(false);
   useEffect(() => {
-    const start = (Number(c.starts) || 0);
     const t0 = performance.now();
     let raf = 0;
     const tick = (now: number) => {
@@ -1230,7 +1236,7 @@ function LoadingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [c.destination, c.type, ctx, editando, secs, start]);
   return (
     <div className="mx-auto w-full max-w-sm text-center">
       {c.show_title && c.title ? <p className="mb-2 font-bold" style={{ fontSize: `${remContent(ctx) + 2}px` }}>{c.title}</p> : null}
@@ -1489,6 +1495,10 @@ function ChartsBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 function GraphicsBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const g = (layer.content.graphics || [])[0];
   if (!g) return null;
+  return <AnimatedGraphic g={g} ctx={ctx} />;
+}
+
+function AnimatedGraphic({ g, ctx }: { g: NonNullable<Layer["content"]["graphics"]>[number]; ctx: LayersCtx }) {
   const pct = Number(g.percent) || 0;
   const color = g.style || "#16a34a";
   const [val, setVal] = useState(0);
@@ -1522,8 +1532,7 @@ function GraphicsBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 export function SliderHero({
   step, ctx, theme, bgColor,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  step: any; ctx: LayersCtx; theme: string; bgColor: string;
+  step: { min?: unknown; max?: unknown; step?: unknown; question?: unknown; help?: React.ReactNode; image?: string | InleadMedia }; ctx: LayersCtx; theme: string; bgColor: string;
 }) {
   const min = Number(step.min) || 0;
   const max = Number(step.max) ?? 10;
@@ -1532,6 +1541,7 @@ export function SliderHero({
   const [touched, setTouched] = useState(false);
   const advanced = useRef(false);
   const pct = ((v - min) / (max - min)) * 100;
+  const imageSrc = typeof step.image === "string" ? step.image : step.image?.src || "";
 
   // título: ==trecho== ou **trecho** vira texto na cor do tema (sem fundo de pílula)
   const titleParts = String(step.question || "").split(/==(.+?)==|\*\*(.+?)\*\*/g).filter((p: string) => p !== undefined);
@@ -1578,12 +1588,12 @@ export function SliderHero({
         </div>
 
         {/* foto full-bleed no rodapé + gradiente que funde com o fundo */}
-        {step.image ? (
+        {imageSrc ? (
           <div className="relative mt-auto w-full">
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28"
               style={{ background: `linear-gradient(to bottom, ${bgColor} 8%, transparent)` }} />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={step.image} alt="" loading="lazy" decoding="async" className="block max-h-[46vh] w-full object-cover object-top" />
+            <img src={imageSrc} alt="" loading="lazy" decoding="async" className="block max-h-[46vh] w-full object-cover object-top" />
           </div>
         ) : null}
       </div>
@@ -1593,6 +1603,7 @@ export function SliderHero({
 
 // ─────────────────────────── DISPATCHER ─────────────────────────────
 export function Block({ layer, ctx, question, indice = 0 }: { layer: Layer; ctx: LayersCtx; question: string; indice?: number }) {
+  const edit = useContext(LayersEditContext);
   const inner = ((): React.ReactNode => {
     switch (layer.type) {
       case "text": return <TextBlock layer={layer} ctx={ctx} />;
@@ -1622,8 +1633,6 @@ export function Block({ layer, ctx, question, indice = 0 }: { layer: Layer; ctx:
   const op = opacityOf(layer.design);
   const node = op !== undefined ? <div style={{ opacity: op }}>{inner}</div> : inner;
   // ── modo de edição: o EditBlock (LayersRunner) cuida de wrapper/seleção/drag ──
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const edit = useContext(LayersEditContext);
   const hidden = !!layer.design?.hidden;
   if (edit) return <>{node}</>;            // EditBlock provê o wrapper/toolbar/sortable
   if (hidden) return null;                 // runtime: bloco oculto não renderiza

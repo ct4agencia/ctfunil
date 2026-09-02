@@ -752,3 +752,114 @@ Resumo real:
 
 Lote 2C-1 está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: publicar 2C-1 ou seguir para 2C-2 em `src/components/quiz/layers/blocks.tsx`.
 
+---
+
+## Atualização — Lote 2C-2 aplicado — 2026-09-02
+
+### Escopo alterado
+
+Correção mínima aplicada somente em:
+
+- `src/components/quiz/layers/blocks.tsx`
+
+Não houve alteração de `.env*`, impressão de segredos, migration, schema change, commit, push ou deploy neste lote.
+
+### Antes do Lote 2C-2
+
+Lint focado em `blocks.tsx`:
+
+- **8 errors**
+- **6 warnings**
+- **0 fatal**
+
+Principais problemas:
+
+- `BlockToolbar` criava `Btn` durante render (`react-hooks/static-components`).
+- Hooks de barra de loading eram chamados depois de retornos condicionais (`react-hooks/rules-of-hooks`).
+- `GraphicsBlock` retornava antes de hooks quando não havia gráfico (`react-hooks/rules-of-hooks`).
+- `Block` chamava `useContext` depois de lógica de render e dependia de suppressão.
+- Havia suppressões `eslint-disable` não usadas.
+- `SliderHero` usava `any` no tipo de `step`.
+
+### Correções aplicadas
+
+- `ToolbarBtn` foi movido para fora de `BlockToolbar`.
+- Barra de loading simples foi extraída para `ProgressLoadingBlock`, isolando hooks em componente próprio.
+- Gráfico animado foi extraído para `AnimatedGraphic`, evitando hook condicional.
+- `useContext(LayersEditContext)` passou para o topo de `Block`.
+- Suppressões não usadas foram removidas ou movidas para a linha correta.
+- `SliderHero.step` ganhou tipo mínimo explícito, incluindo `InleadMedia` para imagem.
+
+### Validação real após Lote 2C-2
+
+#### ESLint focado
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src/components/quiz/layers/blocks.tsx --format stylish
+```
+
+Resultado: **OK**, exit code `0`.
+
+Depois do patch:
+
+- **0 errors**
+- **0 warnings**
+
+#### ESLint focado em `src`
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src --format json > %LOCALAPPDATA%/Temp/quizfunnel-eslint-src-after-2c2.json
+```
+
+Resultado: falhou como esperado por backlog remanescente fora do Lote 2C-2.
+
+Comparativo `src`:
+
+| Métrica | Depois Lote 2C-1 | Depois Lote 2C-2 | Diferença |
+|---|---:|---:|---:|
+| Arquivos com problemas | 11 | 10 | -1 |
+| Errors | 56 | 48 | -8 |
+| Warnings | 36 | 30 | -6 |
+| Fatal | 0 | 0 | 0 |
+
+Principais arquivos remanescentes em `src`:
+
+| Arquivo | Errors | Warnings |
+|---|---:|---:|
+| `src/components/builder/TypebotBuilder.tsx` | 27 | 2 |
+| `src/components/builder/LayersBuilder.tsx` | 11 | 5 |
+| `src/components/vsl/VslView.tsx` | 3 | 5 |
+| `src/components/quiz/layers/LayersRunner.tsx` | 4 | 3 |
+| `src/components/quiz/steps.tsx` | 2 | 4 |
+| `src/app/admin/actions.ts` | 0 | 5 |
+| `src/components/builder/TypebotFlow.tsx` | 0 | 4 |
+| `src/components/builder/fields.tsx` | 1 | 0 |
+| `src/components/quiz/VisitBeacon.tsx` | 0 | 1 |
+| `src/components/quiz/typebot/ChatRunner.tsx` | 0 | 1 |
+
+#### Build
+
+Comando executado:
+
+```bash
+PATH="/c/Program Files/nodejs:$PATH" npm_config_script_shell='C:\Program Files\Git\bin\bash.exe' npm run build
+```
+
+Resultado: **OK**, exit code `0`.
+
+Resumo real:
+
+- Next.js 16.2.7 com Turbopack.
+- Compilação concluída com sucesso.
+- TypeScript concluído.
+- Geração estática concluída: 22/22 páginas.
+- Rotas finalizadas sem erro fatal.
+
+### Próximo checkpoint
+
+Lote 2C-2 está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: publicar 2C-2 antes de entrar em `LayersBuilder.tsx` ou `TypebotBuilder.tsx`.
+
