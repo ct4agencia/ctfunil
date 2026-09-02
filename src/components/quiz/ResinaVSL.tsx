@@ -21,7 +21,8 @@
  * Medidas de `Velas-Lucrativas/funil/src/components/steps/StepVSL.tsx`.
  */
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import Link from "next/link";
 import { prefereMenosMovimento } from "@/lib/quiz/motion";
 import { clarear, fundoEscuroTema, gradienteTema, rgbDe } from "@/lib/quiz/resina";
 // relógio da VSL: revela pelo tempo do VÍDEO, com queda para tempo de página
@@ -592,8 +593,8 @@ export default function ResinaVSL({
               <p className="mt-4 whitespace-pre-line text-center text-xs leading-relaxed" style={{ color: "rgba(255,255,255,.45)" }}>{rodape}</p>
             ) : null}
             <p className="mt-3 flex justify-center gap-5 text-xs">
-              <a href="/termos" style={{ color: "rgba(255,255,255,.55)" }}>Termos de Uso</a>
-              <a href="/privacidade" style={{ color: "rgba(255,255,255,.55)" }}>Políticas de Privacidade</a>
+              <Link href="/termos" style={{ color: "rgba(255,255,255,.55)" }}>Termos de Uso</Link>
+              <Link href="/privacidade" style={{ color: "rgba(255,255,255,.55)" }}>Políticas de Privacidade</Link>
             </p>
           </div>
         </div>

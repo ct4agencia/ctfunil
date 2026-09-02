@@ -532,3 +532,116 @@ Resumo real do lint geral após Lote 2A:
 
 Os quatro arquivos do Lote 2A permanecem verificados separadamente com **0 errors / 0 warnings**. O bloqueio atual do lint geral está nos lotes seguintes e em `scripts/*.cjs`, especialmente `@typescript-eslint/no-require-imports`.
 
+---
+
+## Atualização — Lote 2B aplicado — 2026-09-01
+
+### Escopo alterado
+
+Correções mínimas aplicadas nos quatro arquivos do Lote 2B:
+
+- `src/components/dashboard/Dashboard.tsx`
+- `src/components/dashboard/VslDetail.tsx`
+- `src/components/vsl/BlockRenderer.tsx`
+- `src/components/quiz/ResinaVSL.tsx`
+
+Não houve alteração de `.env*`, impressão de segredos, migration, schema change, deploy manual ou mudança fora do escopo do lote.
+
+### Antes do Lote 2B
+
+Lint focado no Lote 2B sobre o `main` publicado em `8d08f72`:
+
+- **6 errors**
+- **2 warnings**
+- **0 fatal**
+
+Distribuição:
+
+| Arquivo | Errors | Warnings |
+|---|---:|---:|
+| `src/components/dashboard/Dashboard.tsx` | 2 | 0 |
+| `src/components/dashboard/VslDetail.tsx` | 1 | 0 |
+| `src/components/vsl/BlockRenderer.tsx` | 1 | 1 |
+| `src/components/quiz/ResinaVSL.tsx` | 2 | 1 |
+
+### Correções aplicadas
+
+- `Dashboard.tsx`: cálculo dos segmentos do donut deixou de mutar `off` durante render; tema inicial passou a vir de inicializador lazy de `useState`, sem `setState` síncrono em effect.
+- `VslDetail.tsx`: carregamento automático passou a usar effect assíncrono com cancelamento; o botão de retry preserva `setState("loading")` por ser ação explícita do usuário.
+- `BlockRenderer.tsx`: removida augmentation com `namespace JSX`; tipagem do custom element ficou em `HTMLElementTagNameMap`; removido `eslint-disable` não usado no `checkoutHref`.
+- `ResinaVSL.tsx`: removido import não usado de `useState`; links legais internos passaram de `<a>` para `next/link`.
+
+### Validação real após Lote 2B
+
+#### ESLint focado no Lote 2B
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src/components/dashboard/Dashboard.tsx src/components/dashboard/VslDetail.tsx src/components/vsl/BlockRenderer.tsx src/components/quiz/ResinaVSL.tsx --format json
+```
+
+Resultado: **OK**, exit code `0`.
+
+Após o patch, os quatro arquivos do Lote 2B ficaram com:
+
+- **0 errors**
+- **0 warnings**
+- **0 fatal**
+
+#### ESLint focado em `src`
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src --format json > %LOCALAPPDATA%/Temp/quizfunnel-eslint-src-after-2b.json
+```
+
+Resultado: falhou como esperado por backlog remanescente fora do Lote 2B.
+
+Comparativo `src`:
+
+| Métrica | Depois Lote 2A | Depois Lote 2B | Diferença |
+|---|---:|---:|---:|
+| Arquivos com problemas | 16 | 12 | -4 |
+| Errors | 68 | 62 | -6 |
+| Warnings | 40 | 38 | -2 |
+| Fatal | 0 | 0 | 0 |
+
+Principais arquivos remanescentes em `src`:
+
+| Arquivo | Errors | Warnings |
+|---|---:|---:|
+| `src/components/builder/TypebotBuilder.tsx` | 27 | 2 |
+| `src/components/builder/LayersBuilder.tsx` | 11 | 5 |
+| `src/components/quiz/layers/blocks.tsx` | 8 | 6 |
+| `src/components/dashboard/GlobalAnalyticsView.tsx` | 6 | 2 |
+| `src/components/vsl/VslView.tsx` | 3 | 5 |
+| `src/components/quiz/layers/LayersRunner.tsx` | 4 | 3 |
+| `src/components/quiz/steps.tsx` | 2 | 4 |
+| `src/app/admin/actions.ts` | 0 | 5 |
+| `src/components/builder/TypebotFlow.tsx` | 0 | 4 |
+| `src/components/builder/fields.tsx` | 1 | 0 |
+
+#### Build
+
+Comando executado:
+
+```bash
+PATH="/c/Program Files/nodejs:$PATH" npm_config_script_shell='C:\Program Files\Git\bin\bash.exe' npm run build
+```
+
+Resultado: **OK**, exit code `0`.
+
+Resumo real:
+
+- Next.js 16.2.7 com Turbopack.
+- Compilação concluída com sucesso.
+- TypeScript concluído.
+- Geração estática concluída: 22/22 páginas.
+- Rotas finalizadas sem erro fatal.
+
+### Próximo checkpoint
+
+Lote 2B está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: revisar diff, commitar/publicar Lote 2B, depois seguir para o próximo lote de backlog (`TypebotBuilder.tsx`, `LayersBuilder.tsx`, `blocks.tsx`, `GlobalAnalyticsView.tsx` etc.).
+

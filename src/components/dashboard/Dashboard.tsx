@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FunnelSummary } from "@/lib/quiz/funnels-db";
@@ -55,17 +55,17 @@ function DailyChart({ data }: { data: DashboardMetrics["daily"] }) {
 function Donut({ data }: { data: DashboardMetrics["porFunil"] }) {
   const total = data.reduce((a, b) => a + b.sessoes, 0);
   const R = 54, C = 2 * Math.PI * R;
-  let off = 0;
-  const segs = total > 0 ? data.filter((d) => d.sessoes > 0) : [];
+  const segs = total > 0
+    ? data.filter((d) => d.sessoes > 0).reduce<Array<{ slug: string; color: string; len: number; offset: number }>>((acc, d) => {
+        const offset = acc.reduce((sum, seg) => sum + seg.len, 0);
+        return [...acc, { slug: d.slug, color: d.color, len: (d.sessoes / total) * C, offset }];
+      }, [])
+    : [];
   return (
     <div className="flex items-center gap-5">
       <svg viewBox="0 0 140 140" className="h-36 w-36 -rotate-90">
         <circle cx="70" cy="70" r={R} fill="none" stroke="#eef1f5" strokeWidth="16" />
-        {segs.map((d) => {
-          const len = (d.sessoes / total) * C;
-          const el = <circle key={d.slug} cx="70" cy="70" r={R} fill="none" stroke={d.color} strokeWidth="16" strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-off} />;
-          off += len; return el;
-        })}
+        {segs.map((d) => <circle key={d.slug} cx="70" cy="70" r={R} fill="none" stroke={d.color} strokeWidth="16" strokeDasharray={`${d.len} ${C - d.len}`} strokeDashoffset={-d.offset} />)}
       </svg>
       <div className="space-y-1.5 text-sm">
         {data.slice(0, 5).map((d) => (
@@ -87,8 +87,14 @@ export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary
   const [presetId, setPresetId] = useState(PRESETS[0].id);
   const [page, setPage] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
-  const [theme, setThemeState] = useState<"light" | "dark" | "system">("light");
-  useEffect(() => { try { setThemeState((localStorage.getItem("ctf-theme") as "light" | "dark" | "system") || "light"); } catch { /* noop */ } }, []);
+  const [theme, setThemeState] = useState<"light" | "dark" | "system">(() => {
+    try {
+      if (typeof window === "undefined") return "light";
+      return (localStorage.getItem("ctf-theme") as "light" | "dark" | "system") || "light";
+    } catch {
+      return "light";
+    }
+  });
   const setTheme = (t: "light" | "dark" | "system") => {
     setThemeState(t);
     try { localStorage.setItem("ctf-theme", t); } catch { /* noop */ }

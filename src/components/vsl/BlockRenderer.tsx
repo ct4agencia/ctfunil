@@ -24,15 +24,9 @@ declare global {
       }>;
     };
   }
-}
-declare module "react" {
-  namespace JSX {
-    interface IntrinsicElements {
-      "vturb-smartplayer": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      >;
-    }
+
+  interface HTMLElementTagNameMap {
+    "vturb-smartplayer": HTMLElement;
   }
 }
 
@@ -370,7 +364,6 @@ export default function BlockRenderer({
     } catch {
       return base;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vsl.checkout_url, vsl.hotmart_product_id]);
 
   function renderBlock(b: Block) {

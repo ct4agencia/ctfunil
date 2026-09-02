@@ -72,18 +72,24 @@ export default function VslDetail({ playerId, onClose }: { playerId: string; onC
   const [hover, setHover] = useState<{ x: number; t: number; pct: number } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const load = useCallback(async () => {
+  const getRange = useCallback(() => {
     let from: string, to: string;
     if (period === "hoje") { from = to = iso(new Date()); }
     else if (period === "ontem") { from = to = daysAgo(1); }
     else if (period === "custom") {
-      if (!applied) return; // espera o Aplicar
+      if (!applied) return null; // espera o Aplicar
       from = applied.from; to = applied.to;
       if (from > to) [from, to] = [to, from];
     } else { from = daysAgo(Number(period)); to = iso(new Date()); }
+    return { from, to };
+  }, [period, applied]);
+
+  const load = useCallback(async () => {
+    const range = getRange();
+    if (!range) return;
     setState("loading");
     try {
-      const r = await fetch(`/api/vturb/detail?player=${playerId}&from=${from}&to=${to}`);
+      const r = await fetch(`/api/vturb/detail?player=${playerId}&from=${range.from}&to=${range.to}`);
       const j = await r.json();
       if (!r.ok || j.error) throw new Error(j.error || r.status);
       setData(j as Detail);
@@ -91,8 +97,27 @@ export default function VslDetail({ playerId, onClose }: { playerId: string; onC
     } catch {
       setState("error");
     }
-  }, [playerId, period, applied]);
-  useEffect(() => { load(); }, [load]);
+  }, [playerId, getRange]);
+  useEffect(() => {
+    const range = getRange();
+    if (!range) return;
+    const { from, to } = range;
+    let cancelled = false;
+    async function run() {
+      try {
+        const r = await fetch(`/api/vturb/detail?player=${playerId}&from=${from}&to=${to}`);
+        const j = await r.json();
+        if (!r.ok || j.error) throw new Error(j.error || r.status);
+        if (cancelled) return;
+        setData(j as Detail);
+        setState("ok");
+      } catch {
+        if (!cancelled) setState("error");
+      }
+    }
+    run();
+    return () => { cancelled = true; };
+  }, [playerId, getRange]);
 
   // ── geometria do gráfico (viewBox fixo, responsivo via width 100%)
   const W = 760, H = 240, PL = 44, PB = 26, PT = 10, PR = 12;
