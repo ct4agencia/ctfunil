@@ -11,16 +11,24 @@ import VslCompare from "@/components/dashboard/VslCompare";
 const ACCENT = "#3b82f6";
 
 /* ── Sidebar escura (Datacrazy) ── */
-function Sidebar({ onHome }: { onHome: () => void }) {
-  const Icon = ({ children, active, title, onClick }: { children: React.ReactNode; active?: boolean; title?: string; onClick?: () => void }) => (
+function SidebarIcon({
+  children,
+  active,
+  title,
+  onClick,
+}: { children: React.ReactNode; active?: boolean; title?: string; onClick?: () => void }) {
+  return (
     <div onClick={onClick} title={title} className={`grid h-10 w-10 cursor-pointer place-items-center rounded-xl text-[18px] transition ${active ? "bg-blue-600 text-white" : "text-white/45 hover:bg-white/10 hover:text-white/80"}`}>{children}</div>
   );
+}
+
+function Sidebar({ onHome }: { onHome: () => void }) {
   return (
     <aside className="sticky top-0 flex h-screen w-[60px] shrink-0 flex-col items-center gap-1.5 border-r border-white/5 bg-[#0d0f1a] py-4">
       <div className="mb-1 grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 text-sm font-black text-white">ᗯ</div>
-      <Icon title="Dashboard" onClick={onHome}>▦</Icon>
-      <Icon active title="Analytics">📊</Icon>
-      <div className="mt-auto"><Icon title="Configurações">⚙</Icon></div>
+      <SidebarIcon title="Dashboard" onClick={onHome}>▦</SidebarIcon>
+      <SidebarIcon active title="Analytics">📊</SidebarIcon>
+      <div className="mt-auto"><SidebarIcon title="Configurações">⚙</SidebarIcon></div>
     </aside>
   );
 }
@@ -89,15 +97,22 @@ const TABS = [
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 const isTab = (v: string | null): v is TabKey => !!v && TABS.some((t) => t.key === v);
+function currentTabFromUrl(): TabKey {
+  try {
+    if (typeof window === "undefined") return "geral";
+    const fromUrl = new URLSearchParams(window.location.search).get("tab");
+    return isTab(fromUrl) ? fromUrl : "geral";
+  } catch {
+    return "geral";
+  }
+}
 
 export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics }) {
   const router = useRouter();
   // Aba sincronizada com a URL (?tab=): o voltar do navegador navega entre abas
   // e o link de uma aba específica é compartilhável.
-  const [tab, setTabState] = useState<TabKey>("geral");
+  const [tab, setTabState] = useState<TabKey>(currentTabFromUrl);
   useEffect(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get("tab");
-    if (isTab(fromUrl)) setTabState(fromUrl);
     const onPop = () => {
       const t = new URLSearchParams(window.location.search).get("tab");
       setTabState(isTab(t) ? t : "geral");
@@ -153,7 +168,23 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
       .then((d) => setVturb(d?.error === "no_token" ? "no_token" : d?.vsls ? (d as VtData) : "error"))
       .catch(() => setVturb("error"));
   };
-  useEffect(() => { if (tab === "vsl" && vturb === "idle") loadVturb(extraPlayers); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [tab]);
+  useEffect(() => {
+    if (tab !== "vsl" || vturb !== "idle") return;
+    let cancelled = false;
+    const extras = extraPlayers;
+    async function run() {
+      try {
+        const r = await fetch(`/api/vturb${extras.length ? `?players=${encodeURIComponent(extras.join(","))}` : ""}`);
+        const d = await r.json();
+        if (cancelled) return;
+        setVturb(d?.error === "no_token" ? "no_token" : d?.vsls ? (d as VtData) : "error");
+      } catch {
+        if (!cancelled) setVturb("error");
+      }
+    }
+    run();
+    return () => { cancelled = true; };
+  }, [tab, vturb, extraPlayers]);
   const [cmpVsl, setCmpVsl] = useState<string[]>([]);
   const toggleVsl = (slug: string) => setCmpVsl((s) => (s.includes(slug) ? s.filter((x) => x !== slug) : [...s, slug]));
   // "VSL" por funil: quem chegou na lâmina de VSL (conclusão) e a taxa de chegada
@@ -346,7 +377,7 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
               <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3">
                   <h2 className="text-sm font-semibold text-neutral-700">Leads recentes <span className="ml-1 text-xs font-normal text-neutral-400">({data.leads.total} no total)</span></h2>
-                  <a href="/api/export-leads" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-700">⬇ Exportar CSV (todos)</a>
+                  <Link href="/api/export-leads" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-700">⬇ Exportar CSV (todos)</Link>
                 </div>
                 {data.leads.recent.length ? (
                   <div className="overflow-x-auto">

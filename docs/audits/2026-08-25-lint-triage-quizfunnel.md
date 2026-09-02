@@ -645,3 +645,110 @@ Resumo real:
 
 Lote 2B está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: revisar diff, commitar/publicar Lote 2B, depois seguir para o próximo lote de backlog (`TypebotBuilder.tsx`, `LayersBuilder.tsx`, `blocks.tsx`, `GlobalAnalyticsView.tsx` etc.).
 
+---
+
+## Atualização — Lote 2C-1 aplicado — 2026-09-02
+
+### Escopo alterado
+
+Correção mínima aplicada somente em:
+
+- `src/components/dashboard/GlobalAnalyticsView.tsx`
+
+Não houve alteração de `.env*`, impressão de segredos, migration, schema change, commit, push ou deploy neste lote.
+
+### Antes do Lote 2C-1
+
+Lint focado em `GlobalAnalyticsView.tsx`:
+
+- **6 errors**
+- **2 warnings**
+- **0 fatal**
+
+Principais problemas:
+
+- `Sidebar` criava `Icon` durante render (`react-hooks/static-components`).
+- Aba inicial era lida da URL via `setState` síncrono em `useEffect` (`react-hooks/set-state-in-effect`).
+- Aba VSL chamava `loadVturb()` dentro de effect, causando `setState` síncrono e dependências faltantes.
+- Link interno para `/api/export-leads` usava `<a>` e acionava `@next/next/no-html-link-for-pages`.
+
+### Correções aplicadas
+
+- `SidebarIcon` foi movido para fora de `Sidebar`.
+- Aba inicial passou a usar inicializador lazy `currentTabFromUrl`.
+- Carregamento automático do VTurb passou para effect assíncrono com cancelamento, sem `setVturb("loading")` síncrono no effect.
+- Exportação de leads passou a usar `Link` de `next/link`.
+
+### Validação real após Lote 2C-1
+
+#### ESLint focado
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src/components/dashboard/GlobalAnalyticsView.tsx --format stylish
+```
+
+Resultado: **OK**, exit code `0`.
+
+Depois do patch:
+
+- **0 errors**
+- **0 warnings**
+
+#### ESLint focado em `src`
+
+Comando executado:
+
+```bash
+node ./node_modules/eslint/bin/eslint.js src --format json > %LOCALAPPDATA%/Temp/quizfunnel-eslint-src-after-2c1.json
+```
+
+Resultado: falhou como esperado por backlog remanescente fora do Lote 2C-1.
+
+Comparativo `src`:
+
+| Métrica | Depois Lote 2B | Depois Lote 2C-1 | Diferença |
+|---|---:|---:|---:|
+| Arquivos com problemas | 12 | 11 | -1 |
+| Errors | 62 | 56 | -6 |
+| Warnings | 38 | 36 | -2 |
+| Fatal | 0 | 0 | 0 |
+
+Principais arquivos remanescentes em `src`:
+
+| Arquivo | Errors | Warnings |
+|---|---:|---:|
+| `src/components/builder/TypebotBuilder.tsx` | 27 | 2 |
+| `src/components/builder/LayersBuilder.tsx` | 11 | 5 |
+| `src/components/quiz/layers/blocks.tsx` | 8 | 6 |
+| `src/components/vsl/VslView.tsx` | 3 | 5 |
+| `src/components/quiz/layers/LayersRunner.tsx` | 4 | 3 |
+| `src/components/quiz/steps.tsx` | 2 | 4 |
+| `src/app/admin/actions.ts` | 0 | 5 |
+| `src/components/builder/TypebotFlow.tsx` | 0 | 4 |
+| `src/components/builder/fields.tsx` | 1 | 0 |
+| `src/components/quiz/VisitBeacon.tsx` | 0 | 1 |
+
+#### Build
+
+Comando executado:
+
+```bash
+PATH="/c/Program Files/nodejs:$PATH" npm_config_script_shell='C:\Program Files\Git\bin\bash.exe' npm run build
+```
+
+Resultado: **OK**, exit code `0`.
+
+Resumo real:
+
+- Next.js 16.2.7 com Turbopack.
+- Compilação concluída com sucesso.
+- TypeScript concluído.
+- Geração estática concluída: 22/22 páginas.
+- Rotas finalizadas sem erro fatal.
+
+### Próximo checkpoint
+
+Lote 2C-1 está corrigido e validado localmente, mas ainda **não publicado**. Próximo passo recomendado: publicar 2C-1 ou seguir para 2C-2 em `src/components/quiz/layers/blocks.tsx`.
+
