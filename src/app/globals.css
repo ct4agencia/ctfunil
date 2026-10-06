@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-admin);
+  --font-mono: ui-monospace, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* Preferência de aparência do app (sobrepõe o media query). "system" não tem
+   atributo data-theme → segue o sistema operacional. */
+html[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+html[data-theme="dark"] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* Inter no admin inteiro (builders/login renderizavam em Arial). As páginas
+     públicas de funil sobrescrevem a própria fonte (.vsl-root / --q-display). */
+  font-family: var(--font-admin), Arial, Helvetica, sans-serif;
+}
+
+/* ============================================================
+   VSL pública — fontes + animações (portado do StepVSL)
+   ============================================================ */
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/poppins-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/poppins-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/poppins-800.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("/fonts/poppins-900.woff2") format("woff2");
+}
+
+/* Container da VSL usa Poppins */
+.vsl-root {
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Carrossel infinito (galeria) */
+@keyframes q-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.q-marquee {
+  animation: q-marquee 20s linear infinite;
+}
+.q-marquee:hover {
+  animation-play-state: paused;
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Background escuro full-screen quando a VSL está ativa */
+body.vsl-bg-dark {
+  background: linear-gradient(180deg, #0a1428 0%, #0f1d3a 40%, #0a1428 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* Botão CTA verde — pulse + brilho metálico */
+/* O halo pulsante do CTA. A cor vem de `--cta-halo-*`, que o botão define com a
+   PRÓPRIA cor: antes o verde estava cravado aqui, então um botão coral pulsava
+   verde — a fumaça denunciava que a cor do botão era tinta por cima.
+   Sem as variáveis cai no verde de origem, e os usos antigos não mudam. */
+@keyframes cta-pulse-green {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 10px 30px var(--cta-halo-soft, rgba(5, 150, 105, 0.4));
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 16px 44px var(--cta-halo-strong, rgba(16, 185, 129, 0.65));
+  }
+}
+@keyframes cta-metallic-shine {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  100% { transform: translateX(250%) skewX(-20deg); }
+}
+.animate-cta-green {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  animation: cta-pulse-green 1.3s ease-in-out infinite;
+}
+.animate-cta-green::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.4) 45%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0.4) 55%,
+    rgba(255, 255, 255, 0) 80%,
+    transparent 100%
+  );
+  animation: cta-metallic-shine 1.6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Efeitos de botão reutilizáveis (qualquer cor) */
+@keyframes fx-pulse-kf {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+.fx-pulse {
+  animation: fx-pulse-kf 1.3s ease-in-out infinite;
+}
+/* CTA único do chat (typebot): pulso mais forte + glow temático via --tb-cta-glow */
+@keyframes tb-cta-kf {
+  0%, 100% { transform: scale(1); box-shadow: 0 8px 22px var(--tb-cta-glow, rgba(0,0,0,0.18)); }
+  50% { transform: scale(1.045); box-shadow: 0 16px 40px var(--tb-cta-glow, rgba(0,0,0,0.32)); }
+}
+.tb-cta-pulse { animation: tb-cta-kf 1.15s ease-in-out infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .tb-cta-pulse { animation: none; } }
+.fx-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.fx-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.4) 45%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0.4) 55%,
+    rgba(255, 255, 255, 0) 80%,
+    transparent 100%
+  );
+  animation: cta-metallic-shine 1.6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roleta Luxo Gold — suspense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800;900&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#08080a;padding:24px 0}</style>
+</head>
+<body>
+<!-- ============================================================
+  ROLETA DA SORTE "LUXO GOLD" (preto + dourado) - p/ Elementor
+  ARQUIVO DO LUCA, COPIADO. Duas mudancas, nada mais:
+    1) SEGMENTS = a copy do funil cdb-insta
+    2) spin() = o motor de suspense em 4 fases (o CSS transition saiu,
+       porque agora quem controla o angulo e o requestAnimationFrame)
+  O drawWheel() e todo o CSS estao intactos.
+============================================================ -->
+<div class="ct4-wheel-wrap">
+  <div class="ct4-wheel-stage">
+    <div class="ct4-pointer"><span></span></div>
+    <div class="ct4-wheel-outer">
+      <canvas id="ct4Wheel" width="600" height="600"></canvas>
+      <div class="ct4-hub">
+        <button id="ct4SpinBtn" class="ct4-spin-btn">GIRAR</button>
+      </div>
+    </div>
+    <div class="ct4-stand"></div>
+    <div class="ct4-floor"></div>
+  </div>
+  <div id="ct4Result" class="ct4-result"></div>
+</div>
+
+<style>
+  .ct4-wheel-wrap{
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 30px 16px 26px;
+    background: radial-gradient(circle at 50% 30%, #232326 0%, #131316 55%, #0a0a0c 100%);
+    border-radius: 22px;
+    text-align: center;
+    font-family: 'Poppins','Segoe UI',Arial,sans-serif;
+    box-shadow: 0 14px 40px rgba(0,0,0,.55);
+  }
+  .ct4-wheel-stage{
+    position: relative;
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+  }
+  .ct4-wheel-outer{
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1/1;
+    z-index: 2;
+  }
+  #ct4Wheel{
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    filter: drop-shadow(0 14px 26px rgba(0,0,0,.65));
+    /* a transition de 5.5s saiu: o angulo agora vem do requestAnimationFrame,
+       e as duas coisas brigando davam um giro borrachudo */
+  }
+
+  /* Ponteiro: fita preta com borda dourada */
+  .ct4-pointer{
+    position: absolute;
+    top: -2.5%;
+    left: 50%;
+    transform: translateX(-50%);
+    transform-origin: 50% 6%;
+    width: 10%;
+    aspect-ratio: 46/70;
+    background: linear-gradient(180deg,#f2d98a 0%,#c79a33 30%,#8a641c 70%,#5e430f 100%);
+    clip-path: polygon(0 0,100% 0,100% 72%,50% 100%,0 72%);
+    z-index: 8;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.6));
+  }
+  .ct4-pointer span{
+    position: absolute;
+    left: 8%; right: 8%; top: 6%; bottom: 8%;
+    clip-path: polygon(0 0,100% 0,100% 72%,50% 100%,0 72%);
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 2px, transparent 2px 4px),
+      linear-gradient(180deg,#26262a 0%,#151518 60%,#0c0c0e 100%);
+  }
+
+  /* Centro: anel dourado + miolo carbono (botão) */
+  .ct4-hub{
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 27%; height: 27%;
+    border-radius: 50%;
+    background: conic-gradient(#f6e59a,#a87a1e,#f2d98a,#6b4d12,#f6e59a,#a87a1e,#f6e59a);
+    box-shadow: 0 0 0 2px #4a350c, 0 8px 16px rgba(0,0,0,.65), inset 0 2px 4px rgba(255,255,255,.5);
+    display:flex; align-items:center; justify-content:center;
+    z-index: 6;
+  }
+  .ct4-spin-btn{
+    width: 76%; height: 76%;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 2px, transparent 2px 4px),
+      radial-gradient(circle at 35% 30%, #2c2c31, #131316 70%, #08080a 100%);
+    color: #ecc65f;
+    font-weight: 800;
+    font-size: clamp(11px, 2.6vw, 16px);
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px rgba(236,198,95,.45);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,.8), inset 0 -1px 2px rgba(255,255,255,.08);
+    transition: transform .15s ease;
+  }
+  .ct4-spin-btn:active{ transform: scale(.94); }
+  .ct4-spin-btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+  /* Base / pedestal dourado */
+  .ct4-stand{
+    position: relative;
+    width: 42%;
+    height: 74px;
+    margin: -5% auto 0;
+    clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255,240,190,.5), transparent 55%),
+      linear-gradient(180deg,#d9b14b 0%,#a87a1e 45%,#6b4d12 85%,#4a350c 100%);
+    z-index: 1;
+  }
+  .ct4-floor{
+    width: 72%;
+    height: 16px;
+    margin: -4px auto 0;
+    background: radial-gradient(ellipse at center, rgba(255,205,100,.30), transparent 68%);
+  }
+
+  .ct4-result{
+    min-height: 30px;
+    margin-top: 14px;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: #ecc65f;
+    text-shadow: 0 0 12px rgba(236,198,95,.5);
+  }
+</style>
+
+<script>
+(function () {
+  /* ---------- COPY DO FUNIL cdb-insta ----------
+     Trocado do array de exemplo ("JACKPOT", "50 $"...) pelos premios reais do
+     bloco `roulette` da lamina 12. */
+  const SEGMENTS = [
+    "🎁 ACESSO GRATUITO",
+    "Aula especial",
+    "Apostila bônus",
+    "Guia de materiais",
+    "Modelos extras",
+    "Desconto especial"
+  ];
+  const WINNING_INDEX = 0;   /* o cdb-insta entrega sempre o ACESSO GRATUITO */
+  /* Pesos opcionais (probabilidade). null = todos iguais. */
+  const WEIGHTS = null;
+  /* -------------------------------------------------- */
+
+  const canvas   = document.getElementById('ct4Wheel');
+  const ctx      = canvas.getContext('2d');
+  const spinBtn  = document.getElementById('ct4SpinBtn');
+  const resultEl = document.getElementById('ct4Result');
+  const pointer  = document.querySelector('.ct4-pointer');
+
+  const size   = canvas.width;
+  const C      = size / 2;                    // centro
+  const R      = size / 2;                    // raio total
+  const sliceR = R * 0.86;                    // raio das fatias (até o aro)
+  const N      = SEGMENTS.length;
+  const slice  = (2 * Math.PI) / N;
+  const offset = -Math.PI / 2 - slice / 2;    // fatia 0 centralizada no topo
+
+  const GOLD_EDGE = '#c79a33';
+
+  function carbonPattern() {
+    const c = document.createElement('canvas');
+    c.width = 12; c.height = 12;
+    const x = c.getContext('2d');
+    x.fillStyle = '#121215'; x.fillRect(0, 0, 12, 12);
+    x.fillStyle = '#1c1c21'; x.fillRect(0, 0, 6, 6); x.fillRect(6, 6, 6, 6);
+    x.fillStyle = '#0a0a0c'; x.fillRect(3, 3, 2, 2); x.fillRect(9, 9, 2, 2);
+    return ctx.createPattern(c, 'repeat');
+  }
+
+  function goldGradient() {
+    const g = ctx.createRadialGradient(C, C, R * 0.10, C, C, sliceR);
+    g.addColorStop(0.00, '#7d5a16');
+    g.addColorStop(0.45, '#c79a33');
+    g.addColorStop(0.70, '#eecf6f');
+    g.addColorStop(0.88, '#f6e59a');
+    g.addColorStop(1.00, '#a87a1e');
+    return g;
+  }
+
+  function drawWheel() {
+    ctx.clearRect(0, 0, size, size);
+    const carbon = carbonPattern();
+    const gold   = goldGradient();
+
+    /* fatias */
+    for (let i = 0; i < N; i++) {
+      const a0 = offset + i * slice;
+      const a1 = a0 + slice;
+      const isBlack = i % 2 === 0;
+
+      ctx.beginPath();
+      ctx.moveTo(C, C);
+      ctx.arc(C, C, sliceR, a0, a1);
+      ctx.closePath();
+      ctx.fillStyle = isBlack ? carbon : gold;
+      ctx.fill();
+    }
+
+    /* sombreamento geral (profundidade) */
+    const vign = ctx.createRadialGradient(C, C, R * 0.15, C, C, sliceR);
+    vign.addColorStop(0.00, 'rgba(0,0,0,0.38)');
+    vign.addColorStop(0.45, 'rgba(0,0,0,0.05)');
+    vign.addColorStop(0.80, 'rgba(255,255,255,0.05)');
+    vign.addColorStop(1.00, 'rgba(0,0,0,0.28)');
+    ctx.beginPath();
+    ctx.arc(C, C, sliceR, 0, Math.PI * 2);
+    ctx.fillStyle = vign;
+    ctx.fill();
+
+    /* divisórias + triângulos dourados */
+    for (let i = 0; i < N; i++) {
+      const a = offset + i * slice;
+      const cos = Math.cos(a), sin = Math.sin(a);
+
+      ctx.beginPath();
+      ctx.moveTo(C + cos * R * 0.16, C + sin * R * 0.16);
+      ctx.lineTo(C + cos * sliceR,    C + sin * sliceR);
+      ctx.strokeStyle = 'rgba(199,154,51,0.95)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      /* triângulo apontando p/ dentro, na borda externa */
+      const tipR = R * 0.795, baseR = sliceR;
+      const t = 0.016; /* meia-largura angular da base */
+      ctx.beginPath();
+      ctx.moveTo(C + Math.cos(a) * tipR, C + Math.sin(a) * tipR);
+      ctx.lineTo(C + Math.cos(a - t) * baseR, C + Math.sin(a - t) * baseR);
+      ctx.lineTo(C + Math.cos(a + t) * baseR, C + Math.sin(a + t) * baseR);
+      ctx.closePath();
+      ctx.fillStyle = '#e9c96a';
+      ctx.fill();
+    }
+
+    /* pontinhos + textos */
+    for (let i = 0; i < N; i++) {
+      const mid = offset + i * slice + slice / 2;
+      const isBlack = i % 2 === 0;
+
+      /* pontinho perto da borda */
+      ctx.beginPath();
+      ctx.arc(C + Math.cos(mid) * R * 0.78, C + Math.sin(mid) * R * 0.78, 5, 0, Math.PI * 2);
+      ctx.fillStyle = isBlack ? '#e9c96a' : '#141414';
+      ctx.fill();
+
+      /* texto ao longo do raio */
+      const label = SEGMENTS[i];
+      ctx.save();
+      ctx.translate(C, C);
+      ctx.rotate(mid);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.font = (label.length >= 7 ? '900 19px ' : '900 25px ') + 'Poppins, Arial, sans-serif';
+      if (isBlack) {
+        ctx.fillStyle = '#ecc65f';
+        ctx.shadowColor = 'rgba(0,0,0,0.7)';
+        ctx.shadowBlur = 3;
+      } else {
+        ctx.fillStyle = '#17130a';
+        ctx.shadowBlur = 0;
+      }
+      ctx.fillText(label, R * (label.length >= 7 ? 0.705 : 0.73), 0);
+      ctx.restore();
+    }
+
+    /* aro dourado */
+    const rim = ctx.createRadialGradient(C, C, sliceR, C, C, R * 0.995);
+    rim.addColorStop(0.00, '#6b4d12');
+    rim.addColorStop(0.30, '#e9c96a');
+    rim.addColorStop(0.55, '#f7e7a6');
+    rim.addColorStop(0.80, '#c79a33');
+    rim.addColorStop(1.00, '#5e430f');
+    ctx.beginPath();
+    ctx.arc(C, C, R * 0.995, 0, Math.PI * 2);
+    ctx.arc(C, C, sliceR, 0, Math.PI * 2, true);
+    ctx.fillStyle = rim;
+    ctx.fill();
+
+    /* borda fina externa e interna do aro */
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#3a2a08';
+    ctx.beginPath(); ctx.arc(C, C, R * 0.985, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = GOLD_EDGE;
+    ctx.beginPath(); ctx.arc(C, C, sliceR + 1, 0, Math.PI * 2); ctx.stroke();
+
+    /* lâmpadas no aro */
+    const BULBS = 24;
+    for (let i = 0; i < BULBS; i++) {
+      const a = (i / BULBS) * Math.PI * 2;
+      const bx = C + Math.cos(a) * R * 0.925;
+      const by = C + Math.sin(a) * R * 0.925;
+      ctx.save();
+      ctx.shadowColor = 'rgba(255,244,214,0.95)';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(bx, by, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#fffbe8';
+      ctx.fill();
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(bx - 1.5, by - 1.5, 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+    }
+  }
+
+  function pickIndex() {
+    if (WINNING_INDEX != null) return WINNING_INDEX;
+    if (!WEIGHTS) return Math.floor(Math.random() * N);
+    const total = WEIGHTS.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < N; i++) {
+      if (r < WEIGHTS[i]) return i;
+      r -= WEIGHTS[i];
+    }
+    return N - 1;
+  }
+
+  let rot = 0;
+  let spinning = false;
+
+  /* ---------- easings do suspense ---------- */
+  const easeOutQuart  = t => 1 - Math.pow(1 - t, 4);
+  const easeInOutSine = t => -(Math.cos(Math.PI * t) - 1) / 2;
+
+  function spin() {
+    if (spinning) return;
+    spinning = true;
+    spinBtn.disabled = true;
+    resultEl.textContent = '';
+
+    const idx = pickIndex();
+    const sliceDeg = 360 / N;
+
+    /* geometria do final dramático */
+    const past = 10 + Math.random() * 8;             /* quanto passa do pino (graus) */
+    const base = rot - (rot % 360);
+    const targetDeg = (360 - idx * sliceDeg) % 360;
+    let boundary = base + 5 * 360 + targetDeg - sliceDeg / 2;  /* pino de entrada da fatia-alvo */
+    while (boundary <= rot + 3 * 360) boundary += 360;
+    const rotStall = boundary - 1.4;                 /* quase tocando o pino */
+    const creep    = 0.5;                            /* rastejo durante o suspense */
+    const rotFinal = boundary + past;
+
+    const tA = 4300, tB = 850, tC = 1150, tD = 650;  /* durações (ms) */
+    const rot0 = rot, t0 = performance.now();
+
+    function frame(now) {
+      const t = now - t0;
+
+      if (t < tA) {
+        /* FASE A: gira forte e vai morrendo até parar quase no pino */
+        rot = rot0 + (rotStall - rot0) * easeOutQuart(t / tA);
+      } else if (t < tA + tB) {
+        /* FASE B — O SUSPENSE: encostado no pino, rastejando... vai que não passa */
+        rot = rotStall + creep * easeInOutSine((t - tA) / tB);
+      } else if (t < tA + tB + tC) {
+        /* FASE C: o peso vence, passa devagarinho pro prêmio */
+        rot = (rotStall + creep) + (rotFinal - rotStall - creep) * easeInOutSine((t - tA - tB) / tC);
+      } else if (t < tA + tB + tC + tD) {
+        /* FASE D: balancinho final de acomodação */
+        const td = (t - tA - tB - tC) / 1000;
+        rot = rotFinal + 0.9 * Math.exp(-5 * td) * Math.sin(16 * td);
+      } else {
+        rot = rotFinal;
+        canvas.style.transform = 'rotate(' + rot + 'deg)';
+        pointer.style.transform = 'translateX(-50%) rotate(0deg)';
+        spinning = false;
+        spinBtn.disabled = false;
+        resultEl.textContent = '🎉 ' + SEGMENTS[idx];
+        return;
+      }
+
+      canvas.style.transform = 'rotate(' + rot + 'deg)';
+
+      /* contato: pino chegando dobra o badalo aos poucos */
+      const ph = (rot - sliceDeg / 2) / sliceDeg;
+      const dNext = (Math.ceil(ph) - ph) * sliceDeg;  /* graus até o próximo pino */
+      const contact = (spinning && dNext < 6) ? 20 * Math.pow(1 - dNext / 6, 1.3) : 0;
+      pointer.style.transform = 'translateX(-50%) rotate(' + (-contact) + 'deg)';
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  drawWheel();
+  /* as fontes chegam depois do primeiro quadro; sem isto os rotulos ficam
+     desenhados no fallback do sistema para sempre */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawWheel);
+  spinBtn.addEventListener('click', spin);
+})();
+</script>
+</body>
+</html>
