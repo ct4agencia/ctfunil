@@ -54,6 +54,7 @@ export type LayerType =
 export interface InleadMedia {
   type?: "image" | "emoji";
   src?: string | null;
+  alt?: string;
   width?: number;
   height?: number;
 }
@@ -171,6 +172,8 @@ export interface InleadStep {
    * sempre fez.
    */
   tela?: string;
+  /** Hero: opt-in para preservar o HTML e a ordem dos blocos, sem slots legados. */
+  heroLayout?: "blocks";
   /** VSL: texto da barra de vagas no topo. Vazio esconde a barra. */
   vagasTexto?: string;
   /** VSL: segundos até a barra de vagas aparecer (0 = já visível). */

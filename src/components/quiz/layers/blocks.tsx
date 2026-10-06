@@ -280,14 +280,26 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
             nos brilhos, que continuam FORA e orbitam a moldura em ritmo próprio
             — se subissem junto, a peça inteira respiraria e viraria distração. */}
         <motion.div
-          className="relative block"
-          animate={d.flutua && !prefereMenosMovimento() ? { y: [0, -9, 0] } : undefined}
-          transition={d.flutua ? { duration: 3.4, repeat: Infinity, ease: "easeInOut" } : undefined}
+          className={`relative block ${d.flutua && d.glow ? "image-float" : ""}`}
+          animate={d.flutua && !d.glow && !prefereMenosMovimento() ? { y: [0, -9, 0] } : undefined}
+          transition={d.flutua && !d.glow ? { duration: 3.4, repeat: Infinity, ease: "easeInOut" } : undefined}
         >
+        {d.glow ? (
+          <div data-image-glow aria-hidden className="image-glow-pulse pointer-events-none absolute inset-0">
+            <div className="image-glow-spin absolute inset-0" style={{
+              background: "conic-gradient(from var(--image-glow-angle), #22D3EE, #7DD3FC 12%, rgba(56,189,248,.15) 26%, #0EA5E9 42%, #FFFFFF 50%, #38BDF8 58%, rgba(2,132,199,.15) 72%, #67E8F9 86%, #22D3EE)",
+              maskImage: `url(${JSON.stringify(src)})`, WebkitMaskImage: `url(${JSON.stringify(src)})`,
+              maskSize: "100% 100%", WebkitMaskSize: "100% 100%", maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat",
+              filter: "blur(10px) saturate(1.5) brightness(1.2)",
+            }} />
+          </div>
+        ) : null}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={src} alt="" loading="lazy" decoding="async"
+          src={src} alt={im?.alt || ""} loading="lazy" decoding="async"
           style={{
+            position: d.glow ? "relative" : undefined,
+            filter: d.glow ? "drop-shadow(0 16px 20px rgba(8,62,94,.22))" : undefined,
             width: "100%", height: "auto",
             // `redonda`: a foto da professora do print. Vira círculo com anel
             // branco, para o selo ter onde encostar sem tocar o rosto.
@@ -315,7 +327,20 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
           >✓</motion.span>
         ) : null}
         {/* TAG com brilho pulsante — o "GRÁTIS" do print da apostila */}
-        {d.tag ? (
+        {d.tag && d.tagPosition === "bottom-right" ? (
+          <span data-image-tag="bottom-right" className="absolute z-20" style={{ bottom: "9%", right: "8%", transform: "rotate(-7deg)" }}>
+            {d.glow ? <>
+              <span aria-hidden className="image-tag-halo pointer-events-none absolute" style={{ inset: "-10px -8px", borderRadius: 999, background: "radial-gradient(closest-side, rgba(33,181,107,.5), rgba(33,181,107,0))" }} />
+              <span aria-hidden className="image-tag-spin pointer-events-none absolute" style={{ inset: -5, borderRadius: 999, background: "conic-gradient(from var(--image-glow-angle), #4ADE80, #A7F3D0 12%, rgba(74,222,128,.1) 28%, #22D3EE 45%, #FFFFFF 50%, #38BDF8 56%, rgba(56,189,248,.1) 72%, #86EFAC 88%, #4ADE80)", filter: "blur(7px) saturate(1.4) brightness(1.15)" }} />
+            </> : null}
+            <span className="image-tag-pulse relative inline-flex items-center rounded-full text-white" style={{
+              padding: "9px 18px 8px", border: "2px solid #FFFFFF",
+              background: `linear-gradient(135deg, ${d.tagCor || "#21B56B"}, ${d.tagCor || "#178E52"})`,
+              fontWeight: 700, fontSize: 17, lineHeight: 1, letterSpacing: ".06em",
+              boxShadow: "0 10px 20px -8px rgba(23,142,82,.6), inset 0 1px 0 rgba(255,255,255,.35)",
+            }}>{String(d.tag)}</span>
+          </span>
+        ) : d.tag ? (
           <motion.span
             className="absolute rounded-full px-3 py-1 text-[12px] font-black uppercase tracking-wide text-white"
             style={{
@@ -405,7 +430,8 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
         onClick={onClick} disabled={ctx.submitting}
         initial={revealAt > 0 ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }}
         whileTap={{ scale: 0.97 }}
-        className={`w-full font-bold disabled:opacity-60 ${shineCls}`}
+        data-cta-style={d.style === "gradient-arrow" ? "gradient-arrow" : undefined}
+        className={`w-full font-bold disabled:opacity-60 ${shineCls} ${d.style === "gradient-arrow" ? "cta-gradient-arrow" : ""}`}
         style={{
           background: bg, color: d.color || "#fff",
           border: d.borderColor ? `1px solid ${d.borderColor}` : "none",
@@ -420,8 +446,16 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
                 background: `linear-gradient(135deg, ${bg} 0%, ${escurecerHex(bg, 0.18)} 100%)`,
                 boxShadow: `0 13px 38px 0 ${bg}91, 0 2px 6px 0 rgba(0,0,0,.10)`,
               }),
+          ...(d.style === "gradient-arrow" ? {
+            minHeight: 60, padding: "0 24px", borderRadius: 20,
+            background: `linear-gradient(135deg, ${bg} 0%, ${d.gradientEnd || "#0291D6"} 100%)`,
+            fontWeight: 700, fontSize: 19, lineHeight: 1, letterSpacing: ".04em",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
+            boxShadow: "0 14px 26px -12px rgba(2,132,199,.7), inset 0 1px 0 rgba(255,255,255,.28)",
+          } : {}),
         }}>
-        {ctx.submitting ? "Enviando…" : `${c.icon ? `${c.icon} ` : ""}${c.label || ""}`}
+        <span>{ctx.submitting ? "Enviando…" : `${c.icon ? `${c.icon} ` : ""}${c.label || ""}`}</span>
+        {d.style === "gradient-arrow" ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12h14M13 6l6 6-6 6" /></svg> : null}
       </motion.button>
     </div>
   );
@@ -1345,11 +1379,19 @@ function CardBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 
   return (
     <div
+      data-card-variant={variante}
       className="mx-auto w-full"
       style={{
         ...(estilos[variante] || estilos.suave),
         borderRadius: radius(ctx.design),
         padding: `${Number(d.padding) || 20}px ${Math.round((Number(d.padding) || 20) * 0.8)}px`,
+        ...(variante === "vidro" ? {
+          width: "fit-content", maxWidth: "100%", borderRadius: 24,
+          padding: `${Number(d.padding) || 18}px 22px ${(Number(d.padding) || 18) + 2}px`,
+          background: "rgba(255,255,255,0.8)", border: "1px solid #FFFFFF",
+          boxShadow: "0 20px 36px -26px rgba(8,62,94,.45), 0 0 0 5px rgba(56,189,248,.07)",
+          textAlign: "center" as const,
+        } : {}),
       }}
     >
       {c.text ? (

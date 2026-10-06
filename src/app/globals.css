@@ -1,5 +1,25 @@
 @import "tailwindcss";
 
+/* Halo opcional: a máscara usa o alpha original, não uma moldura retangular. */
+@property --image-glow-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@keyframes imageGlowSpin { to { --image-glow-angle: 360deg; } }
+@keyframes imageGlowPulse { 0%,100% { opacity: .85; transform: scale(1.03); } 50% { opacity: 1; transform: scale(1.06); } }
+.image-glow-spin { animation: imageGlowSpin 5s linear infinite; }
+.image-glow-pulse { animation: imageGlowPulse 3.2s ease-in-out infinite; }
+@keyframes imageFloat { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-7px) rotate(-.5deg); } }
+@keyframes imageTagPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+@keyframes imageTagHalo { 0%,100% { opacity: .35; transform: scale(.96); } 50% { opacity: .85; transform: scale(1.1); } }
+.image-float { animation: imageFloat 4.6s ease-in-out infinite; }
+.image-tag-spin { animation: imageGlowSpin 4s linear infinite; }
+.image-tag-pulse { animation: imageTagPulse 2.8s ease-in-out infinite; }
+.image-tag-halo { animation: imageTagHalo 2.8s ease-in-out infinite; }
+.cta-gradient-arrow { transition: transform 160ms ease, box-shadow 160ms ease; }
+.cta-gradient-arrow:hover { transform: translateY(-2px); }
+.cta-gradient-arrow:focus-visible { outline: 3px solid #083E5E; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .image-glow-spin, .image-glow-pulse, .image-float, .image-tag-spin, .image-tag-pulse, .image-tag-halo { animation: none !important; }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

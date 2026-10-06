@@ -556,6 +556,10 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
             onChange={(e) => setD({ borderColor: e.target.checked ? undefined : (layer.design?.backgroundColor || "#ea580c") })}
             className="h-3.5 w-3.5 accent-neutral-900 disabled:opacity-40" /> Sem contorno
         </label>
+        <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
+          <input type="checkbox" checked={layer.design?.style === "gradient-arrow"} onChange={(e) => setD({ style: e.target.checked ? "gradient-arrow" : undefined })} className="h-3.5 w-3.5 accent-neutral-900" /> Degradê com seta (botão arredondado)
+        </label>
+        {layer.design?.style === "gradient-arrow" ? <span className="mt-2 flex items-center gap-1.5 text-xs text-neutral-600"><ColorField value={layer.design?.gradientEnd || "#0291D6"} onChange={(v) => setD({ gradientEnd: v })} className="h-7 w-9" label="Final do degradê" /> Final do degradê</span> : null}
         <Lbl>Efeito de animação</Lbl>
         <select value={(layer.design?.effect as string) || "none"} onChange={(e) => setD({ effect: e.target.value })} className={inp}>
           <option value="none">Nenhum</option>
@@ -600,12 +604,23 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
             <input type="checkbox" checked={!!layer.design?.brilhos} onChange={(e) => setD({ brilhos: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" />
             Brilhos ao redor da imagem
           </label>
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
+            <input type="checkbox" checked={!!layer.design?.glow} onChange={(e) => setD({ glow: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" />
+            Glow rotativo (acompanha a transparência)
+          </label>
           <Lbl>Tag no canto (vazio = sem tag)</Lbl>
           <div className="flex items-center gap-2">
             <input value={layer.design?.tag || ""} onChange={(e) => setD({ tag: e.target.value || undefined })} placeholder="GRÁTIS" className={`${inp} flex-1`} />
             <ColorField value={layer.design?.tagCor || "#16a34a"} onChange={(v) => setD({ tagCor: v })} className="h-8 w-9" label="Cor da tag" />
           </div>
-          {layer.design?.tag ? <p className="text-[11px] text-neutral-500">A tag pulsa sozinha.</p> : null}
+          {layer.design?.tag ? <>
+            <Lbl>Posição da tag</Lbl>
+            <select aria-label="Posição da tag" value={layer.design?.tagPosition || "top-right"} onChange={(e) => setD({ tagPosition: e.target.value === "bottom-right" ? "bottom-right" : undefined })} className={inp}>
+              <option value="top-right">Superior direita — padrão</option>
+              <option value="bottom-right">Inferior direita — pílula com borda branca</option>
+            </select>
+            <p className="text-[11px] text-neutral-500">A tag pulsa sozinha; o glow respeita o controle acima.</p>
+          </> : null}
         </div>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <label className="mt-2 flex cursor-pointer items-center justify-between text-xs text-neutral-600"><span>Tela cheia (borda a borda)</span>
@@ -862,6 +877,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <option value="contorno">Contorno — só a borda</option>
           <option value="escuro">Escuro — inverte o contraste</option>
           <option value="destaque">Destaque — o tema cheio</option>
+          <option value="vidro">Vidro — branco com halo azul suave</option>
         </select>
         <Lbl>Respiro interno (px)</Lbl>
         <input type="number" min={8} max={48} value={Number(layer.design?.padding) || 20}
@@ -1917,6 +1933,14 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                 // pelo StepEditor agora, então este ramo é inalcançável.
                 return null;
               })()}
+              <div className="rounded-xl border border-neutral-200 p-3">
+                <Lbl>Layout do hero</Lbl>
+                <select aria-label="Layout do hero" value={step?.heroLayout || "legacy"}
+                  onChange={(e) => patchStep(selStep, { heroLayout: e.target.value === "blocks" ? "blocks" : undefined })} className={inp}>
+                  <option value="legacy">Padrão — slots do preset</option>
+                  <option value="blocks">Livre — HTML e ordem dos blocos</option>
+                </select>
+              </div>
               {/* Header POR LÂMINA: cada toggle herda do global (Design) até você mexer */}
               {(() => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

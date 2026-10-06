@@ -44,6 +44,8 @@ export interface ResinaHeroProps {
   imagens?: string[];
   /** Imagem avulsa renderizada pelo motor de blocos, com seu design preservado. */
   imagemBloco?: ReactNode;
+  /** Layout livre opt-in: HTML, design e ordem vêm dos blocos cadastrados. */
+  conteudoBlocos?: ReactNode;
   cta: string;
   /** CTA como PNG clicável (padrão inlead). Presente, substitui o botão estilizado. */
   ctaImagem?: string;
@@ -57,7 +59,7 @@ const SLIDE_MS = 2200;
 
 export default function ResinaHero({
   cor, emoji, titulo, capsula, subtexto, cardTexto, produto, cardTextoFim,
-  valor, imagens = [], imagemBloco, cta, ctaImagem, rodape, onAvancar,
+  valor, imagens = [], imagemBloco, conteudoBlocos, cta, ctaImagem, rodape, onAvancar,
 }: ResinaHeroProps) {
   const t = tokensResina(cor);
   const rgb = rgbDe(cor);
@@ -69,6 +71,12 @@ export default function ResinaHero({
     const iv = setInterval(() => setSlide((s) => (s + 1) % imagens.length), SLIDE_MS);
     return () => clearInterval(iv);
   }, [imagens.length]);
+
+  if (conteudoBlocos) return (
+    <div data-hero-blocks className="mx-auto flex w-full flex-col" style={{ maxWidth: 460, padding: "clamp(28px,6vh,64px) 20px 40px", containerType: "inline-size" }}>
+      {conteudoBlocos}
+    </div>
+  );
 
   const corte = capsula ? titulo.indexOf(capsula) : -1;
   const antes = corte >= 0 ? titulo.slice(0, corte) : titulo;

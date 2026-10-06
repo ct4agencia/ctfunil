@@ -286,6 +286,9 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   const bgFit = ({ cover: "cover", auto: "none", contain: "contain", fill: "fill" } as const)[(step.design?.backgroundSize as string) || "cover"] || "cover";
   const bgPos = (step.design?.backgroundPosition as string) || "center";
   const pageBg = step.design?.backgroundColor || design.backgroundColor || "#ffffff";
+  const heroDeclarativo = step.heroLayout === "blocks"
+    && (design as { presetTelas?: string }).presetTelas === "resina"
+    && ((idx === 0 && !step.tela) || step.tela === "hero");
   const question = step.title || "";
 
   // ── Heros TIPADOS (roleta/slider) — reaproveitam os StepView do motor antigo ──
@@ -511,7 +514,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       })()}
 
       {/* conteúdo */}
-      <main className="relative z-10 flex flex-1 flex-col px-5 py-6" style={{ justifyContent: ALIGN[design.verticalAlign || "justify-start"] || "flex-start" }}>
+      <main className={`relative z-10 flex flex-1 flex-col ${heroDeclarativo ? "" : "px-5 py-6"}`} style={{ justifyContent: ALIGN[design.verticalAlign || "justify-start"] || "flex-start" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={idx}
@@ -522,7 +525,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
             animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.28 }}
             className="mx-auto flex w-full flex-col"
-            style={{ maxWidth: containerMax(design.container), gap: `${Number(design.gap) || 0.6}rem` }}
+            style={{ maxWidth: heroDeclarativo ? 460 : containerMax(design.container), gap: heroDeclarativo ? 0 : `${Number(design.gap) || 0.6}rem` }}
           >
             {(() => {
               /* Bloco OCULTO fica de fora aqui, na origem. O `Block` já pulava
@@ -589,6 +592,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                 return (
                   <ResinaHero
                     cor={design.themeColor || "#0284c7"}
+                    conteudoBlocos={heroDeclarativo ? ls.map((l, i) => <Block key={l.id} layer={l} ctx={ctx} question={question} indice={i} />) : undefined}
                     titulo={h}
                     /* O medalhão vem do bloco CHECK da lâmina. Sem bloco, não
                        aparece — antes era fixo no componente, então existia no
