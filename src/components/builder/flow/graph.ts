@@ -21,6 +21,7 @@
  */
 
 import type { InleadStep } from "@/lib/quiz/layers/types";
+import { soniaDestination } from "@/lib/quiz/layers/sonia";
 
 /** Geometria do nó. Uma fonte só: o cálculo do path e a posição da bolinha
  *  precisam concordar, senão a linha sai de um lugar e o ponto fica em outro. */
@@ -108,6 +109,8 @@ export function flowExits(s: InleadStep): FlowExit[] {
     } else if (l.type === "loading" && c.type !== "none") {
       // achado 2: loading navega sozinho quando tem tipo — e é configurável
       out.push({ key: `${id}:_`, layerId: id, optId: null, icon: "⏳", label: `após ${Number(c.seconds) || 4}s`, dest: c.destination, editable: true });
+    } else if (l.type === "sonia-numbers") {
+      if (c.destination || s.nextStep) out.push({ key: `${id}:_`, layerId: id, optId: null, icon: "🔢", label: "após continuar seleção", dest: c.destination || s.nextStep, editable: true });
     } else if (l.type === "slider") {
       out.push({ key: `${id}:_`, layerId: id, optId: null, icon: "🎚️", label: "ao soltar", dest: "next", editable: false });
     } else if (l.type === "roulette") {
@@ -136,17 +139,27 @@ export function nextVisibleId(steps: InleadStep[], i: number): string | undefine
 
 /** Monta os nós na ordem do funil. */
 export function buildNodes(steps: InleadStep[]): FlowNode[] {
+  const active = steps.filter((s) => !s.disabled);
   return steps.map((s, i) => {
     // `nextStep` (definido arrastando a bolinha do rodapé) vence a posição —
     // mesma precedência do LayersRunner.navigate.
     const alvo = s.nextStep && steps.some((t) => t.id === s.nextStep) ? s.nextStep : undefined;
+    const sonia = s.layers.find((l) => l.type === "sonia-numbers" && !l.design?.hidden);
+    const destination = sonia ? soniaDestination(sonia.content.destination, active, active.indexOf(s)) : null;
+    const soniaNext = destination === "next" ? s.nextStep || nextVisibleId(steps, i) : undefined;
+    const exits = flowExits(s).flatMap((x) => {
+      const layer = s.layers.find((l) => l.id === x.layerId);
+      if (layer?.type !== "sonia-numbers") return [x];
+      const dest = soniaDestination(layer.content.destination, active, active.indexOf(s));
+      return dest ? [{ ...x, dest: dest === "next" ? s.nextStep || nextVisibleId(steps, i) : dest }] : [];
+    });
     return {
       id: s.id,
       idx: i,
       title: strip(s.title) || `Lâmina ${i + 1}`,
       disabled: !!s.disabled,
-      exits: flowExits(s),
-      proxima: alvo ?? nextVisibleId(steps, i),
+      exits,
+      proxima: sonia ? soniaNext : alvo ?? nextVisibleId(steps, i),
       fixado: s.flowPos,
     };
   });

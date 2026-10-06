@@ -7,6 +7,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from "@dnd-kit/utilities";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
+import { SONIA_DEFAULTS, soniaConfigError } from "@/lib/quiz/layers/sonia";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import CanvasErrorBoundary from "@/components/builder/CanvasErrorBoundary";
 import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
@@ -42,6 +43,7 @@ const BLOCK_META: Record<string, { icon: string; label: string }> = {
   graphics: { icon: "📊", label: "Gráfico" }, clear: { icon: "↕️", label: "Espaço" }, embed: { icon: "▶️", label: "Vídeo/Embed" },
   video: { icon: "▶️", label: "Vídeo" }, roulette: { icon: "🎡", label: "Roleta" }, slider: { icon: "🎚️", label: "Slider" },
   carousel: { icon: "🎠", label: "Carrossel" },
+  "sonia-numbers": { icon: "🔢", label: "Sorteio da Sônia" },
 };
 /** Paleta categorizada (ordem/categorias dos prints do inlead). */
 const CATS: { name: string; items: [string, string][] }[] = [
@@ -51,7 +53,7 @@ const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Quiz", items: [["options", "Opções"], ["multi", "Múltipla Escolha"], ["single", "Escolha Única"], ["yesno", "Sim/Não"], ["videoanswer", "Vídeo Resposta"]] },
   // Blocos-hero: ocupam a lâmina inteira. Vêm do motor tipado e nascem com
   // preset pronto — adicionar e já funciona.
-  { name: "Jogos (hero)", items: [["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
+  { name: "Jogos (hero)", items: [["sonia-numbers", "Sorteio da Sônia"], ["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
   { name: "Conversão (hero)", items: [["vsl", "VSL (vídeo + CTA)"], ["confirm", "Parabéns"]] },
   { name: "Mídia e conteúdo", items: [["text", "Texto"], ["card", "Card"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
   { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"], ["disclaimer", "Disclaimer"], ["trust", "Garantia e pagamento"]] },
@@ -88,12 +90,12 @@ const PALETTE_ICON: Record<string, string> = {
   options: "☑️", multi: "🗂️", single: "⚪", yesno: "🔀", videoanswer: "🎬", text: "🔤", image: "🖼️", video: "▶️", audio: "🔊",
   card: "🗂️", alert: "⚠️", notification: "🔔", timer: "⏱️", loading: "⏳", level: "📶", arguments: "💬", testimonials: "⭐", faq: "❓",
   price: "💲", checklist: "✅", beforeafter: "🔁", carousel: "🎠", graphics: "📊", charts: "📈", clear: "↕️", html: "▟",
-  roulette: "🎡", slider: "🎚️", scratch: "🎟️", measure: "📐", gauge: "🎯", vsl: "🎥", confirm: "🎉",
+  roulette: "🎡", slider: "🎚️", scratch: "🎟️", measure: "📐", gauge: "🎯", vsl: "🎥", confirm: "🎉", "sonia-numbers": "🔢",
 };
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
 const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "disclaimer", "trust", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
   // blocos-hero herdados do motor tipado (todos com preset pronto)
-  "scratch", "measure", "gauge", "vsl", "confirm",
+  "scratch", "measure", "gauge", "vsl", "confirm", "sonia-numbers",
   // Estes DOIS o funil já desenhava (blocks.tsx: GraphicsBlock e
   // NotificationBlock) e o construtor ainda dizia "em breve" — funcionalidade
   // pronta e trancada. O `graphics` é o anel de porcentagem que o cdb-01 usa
@@ -120,6 +122,7 @@ function newLayer(type: LayerType): Layer {
   const atalho = ATALHO_CAMPO[type as string];
   if (atalho) return { id, type: "field", content: { id, ...atalho } } as unknown as Layer;
   switch (type) {
+    case "sonia-numbers": return { ...base, content: { id, ...SONIA_DEFAULTS } };
     case "text": return { ...base, content: { id, text: "<p class=\"ql-align-center\">Novo texto</p>" } };
     case "card": return { ...base, design: { basis: 100, variant: "suave", padding: 20 }, content: { id, text: "<p class=\"ql-align-center\">Texto dentro do card. Use a barra de formatação para destacar palavras.</p>" } };
     case "alert": return { ...base, design: { style: "danger", padding: 14 }, content: { id, text: "<p class=\"ql-align-center\">Aviso importante</p>" } };
@@ -397,6 +400,25 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
   );
 
   switch (layer.type) {
+    case "sonia-numbers":
+      return <>
+        <p className="text-xs text-neutral-600">Seleção demonstrativa, sem estoque ou reserva real. X pode ser escolhido diretamente; Y fica indisponível após o clique.</p>
+        <label className="mt-3 block text-xs">Número X (selecionável)
+          <input aria-label="Número X" type="number" min={1} max={60} step={1} className={inp} value={c.numeroX ?? SONIA_DEFAULTS.numeroX} onChange={(e) => setC({ numeroX: Number(e.target.value) })} />
+        </label>
+        <label className="mt-3 block text-xs">Número Y (indisponível após clique)
+          <input aria-label="Número Y" type="number" min={1} max={60} step={1} className={inp} value={c.numeroY ?? SONIA_DEFAULTS.numeroY} onChange={(e) => setC({ numeroY: Number(e.target.value) })} />
+        </label>
+        {soniaConfigError(c) ? <p role="alert" className="mt-2 text-xs text-red-700">{soniaConfigError(c)}</p> : null}
+        <label className="mt-3 block text-xs">Destino após confirmar
+          <select aria-label="Destino após confirmar" className={inp} value={/^https?:/.test(c.destination || "") ? "__url" : (c.destination || "")} onChange={(e) => setC({ destination: e.target.value === "__url" ? "https://" : e.target.value || undefined })}>
+            <option value="">Pendente — nextStep se configurado; senão só demonstração</option>
+            {destOptions}<option value="__url">Link externo</option>
+          </select>
+        </label>
+        {/^https?:/.test(c.destination || "") ? <input aria-label="URL de destino" className={`${inp} mt-2`} value={c.destination} onChange={(e) => setC({ destination: e.target.value })} placeholder="https://…" /> : null}
+        <p className="mt-2 text-xs text-neutral-600">No runtime, destino ausente ou inválido bloqueia a confirmação. Preview nunca abre links externos.</p>
+      </>;
     case "text":
       return (<><Lbl>Texto</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} /></>);
     case "alert":
@@ -565,6 +587,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <option value="none">Nenhum</option>
           <option value="shine">✨ Brilho (varre o botão)</option>
           <option value="pulse">💓 Pulsar</option>
+          <option value="sonia-pulse">Pulsar com halo dourado (Sônia)</option>
           <option value="shine-pulse">🔥 Brilho + Pulsar (igual a roleta)</option>
         </select>
         <Lbl>Ao clicar</Lbl>

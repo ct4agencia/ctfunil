@@ -12,6 +12,7 @@ import dynamic from "next/dynamic";
 import { entradaBloco, prefereMenosMovimento, DUR, EASE } from "@/lib/quiz/motion";
 import { estiloOpcao, estiloCheck, gradienteTema } from "@/lib/quiz/resina";
 import type { Layer, InleadOption, InleadDesign, InleadMedia } from "@/lib/quiz/layers/types";
+import soniaStyles from "./SoniaNumbers.module.css";
 
 // Tela do bloco `loading` no estilo "diagnóstico", dividida com o motor tipado.
 // `dynamic` porque a maioria das lâminas de loading usa a barra simples e não
@@ -407,8 +408,8 @@ function PageButtonBlock({ layer, ctx, videoGate }: { layer: Layer; ctx: LayersC
   }, [reveal, showCountdown, videoGate]);
 
   const onClick = () => {
-    // checkout externo (ex: botão da VSL): SEMPRE avisa a Meta (InitiateCheckout)
-    if (isExternal) { fireMetaEvent("InitiateCheckout"); ctx.navigate(dest); return; }
+    // Checkout externo avisa a Meta apenas fora do preview.
+    if (isExternal) { if (!ctx.preview) fireMetaEvent("InitiateCheckout"); ctx.navigate(dest); return; }
     if (ctx.hasFields) { ctx.submitFields(); return; }
     ctx.navigate(dest);
   };
@@ -422,14 +423,14 @@ function PageButtonBlock({ layer, ctx, videoGate }: { layer: Layer; ctx: LayersC
   // Efeito de animação configurável (igual a roleta): brilho que varre + pulsar.
   // Pulsa o wrapper (não conflita com o transform do motion); brilho vai no botão.
   const effect = (d.effect as string) || "none";
-  const pulseCls = effect === "pulse" || effect === "shine-pulse" ? "fx-pulse" : "";
+  const pulseCls = effect === "sonia-pulse" ? soniaStyles.pulse : effect === "pulse" || effect === "shine-pulse" ? "fx-pulse" : "";
   const shineCls = effect === "shine" || effect === "shine-pulse" ? "fx-shine" : "";
   // Botão-IMAGEM (estilo inlead: o CTA é um PNG clicável, ex. botão verde "INICIAR").
   // Se content.imageSrc estiver setado, renderiza a imagem no lugar do botão estilizado.
   const imgSrc = (c as { imageSrc?: string }).imageSrc || null;
   if (imgSrc) {
     return (
-      <div className={`${hAlign(d)} w-full ${pulseCls}`} style={{ maxWidth: `${basis}%` }}>
+      <div className={`${hAlign(d)} w-full ${pulseCls}`} style={{ maxWidth: `${basis}%`, ...(effect === "sonia-pulse" ? { borderRadius: radius(ctx.design) } : {}) }}>
         <motion.img
           src={imgSrc} alt={c.label || ""} onClick={ctx.submitting ? undefined : onClick}
           initial={revealAt > 0 ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }}
@@ -441,7 +442,7 @@ function PageButtonBlock({ layer, ctx, videoGate }: { layer: Layer; ctx: LayersC
     );
   }
   return (
-    <div className={`${hAlign(d)} w-full ${pulseCls}`} style={{ maxWidth: `${basis}%` }}>
+    <div className={`${hAlign(d)} w-full ${pulseCls}`} style={{ maxWidth: `${basis}%`, ...(effect === "sonia-pulse" ? { borderRadius: radius(ctx.design) } : {}) }}>
       <motion.button
         onClick={onClick} disabled={ctx.submitting}
         initial={revealAt > 0 ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }}

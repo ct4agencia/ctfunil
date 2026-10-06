@@ -1,4 +1,5 @@
 const test = require('node:test');
+require.extensions['.css'] = (mod) => { mod.exports = { pulse: 'sonia-pulse' }; };
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), Module = require('node:module'), ts = require('typescript');
 const root = path.resolve(__dirname,'..'), resolve = Module._resolveFilename, load = Module._load;
