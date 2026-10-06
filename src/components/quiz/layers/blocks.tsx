@@ -367,6 +367,20 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 
 // ─────────────────────────────── BUTTON ─────────────────────────────
 function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  return layer.content.revealClock === "video"
+    ? <VideoButtonBlock layer={layer} ctx={ctx} />
+    : <PageButtonBlock layer={layer} ctx={ctx} />;
+}
+
+/** Opt-in: shares the existing VSL clock; legacy buttons keep page time. */
+function VideoButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
+  const { segundos, fonte } = useTempoVsl();
+  const at = Number(layer.content.revealAt) || 0;
+  const visible = !!ctx.preview || at <= 0 || (fonte !== "esperando" && segundos >= at);
+  return <PageButtonBlock layer={layer} ctx={ctx} videoGate={{ visible, remaining: Math.max(0, Math.ceil(at - segundos)) }} />;
+}
+
+function PageButtonBlock({ layer, ctx, videoGate }: { layer: Layer; ctx: LayersCtx; videoGate?: { visible: boolean; remaining: number } }) {
   const c = layer.content;
   const d = layer.design || {};
   const basis = Number(d.basis) || 100;
@@ -377,18 +391,20 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   // revealAt: botão de checkout só aparece após N segundos (pitch da VSL)
   const revealAt = Number(c.revealAt) || 0;
   const showCountdown = !!c.countdown;
-  const [reveal, setReveal] = useState(revealAt <= 0);
-  const [remaining, setRemaining] = useState(revealAt);
+  const [pageReveal, setReveal] = useState(revealAt <= 0);
+  const [pageRemaining, setRemaining] = useState(revealAt);
+  const reveal = videoGate?.visible ?? pageReveal;
+  const remaining = videoGate?.remaining ?? pageRemaining;
   useEffect(() => {
-    if (reveal) return;
+    if (videoGate || reveal) return;
     const t = setTimeout(() => setReveal(true), revealAt * 1000);
     return () => clearTimeout(t);
-  }, [reveal, revealAt]);
+  }, [reveal, revealAt, videoGate]);
   useEffect(() => {
-    if (reveal || !showCountdown) return;
+    if (videoGate || reveal || !showCountdown) return;
     const iv = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
     return () => clearInterval(iv);
-  }, [reveal, showCountdown]);
+  }, [reveal, showCountdown, videoGate]);
 
   const onClick = () => {
     // checkout externo (ex: botão da VSL): SEMPRE avisa a Meta (InitiateCheckout)
@@ -400,7 +416,7 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   if (!reveal) {
     const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
     const ss = String(remaining % 60).padStart(2, "0");
-    const wait = c.waitText || "⏳ Assista o vídeo para liberar o acesso…";
+    const wait = videoGate ? (c.waitText ?? "⏳ Assista o vídeo para liberar o acesso…") : (c.waitText || "⏳ Assista o vídeo para liberar o acesso…");
     return <p className="mx-auto w-full text-center text-sm opacity-60">{wait}{showCountdown ? ` ${mm}:${ss}` : ""}</p>;
   }
   // Efeito de animação configurável (igual a roleta): brilho que varre + pulsar.

@@ -576,6 +576,11 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <p className="text-xs font-bold text-neutral-700">⏱ Liberação (pitch da VSL)</p>
           <Lbl>Liberar botão após (segundos) — 0 = já visível</Lbl>
           <input type="number" min={0} value={c.revealAt ?? 0} onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
+          <Lbl>Relógio da liberação</Lbl>
+          <select aria-label="Relógio da liberação" value={c.revealClock || "page"} onChange={(e) => setC({ revealClock: e.target.value === "video" ? "video" : undefined })} className={inp}>
+            <option value="page">Tempo de página — padrão</option>
+            <option value="video">Tempo do vídeo — pausa junto com o player</option>
+          </select>
           {Number(c.revealAt) > 0 ? (<>
             <Lbl>Texto enquanto bloqueado</Lbl>
             <input value={c.waitText || ""} onChange={(e) => setC({ waitText: e.target.value })} placeholder="⏳ Assista o vídeo para liberar o acesso…" className={inp} />

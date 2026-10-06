@@ -1,0 +1,20 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs'), path = require('node:path'), Module = require('node:module'), ts = require('typescript');
+const root = path.resolve(__dirname,'..'), resolve = Module._resolveFilename, load = Module._load;
+Module._resolveFilename = function(name,...args){return resolve.call(this,name.startsWith('@/')?path.join(root,'src',name.slice(2)):name,...args)};
+for(const ext of ['.ts','.tsx']) require.extensions[ext]=(mod,file)=>mod._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,target:ts.ScriptTarget.ES2020},fileName:file}).outputText,file);
+let clock={segundos:119,fonte:'video'};
+Module._load=function(name,...args){if(name==='@/lib/quiz/relogio-vsl')return {useTempoVsl:()=>clock};return load.call(this,name,...args)};
+const React=require('react'),{renderToStaticMarkup}=require('react-dom/server'),{Block}=require('../src/components/quiz/layers/blocks.tsx');
+const ctx={design:{},name:'',navigate:()=>{},hasFields:false,submitting:false};
+const render=(revealAt,extra={},context=ctx)=>renderToStaticMarkup(React.createElement(Block,{ctx:context,question:'',layer:{id:'continue',type:'button',content:{label:'CONTINUAR',destination:'https://pay.hotmart.com/P105685204O?checkoutMode=10&src=bolsa05-roleta',revealAt,revealClock:'video',...extra}}}));
+test('cdbcpit CONTINUAR hidden at real player 119 and visible at 120 seconds',()=>{
+ clock={segundos:119,fonte:'video'};assert.doesNotMatch(render(120),/<button/);
+ clock={segundos:120,fonte:'video'};assert.match(render(120),/<button/);
+});
+test('cdbspit CONTINUAR visible immediately even while provider loading',()=>{clock={segundos:0,fonte:'esperando'};assert.match(render(0),/<button/)});
+test('video clock pause freezes and backwards seek re-hides CP',()=>{clock={segundos:119,fonte:'video'};for(let i=0;i<3;i++)assert.doesNotMatch(render(120),/<button/);clock={segundos:120,fonte:'video'};assert.match(render(120),/<button/);clock.segundos=20;assert.doesNotMatch(render(120),/<button/)});
+test('provider waiting hides CP; inherited page fallback is explicit',()=>{clock={segundos:200,fonte:'esperando'};assert.doesNotMatch(render(120),/<button/);clock={segundos:120,fonte:'pagina'};assert.match(render(120),/<button/)});
+test('native preview shows video-gated button without waiting',()=>{clock={segundos:0,fonte:'esperando'};assert.match(render(120,{}, {...ctx,preview:true}),/<button/)});
+test('legacy absent video-clock option retains wall-clock gate',()=>{clock={segundos:200,fonte:'video'};assert.doesNotMatch(render(120,{revealClock:undefined}),/<button/)});
