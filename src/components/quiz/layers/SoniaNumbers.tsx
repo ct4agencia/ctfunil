@@ -32,6 +32,7 @@ export default function SoniaNumbers({ config, state, setState, preview, destina
   const confettiCanvas = useRef<HTMLCanvasElement>(null);
   const uid = useId();
   const error = soniaConfigError(config);
+  const continueEffect = state.selected && !error ? `${styles.continueEffect} fx-shine fx-pulse` : "";
   const x = config.numeroX ?? SONIA_DEFAULTS.numeroX;
   const y = config.numeroY ?? SONIA_DEFAULTS.numeroY;
   const closeModal = () => { interactionLocked.current = false; setState((s) => ({ ...s, modal: null })); };
@@ -149,7 +150,7 @@ export default function SoniaNumbers({ config, state, setState, preview, destina
         </div>
         <p aria-live="polite" className={styles.status}>{state.selected ? `Número ${soniaLabel(x)} selecionado.` : ""}</p>
         {/* Requirement addition: final reference HTML has only modal Continue. */}
-        <button type="button" className={styles.goldButton} disabled={!state.selected || !!error} onClick={goConfirm}>Continuar</button>
+        <button type="button" className={`${styles.goldButton} ${continueEffect}`} disabled={!state.selected || !!error} onClick={goConfirm}>Continuar</button>
       </div> : <div className={styles.confirmation}>
         <h1 ref={confirmTitle} tabIndex={-1}>Confirme seu número</h1>
         <div aria-hidden="true" className={styles.bigNumber}>{soniaLabel(x)}</div>
@@ -184,7 +185,7 @@ export default function SoniaNumbers({ config, state, setState, preview, destina
         <h2 id={`${uid}-title`}>{state.modal === "y" ? "Número indisponível" : "Número escolhido"}</h2>
         <p id={`${uid}-description`}>{state.modal === "y" ? "Escolha outra opção para continuar." : "Continue para confirmar sua seleção."}</p>
         <div className={state.modal === "y" ? styles.unavailableNumber : styles.modalNumber}>{soniaLabel(state.modal === "y" ? y : x)}{state.modal === "y" ? <Lock /> : null}</div>
-        <button ref={primary} type="button" className={state.modal === "y" ? styles.modalBack : styles.goldButton} onClick={state.modal === "y" ? closeModal : goConfirm}>{state.modal === "y" ? "Voltar aos números" : "Continuar"}</button>
+        <button ref={primary} type="button" className={state.modal === "y" ? styles.modalBack : `${styles.goldButton} ${continueEffect}`} onClick={state.modal === "y" ? closeModal : goConfirm}>{state.modal === "y" ? "Voltar aos números" : "Continuar"}</button>
       </div>
     </dialog>
   </div>;

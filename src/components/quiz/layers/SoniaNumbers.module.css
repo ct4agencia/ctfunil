@@ -28,6 +28,7 @@
 .status { margin: 0; min-height: 20px; text-align: center; font-size: 14px; line-height: normal; color: #b9c3d2; }
 .goldButton { width: 100%; min-height: 54px; border-radius: 12px; border: 1px solid #ebcb82; background: linear-gradient(180deg,#e6c274,#c99a42); color: #06152e; font-family: var(--sonia-display), Georgia, serif !important; font-size: 22px; font-weight: 700; }
 .goldButton:disabled { color: #b9c3d2; background: #2a4166; border-color: rgba(129,144,166,.35); }
+.continueEffect { isolation: isolate; }
 .footer { width: 100%; max-width: 460px; display: flex; flex-wrap: wrap; justify-content: center; padding: 8px 0 28px; }
 .footer button { min-height: 44px; padding: 0 14px; border: none; background: transparent; color: #b9c3d2; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
 .confirmation { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; padding-top: 12px; }
@@ -54,4 +55,4 @@
 .drawCheck { animation: draw 520ms 160ms ease-out both; }
 @keyframes draw { from { stroke-dashoffset: 40; } to { stroke-dashoffset: 0; } }
 @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(214,172,84,.55),0 4px 14px -6px rgba(214,172,84,.55); transform: scale(1); } 50% { box-shadow: 0 0 0 7px rgba(214,172,84,0),0 6px 20px -4px rgba(214,172,84,.75); transform: scale(1.04); } }
-@media (prefers-reduced-motion: reduce) { .pulse, .root *, .dialog * { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .pulse, .root *, .dialog * { animation: none !important; transition: none !important; } .continueEffect::after { animation: none !important; display: none !important; } }
