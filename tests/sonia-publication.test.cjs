@@ -11,7 +11,7 @@ test("release publica pelo resolver e /q existentes, sem lab, seed ou abertura d
   assert.doesNotMatch(fs.readFileSync(path.join(root, "src/lib/quiz/registry.ts"), "utf8"), /sorteio-da-sonia|createSoniaDraft/);
   assert.match(fs.readFileSync(path.join(root, "src/app/builder/[slug]/actions.ts"), "utf8"), /await requireAdmin\(\)/);
 });
-test("payload persistente usa factory congelada com somente slug público alterado", () => {
+test("factory adiciona somente sonia-pulse ao snapshot original, mantendo copy/destino", () => {
   const old = require.extensions[".ts"];
   require.extensions[".ts"] = (m, f) => m._compile(ts.transpile(fs.readFileSync(f, "utf8"), {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020}), f);
   try {
@@ -19,7 +19,10 @@ test("payload persistente usa factory congelada com somente slug público altera
     const funnel = createSoniaDraft();
     const payload = JSON.parse(fs.readFileSync(path.join(root, "../quizfunnel-sonia-publication-preparation/funnel-publication-payload.json"), "utf8"));
     assert.equal(payload.slug, "sorteio-da-sonia");
-    assert.deepEqual({...payload, slug:funnel.slug}, funnel);
+    assert.equal(funnel.steps[0].layers[3].design.effect, "sonia-pulse");
+    const withoutPulse = structuredClone(funnel);
+    delete withoutPulse.steps[0].layers[3].design.effect;
+    assert.deepEqual({...payload, slug:funnel.slug}, withoutPulse);
     assert.equal(payload.steps.length, 2);
     assert.equal(payload.settings.engine, "layers");
     assert.equal(payload.steps[1].layers[0].content.destination, SONIA_REDIRECT);

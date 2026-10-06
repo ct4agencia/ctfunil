@@ -25,6 +25,7 @@ function blocksHarness(){
   imports.react={createContext:require('react').createContext,useContext:()=>null,useState:v=>[v,noop],useEffect:noop,useRef:v=>({current:v})};
   imports['motion/react']={motion:new Proxy({},{get:(_,k)=>String(k)}),AnimatePresence:noop};
   imports['next/dynamic']={__esModule:true,default:()=>noop};
+  imports['./SoniaNumbers.module.css']={__esModule:true,default:{pulse:'sonia-pulse'}};
   imports['@/lib/tracking']=compile('src/lib/tracking.ts',{'@/lib/supabase/client':{createClient:noop}});
   return compile('src/components/quiz/layers/blocks.tsx',imports);
 }
@@ -49,6 +50,22 @@ test('ButtonBlock real: fbq memória zero no preview; InitiateCheckout preservad
     find(block.type(block.props),n=>n.props?.onClick).props.onClick();
     assert.deepEqual(events,[],'botão interno não inventa InitiateCheckout');
   }finally{global.window=before;}
+});
+
+test('CTA Sônia usa pulse dos números no wrapper sem mudar label/destino/efeitos comuns',()=>{
+  const {Block}=blocksHarness();
+  for(const [effect,expected] of [['sonia-pulse','sonia-pulse'],['pulse','fx-pulse'],['shine-pulse','fx-pulse'],['none','']]){
+    const navigations=[];
+    const layer={id:'sonia-confirmar',type:'button',design:{effect},content:{label:'CONFIRMAR',destination:'sonia-selecao'}};
+    const ctx={design:{rounded:'rounded-2xl'},navigate:dest=>navigations.push(dest)};
+    const block=find(Block({layer,ctx,question:''}),n=>n.type?.name==='ButtonBlock');
+    const wrapper=block.type(block.props),button=find(wrapper,n=>n.type==='button');
+    assert.equal(wrapper.props.className.includes('sonia-pulse'),expected==='sonia-pulse');
+    assert.equal(wrapper.props.className.includes('fx-pulse'),expected==='fx-pulse');
+    assert.equal(button.props.className.includes('sonia-pulse'),false,'motion transform pertence ao botão, pulse ao wrapper');
+    assert.equal(button.props.children,'CONFIRMAR');
+    button.props.onClick();assert.deepEqual(navigations,['sonia-selecao']);
+  }
 });
 
 const sonia=compile('src/lib/quiz/layers/sonia.ts');

@@ -583,6 +583,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           <option value="none">Nenhum</option>
           <option value="shine">✨ Brilho (varre o botão)</option>
           <option value="pulse">💓 Pulsar</option>
+          <option value="sonia-pulse">Pulsar com halo dourado (Sônia)</option>
           <option value="shine-pulse">🔥 Brilho + Pulsar (igual a roleta)</option>
         </select>
         <Lbl>Ao clicar</Lbl>
