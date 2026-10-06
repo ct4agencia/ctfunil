@@ -580,6 +580,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                   ...((ls.find((l) => l.type === "carousel")?.content?.images || []) as unknown[]).map((im) =>
                     typeof im === "string" ? im : (im as { src?: string })?.src),
                 ].filter(Boolean) as string[];
+                // Imagem avulsa mantém proporção e controles do bloco; carrosséis
+                // continuam no renderer legado do hero (incluindo múltiplas imagens).
+                const imagemBloco = imgs.length === 1
+                  ? ls.find((l) => l.type === "image" && l.content?.image?.src)
+                  : undefined;
                 const h = semHtmlMultilinha(textos[0]?.content?.text);
                 return (
                   <ResinaHero
@@ -600,6 +605,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     subtexto={textos[1] ? semHtml(textos[1].content?.text) : undefined}
                     cardTexto={textos[2] ? semHtml(textos[2].content?.text) : undefined}
                     imagens={imgs}
+                    imagemBloco={imagemBloco ? <Block layer={imagemBloco} ctx={ctx} question="" /> : undefined}
                     cta={semHtml(btn?.content?.label) || "COMEÇAR"}
                     onAvancar={() => ctx.navigate(btn?.content?.destination || "next")}
                   />

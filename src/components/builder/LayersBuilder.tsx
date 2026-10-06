@@ -596,6 +596,10 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
             <input type="checkbox" checked={!!layer.design?.flutua} onChange={(e) => setD({ flutua: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" />
             Flutuar (sobe e desce devagar)
           </label>
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
+            <input type="checkbox" checked={!!layer.design?.brilhos} onChange={(e) => setD({ brilhos: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" />
+            Brilhos ao redor da imagem
+          </label>
           <Lbl>Tag no canto (vazio = sem tag)</Lbl>
           <div className="flex items-center gap-2">
             <input value={layer.design?.tag || ""} onChange={(e) => setD({ tag: e.target.value || undefined })} placeholder="GRÁTIS" className={`${inp} flex-1`} />

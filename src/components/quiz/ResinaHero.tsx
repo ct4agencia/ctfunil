@@ -21,7 +21,7 @@
  * cores derivadas por `lib/quiz/resina.ts`.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { tokensResina, rgbDe } from "@/lib/quiz/resina";
 import { prefereMenosMovimento } from "@/lib/quiz/motion";
@@ -42,6 +42,8 @@ export interface ResinaHeroProps {
   /** destaque monetário, sai no chip verde */
   valor?: string;
   imagens?: string[];
+  /** Imagem avulsa renderizada pelo motor de blocos, com seu design preservado. */
+  imagemBloco?: ReactNode;
   cta: string;
   /** CTA como PNG clicável (padrão inlead). Presente, substitui o botão estilizado. */
   ctaImagem?: string;
@@ -55,7 +57,7 @@ const SLIDE_MS = 2200;
 
 export default function ResinaHero({
   cor, emoji, titulo, capsula, subtexto, cardTexto, produto, cardTextoFim,
-  valor, imagens = [], cta, ctaImagem, rodape, onAvancar,
+  valor, imagens = [], imagemBloco, cta, ctaImagem, rodape, onAvancar,
 }: ResinaHeroProps) {
   const t = tokensResina(cor);
   const rgb = rgbDe(cor);
@@ -195,7 +197,11 @@ export default function ResinaHero({
         ) : null}
       </motion.div>
 
-      {imagens.length ? (
+      {imagemBloco ? (
+        <div className="mx-auto mb-3.5 w-full" style={{ maxWidth: 440 }}>
+          {imagemBloco}
+        </div>
+      ) : imagens.length ? (
         <>
           <motion.div
             initial={reduzido ? false : { opacity: 0, y: 20 }}
