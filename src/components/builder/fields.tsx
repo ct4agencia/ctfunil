@@ -22,6 +22,8 @@ function escHtml(s: string) {
  * saía laranja em funil de qualquer paleta.
  */
 export const TemaFunilContext = createContext<string | null>(null);
+/** Local previews must never upload assets to the server. Other builders keep their existing behavior. */
+export const LocalDraftContext = createContext(false);
 
 /**
  * Clareia um hex em direção ao branco. Deriva o segundo tom do degradê da pílula
@@ -177,6 +179,7 @@ async function paraWebp(file: File): Promise<File> {
 }
 
 export function ImageField({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+  const localDraft = useContext(LocalDraftContext);
   const [busy, setBusy] = useState(false);
   /* A falha do upload PRECISA aparecer. Antes o `catch` era vazio e um `j.url`
      ausente não dizia nada: sessão expirada (401) ou arquivo grande demais
@@ -185,6 +188,7 @@ export function ImageField({ value, onChange }: { value?: string; onChange: (v: 
      nenhuma linha na tela explicava o porquê. */
   const [erro, setErro] = useState<string | null>(null);
   const up = async (file: File) => {
+    if (localDraft) { setErro("Upload remoto desativado no rascunho local. Use uma URL ou asset local."); return; }
     setBusy(true);
     setErro(null);
     try {
@@ -202,8 +206,8 @@ export function ImageField({ value, onChange }: { value?: string; onChange: (v: 
     <div className="space-y-1.5">
       <input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder="https://…/imagem.jpg" className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs" />
       <label className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">
-        {busy ? "Enviando…" : "⬆ Upload"}
-        <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && up(e.target.files[0])} />
+        {localDraft ? "Upload remoto desativado (local)" : busy ? "Enviando…" : "⬆ Upload"}
+        <input type="file" accept="image/*" disabled={localDraft} className="hidden" onChange={(e) => e.target.files?.[0] && up(e.target.files[0])} />
       </label>
       {erro ? <p className="rounded-md bg-red-50 px-2 py-1 text-[11px] leading-snug text-red-700">{erro}</p> : null}
       {value ? (

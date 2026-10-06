@@ -366,8 +366,8 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   }, [reveal, showCountdown]);
 
   const onClick = () => {
-    // checkout externo (ex: botão da VSL): SEMPRE avisa a Meta (InitiateCheckout)
-    if (isExternal) { fireMetaEvent("InitiateCheckout"); ctx.navigate(dest); return; }
+    // Checkout externo avisa a Meta apenas fora do preview.
+    if (isExternal) { if (!ctx.preview) fireMetaEvent("InitiateCheckout"); ctx.navigate(dest); return; }
     if (ctx.hasFields) { ctx.submitFields(); return; }
     ctx.navigate(dest);
   };

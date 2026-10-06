@@ -7,6 +7,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from "@dnd-kit/utilities";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
+import { SONIA_DEFAULTS, soniaConfigError } from "@/lib/quiz/layers/sonia";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import CanvasErrorBoundary from "@/components/builder/CanvasErrorBoundary";
 import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
@@ -16,7 +17,7 @@ import DevicePreview, { DEFAULT_DEVICE, type Zoom } from "@/components/builder/D
 // VSL, parabéns). Reusado em vez de duplicado: dois editores do mesmo bloco
 // viram dois comportamentos diferentes na primeira mudança.
 import StepEditor from "@/components/builder/StepEditor";
-import { HtmlField, ImageField, TemaFunilContext } from "@/components/builder/fields";
+import { HtmlField, ImageField, TemaFunilContext, LocalDraftContext } from "@/components/builder/fields";
 // Mesma normalização que gera o cabeçalho do CSV — se o construtor tivesse a
 // dele, o nome digitado e o nome exportado divergiriam no primeiro acento.
 import { normalizarChave } from "@/lib/quiz/colunas";
@@ -42,6 +43,7 @@ const BLOCK_META: Record<string, { icon: string; label: string }> = {
   graphics: { icon: "📊", label: "Gráfico" }, clear: { icon: "↕️", label: "Espaço" }, embed: { icon: "▶️", label: "Vídeo/Embed" },
   video: { icon: "▶️", label: "Vídeo" }, roulette: { icon: "🎡", label: "Roleta" }, slider: { icon: "🎚️", label: "Slider" },
   carousel: { icon: "🎠", label: "Carrossel" },
+  "sonia-numbers": { icon: "🔢", label: "Sorteio da Sônia" },
 };
 /** Paleta categorizada (ordem/categorias dos prints do inlead). */
 const CATS: { name: string; items: [string, string][] }[] = [
@@ -51,7 +53,7 @@ const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Quiz", items: [["options", "Opções"], ["multi", "Múltipla Escolha"], ["single", "Escolha Única"], ["yesno", "Sim/Não"], ["videoanswer", "Vídeo Resposta"]] },
   // Blocos-hero: ocupam a lâmina inteira. Vêm do motor tipado e nascem com
   // preset pronto — adicionar e já funciona.
-  { name: "Jogos (hero)", items: [["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
+  { name: "Jogos (hero)", items: [["sonia-numbers", "Sorteio da Sônia"], ["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
   { name: "Conversão (hero)", items: [["vsl", "VSL (vídeo + CTA)"], ["confirm", "Parabéns"]] },
   { name: "Mídia e conteúdo", items: [["text", "Texto"], ["card", "Card"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
   { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"], ["disclaimer", "Disclaimer"], ["trust", "Garantia e pagamento"]] },
@@ -88,12 +90,12 @@ const PALETTE_ICON: Record<string, string> = {
   options: "☑️", multi: "🗂️", single: "⚪", yesno: "🔀", videoanswer: "🎬", text: "🔤", image: "🖼️", video: "▶️", audio: "🔊",
   card: "🗂️", alert: "⚠️", notification: "🔔", timer: "⏱️", loading: "⏳", level: "📶", arguments: "💬", testimonials: "⭐", faq: "❓",
   price: "💲", checklist: "✅", beforeafter: "🔁", carousel: "🎠", graphics: "📊", charts: "📈", clear: "↕️", html: "▟",
-  roulette: "🎡", slider: "🎚️", scratch: "🎟️", measure: "📐", gauge: "🎯", vsl: "🎥", confirm: "🎉",
+  roulette: "🎡", slider: "🎚️", scratch: "🎟️", measure: "📐", gauge: "🎯", vsl: "🎥", confirm: "🎉", "sonia-numbers": "🔢",
 };
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
 const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "disclaimer", "trust", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
   // blocos-hero herdados do motor tipado (todos com preset pronto)
-  "scratch", "measure", "gauge", "vsl", "confirm",
+  "scratch", "measure", "gauge", "vsl", "confirm", "sonia-numbers",
   // Estes DOIS o funil já desenhava (blocks.tsx: GraphicsBlock e
   // NotificationBlock) e o construtor ainda dizia "em breve" — funcionalidade
   // pronta e trancada. O `graphics` é o anel de porcentagem que o cdb-01 usa
@@ -120,6 +122,7 @@ function newLayer(type: LayerType): Layer {
   const atalho = ATALHO_CAMPO[type as string];
   if (atalho) return { id, type: "field", content: { id, ...atalho } } as unknown as Layer;
   switch (type) {
+    case "sonia-numbers": return { ...base, content: { id, ...SONIA_DEFAULTS } };
     case "text": return { ...base, content: { id, text: "<p class=\"ql-align-center\">Novo texto</p>" } };
     case "card": return { ...base, design: { basis: 100, variant: "suave", padding: 20 }, content: { id, text: "<p class=\"ql-align-center\">Texto dentro do card. Use a barra de formatação para destacar palavras.</p>" } };
     case "alert": return { ...base, design: { style: "danger", padding: 14 }, content: { id, text: "<p class=\"ql-align-center\">Aviso importante</p>" } };
@@ -397,6 +400,25 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
   );
 
   switch (layer.type) {
+    case "sonia-numbers":
+      return <>
+        <p className="text-xs text-neutral-600">Seleção demonstrativa, sem estoque ou reserva real. X pode ser escolhido diretamente; Y fica indisponível após o clique.</p>
+        <label className="mt-3 block text-xs">Número X (selecionável)
+          <input aria-label="Número X" type="number" min={1} max={60} step={1} className={inp} value={c.numeroX ?? SONIA_DEFAULTS.numeroX} onChange={(e) => setC({ numeroX: Number(e.target.value) })} />
+        </label>
+        <label className="mt-3 block text-xs">Número Y (indisponível após clique)
+          <input aria-label="Número Y" type="number" min={1} max={60} step={1} className={inp} value={c.numeroY ?? SONIA_DEFAULTS.numeroY} onChange={(e) => setC({ numeroY: Number(e.target.value) })} />
+        </label>
+        {soniaConfigError(c) ? <p role="alert" className="mt-2 text-xs text-red-700">{soniaConfigError(c)}</p> : null}
+        <label className="mt-3 block text-xs">Destino após confirmar
+          <select aria-label="Destino após confirmar" className={inp} value={/^https?:/.test(c.destination || "") ? "__url" : (c.destination || "")} onChange={(e) => setC({ destination: e.target.value === "__url" ? "https://" : e.target.value || undefined })}>
+            <option value="">Pendente — nextStep se configurado; senão só demonstração</option>
+            {destOptions}<option value="__url">Link externo</option>
+          </select>
+        </label>
+        {/^https?:/.test(c.destination || "") ? <input aria-label="URL de destino" className={`${inp} mt-2`} value={c.destination} onChange={(e) => setC({ destination: e.target.value })} placeholder="https://…" /> : null}
+        <p className="mt-2 text-xs text-neutral-600">No runtime, destino ausente ou inválido bloqueia a confirmação. Preview nunca abre links externos.</p>
+      </>;
     case "text":
       return (<><Lbl>Texto</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} /></>);
     case "alert":
@@ -1436,7 +1458,10 @@ export function LeadsTab({ slug }: { slug: string }) {
   );
 }
 
-export default function LayersBuilder({ initial }: { initial: Funnel }) {
+export default function LayersBuilder({ initial, localDraft }: { initial: Funnel; localDraft?: {
+  save: (funnel: Funnel) => Promise<{ ok: boolean; error?: string }>;
+  previewHref: string;
+} }) {
   const [funnel, setFunnel] = useState<Funnel>(initial);
   const steps = funnel.steps as unknown as InleadStep[];
   const [selStep, setSelStep] = useState(0);
@@ -1463,11 +1488,11 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const save = async () => {
     setSaving(true); setMsg(null);
     const renamed = funnel.slug !== initial.slug;
-    const r = await saveFunnelAction(funnel, renamed ? initial.slug : undefined);
+    const r = localDraft ? await localDraft.save(funnel) : await saveFunnelAction(funnel, renamed ? initial.slug : undefined);
     setSaving(false);
-    setMsg(r.ok ? "✓ Salvo" : `Erro: ${r.error ?? "falhou"}`);
-    if (r.ok && renamed) { window.location.href = `/builder/${funnel.slug}`; return; }
-    setTimeout(() => setMsg(null), 4000);
+    setMsg(r.ok ? (localDraft ? "✓ Rascunho salvo LOCALMENTE" : "✓ Salvo") : `Erro: ${r.error ?? "falhou"}`);
+    if (r.ok && renamed && !localDraft) { window.location.href = `/builder/${funnel.slug}`; return; }
+    if (!localDraft) setTimeout(() => setMsg(null), 4000);
     if (r.ok) setNonce((n) => n + 1);
   };
 
@@ -1558,26 +1583,27 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   return (
     // Tema do funil para os campos que geram HTML colorido (a pílula do editor
     // rico). Sem isso ela nascia laranja em funil de qualquer paleta.
+    <LocalDraftContext.Provider value={!!localDraft}>
     <TemaFunilContext.Provider value={theme}>
     <div className="min-h-screen bg-neutral-100 text-neutral-900">
       <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="rounded-md border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">← Funis</Link>
+          <Link href={localDraft ? localDraft.previewHref : "/dashboard"} className="rounded-md border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">{localDraft ? "← Preview local" : "← Funis"}</Link>
           <div>
             <h1 className="text-sm font-bold">Construtor · {funnel.name} <span className="ml-1 rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-700">LAYERS</span></h1>
-            <p className="text-xs text-neutral-500">/{funnel.slug} · {steps.length} lâminas</p>
+            <p className="text-xs text-neutral-500">/{funnel.slug} · {steps.length} lâminas{localDraft ? " · RASCUNHO LOCAL — não publicado" : ""}</p>
           </div>
         </div>
         <nav className="flex items-center gap-1 rounded-lg bg-neutral-100 p-1">
           {([["construtor", "🧩 Construtor"], ["fluxo", "🔀 Fluxo"], ["design", "🎨 Design"], ["leads", "👥 Leads"]] as const).map(([k, label]) => (
-            <button key={k} onClick={() => setTab(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${tab === k ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}>{label}</button>
+            <button key={k} disabled={!!localDraft && k === "leads"} onClick={() => setTab(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${tab === k ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}>{label}</button>
           ))}
         </nav>
         <div className="flex items-center gap-3">
           {msg ? <span className={`text-xs font-semibold ${msg.startsWith("✓") ? "text-green-600" : "text-red-600"}`}>{msg}</span> : null}
-          <button onClick={() => setShowSettings(true)} title="Configurações do funil" className="rounded-lg border border-neutral-300 px-2.5 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⚙</button>
+          <button disabled={!!localDraft} onClick={() => setShowSettings(true)} title="Configurações do funil" className="rounded-lg border border-neutral-300 px-2.5 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⚙</button>
           <button onClick={save} disabled={saving} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{saving ? "Salvando…" : "💾 Salvar"}</button>
-          <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white">Ver ao vivo ↗</a>
+          <a href={localDraft ? localDraft.previewHref : funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white">{localDraft ? "Preview local ↗" : "Ver ao vivo ↗"}</a>
         </div>
       </header>
 
@@ -1631,7 +1657,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           <div className="mb-2 flex items-center justify-between px-1">
             <span className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">Etapas</span>
             <div className="flex items-center gap-1">
-              <button onClick={openImport} title="Importar lâmina de outro funil" className="rounded border border-neutral-300 px-1.5 py-0.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⬇</button>
+              <button disabled={!!localDraft} onClick={openImport} title="Importar lâmina de outro funil" className="rounded border border-neutral-300 px-1.5 py-0.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⬇</button>
               <button onClick={dupStep} title="Duplicar esta lâmina" className="rounded border border-neutral-300 px-1.5 py-0.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⧉</button>
               <button onClick={addStep} title="Nova etapa" className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs font-semibold text-white">+</button>
             </div>
@@ -2013,5 +2039,6 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
       ) : null}
     </div>
     </TemaFunilContext.Provider>
+    </LocalDraftContext.Provider>
   );
 }

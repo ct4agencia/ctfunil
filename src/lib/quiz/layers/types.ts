@@ -12,6 +12,7 @@ export type LayerType =
   | "text" | "clear" | "options" | "image" | "button" | "alert"
   | "loading" | "field" | "timer" | "notification" | "graphics"
   | "embed" | "video" | "roulette" | "slider" | "carousel"
+  | "sonia-numbers" // seleção demonstrativa 01..60; sem reserva/estoque
   // ── diagnóstico e prova (13/08/2026) ──────────────────────────────────────
   | "level"        // régua de níveis com "você está aqui"
   | "beforeafter"  // prova social antes→depois, em carrossel
@@ -105,6 +106,9 @@ export interface Layer {
     text?: string;
     // clear
     clear?: string;
+    // Sorteio da Sônia — números válidos e distintos, sem correção silenciosa
+    numeroX?: number;
+    numeroY?: number;
     // button
     label?: string;
     destination?: string;

@@ -5,6 +5,8 @@ import { AnimatePresence, motion } from "motion/react";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, InleadDesign } from "@/lib/quiz/layers/types";
 import { trackStep, trackAnswer } from "@/lib/quiz/track";
+import { initialSoniaState, soniaDestination, type SoniaState } from "@/lib/quiz/layers/sonia";
+import { SONIA_REDIRECT } from "@/lib/quiz/layers/sonia-draft";
 import { getSessionId, collectTrackingParams, fireMetaEvent } from "@/lib/tracking";
 import { ScrollHint } from "../ui";
 import { type StepCtx } from "../steps";
@@ -53,6 +55,7 @@ const RouletteStepView = dynamic(() => import("../steps").then((m) => m.Roulette
  * isso desde sempre. Todos em `dynamic`: funil que não usa o bloco não baixa
  * uma linha a mais (o steps.tsx sozinho tem 1270 linhas).
  */
+const SoniaNumbers = dynamic(() => import("./SoniaNumbers"), { ssr: false });
 const ScratchGrid = dynamic(() => import("../ScratchGrid"), { ssr: false });
 const MeasureStepView = dynamic(() => import("../steps").then((m) => m.MeasureStepView), { ssr: false });
 const GaugeStepView = dynamic(() => import("../steps").then((m) => m.GaugeStepView), { ssr: false });
@@ -60,7 +63,7 @@ const VslStepView = dynamic(() => import("../steps").then((m) => m.VslStepView),
 const ConfirmStepView = dynamic(() => import("../steps").then((m) => m.ConfirmStepView), { ssr: false });
 
 /** Tipos de bloco que tomam a lâmina inteira (não empilham com outros). */
-const HERO_TIPADO = new Set(["roulette", "slider", "scratch", "measure", "gauge", "vsl", "confirm"]);
+const HERO_TIPADO = new Set(["roulette", "slider", "scratch", "measure", "gauge", "vsl", "confirm", "sonia-numbers"]);
 
 /**
  * Tipo que representa a lâmina no relatório. Bloco-hero manda (ele É a lâmina);
@@ -85,7 +88,12 @@ const ALIGN: Record<string, string> = {
   "justify-start": "flex-start", "justify-center": "center", "justify-end": "flex-end",
 };
 
-export default function LayersRunner({ funnel, geo, startIndex = 0, preview = false, editor }: { funnel: Funnel; geo?: { estado?: string; cidade?: string }; startIndex?: number; preview?: boolean; editor?: LayersEdit }) {
+export default function LayersRunner({ funnel, geo, startIndex = 0, preview = false, editor, localPreviewRedirect }: { funnel: Funnel; geo?: { estado?: string; cidade?: string }; startIndex?: number; preview?: boolean; editor?: LayersEdit; localPreviewRedirect?: string }) {
+  // Explicit local lab opt-in. Keep every tracking/capture preview guard active.
+  const canPreviewRedirect = () => preview && process.env.NODE_ENV === "development" && typeof window !== "undefined"
+    && ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname) && window.location.pathname === "/lab/sonia"
+    && localPreviewRedirect === SONIA_REDIRECT;
+  const allowedPreviewRedirect = canPreviewRedirect() ? SONIA_REDIRECT : undefined;
   const allSteps = funnel.steps as unknown as InleadStep[];
   // runtime PULA lâminas desativadas; no preview do construtor mostra todas (pra editar)
   const steps = preview ? allSteps : allSteps.filter((s) => !s.disabled);
@@ -128,6 +136,9 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   useEffect(() => { primeiroPaint.current = false; }, []);
   const [name, setName] = useState("");
   const [fields, setFields] = useState<Record<string, string>>({});
+  // Mesmo lifetime de fields/history: voltar a uma lâmina não perde seleção.
+  // Chave inclui configuração para uma edição X/Y não herdar estado incompatível.
+  const [soniaStates, setSoniaStates] = useState<Record<string, SoniaState>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const step = steps[idx];
@@ -156,7 +167,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     setCanBack(true);
     setIdx(n);
   };
-  const navigate = (dest?: string) => {
+  const navigate = (dest?: string, exactUrl = false) => {
     if (!dest || dest === "next") {
       // "próxima" pode ter destino próprio (`nextStep`), definido arrastando a
       // bolinha do rodapé no mapa de fluxo. Sem o campo, segue por posição.
@@ -168,7 +179,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
        não <a> — a UTMify só reescreve links, então aqui ela não tinha o que
        reescrever e a pessoa chegava na Hotmart com a URL nua. Sem os
        parâmetros, a venda chega sem dono. */
-    if (/^https?:\/\//i.test(dest)) { window.location.assign(comRastreio(dest)); return; }
+    if (/^https?:\/\//i.test(dest)) {
+      if (!preview) window.location.assign(exactUrl ? dest : comRastreio(dest));
+
+      return;
+    }
     if (idById[dest] != null) return go(idById[dest]);
     go(idx + 1);
   };
@@ -302,6 +317,28 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   const acimaDoHero = iHero > 0 ? camadas.slice(0, iHero) : [];
   const abaixoDoHero = iHero >= 0 ? camadas.slice(iHero + 1) : [];
   if (hero) {
+    if (hero.type === "sonia-numbers") {
+      const key = JSON.stringify([step.id, hero.id, hero.content.numeroX ?? 42, hero.content.numeroY ?? 17]);
+      const state = soniaStates[key] ?? initialSoniaState;
+      return <div style={{ background: "#06152E", color: "#F7F2E8" }}>
+        {acimaDoHero.length ? <div className="mx-auto w-full max-w-[492px] px-4 pt-6">{acimaDoHero.map((l, i) => <Block key={l.id} layer={l} ctx={ctx} question={question} indice={i} />)}</div> : null}
+        <SoniaNumbers key={key} config={hero.content} state={state}
+        setState={(update) => setSoniaStates((prev) => ({ ...prev, [key]: typeof update === "function" ? update(prev[key] ?? initialSoniaState) : update }))}
+        preview={preview} destination={soniaDestination(hero.content.destination, steps, idx)}
+        allowExternalNavigation={!!allowedPreviewRedirect && hero.content.destination === allowedPreviewRedirect}
+        navigate={(destination) => {
+          if (!state.selected) return;
+          // Only SoniaNumbers continuation receives this permission, never ctx.
+          if (canPreviewRedirect() && destination === allowedPreviewRedirect && hero.content.destination === allowedPreviewRedirect) {
+            window.location.assign(destination);
+            return;
+          }
+          navigate(destination, true);
+        }} back={canBack ? back : undefined}
+        trackSelection={(value) => ctx.trackAnswer(step.id, "Seleção de número", value)} />
+        {abaixoDoHero.length ? <div className="mx-auto w-full max-w-[492px] px-4 pb-8">{abaixoDoHero.map((l, i) => <Block key={l.id} layer={l} ctx={ctx} question={question} indice={acimaDoHero.length + 1 + i} />)}</div> : null}
+      </div>;
+    }
     const palette = getPalette(funnel.paletteId);
     // SLIDER hero: layout dedicado (foto full-bleed no rodapé + gradiente, botão acima).
     if (hero.type === "slider") {
