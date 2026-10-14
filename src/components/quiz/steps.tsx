@@ -156,6 +156,7 @@ function contrastText(hex?: string): string {
 export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepCtx }) {
   const [spinning, setSpinning] = useState(false);
   const [done, setDone] = useState(false);
+  const [spinCount, setSpinCount] = useState(0);
   const N = step.segments.length;
   const seg = 360 / N;
   // rotação inicial: mostra a fatia `initialIndex` sob o ponteiro antes de girar
@@ -193,6 +194,10 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   // Popup de prêmio: AUSENTE = desligado, para as roletas que já rodam não
   // ganharem uma tela nova sem ninguém ter pedido.
   const popupOn = !!step.popupEnabled;
+  const retryIndex = Number.isInteger(step.retryIndex) && step.retryIndex! >= 0 && step.retryIndex! < N
+    ? step.retryIndex!
+    : null;
+  const hasRetrySpin = retryIndex != null && retryIndex !== step.winningIndex;
   // mesma guarda do bloco `check`: quem pediu menos movimento vê o emoji parado
   const reduzMovimento = prefereMenosMovimento();
   const premio = step.segments[vencedor];
@@ -207,17 +212,33 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     import("canvas-confetti").then((m) => m.default({ particleCount: 170, spread: 95, origin: { y: 0.4 } })).catch(() => {});
   };
 
+  /** O primeiro giro controlado para no índice de tentativa; só o seguinte premia. */
+  const finalizarGiro = (resultado = vencedor) => {
+    if (hasRetrySpin && spinCount === 0 && resultado === retryIndex) {
+      setSpinCount(1);
+      setSpinning(false);
+      setDone(false);
+      return;
+    }
+    celebrar();
+  };
+
   const spin = () => {
     if (spinning || done) return;
     setSpinning(true);
 
-    const win = step.mode === "random" ? Math.floor(Math.random() * N) : step.winningIndex;
+    const primeiroGiroDeTentativa = hasRetrySpin && spinCount === 0;
+    const win = primeiroGiroDeTentativa
+      ? retryIndex!
+      : step.mode === "random" && !hasRetrySpin
+        ? Math.floor(Math.random() * N)
+        : step.winningIndex;
     setVencedor(win);
     // trava 24h: registra o prêmio no aparelho (fixa no reload + bloqueia novo giro).
     // NUNCA no preview: ali a trava sobrevive à remontagem do componente, então
     // o "Reiniciar" do construtor remontava a lâmina e a roleta voltava já
     // ganha. Mesma guarda que a raspadinha usa no `oncePerDevice`.
-    if (step.lockReplay && !ctx.preview && typeof window !== "undefined") {
+    if (step.lockReplay && !ctx.preview && typeof window !== "undefined" && !primeiroGiroDeTentativa) {
       try { localStorage.setItem(`cdb-rl-${step.id}`, JSON.stringify({ w: win, ts: Date.now() })); } catch { /* noop */ }
     }
 
@@ -230,8 +251,11 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     }
     if (simulada) return; // o fim chega pelo callback do componente
 
-    setRotation(360 * 6 - win * seg); // win=0 → 6 voltas exatas, labels terminam retas
-    setTimeout(celebrar, 4300);
+    const moduloAtual = ((rotation % 360) + 360) % 360;
+    const moduloPremio = ((-win * seg) % 360 + 360) % 360;
+    const ajuste = (moduloPremio - moduloAtual + 360) % 360;
+    setRotation(rotation + 360 * 6 + ajuste);
+    setTimeout(() => finalizarGiro(win), 4300);
   };
 
   // após vencer, avança sozinho (sem 2º clique) quando autoAdvance.
@@ -281,7 +305,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               /* o índice que chega é o REALMENTE entregue: no modo "não passa"
                  a roda para no prêmio anterior, e celebrar o alvo seria mentir
                  sobre o que está debaixo do ponteiro */
-              onFim={(real) => { setVencedor(real); celebrar(); }}
+              onFim={(real) => { setVencedor(real); finalizarGiro(real); }}
               som={!!step.sound?.enabled && !step.sound?.tickUrl}
               centerImage={step.centerImage}
               // o corpo do texto vem do painel, como nos outros motores
@@ -299,7 +323,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               labelSize={step.labelSize}
               vencedor={vencedor}
               girando={spinning}
-              onFim={celebrar}
+              onFim={() => finalizarGiro()}
               som={!!step.sound?.enabled && !step.sound?.tickUrl}
               preset={step.preset}
               intensidade={step.intensidade ?? 0}
@@ -402,11 +426,19 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
         {step.ctaBelow ? (
           <div className="mx-auto mt-6 w-full max-w-xs">
             {!done ? (
-              <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : step.cta}</CtaButton>
+              <>
+                {hasRetrySpin && spinCount > 0 && !spinning ? <p className="mb-3 text-center text-sm font-semibold text-[var(--q-primary-dark)]">Quase! Gire mais uma vez para revelar seu bônus.</p> : null}
+                <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : spinCount > 0 ? (step.retryCta ?? "Girar novamente") : step.cta}</CtaButton>
+              </>
             ) : !step.autoAdvance && !popupOn ? (
               <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
             ) : null}
           </div>
+        ) : null}
+        {!step.ctaBelow && hasRetrySpin && spinCount > 0 && !spinning ? (
+          <p className="mt-4 text-center text-sm font-semibold text-[var(--q-primary-dark)]">
+            Quase! Gire mais uma vez para revelar seu bônus.
+          </p>
         ) : null}
       </StepShell>
 
@@ -417,7 +449,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
           {done ? (
             popupOn ? null : <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
           ) : (
-            <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : step.cta}</CtaButton>
+            <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : spinCount > 0 ? (step.retryCta ?? "Girar novamente") : step.cta}</CtaButton>
           )}
         </StickyCta>
       ) : null}
@@ -492,13 +524,25 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                   </div>
                 )
               )}
-              <button
-                onClick={ctx.advance}
-                className="mt-5 w-full rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
-                style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
-              >
-                {step.winCta ?? "Pegar meu prêmio"}
-              </button>
+              {step.winCtaUrl ? (
+                <motion.a
+                  href={step.winCtaUrl}
+                  className="fx-pulse fx-shine relative mt-5 block w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
+                  style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {step.winCta ?? "Pegar meu prêmio"}
+                </motion.a>
+              ) : (
+                <motion.button
+                  onClick={ctx.advance}
+                  className="fx-pulse fx-shine relative mt-5 w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
+                  style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {step.winCta ?? "Pegar meu prêmio"}
+                </motion.button>
+              )}
             </motion.div>
           </motion.div>
         ) : null}

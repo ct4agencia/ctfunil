@@ -211,6 +211,12 @@ export interface RouletteStep extends BaseStep {
   winningIndex: number;
   /** "always" = cai no winningIndex | "random" = sorteio (Fase B) */
   mode?: "always" | "random";
+  /** Índice exibido no primeiro giro, antes da segunda chance premiada. */
+  retryIndex?: number;
+  /** Texto do botão que libera o segundo giro. */
+  retryCta?: string;
+  /** Link direto do botão exibido no popup de prêmio. */
+  winCtaUrl?: string;
   centerImage?: string;
   cta: string;
   /**
