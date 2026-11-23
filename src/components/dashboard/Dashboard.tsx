@@ -219,7 +219,7 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
                     return (
                       <article key={f.slug} className={`ct-dashboard-card relative min-w-0 overflow-visible rounded-xl bg-ct-raised p-4 ${menu === f.slug ? "z-30" : ""}`}>
                         <div className="flex items-start justify-between gap-3">
-                          <button type="button" onClick={() => router.push(snapshotAt ? `/dashboard/${encodeURIComponent(f.slug)}` : preview ? "/lab/sonia?view=builder" : `/builder/${f.slug}`)} className="min-w-0 flex-1 text-left">
+                          <button type="button" onClick={() => router.push(snapshotAt ? `/builder/${encodeURIComponent(f.slug)}?editar=1` : preview ? "/lab/sonia?view=builder" : `/builder/${f.slug}`)} className="min-w-0 flex-1 text-left">
                             <span className="mb-3 block h-1.5 w-16 rounded-full" style={{ background: pal.primary }} />
                             <h3 className="truncate text-lg font-black">{f.name}</h3>
                             <p className="mt-1 text-xs text-ct-dim [overflow-wrap:anywhere]">/{f.slug} · {fmtDate(f.updated_at)}{f.niche ? ` · ${f.niche}` : ""}</p>
@@ -241,6 +241,10 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
                         <div className="mt-4 flex flex-wrap items-center gap-2">
                           <WorkspaceStatus status={f.status} />
                           <span className="rounded-full bg-ct-raised px-2.5 py-1 text-[11px] font-bold uppercase text-ct-dim">{f.engine}</span>
+                          {snapshotAt && <>
+                            <Link href={`/builder/${encodeURIComponent(f.slug)}?editar=1`} className="text-sm font-semibold text-ct-blue underline">Abrir editor</Link>
+                            <Link href={`/dashboard/${encodeURIComponent(f.slug)}`} className="text-sm text-ct-blue underline">Ver relatório</Link>
+                          </>}
                         </div>
                       </article>
                     );
@@ -253,9 +257,14 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
                   {filteredPages.map(item => (
                     <article key={item.slug} className="ct-dashboard-card min-w-0 rounded-xl border border-ct-line bg-ct-surface p-4 [overflow-wrap:anywhere]">
                       <p className="text-xs font-medium text-ct-dim">Página VSL · /{item.slug}</p>
-                      <h3 className="mt-2 text-lg font-semibold">{item.name}</h3>
+                      <h3 className="mt-2 text-lg font-semibold">
+                        <Link href={`/builder/${encodeURIComponent(item.slug)}?editar=1`}>{item.name}</Link>
+                      </h3>
                       <p className="mt-1 text-sm text-ct-dim">{item.tracked.toLocaleString("pt-BR")} sessões com rastreamento de vídeo</p>
-                      <Link href={`/dashboard/${encodeURIComponent(item.slug)}`} className="mt-3 inline-block text-sm text-ct-blue">Ver relatório</Link>
+                      <div className="mt-3 flex flex-wrap gap-4">
+                        <Link href={`/builder/${encodeURIComponent(item.slug)}?editar=1`} className="text-sm font-semibold text-ct-blue underline">Abrir editor</Link>
+                        <Link href={`/dashboard/${encodeURIComponent(item.slug)}`} className="text-sm text-ct-blue underline">Ver relatório</Link>
+                      </div>
                     </article>
                   ))}
 

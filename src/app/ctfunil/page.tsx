@@ -28,6 +28,7 @@ export default async function ProjectsPage() {
       updated: Number.isNaN(updated.getTime()) ? "Sem data" : date.format(updated),
       preview: `/${funnel.slug}`,
       metric: sessions === undefined ? "Sem total de sessões" : `${number.format(sessions)} sessões`,
+      editorHref: `/builder/${encodeURIComponent(funnel.slug)}?editar=1`,
       reportHref: sessions === undefined ? undefined : `/dashboard/${encodeURIComponent(funnel.slug)}`,
     };
   });

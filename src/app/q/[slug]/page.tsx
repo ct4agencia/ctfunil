@@ -21,10 +21,11 @@ export async function generateMetadata({
   const funnel = await resolvePublicFunnel(slug);
   if (!funnel) return { title: "Quiz" };
   const seo = funnel.settings?.seo ?? {};
+  const favicon = seo.favicon || funnel.logo;
   return {
     title: seo.title || funnel.name,
     description: seo.description,
-    icons: seo.favicon ? { icon: seo.favicon } : undefined,
+    ...(favicon ? { icons: { icon: favicon } } : {}),
     openGraph: {
       title: seo.title || funnel.name,
       description: seo.description,

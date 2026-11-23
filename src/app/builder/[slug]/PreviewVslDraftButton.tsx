@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { loadImportDraft, saveImportDraft } from "@/lib/assistant/import-drafts";
 import type { Funnel } from "@/lib/quiz/types";
@@ -29,7 +29,7 @@ export function restoreOriginalImages(current: Funnel, source: Funnel) {
   return { restored, funnel: restored ? { ...current, steps: steps as unknown as Funnel["steps"] } : current };
 }
 
-export default function PreviewVslDraftButton({ funnel, video }: { funnel: Funnel; video: boolean }) {
+export default function PreviewVslDraftButton({ funnel, video, autoOpen = false }: { funnel: Funnel; video: boolean; autoOpen?: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState<"open" | "restore" | null>(null);
   const [notice, setNotice] = useState("");
@@ -39,7 +39,8 @@ export default function PreviewVslDraftButton({ funnel, video }: { funnel: Funne
   );
   const [error, setError] = useState("");
 
-  async function openDraft() {
+  const autoOpened = useRef(false);
+  const openDraft = useCallback(async (replace = false) => {
     if (pending) return;
     setPending("open");
     setError("");
@@ -53,12 +54,20 @@ export default function PreviewVslDraftButton({ funnel, video }: { funnel: Funne
           warnings: [video ? videoMediaWarning : legacyMediaWarning],
         });
       }
-      router.push(`/importar/${encodeURIComponent(id)}`);
+      const href = `/importar/${encodeURIComponent(id)}`;
+      if (replace) router.replace(href);
+      else router.push(href);
     } catch {
       setError("Não foi possível abrir a cópia local neste navegador.");
       setPending(null);
     }
-  }
+  }, [pending, id, funnel, router, video]);
+
+  useEffect(() => {
+    if (!autoOpen || autoOpened.current) return;
+    autoOpened.current = true;
+    void openDraft(true);
+  }, [autoOpen, openDraft]);
 
   async function restoreImages() {
     if (pending) return;
@@ -88,7 +97,7 @@ export default function PreviewVslDraftButton({ funnel, video }: { funnel: Funne
 
   return <div>
     <div className="flex flex-wrap items-center gap-3">
-      <button type="button" className="ct-action-link" onClick={openDraft} disabled={!!pending}>
+      <button type="button" className="ct-action-link" onClick={() => void openDraft()} disabled={!!pending}>
         {pending === "open" ? "Abrindo cópia…" : "Editar cópia local"}
       </button>
       {canRestore && <button type="button" className="text-sm text-ct-blue underline disabled:opacity-50" onClick={restoreImages} disabled={!!pending}>

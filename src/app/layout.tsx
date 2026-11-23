@@ -17,7 +17,7 @@ const inter = localFont({
 export const metadata: Metadata = {
   title: "CTFUNNEL",
   description: "Construtor de funis de quiz gamificado",
-  icons: { icon: "/icons/favicon-32.png", apple: "/icons/apple-touch-icon.png" },
+  icons: { icon: { url: "/icons/ctfunil-orb.png", sizes: "64x64", type: "image/png" }, apple: "/icons/ctfunil-orb.png" },
 };
 
 export default function RootLayout({

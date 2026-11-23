@@ -36,17 +36,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const funnel = await resolvePublicFunnel(slug);
   if (funnel) {
     const seo = funnel.settings?.seo ?? {};
+    const favicon = seo.favicon || funnel.logo;
     return {
       title: seo.title || funnel.name,
       description: seo.description,
-      icons: seo.favicon ? { icon: seo.favicon } : undefined,
+      ...(favicon ? { icons: { icon: favicon } } : {}),
       openGraph: { title: seo.title || funnel.name, description: seo.description, images: seo.ogImage ? [seo.ogImage] : undefined },
     };
   }
   const vsl = await getVsl(slug);
   if (!vsl) return { title: "Página não encontrada" };
   const seo = vsl.settings?.seo ?? {};
-  return { title: seo.title || vsl.name, description: seo.description || vsl.niche || undefined };
+  return {
+    title: seo.title || vsl.name,
+    description: seo.description || vsl.niche || undefined,
+    ...(seo.favicon_url ? { icons: { icon: seo.favicon_url } } : {}),
+  };
 }
 
 export default async function SlugPage({ params }: { params: Promise<{ slug: string }> }) {

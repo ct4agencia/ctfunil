@@ -31,6 +31,7 @@ export type Project = {
   status: string;
   accent?: string;
   reportHref?: string;
+  editorHref?: string;
   preview: string;
   metric: string;
 };
@@ -556,7 +557,7 @@ export default function ProjectsWorkspace({ snapshot, avatarUrl }: { snapshot?: 
           <span className="ct-project-name"><span className="ct-project-icon">{p.type === "quiz" ? <GitBranch size={17}/> : p.type === "pages" ? <PanelsTopLeft size={17}/> : <Layers size={17}/>}</span>
             <span><strong>{p.name}</strong><small>{p.kind}</small></span></span>
           <span className="ct-project-product">{p.product}</span><span><WorkspaceStatus status={p.status} /></span><span className="ct-project-date">{p.updated}</span><ChevronDown size={15}/></button>
-          <div id={`project-detail-${p.id}`} className="ct-project-disclosure" data-expanded={openProject === p.id} inert={openProject !== p.id}><div><p className="ct-project-detail">{p.preview} · {p.metric} · {p.updated}{p.reportHref && <> · <Link href={p.reportHref} className="text-ct-blue underline">Ver relatório</Link></>}</p></div></div></div>)}
+          <div id={`project-detail-${p.id}`} className="ct-project-disclosure" data-expanded={openProject === p.id} inert={openProject !== p.id}><div><p className="ct-project-detail">{p.preview} · {p.metric} · {p.updated}{p.editorHref && <> · <Link href={p.editorHref} className="font-semibold text-ct-blue underline">Abrir editor</Link></>}{p.reportHref && <> · <Link href={p.reportHref} className="text-ct-blue underline">Ver relatório</Link></>}</p></div></div></div>)}
         {!visibleProjects.length && <p className="ct-empty">Nenhum projeto corresponde aos filtros.</p>}
       </div>
     </section>
