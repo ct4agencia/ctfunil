@@ -1,6 +1,7 @@
 import { ASSISTANT_STREAM_TYPE } from '@/lib/assistant/stream';
 import { NextResponse } from 'next/server';
 import { isRealDataPreview } from '@/lib/workspace-preview';
+import { geminiKeyPattern, geminiModelPattern } from '@/lib/assistant/workspace-settings';
 import { REQUEST_BYTES_LIMIT } from '@/lib/assistant/messages';
 import { requireAdmin } from '@/lib/quiz/admin-guard';
 import { assistantConfig, generateGemini, readGeminiReply, requestGemini, validateMessages } from '@/lib/assistant/gemini';
@@ -39,7 +40,7 @@ function streamReply(body: ReadableStream<Uint8Array>) {
 export async function GET() {
   const auth=await requireAdmin(); if(!auth.ok)return NextResponse.json({error:'Não autorizado.'},{status:401,headers:noStore});
   const config=assistantConfig();
-  return NextResponse.json({provider:'Gemini',model:config.model,configured:!!config.key && config.validModel,modelValid:config.validModel},{headers:noStore});
+  return NextResponse.json({provider:'Gemini',model:config.model,configured:!!config.key && config.validModel,modelValid:config.validModel,hasKey:!!config.key},{headers:noStore});
 }
 export async function POST(request:Request) {
   const auth=await requireAdmin(); if(!auth.ok)return NextResponse.json({error:'Não autorizado.'},{status:401,headers:noStore});
@@ -47,11 +48,21 @@ export async function POST(request:Request) {
   const host=request.headers.get('host');
   const expectedOrigin=isRealDataPreview(host) ? `https://${host}` : new URL(request.url).origin;
   if(origin && origin!==expectedOrigin)return NextResponse.json({error:'Origem não permitida.'},{status:403,headers:noStore});
-  const config=assistantConfig();
-  if(!config.key || !config.validModel)return NextResponse.json({error:'Configure a chave e o modelo Gemini no servidor.'},{status:503,headers:noStore});
   if(Number(request.headers.get('content-length')||0)>REQUEST_BYTES_LIMIT)return NextResponse.json({error:'Mensagem muito longa.'},{status:413,headers:noStore});
   let body:unknown;try{body=await request.json();}catch{return NextResponse.json({error:'Solicitação inválida.'},{status:400,headers:noStore});}
-  const messages=validateMessages((body as {messages?:unknown})?.messages);
+  const input = body as { messages?: unknown; model?: unknown; key?: unknown } | null;
+  const config = assistantConfig();
+  if (input?.model !== undefined) {
+    if (typeof input.model !== 'string' || !geminiModelPattern.test(input.model))return NextResponse.json({error:'Modelo Gemini inválido.'},{status:400,headers:noStore});
+    config.model = input.model;
+    config.validModel = true;
+  }
+  if (input?.key !== undefined) {
+    if (typeof input.key !== 'string' || !geminiKeyPattern.test(input.key))return NextResponse.json({error:'Chave Gemini inválida.'},{status:400,headers:noStore});
+    config.key = input.key;
+  }
+  if(!config.key || !config.validModel)return NextResponse.json({error:'Configure a chave e o modelo Gemini em Configurações.'},{status:503,headers:noStore});
+  const messages=validateMessages(input?.messages);
   if(!messages)return NextResponse.json({error:'Confira as mensagens e tente novamente.'},{status:400,headers:noStore});
   try {
     if (request.headers.get('accept') === ASSISTANT_STREAM_TYPE) {

@@ -6,7 +6,7 @@ import WorkspaceNoticeHistory from "./WorkspaceNoticeHistory";
 import { sectionLinks } from "./section-links";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { Activity, ChevronDown, ChevronRight, FolderKanban, GitBranch, Menu, MessageSquare, Monitor, Moon, Sun, X } from "lucide-react";
+import { Activity, ChevronDown, ChevronRight, FolderKanban, GitBranch, Menu, MessageSquare, Monitor, Moon, Settings2, Sun, X } from "lucide-react";
 import { ThinkingOrb, type OrbSize, type OrbState } from "thinking-orbs";
 
 const destinations = [
@@ -146,7 +146,7 @@ export function WorkspaceFrame({ title, activeTab, demo = false, children }: { t
   }, [path]);
   const assistantCurrent = path === "/ctfunil" && projectsSection === "assistente";
   const renderLinks = (mobile = false) => destinations.map(({ href, label, icon: Icon }) => (
-    <Link key={href} href={href} aria-current={(path === href || path.startsWith(href + "/")) && !(href === "/ctfunil" && assistantCurrent && !mobile) ? "page" : undefined}
+    <Link key={href} href={href} aria-current={(path === href || (href !== "/ctfunil" && path.startsWith(href + "/"))) && !(href === "/ctfunil" && assistantCurrent && !mobile) ? "page" : undefined}
       aria-label={label} title={label} onClick={() => drawer.current?.close()}><Icon size={17} /><span>{label}</span></Link>
   ));
   const activeSection = sectionLinks.find(section => section.path === path);
@@ -165,12 +165,13 @@ export function WorkspaceFrame({ title, activeTab, demo = false, children }: { t
       </ul>
     </details>
   ));
+  const settingsLink = <Link href="/ctfunil/configuracoes" aria-current={path === "/ctfunil/configuracoes" ? "page" : undefined} aria-label="Configurações" title="Configurações" onClick={() => drawer.current?.close()}><Settings2 size={17}/><span>Configurações</span></Link>;
   const assistantLink = <Link href="/ctfunil#assistente" aria-current={assistantCurrent ? "location" : undefined} aria-label="Assistente de criação" title="Assistente de criação" onClick={() => drawer.current?.close()}><MessageSquare size={17}/><span>Assistente de criação</span></Link>;
   return <div className="ct-workspace ct-frame" data-collapsed={collapsed}>
     <aside className="ct-rail">
       <Link href="/ctfunil" className="ct-brand-link" aria-label="CTFunil"><Brand /></Link>
       <div className="ct-org"><BrandOrb /><strong>CT4 Educação<small>Espaço de trabalho</small></strong></div>
-      <nav aria-label="Navegação principal"><p>Workspace</p>{renderLinks()}{assistantLink}{renderSectionLinks()}</nav>
+      <nav aria-label="Navegação principal"><p>Workspace</p>{renderLinks()}{assistantLink}{settingsLink}{renderSectionLinks()}</nav>
     </aside>
     <div className="ct-frame-body">
       <header className="ct-frame-top">
@@ -201,7 +202,7 @@ export function WorkspaceFrame({ title, activeTab, demo = false, children }: { t
     <nav ref={mobileNav} className="ct-bottom-nav" aria-label="Navegação móvel">{renderLinks(true)}<button type="button" aria-haspopup="dialog" aria-label="Mais opções" onClick={() => drawer.current?.showModal()}><Menu size={18} aria-hidden="true"/><span>Mais</span></button></nav>
     <dialog ref={drawer} aria-label="Menu de navegação" className="ct-drawer" onClick={(event) => { if (event.target === drawer.current) drawer.current.close(); }}>
       <div><div className="ct-drawer-head"><Brand/><button type="button" className="ct-icon-button" aria-label="Fechar menu" onClick={() => drawer.current?.close()}><X size={18}/></button></div>
-      <nav aria-label="Todas as telas">{renderLinks()}{assistantLink}{renderSectionLinks()}</nav></div>
+      <nav aria-label="Todas as telas">{renderLinks()}{assistantLink}{settingsLink}{renderSectionLinks()}</nav></div>
     </dialog>
   </div>;
 }

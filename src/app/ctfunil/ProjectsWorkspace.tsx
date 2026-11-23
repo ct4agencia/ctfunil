@@ -18,6 +18,7 @@ import Link from "next/link";
 
 import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import { buildAssistantRequest, MESSAGE_LIMIT, type AssistantMessage } from "@/lib/assistant/messages";
+import { ASSISTANT_SETTINGS_PATH, geminiKeyPattern, geminiModelPattern, readWorkspaceSettings, type ImportMode } from "@/lib/assistant/workspace-settings";
 import { attachmentContext, readProjectAttachment, type ProjectAttachment } from "@/lib/assistant/project-attachment";
 
 type ProjectType = "all" | "quiz" | "pages" | "plus";
@@ -165,6 +166,8 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
   const [attachment,setAttachment]=useState<ProjectAttachment|null>(null);
   const [selectedPage,setSelectedPage]=useState('');
   const [reading,setReading]=useState(false);
+  const [importMode, setImportMode] = useState<ImportMode>("design");
+  useEffect(() => { setImportMode(readWorkspaceSettings().importMode); }, []);
   const [status,setStatus]=useState<{configured:boolean;model:string;modelValid:boolean}|null>(null);
   const [partialReply, setPartialReply] = useState('');
   const [settings,setSettings]=useState(false),[busy,setBusy]=useState(false);
@@ -245,7 +248,15 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
         const configuration = await response.json();
         if (!controller.signal.aborted) {
           setAuthRequired(false);
-          setStatus(configuration);
+          const saved = readWorkspaceSettings();
+          const customModel = geminiModelPattern.test(saved.model);
+          const customKey = geminiKeyPattern.test(saved.key);
+          const modelValid = customModel || configuration.modelValid;
+          setStatus({
+            model: customModel ? saved.model : configuration.model,
+            modelValid,
+            configured: modelValid && (customKey || configuration.hasKey || configuration.configured),
+          });
         }
       } catch {
         if (!controller.signal.aborted) { setStatus(null); setError({ message: 'Não foi possível verificar a configuração.' }); }
@@ -329,9 +340,10 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
     setBusy(true);
     setError(null);
     try {
+      const saved = readWorkspaceSettings();
       const response = await fetch('/api/assistant', {
         method: 'POST', headers: { 'Content-Type': 'application/json', Accept: ASSISTANT_STREAM_TYPE },
-        body: JSON.stringify({ messages: next }), signal: controller.signal,
+        body: JSON.stringify({ messages: next, model: geminiModelPattern.test(saved.model) ? saved.model : undefined, key: geminiKeyPattern.test(saved.key) ? saved.key : undefined }), signal: controller.signal,
       }).catch(() => {
         throw new Error('Não foi possível conectar ao assistente. Tente novamente.');
       });
@@ -371,11 +383,32 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
     else attachmentInput.current?.focus();
   }
 
-  const importPage=async()=>{
-    const page=attachment?.pages.find(item=>item.path===selectedPage);if((!page&&selectedPage!==ALL_PAGES)||!attachment||attachmentLocked||activeRequest.current)return;
-    setSendCanceled(false);setBusy(true);setError(null);
-    try {const [{convertProjectPage,convertProjectPages},{saveImportDraft}]=await Promise.all([import('@/lib/assistant/convert-project'),import('@/lib/assistant/import-drafts')]);const result=page?convertProjectPage(page,{assets:attachment.assets}):convertProjectPages(attachment.pages.filter(item=>/\.html?$/i.test(item.path)),attachment.assets);const id=crypto.randomUUID();await saveImportDraft({id,funnel:result.funnel,warnings:result.warnings,source:page?.path||attachment.name,reviewed:false});window.location.href=`/importar/${id}`;}
-    catch(error){setError({ message: error instanceof Error?error.message:'Não foi possível preparar a importação.' });setBusy(false);}
+  const importPage = async () => {
+    if (!attachment || attachmentLocked || activeRequest.current) return;
+    const page = attachment.pages.find(item => item.path === selectedPage);
+    const pages = page ? [page] : attachment.pages.filter(item => /\.html?$/i.test(item.path));
+    if (!pages.length || !page && selectedPage !== ALL_PAGES) return;
+    setSendCanceled(false);
+    setBusy(true);
+    setError(null);
+    try {
+      const { saveImportDraft } = await import("@/lib/assistant/import-drafts");
+      const preserveDesign = importMode === "design" && pages.every(item => /\.html?$/i.test(item.path));
+      let result;
+      if (preserveDesign) {
+        const { importProjectDesign } = await import("@/lib/assistant/import-design");
+        result = importProjectDesign(attachment, pages);
+      } else {
+        const { convertProjectPage, convertProjectPages } = await import("@/lib/assistant/convert-project");
+        result = page ? convertProjectPage(page, { assets: attachment.assets }) : convertProjectPages(pages, attachment.assets);
+      }
+      const id = crypto.randomUUID();
+      await saveImportDraft({ id, funnel: result.funnel, warnings: result.warnings, source: page?.path || attachment.name, reviewed: false });
+      window.location.assign(`/importar/${id}`);
+    } catch (error) {
+      setError({ message: error instanceof Error ? error.message : "Não foi possível preparar a importação." });
+      setBusy(false);
+    }
   };
   return <section id="assistente" className="ct-panel ct-composer scroll-mt-16" aria-labelledby="ctfunil-builder-title">
     <dialog ref={clearDialog} className="ct-confirm ct-delete-modal-confirmation" aria-labelledby="assistant-clear-title" aria-describedby="assistant-clear-summary">
@@ -425,8 +458,7 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
       <div className="flex flex-wrap justify-between gap-2"><h3 id="assistant-api-title" ref={settingsHeading} tabIndex={-1} className="font-semibold">Google Gemini</h3><span role="status" className="text-ct-dim">{configLabel}</span></div>
       {status?.model && <p className="mt-2 text-xs text-ct-dim">Modelo <code>{status.model}</code></p>}
       {authRequired && <p className="mt-2 text-xs text-ct-dim">Entre no CTFunil para consultar a configuração do assistente.</p>}
-      {!authRequired && status?.modelValid === false && <p className="mt-2 text-xs text-ct-dim">Confira a variável <code>GEMINI_MODEL</code> no servidor.</p>}
-      {!authRequired && status?.modelValid && !status.configured && <p className="mt-2 text-xs text-ct-dim">Configure <code>GEMINI_API_KEY</code> no servidor e reinicie o aplicativo.</p>}
+      {!authRequired && <p className="mt-2 text-xs text-ct-dim"><Link className="text-ct-blue underline" href={ASSISTANT_SETTINGS_PATH}>Configurar chave e modelo do assistente</Link></p>}
       {!authRequired && <StatefulButton type="button" size="sm" variant="outline" onClick={retryConfig}
         state={checkingConfig ? "loading" : status ? "idle" : "error"}
         aria-label={checkingConfig ? "Verificando configuração…" : "Verificar configuração"}
@@ -488,8 +520,12 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
         </div>
       </div>}
       {!authRequired && !checkingConfig && !status && <button type="button" className="mt-3 text-xs text-ct-blue underline" onClick={retryConfig}>Verificar configuração novamente</button>}
-      {!authRequired && !status?.configured&&status&&<p className="mt-3 text-xs text-ct-dim">Configure a API para começar. <button className="text-ct-blue underline" onClick={event => openSettings(event.currentTarget)}>Abrir configuração</button></p>}
-      {attachment&&<div className="mt-3 rounded-xl border border-ct-line bg-ct-raised p-3 text-sm"><div className="flex items-center justify-between gap-3"><strong className="break-all">{attachment.name}</strong><button type="button" aria-label="Remover arquivo" disabled={attachmentLocked} onClick={removeAttachment}><X size={16}/></button></div><p className="mt-1 text-xs text-ct-dim">{attachment.files.length} arquivos · {attachment.pages.length} páginas e componentes</p><div className="mt-3"><WorkspaceSelect searchable label="Página para análise" disabled={attachmentLocked} value={selectedPage} onChange={setSelectedPage} options={[...attachment.pages.map(page=>({value:page.path,label:page.title+' — '+page.path})),...(attachment.pages.filter(page=>/\.html?$/i.test(page.path)).length>1?[{value:ALL_PAGES,label:'Todas as páginas HTML como etapas'}]:[])]}/></div><ProjectFileTree paths={attachment.files} pages={attachmentLocked ? [] : attachment.pages.map(page => page.path)} selected={selectedPage} onSelect={setSelectedPage} /><p className="mt-2 text-xs leading-relaxed text-ct-dim">A importação cria blocos editáveis em um rascunho local. Layouts, imagens e interações podem precisar de ajustes. Ao enviar uma mensagem, um trecho da página e a lista de arquivos serão enviados ao Gemini.{selectedPage===ALL_PAGES?' Na análise com IA, será usado um trecho da primeira página HTML.':''}</p><StatefulButton type="button" onClick={importPage} size="sm" disabled={sending || reading}
+      {!authRequired && !status?.configured&&status&&<p className="mt-3 text-xs text-ct-dim">Configure a API para começar. <Link className="text-ct-blue underline" href={ASSISTANT_SETTINGS_PATH}>Abrir configuração</Link></p>}
+      {attachment&&<div className="mt-3 rounded-xl border border-ct-line bg-ct-raised p-3 text-sm"><div className="flex items-center justify-between gap-3"><strong className="break-all">{attachment.name}</strong><button type="button" aria-label="Remover arquivo" disabled={attachmentLocked} onClick={removeAttachment}><X size={16}/></button></div><p className="mt-1 text-xs text-ct-dim">{attachment.files.length} arquivos · {attachment.pages.length} páginas e componentes</p><div className="mt-3"><WorkspaceSelect searchable label="Página para análise" disabled={attachmentLocked} value={selectedPage} onChange={setSelectedPage} options={[...attachment.pages.map(page=>({value:page.path,label:page.title+' — '+page.path})),...(attachment.pages.filter(page=>/\.html?$/i.test(page.path)).length>1?[{value:ALL_PAGES,label:'Todas as páginas HTML como etapas'}]:[])]}/></div><ProjectFileTree paths={attachment.files} pages={attachmentLocked ? [] : attachment.pages.map(page => page.path)} selected={selectedPage} onSelect={setSelectedPage} /><div className="mt-3">
+        <WorkspaceSelect label="Modo de importação" disabled={attachmentLocked} value={importMode}
+          onChange={value => setImportMode(value === "blocks" ? "blocks" : "design")}
+          options={[{value:"design",label:"Preservar design"},{value:"blocks",label:"Converter em blocos"}]} />
+      </div><p className="mt-2 text-xs leading-relaxed text-ct-dim">{importMode === "design" ? "Preserva HTML, CSS e imagens do arquivo em um rascunho local. Scripts e recursos remotos ficam desativados." : "Separa textos, imagens, campos e botões em blocos editáveis. A composição pode precisar de ajuste."} Ao enviar uma mensagem, trechos da página e dos estilos são enviados ao Gemini.{selectedPage===ALL_PAGES?' Na análise com IA, será usado um trecho da primeira página HTML.':''}</p><StatefulButton type="button" onClick={importPage} size="sm" disabled={sending || reading}
         state={importing ? "loading" : "idle"}
         aria-label={importing ? "Preparando importação…" : "Revisar importação"}
         loadingText="Preparando importação…"

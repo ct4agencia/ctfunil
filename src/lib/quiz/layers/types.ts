@@ -128,6 +128,7 @@ export interface Layer {
   content: {
     id?: string;
     name?: string;
+    importedDesign?: boolean;
     // text / alert / label
     text?: string;
     // clear
