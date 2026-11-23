@@ -44,8 +44,8 @@ const emptySchedule: WeekAvailability = {
 };
 
 export default function FunnelSettingsPanel({
-  funnel, onPatch, onClose,
-}: { funnel: Funnel; onPatch: (patch: Partial<Funnel>) => void; onClose: () => void }) {
+  funnel, onPatch, onClose, sourceSlug,
+}: { funnel: Funnel; onPatch: (patch: Partial<Funnel>) => void; onClose: () => void; sourceSlug?: string }) {
   const [tab, setTab] = useState<Tab>("geral");
   const [visibleTokens, setVisibleTokens] = useState<Record<string, boolean>>({});
   const dialog = useRef<HTMLDialogElement>(null);
@@ -126,6 +126,19 @@ export default function FunnelSettingsPanel({
     }
   }
 
+  const [published, setPublished] = useState<{ rows?: { id: string; name?: string; host?: string; method: string; trigger_event: string; component_id?: string; enabled: boolean }[]; error?: string }>({});
+  useEffect(() => {
+    if (tab !== "webhooks" || !sourceSlug) return;
+    const controller = new AbortController();
+    fetch(`/api/workspace-webhooks?slug=${encodeURIComponent(sourceSlug)}`, { cache: "no-store", signal: controller.signal })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw Error(data.error);
+        setPublished({ rows: data.webhooks });
+      })
+      .catch(error => { if (!controller.signal.aborted) setPublished({ error: error.message || "Falha ao consultar os webhooks." }); });
+    return () => controller.abort();
+  }, [tab, sourceSlug]);
   // Webhooks
   const webhooks = funnel.webhooks ?? [];
   const [pendingWebhookDelete, setPendingWebhookDelete] = useState<string | null>(null);
@@ -299,6 +312,16 @@ export default function FunnelSettingsPanel({
           {tab === "webhooks" && (
             <div className="space-y-3">
               <p className="text-xs text-neutral-500">Dispara no formato inlead (campos <b>nome</b>, <b>telefone</b>, <b>{"{componente}"}: clicked</b>) — casa com os mapeamentos do Datacrazy.</p>
+              {sourceSlug && <section className="space-y-2 rounded-xl border border-ct-line p-3" aria-label="Webhooks publicados">
+                <h3 className="font-semibold">Webhooks publicados</h3>
+                {!published.rows?.length && <p role="status" className="text-sm text-ct-dim">{published.error ?? (published.rows ? "Nenhum webhook cadastrado neste funil." : "Consultando webhooks…")}</p>}
+                {published.rows?.map(webhook => <article key={webhook.id} className="rounded-lg bg-ct-raised p-3 text-sm">
+                  <strong>{webhook.name || webhook.host || "Webhook"}</strong>
+                  <p className="break-words text-ct-dim">{[webhook.host, webhook.method, webhook.trigger_event === "lead_capture" ? "Captura de lead" : "Clique em componente", webhook.component_id, webhook.enabled ? "Ativo" : "Desativado"].filter(Boolean).join(" · ")}</p>
+                </article>)}
+                <p className="text-xs text-ct-dim">Consulta da configuração publicada. Endereço completo e token ficam protegidos.</p>
+              </section>}
+              {sourceSlug && <h3 className="text-sm font-semibold">Webhooks do rascunho</h3>}
               {webhooks.map((w, i) => (
                 <div key={w.id} className="space-y-2 rounded-xl border border-neutral-200 p-3" onKeyDown={event => {
                   if (pendingWebhookDelete !== w.id || event.key !== "Escape") return;

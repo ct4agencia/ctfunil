@@ -410,7 +410,18 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
       setBusy(false);
     }
   };
-  return <section id="assistente" className="ct-panel ct-composer scroll-mt-16" aria-labelledby="ctfunil-builder-title">
+  return <div className="ct-assistant-shell">
+    <aside className="ct-assistant-rail" aria-label="Conversas do Assistente">
+      <button className="ct-action-link" type="button" disabled={attachmentLocked || !hasCurrentConversation || conversations.length >= 20} onClick={() => switchConversation()}><Plus size={16} aria-hidden="true" /> Nova conversa</button>
+      <h3>Conversas</h3>
+      <ul className="ct-chat-conversation-list">
+        {conversations.map(conversation => <li key={conversation.id}>
+          <button type="button" className="ct-chat-conversation" aria-current={conversation.id === conversationId ? "true" : undefined}
+            disabled={attachmentLocked} onClick={() => switchConversation(conversation)}>{conversationTitle(conversation)}</button>
+        </li>)}
+      </ul>
+    </aside>
+    <section id="assistente" className="ct-panel ct-composer scroll-mt-16" aria-labelledby="ctfunil-builder-title">
     <dialog ref={clearDialog} className="ct-confirm ct-delete-modal-confirmation" aria-labelledby="assistant-clear-title" aria-describedby="assistant-clear-summary">
       <div className="flex items-center gap-2">
         <DeleteConfirmationIcon />
@@ -551,7 +562,7 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
       </StatefulButton>{pendingMessage && <button type="button" onClick={() => { activeRequest.current?.abort(); setSendCanceled(true); }} className="rounded-lg border border-ct-line px-3 py-2 text-xs">Cancelar envio</button>}</div></div>
       {messages.length>=18&&<p className="mt-2 text-xs text-ct-dim">Abra Conversas para começar outra ou limpe esta conversa.</p>}
     </div><div className="flex flex-wrap gap-2 p-4">{quickPrompts.map(item=><button key={item} type="button" disabled={busy} onClick={()=>{setPrompt(item);composer.current?.focus();}} className="rounded-full border border-ct-line bg-ct-surface px-3 py-1.5 text-xs text-ct-dim hover:border-ct-blue hover:text-ct-blue">{item}</button>)}</div>
-  </section>;
+  </section></div>;
 }
 
 export default function ProjectsWorkspace({ snapshot, avatarUrl }: { snapshot?: Project[]; avatarUrl?: string }) {

@@ -1119,10 +1119,12 @@ function Bar({ pct, color = "#3b82f6" }: { pct: number; color?: string }) {
 
 /** Aba Leads = sub-abas Respostas / Resultados / Performance (estilo inlead).
  *  Exportada pra ser reusada também no FunnelBuilder (motor typed). */
-export function LeadsTab({ slug }: { slug: string }) {
+export function LeadsTab({ slug, readOnly = false }: { slug: string; readOnly?: boolean }) {
   const [d, setD] = useState<Analytics | null>(null);
   const [sub, setSub] = useState<"respostas" | "resultados" | "performance">("respostas");
   const [loading, setLoading] = useState(true);
+  const [refresh, setRefresh] = useState(0);
+  const [loadError, setLoadError] = useState("");
   const [resetting, setResetting] = useState(false);
   const [range, setRange] = useState<{ key: string; from?: string; to?: string }>({ key: "tudo" });
   const [day, setDay] = useState("");
@@ -1144,14 +1146,23 @@ export function LeadsTab({ slug }: { slug: string }) {
   const [filtroLinha, setFiltroLinha] = useState<"todos" | "resposta" | "lead">("todos");
   const [page, setPage] = useState(0);
   const PER = 50;
-  const load = () => {
+  useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
+    setLoadError("");
     const qs = new URLSearchParams({ slug });
     if (range.from) qs.set("from", range.from);
     if (range.to) qs.set("to", range.to);
-    fetch(`/api/funnel-analytics?${qs.toString()}`).then((r) => r.json()).then(setD).catch(() => { }).finally(() => setLoading(false));
-  };
-  useEffect(load, [slug, range.from, range.to]); // eslint-disable-line react-hooks/exhaustive-deps
+    fetch(`/api/funnel-analytics?${qs}`, { cache: "no-store", signal: controller.signal })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw Error(data.error || "Não foi possível carregar os leads.");
+        setD(data);
+      })
+      .catch(error => { if (!controller.signal.aborted) { setD(null); setLoadError(error.message); } })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [slug, range.from, range.to, refresh]);
   /** Grava a escolha de colunas no ato do clique. Fazer isso num useEffect
    *  provocaria render em cascata a cada troca de estado. */
   const salvarPref = (track: Set<string>, etapas: Set<string>) => {
@@ -1169,7 +1180,7 @@ export function LeadsTab({ slug }: { slug: string }) {
     if (!window.confirm("Tem certeza? Isso apaga TODOS os dados (respostas, sessões e leads) DESTE funil. Extraia o CSV antes!")) return;
     setResetting(true);
     try { await fetch(`/api/reset-funnel-data`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug }) }); } catch { /* noop */ }
-    setResetting(false); load();
+    setResetting(false); setRefresh(value => value + 1);
   };
   const p = d?.performance;
 
@@ -1181,7 +1192,7 @@ export function LeadsTab({ slug }: { slug: string }) {
             <button key={k} onClick={() => setSub(k)} className={`px-3 py-2.5 text-sm font-semibold ${sub === k ? "border-b-2 border-neutral-900 text-neutral-900" : "text-neutral-400 hover:text-neutral-700"}`}>{l}</button>
           ))}
         </nav>
-        <div className="flex items-center gap-4 pb-2">
+        {!readOnly && <div className="flex items-center gap-4 pb-2">
           {/* o export segue o MESMO período do seletor acima — antes exportava
               sempre tudo, e o CSV nunca batia com o que estava na tela */}
           <a
@@ -1194,7 +1205,7 @@ export function LeadsTab({ slug }: { slug: string }) {
             ⬇ Exportar leads{range.from ? " (período)" : ""}
           </a>
           <button onClick={reset} disabled={resetting} className="text-xs font-semibold text-red-500 hover:text-red-700">{resetting ? "Limpando…" : "♻ Resetar dados"}</button>
-        </div>
+        </div>}
       </div>
 
       {/* filtro de período (aplica às 3 sub-abas) */}
@@ -1216,7 +1227,7 @@ export function LeadsTab({ slug }: { slug: string }) {
         </label>
       </div>
 
-      {loading ? <p className="p-8 text-center text-sm text-neutral-400">Carregando…</p> : !d ? <p className="p-8 text-center text-sm text-neutral-400">Sem dados.</p> : (
+      {loading ? <p className="p-8 text-center text-sm text-neutral-400">Carregando…</p> : !d ? <p role="status" className="p-8 text-center text-sm text-ct-dim">{loadError || "Sem dados."}</p> : (
         <>
           {/* RESPOSTAS — tabela por lead (colunas = etapas com %) + busca + filtros + paginação */}
           {sub === "respostas" ? (() => {
@@ -1430,6 +1441,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
   previewHref: string;
   reportHref?: string;
   dashboardHref?: string;
+  sourceSlug?: string;
   stagePreviewHref?: (stepId: string) => string;
   commit?: (funnel:Funnel) => Promise<{ok:boolean;error?:string}>;
 } }) {
@@ -1481,6 +1493,18 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
 
   const step = steps[selStep];
   const localPreviewHref = step && localDraft?.stagePreviewHref ? localDraft.stagePreviewHref(step.id) : localDraft?.previewHref;
+  async function openLocalPreview() {
+    if (!localDraft || !localPreviewHref || saving) return;
+    setSaving(true);
+    try {
+      const result = await localDraft.save(funnel);
+      if (result.ok) window.location.assign(localPreviewHref);
+      else notify(result.error || "Não foi possível abrir a visualização.", true);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const layers = step?.layers || [];
 
   const save = async () => {
@@ -1631,7 +1655,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
         </div>
         <nav aria-label="Seções do construtor" className="ct-segments">
           {([["construtor", "Construtor"], ["fluxo", "Fluxo"], ["design", "Design"], ["leads", "Leads"]] as const).map(([k, label]) => (
-            <button type="button" key={k} aria-pressed={tab === k} disabled={!!localDraft && !localDraft.reportHref && k === "leads"} onClick={() => setTab(k)}>
+            <button type="button" key={k} aria-pressed={tab === k} disabled={!!localDraft && !localDraft.sourceSlug && k === "leads"} onClick={() => setTab(k)}>
               {tab === k && <ActiveTab group="builder-tabs" />}<span>{label}</span>
             </button>
           ))}
@@ -1652,7 +1676,10 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
           </StatefulButton>
           {localDraft?.commit&&<button onClick={commit} disabled={saving} className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Salvar nos meus funis</button>}
           {isDraft&&!localDraft&&<button onClick={publish} disabled={saving} className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Publicar</button>}
-          {(!isDraft || localDraft)&&<a href={localPreviewHref ?? (funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`)} target="_blank" rel="noreferrer" className="rounded-lg bg-ct-action px-3 py-2 text-xs font-semibold text-white">{localDraft ? "Preview local ↗" : "Ver ao vivo ↗"}</a>}
+          {localDraft ? <button type="button" onClick={openLocalPreview} disabled={saving}
+            className="rounded-lg bg-ct-action px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Visualizar página</button>
+            : !isDraft && <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer"
+              className="rounded-lg bg-ct-action px-3 py-2 text-xs font-semibold text-white">Visualizar página ↗</a>}
         </div>
       </header>
 
@@ -1695,9 +1722,10 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
           />
         </div>
       )}
-      {tab === "leads" && <div className="ct-controls min-h-0 flex-1 overflow-auto p-4">{localDraft?.reportHref
-        ? <Link href={localDraft.reportHref} className="text-sm text-ct-blue underline">Consultar indicadores no relatório do funil</Link>
-        : <LeadsTab slug={funnel.slug} />}</div>}
+      {tab === "leads" && <div className="ct-controls min-h-0 flex-1 overflow-auto p-4">
+        <LeadsTab slug={localDraft?.sourceSlug ?? funnel.slug} readOnly={Boolean(localDraft)} />
+        {localDraft?.reportHref && <Link href={localDraft.reportHref} className="mt-4 inline-block text-sm text-ct-blue underline">Ver relatório do funil</Link>}
+      </div>}
 
       {tab === "construtor" && (
       <>
@@ -2157,7 +2185,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
       )}
 
       {showSettings ? (
-        <FunnelSettingsPanel funnel={funnel} onPatch={(patch) => setFunnel((f) => ({ ...f, ...patch }))} onClose={() => setShowSettings(false)} />
+        <FunnelSettingsPanel sourceSlug={localDraft?.sourceSlug} funnel={funnel} onPatch={(patch) => setFunnel((f) => ({ ...f, ...patch }))} onClose={() => setShowSettings(false)} />
       ) : null}
 
       {/* ── Modal: importar lâmina de outro funil ── */}

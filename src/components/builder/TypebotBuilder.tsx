@@ -83,9 +83,11 @@ const ICON: Record<string, string> = {
   wait: "⏲️", "set-variable": "🧮", condition: "🔀", redirect: "↗️", vsl: "📺",
 };
 
-export default function TypebotBuilder({ initial, saveLocal, reportHref }: {
+export default function TypebotBuilder({ initial, saveLocal, reportHref, sourceSlug, previewHref }: {
   initial: Funnel;
   reportHref?: string;
+  sourceSlug?: string;
+  previewHref?: string;
   saveLocal?: (funnel: Funnel) => Promise<{ ok: boolean; error?: string }>;
 }) {
   const [funnel, setFunnel] = useState<Funnel>(initial);
@@ -94,7 +96,7 @@ export default function TypebotBuilder({ initial, saveLocal, reportHref }: {
   const [selG, setSelG] = useState(0);
   const [selB, setSelB] = useState<string | null>(null);
   const [tab, setTab] = useState<"chat" | "fluxo" | "tema" | "leads">("chat");
-  const canViewLeads = !saveLocal || Boolean(reportHref);
+  const canViewLeads = !saveLocal || Boolean(sourceSlug);
   const [panel, setPanel] = useState<"groups" | "blocks" | "preview">("groups");
   const panelId = useId();
   const blocksButton = useRef<HTMLButtonElement>(null);
@@ -244,6 +246,16 @@ export default function TypebotBuilder({ initial, saveLocal, reportHref }: {
             className="ct-primary rounded-lg px-3 text-xs font-bold text-white disabled:opacity-50">
             Salvar
           </StatefulButton>
+          {saveLocal && previewHref && <button type="button" disabled={saving} className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white" onClick={async () => {
+            setSaving(true);
+            try {
+              const result = await saveLocal(funnel);
+              if (result.ok) window.location.assign(previewHref);
+              else notify(result.error || "Não foi possível abrir a visualização.", true);
+            } finally {
+              setSaving(false);
+            }
+          }}>Visualizar página</button>}
           {!saveLocal && <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white">Ver ao vivo ↗</a>}
         </div>
       </header>
@@ -251,7 +263,7 @@ export default function TypebotBuilder({ initial, saveLocal, reportHref }: {
       {tab === "leads" ? (
         <div className="flex-1 overflow-auto p-4">
           {reportHref && <Link href={reportHref} className="text-sm text-ct-blue underline">Consultar indicadores no relatório do funil</Link>}
-          {!saveLocal && !reportHref && <LeadsTab slug={funnel.slug} />}
+          {(!saveLocal || sourceSlug) && <LeadsTab slug={sourceSlug ?? funnel.slug} readOnly={Boolean(saveLocal)} />}
         </div>
       ) : tab === "fluxo" ? (
         <TypebotFlow tb={tb} setGroups={setGroups} onSelect={(gid) => { const i = groups.findIndex((g) => g.id === gid); if (i >= 0) { selectGroup(i); setTab("chat"); } }} />
@@ -413,7 +425,7 @@ export default function TypebotBuilder({ initial, saveLocal, reportHref }: {
       )}
 
       {showSettings ? (
-        <FunnelSettingsPanel funnel={funnel} onPatch={(patch) => setFunnel((f) => ({ ...f, ...patch }))} onClose={() => setShowSettings(false)} />
+        <FunnelSettingsPanel sourceSlug={sourceSlug} funnel={funnel} onPatch={(patch) => setFunnel((f) => ({ ...f, ...patch }))} onClose={() => setShowSettings(false)} />
       ) : null}
     </div>
   );

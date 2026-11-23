@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { workspaceLiveReader } from "@/lib/quiz/workspace-live-read";
 import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -18,22 +19,26 @@ export async function GET(request: Request) {
   if (!user || (!adminEmail || user.email?.toLowerCase() !== adminEmail)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  if (isReadOnlyWorkspace()) {
+  const live = workspaceLiveReader(request.headers.get("host"));
+  if (isReadOnlyWorkspace() && !live) {
     return NextResponse.json({ error: "Consulte os indicadores no relatório do funil no preview." }, {
       status: 403, headers: { "Cache-Control": "no-store" },
     });
   }
   const params = new URL(request.url).searchParams;
   const slug = params.get("slug") || "";
-  if (!slug) return NextResponse.json({ error: "slug obrigatório" }, { status: 400 });
+  if (!/^[a-z0-9_-]{1,120}$/.test(slug)) return NextResponse.json({ error: "Funil inválido." }, { status: 400 });
   // Filtro de datas (ISO, por created_at). Vazio = tudo.
   const from = params.get("from") || undefined;
   const to = params.get("to") || undefined;
+  if ([from, to].some(value => value && !Number.isFinite(Date.parse(value)))) {
+    return NextResponse.json({ error: "Período inválido." }, { status: 400 });
+  }
   const range = { from, to };
 
   // PERF: tudo paralelizável roda junto — antes eram ~9 round trips EM SÉRIE
   // (funnelMetrics atual → funnelMetrics anterior → answers → leads → sessions).
-  const sb = createAdminClient();
+  const sb = live ?? createAdminClient();
 
   // Resultados: por pergunta → opções com contagem/%
   // `step_id` entra para casar a resposta com a COLUNA certa. A sub-aba
@@ -44,7 +49,13 @@ export async function GET(request: Request) {
   if (to) answersQ = answersQ.lte("created_at", to);
 
   // Estrutura do funil → as MESMAS colunas que o CSV usa.
-  const funilQ = sb.from("funnels").select("steps").eq("slug", slug).maybeSingle();
+  const funilRes = await sb.from("funnels").select("name,steps,settings").eq("slug", slug).maybeSingle();
+  if (live && (funilRes.error || !funilRes.data)) {
+    return NextResponse.json({ error: "Não foi possível consultar o funil publicado." }, {
+      status: funilRes.error ? 502 : 404, headers: { "Cache-Control": "private, no-store" },
+    });
+  }
+  const source = live && funilRes.data ? { client: live, funnel: funilRes.data } : undefined;
 
   // Respostas: por lead (sessão → respostas + dados do lead capturado)
   let leadsQ = sb.from("funnel_leads")
@@ -74,13 +85,12 @@ export async function GET(request: Request) {
       })()
     : null;
 
-  const [performance, prev, ansRes, leadsRes, sessRes, funilRes] = await Promise.all([
-    funnelMetrics(slug, range),
-    prevRange ? funnelMetrics(slug, prevRange) : Promise.resolve(null),
+  const [performance, prev, ansRes, leadsRes, sessRes] = await Promise.all([
+    funnelMetrics(slug, range, source),
+    prevRange ? funnelMetrics(slug, prevRange, source) : Promise.resolve(null),
     answersQ,
     leadsQ,
     sessQ,
-    funilQ,
   ]);
   const { data: answers } = ansRes, { data: leads } = leadsRes, { data: sessRows } = sessRes;
 
@@ -235,5 +245,5 @@ export async function GET(request: Request) {
     },
     degraded: performance.degraded || erros.length > 0,
     issues: [...performance.issues, ...erros],
-  });
+  }, { headers: { "Cache-Control": "private, no-store" } });
 }

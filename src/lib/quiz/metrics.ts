@@ -1,3 +1,4 @@
+import type { Funnel } from "@/lib/quiz/types";
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/server";
 import { resolveFunnel, listFunnelsDb } from "./funnels-db";
@@ -62,9 +63,9 @@ let _hydratedAt: boolean | null = null;
  * serverless passava a contar TODAS as sessões como visitante até morrer, e
  * duas instâncias devolviam números diferentes para o mesmo funil.
  */
-async function hydratedAtDisponivel(issues?: MetricsIssue[]): Promise<boolean> {
+async function hydratedAtDisponivel(issues?: MetricsIssue[], client?: ReturnType<typeof createAdminClient>): Promise<boolean> {
   if (_hydratedAt !== null) return _hydratedAt;
-  const { error } = await createAdminClient().from("funnel_sessions").select("hydrated_at").limit(1);
+  const { error } = await (client ?? createAdminClient()).from("funnel_sessions").select("hydrated_at").limit(1);
   if (!error) { _hydratedAt = true; return true; }
   if (error.code === "42703") {         // coluna não existe: migration 0014 pendente
     _hydratedAt = false;
@@ -626,7 +627,7 @@ async function retencaoPorLamina(
   }
 }
 
-export async function funnelMetrics(slug: string, range?: DateRange): Promise<FunnelMetrics> {
+export async function funnelMetrics(slug: string, range?: DateRange, source?: { client: ReturnType<typeof createAdminClient>; funnel: Pick<Funnel, "steps" | "settings" | "name"> }): Promise<FunnelMetrics> {
   const issues: MetricsIssue[] = [];
   const empty: FunnelMetrics = {
     found: false, degraded: false, issues, name: slug, totalSteps: 0, visitantes: 0, respostas: 0, leads: 0, conclusoes: 0,
@@ -634,7 +635,7 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
     tempoMedianoSeg: 0, sessoesComTempo: 0,
     funil: [], trafego: [], totalRastreado: 0, melhorOrigem: "—", campanhas: [],
   };
-  const funnel = await resolveFunnel(slug);
+  const funnel = source ? source.funnel : await resolveFunnel(slug);
   if (!funnel) {
     issues.push({ code: "sem_funil", msg: `Funil "${slug}" não encontrado.`, campos: [] });
     return { ...empty, degraded: true, issues };
@@ -680,7 +681,7 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
    */
   firstQ = 1;
 
-  const usaHidratacao = await hydratedAtDisponivel(issues);
+  const usaHidratacao = await hydratedAtDisponivel(issues, source?.client);
 
   /** Campos derivados da AMOSTRA (não são COUNT exato) — se ela falhar ou
    *  truncar, é este conjunto que deixa de ser confiável. */
@@ -689,7 +690,7 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
 
   let sessions: { max_step_reached: number; created_at: string; last_seen_at: string; utm_source: string | null; utm_campaign: string | null; src: string | null }[] = [];
   try {
-    const sb = createAdminClient();
+    const sb = source?.client ?? createAdminClient();
     let q = sb
       .from("funnel_sessions")
       .select("max_step_reached,created_at,last_seen_at,utm_source,utm_campaign,src")
@@ -725,7 +726,7 @@ export async function funnelMetrics(slug: string, range?: DateRange): Promise<Fu
 
   // Contagens EXATAS (escalam além das 5000 amostradas) — COUNT no banco, não no JS.
   // visitantes = todas as sessões; respostas = chegaram na 1ª pergunta; conclusões = chegaram ao fim.
-  const sbCount = createAdminClient();
+  const sbCount = source?.client ?? createAdminClient();
   const countSessions = async (minStep?: number, campos: string[] = []): Promise<number> => {
     try {
       let q = sbCount.from("funnel_sessions").select("*", { count: "exact", head: true })

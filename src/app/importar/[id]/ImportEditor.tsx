@@ -97,16 +97,18 @@ export default function ImportEditor({id,preview,readOnly,initialStepId,reportHr
     </section>
   </WorkspaceFrame>;
 
+  const path = `/importar/${encodeURIComponent(id)}`;
+  const sourceSlug = /^preview-(?:vsl|funil)-([a-z0-9_-]+)$/.exec(id)?.[1];
   if (draft.funnel.settings?.engine === "typebot") {
     if (preview) return <MotionConfig reducedMotion="user">
+      <Link href={path} className="block p-3 text-sm text-ct-blue underline">Voltar à edição</Link>
       <div className="h-[100dvh]">
         <ChatRunner funnel={draft.funnel} preview localOnly />
       </div>
     </MotionConfig>;
-    return <LocalDraftContext.Provider value={true}><TypebotBuilder initial={draft.funnel} saveLocal={save} reportHref={reportHref} /></LocalDraftContext.Provider>;
+    return <LocalDraftContext.Provider value={true}><TypebotBuilder initial={draft.funnel} saveLocal={save} reportHref={reportHref} sourceSlug={sourceSlug} previewHref={path + "?preview=1"} /></LocalDraftContext.Provider>;
   }
 
-  const path = `/importar/${encodeURIComponent(id)}`;
   const steps = draft.funnel.steps as unknown as InleadStep[];
   const startIndex = Math.max(0, steps.findIndex(step => step.id === initialStepId));
   const startId = steps[startIndex]?.id;
@@ -126,6 +128,6 @@ export default function ImportEditor({id,preview,readOnly,initialStepId,reportHr
         simulateVideoTime={id.startsWith("preview-vsl-") || id.startsWith("preview-funil-")} />
     </MotionConfig>
       : <LayersBuilder initial={draft.funnel} initialStepId={startId}
-          localDraft={{ save, commit: readOnly ? undefined : commit, previewHref: previewHref(), stagePreviewHref: previewHref, reportHref, dashboardHref: id.startsWith("preview-vsl-") ? "/dashboard?tab=pages" : "/dashboard" }} />}
+          localDraft={{ save, commit: readOnly ? undefined : commit, previewHref: previewHref(), stagePreviewHref: previewHref, reportHref, sourceSlug, dashboardHref: id.startsWith("preview-vsl-") ? "/dashboard?tab=pages" : "/dashboard" }} />}
   </>;
 }
