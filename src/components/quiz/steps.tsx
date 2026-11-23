@@ -14,6 +14,7 @@ import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { trackAnswer } from "@/lib/quiz/track";
 import { interpEstado } from "@/lib/quiz/estado";
 import { playSpinTicks, playWin, playUrl } from "@/lib/quiz/sound";
+import { fireRouletteConfetti, RouletteCelebration } from "./RouletteCelebration";
 import { ajustarRotulo } from "@/lib/quiz/roleta-texto";
 import dynamic from "next/dynamic";
 // Motor alternativo da roleta. `dynamic` de propósito: funil que usa a roleta
@@ -211,7 +212,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
       if (step.sound.winUrl) playUrl(step.sound.winUrl);
       else playWin();
     }
-    import("canvas-confetti").then((m) => m.default({ particleCount: 170, spread: 95, origin: { y: 0.4 }, disableForReducedMotion: true })).catch(() => {});
+    void fireRouletteConfetti().catch(() => {});
   };
 
   /** O primeiro giro controlado para no índice de tentativa; só o seguinte premia. */
@@ -485,28 +486,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                   As ondas são brancas translúcidas, não coloridas como no
                   bloco: aqui o fundo do popup já é a cor do prêmio, e um disco
                   da mesma cor sumiria dentro dele. */}
-              {premio?.emoji !== "" ? (
-                <motion.div
-                  className="relative mx-auto grid h-14 w-14 place-items-center"
-                  initial={reduzMovimento ? false : { scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 180, damping: 12, delay: 0.1 }}
-                >
-                  {!reduzMovimento && [0, 0.6].map((atraso, i) => (
-                    <motion.span
-                      key={i} aria-hidden className="absolute inset-0 rounded-full"
-                      style={{ background: "rgba(255,255,255,.55)" }}
-                      animate={{ scale: [1, i ? 1.6 : 1.4, 1], opacity: [i ? 0.3 : 0.45, 0, i ? 0.3 : 0.45] }}
-                      transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: atraso }}
-                    />
-                  ))}
-                  <motion.span
-                    className="relative text-4xl leading-none"
-                    animate={reduzMovimento ? {} : { scale: [1, 1.12, 1], rotateZ: [0, -5, 5, 0] }}
-                    transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5 }}
-                  >{premio?.emoji || "🎉"}</motion.span>
-                </motion.div>
-              ) : null}
+              {premio?.emoji !== "" && <RouletteCelebration emoji={premio?.emoji} />}
               {/* MIOLO na ordem gravada. Emoji e botão são a moldura e ficam
                   fixos; a arte e a copy trocam de lugar conforme o arraste do
                   painel. Sem `popupOrdem`, a arte vem antes — que é como o

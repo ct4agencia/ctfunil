@@ -24,14 +24,8 @@
 .note { margin-top: auto; padding-top: 16px; text-align: center; font-size: 15px; color: #bdb3a2; }
 .roulette { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
 .roulette p { margin: 0; color: #dcd3c3; }
-.wheelFrame { position: relative; margin: 4px auto 8px; padding-top: 18px; width: min(100%, 300px); }
-.pointer { position: absolute; width: 44px; height: 46px; inset: 0 auto auto 50%; translate: -50%; z-index: 1; filter: drop-shadow(0 4px 6px #0009); }
-.wheelRim { position: relative; aspect-ratio: 1; border-radius: 50%; padding: 7px; background: #e3c48d; box-shadow: 0 0 0 5px #2a2520, 0 18px 50px #e3c48d38; }
-.wheel { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 50%; background: repeating-conic-gradient(#1c1915 0 60deg, #e3c48d 60deg 120deg); transition-property: transform; transition-timing-function: cubic-bezier(.15,.7,.1,1); }
-.segment { position: absolute; inset: 0; transform: rotate(var(--segment)); color: #e3c48d; }
-.segment:nth-child(even) { color: #14110c; }
-.segment span { display: block; width: max-content; margin: 5% auto 0; font-size: clamp(11px, 4vw, 16px); font-weight: 800; line-height: 1.05; white-space: pre-line; }
-.hub { position: absolute; inset: 50% auto auto 50%; translate: -50% -50%; display: grid; place-items: center; width: 24%; aspect-ratio: 1; border: 3px solid #e3c48d; border-radius: 50%; color: #e3c48d; background: #0e0d0b; }
+.wheelFrame { position: relative; margin: 12px auto 4px; width: min(100%, 300px); }
+.hubIcon { position: absolute; inset: 50% auto auto 50%; translate: -50% -50%; z-index: 21; color: #e3c48d; pointer-events: none; }
 .hint { display: flex; align-items: center; gap: 8px; color: #7fe0a6; font-weight: 800; }
 .green { background: #13733f; color: white; box-shadow: 0 6px #0c5530; animation: pulse 1.35s ease-in-out infinite; }
 .green:hover { background: #16834a; }
@@ -42,9 +36,7 @@
 .result h2 { color: #39ff88; }
 .result strong { padding: 12px; border: 1px solid #e3c48d; border-radius: 14px; background: #1f1c18; font-size: 24px; }
 .close { color: #e3c48d; padding: 7px 14px; cursor: pointer; }
-.particles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.particles i { position: absolute; top: -20px; width: 8px; height: 13px; animation: fall 2.6s ease-in both; }
+.confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 @keyframes pulse { 50% { transform: scale(1.035); } }
 @keyframes appear { from { opacity: 0; transform: translateY(12px) scale(.96); } }
-@keyframes fall { to { opacity: 0; transform: translateY(480px) rotate(540deg); } }
-@media (prefers-reduced-motion: reduce) { .bannerTrack, .cta, .green, .result[open], .particles i { animation: none; } .wheel { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .bannerTrack, .cta, .green, .result[open] { animation: none; } }
