@@ -20,7 +20,7 @@ export async function proxy(request: NextRequest) {
   }
   // Keep unknown single-segment requests away from the production funnel resolver.
   if (isReadOnlyWorkspace() && /^\/[^/]+$/.test(pathname) &&
-      !["/dashboard", "/analytics", "/ctfunil", "/manifest.webmanifest", "/calculadora-lucrativa", "/nao-encontrado"].includes(pathname)) {
+      !["/dashboard", "/analytics", "/ctfunil", "/upbf1", "/manifest.webmanifest", "/calculadora-lucrativa", "/nao-encontrado"].includes(pathname)) {
     if (pathname.includes(".")) return new NextResponse(null, { status: 404 });
     const missing = request.nextUrl.clone();
     missing.protocol = "http:";
