@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { StatefulButton } from "@/components/referencias/beui/motion/button/stateful";
 import { WorkspaceSelect } from '@/components/ui/WorkspaceSelect';
 import type { InleadStep } from '@/lib/quiz/layers/types';
-import { Check, ExternalLink, Eye, FileArchive, TriangleAlert } from 'lucide-react';
+import { Check, Eye, FileArchive, TriangleAlert } from 'lucide-react';
 import { MotionConfig } from 'motion/react';
 import { WorkspaceLoading } from '@/components/workspace/WorkspaceLoading';
 import { Brand, ThemeButton, WorkspaceFrame } from '@/components/workspace/WorkspaceFrame';
@@ -15,13 +15,17 @@ import TypebotBuilder from '@/components/builder/TypebotBuilder';
 import ChatRunner from '@/components/quiz/typebot/ChatRunner';
 import { LocalDraftContext } from '@/components/builder/fields';
 import { loadImportDraft,saveImportDraft,type ImportDraft } from '@/lib/assistant/import-drafts';
+import { restoreMissingVsl } from '@/lib/workspace-vsl-preview';
 import type { Funnel } from '@/lib/quiz/types';
 import { createImportedFunnel } from '@/app/dashboard/actions';
 
-export default function ImportEditor({id,preview,readOnly,initialStepId,originalVideoUrl,reportHref}:{id:string;preview:boolean;readOnly:boolean;initialStepId?:string;originalVideoUrl?:string;reportHref?:string}) {
+export default function ImportEditor({id,preview,readOnly,initialStepId,reportHref}:{id:string;preview:boolean;readOnly:boolean;initialStepId?:string;reportHref?:string}) {
   const router = useRouter();
   const [draft,setDraft]=useState<ImportDraft|null>(null),[loaded,setLoaded]=useState(false),[error,setError]=useState('');
-  useEffect(()=>{let mounted=true;loadImportDraft(id).then(value=>{if(mounted)setDraft(value||null);}).catch(()=>{if(mounted)setError('Não foi possível abrir a importação neste navegador.');}).finally(()=>{if(mounted)setLoaded(true);});return()=>{mounted=false;};},[id]);
+  useEffect(()=>{let mounted=true;loadImportDraft(id).then(value=>{if (mounted) {
+      const slug = /^preview-vsl-([a-z0-9_-]+)$/.exec(id)?.[1];
+      setDraft(value && slug ? { ...value, funnel: restoreMissingVsl(value.funnel, slug) } : value ?? null);
+    }}).catch(()=>{if(mounted)setError('Não foi possível abrir a importação neste navegador.');}).finally(()=>{if(mounted)setLoaded(true);});return()=>{mounted=false;};},[id]);
   const save=async(funnel:Funnel)=>{if(!draft)return {ok:false,error:'Rascunho não encontrado.'};try{const next={...draft,funnel};await saveImportDraft(next);setDraft(next);return {ok:true};}catch{return {ok:false,error:'Não foi possível salvar neste navegador.'};}};
   const commit=async(funnel:Funnel)=>{const saved=await save(funnel);if(!saved.ok)return saved;const result=await createImportedFunnel(funnel);if(result.ok&&result.slug)window.location.href=`/builder/${encodeURIComponent(result.slug)}`;return result;};
   const [approving, setApproving] = useState(false);
@@ -111,27 +115,17 @@ export default function ImportEditor({id,preview,readOnly,initialStepId,original
   const awaitingReview = draft.reviewed === false;
 
   return <>
-    <div className="ct-workspace border-b border-ct-line px-4 py-3 text-xs text-ct-dim">
-      <strong>Importação local: {draft.source}</strong>
-      {draft.warnings.length > 0 && <details className="ct-disclosure mt-1"><summary>O que revisar</summary><ul>{draft.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details>}
-      <div className="mt-2 flex flex-wrap items-center gap-3">
-        <Link className="text-ct-blue" href={preview ? editorHref : "/ctfunil#assistente"}>
-          {preview ? (awaitingReview ? "Voltar à revisão" : "Voltar à edição") : "Voltar ao assistente"}
-        </Link>
-        {originalVideoUrl && <a href={originalVideoUrl} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-ct-blue underline">
-          Abrir VSL original em nova aba <ExternalLink size={12} aria-hidden="true" />
-        </a>}
-        {preview && steps.length > 1 && <WorkspaceSelect searchable label="Etapa de início" value={startId ?? ""}
-          onChange={stepId => router.replace(previewHref(stepId), { scroll: false })}
-          options={steps.map((step, index) => ({ value: step.id, label: `${index + 1}. ${step.title || "Etapa"}` }))} />}
-      </div>
-    </div>
+    {preview && <div className="ct-workspace flex flex-wrap items-center gap-3 border-b border-ct-line px-4 py-2 text-xs">
+      <Link className="text-ct-blue underline" href={editorHref}>{awaitingReview ? "Voltar à revisão" : "Voltar à edição"}</Link>
+      {steps.length > 1 && <WorkspaceSelect searchable label="Etapa de início" value={startId ?? ""}
+        onChange={stepId => router.replace(previewHref(stepId), { scroll: false })}
+        options={steps.map((step, index) => ({ value: step.id, label: `${index + 1}. ${step.title || "Etapa"}` }))} />}
+    </div>}
     {preview ? <MotionConfig reducedMotion="user">
       <LayersRunner key={startId} funnel={draft.funnel} startIndex={startIndex} preview
         simulateVideoTime={id.startsWith("preview-vsl-") || id.startsWith("preview-funil-")} />
     </MotionConfig>
       : <LayersBuilder initial={draft.funnel} initialStepId={startId}
-          localDraft={{ save, commit: readOnly ? undefined : commit, previewHref: previewHref(), stagePreviewHref: previewHref, reportHref }} />}
+          localDraft={{ save, commit: readOnly ? undefined : commit, previewHref: previewHref(), stagePreviewHref: previewHref, reportHref, dashboardHref: id.startsWith("preview-vsl-") ? "/dashboard?tab=pages" : "/dashboard" }} />}
   </>;
 }

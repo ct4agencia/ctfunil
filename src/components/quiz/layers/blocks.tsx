@@ -1,4 +1,5 @@
 "use client";
+import { getVslIframeUrl } from "@/lib/workspace-vsl-preview";
 import CatalogBlock, { AdvancedField, VideoIntroduction } from "./CatalogBlocks";
 
 import { createContext, useContext, useEffect, useId, useRef, useState } from "react";
@@ -966,6 +967,8 @@ function CheckBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 function EmbedBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const html = layer.content.embedHtml || layer.content.html || layer.content.text || "";
   const ref = useRef<HTMLDivElement>(null);
+  const [loadedPlayer, setLoadedPlayer] = useState<string>();
+  const player = ctx.preview ? getVslIframeUrl(html) : undefined;
   useEffect(() => {
     const el = ref.current;
     if (!el || !html || ctx.preview) return;
@@ -981,6 +984,14 @@ function EmbedBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     const detach = attachVslWatch({ funnelSlug: ctx.funnelSlug, html, disabled: ctx.preview });
     return () => { el.innerHTML = ""; detach(); };
   }, [html, ctx.funnelSlug, ctx.preview]);
+  if (player && loadedPlayer === player) return <iframe title="Vídeo da campanha" src={player}
+    className="mx-auto aspect-video w-full rounded-2xl bg-black" sandbox="allow-scripts allow-same-origin"
+    referrerPolicy="origin" allow="fullscreen; encrypted-media; autoplay" allowFullScreen />;
+  if (player) return <div className="mx-auto grid aspect-video w-full place-items-center rounded-2xl bg-neutral-900 p-4 text-white">
+    <button type="button" onClick={() => setLoadedPlayer(player)} className="rounded-lg border border-white/40 px-4 py-2 text-sm font-semibold">
+      <span aria-hidden="true">▶ </span>Carregar vídeo
+    </button>
+  </div>;
   if (ctx.preview) return (
     <div className="mx-auto grid aspect-video w-full place-items-center rounded-2xl bg-neutral-900 p-4 text-center text-sm text-white">
       <p><span aria-hidden="true">▶ </span>{html.trim() ? "Vídeo incorporado · reprodução desativada na prévia" : "Vídeo incorporado · fonte ausente nesta cópia"}</p>

@@ -7,7 +7,7 @@ import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep } from "@/lib/quiz/layers/types";
 
 const legacyMediaWarning = "Vídeos e imagens externas são representados por blocos. Links de produção e integrações foram excluídos da cópia.";
-const videoMediaWarning = "A cópia carrega as imagens públicas disponíveis e simula o tempo de vídeo. Vídeos, links de produção e integrações ficam fora da execução local.";
+const videoMediaWarning = "A cópia preserva as imagens públicas e simula a liberação dos botões. O player VTurb pode ser carregado sob demanda na prévia.";
 
 export function restoreOriginalImages(current: Funnel, source: Funnel) {
   const sourceSteps = new Map((source.steps as unknown as InleadStep[]).map(step => [step.id, step]));

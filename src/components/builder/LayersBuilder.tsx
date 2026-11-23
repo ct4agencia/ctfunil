@@ -1429,6 +1429,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
   save: (funnel: Funnel) => Promise<{ ok: boolean; error?: string }>;
   previewHref: string;
   reportHref?: string;
+  dashboardHref?: string;
   stagePreviewHref?: (stepId: string) => string;
   commit?: (funnel:Funnel) => Promise<{ok:boolean;error?:string}>;
 } }) {
@@ -1622,7 +1623,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
       <EditorTop label={saving ? "Salvando" : localDraft ? "Rascunho local" : isDraft ? "Rascunho" : "Edição de funil"} busy={saving}/>
       <header className="ct-toolbar flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
         <div className="flex min-w-0 max-w-full items-center gap-3">
-          <Link href={localPreviewHref ?? "/dashboard"} className="rounded-md border border-ct-line px-2 py-1 text-xs font-semibold text-ct-dim hover:bg-ct-raised">{localDraft ? "← Preview local" : "← Funis"}</Link>
+          <Link href={localDraft?.dashboardHref ?? "/dashboard"} className="rounded-md border border-ct-line px-2 py-1 text-xs font-semibold text-ct-dim hover:bg-ct-raised">← Dashboard</Link>
           <div className="min-w-0 break-words">
             <h1 className="text-sm font-bold">Construtor · {funnel.name}</h1>
             <p className="text-xs text-ct-dim">/{funnel.slug} · {steps.length} lâminas{localDraft ? " · RASCUNHO LOCAL — não publicado" : ""}</p>

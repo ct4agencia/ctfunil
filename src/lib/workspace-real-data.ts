@@ -39,13 +39,6 @@ export async function getWorkspaceSnapshotIfAuthorized() {
   return { ...workspaceSnapshot(), avatarUrl };
 }
 
-export function getPublicVslUrl(slug: string) {
-  if (!vsl.rows.some(row => row.slug === slug)) return undefined;
-  const domain = snapshot.funnels.find(funnel => funnel.slug === slug)?.domain;
-  if (domain !== "viverdebolsas.com.br" && domain !== "c.vivendodemoda.com.br") return undefined;
-  return `https://${domain}/${encodeURIComponent(slug)}`;
-}
-
 function workspaceSnapshot() {
   const accountAds = new Map<string, string[]>();
   if (adAccountSnapshot.attributionCapturedAt === attribution.captured_at) {
