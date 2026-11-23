@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isReadOnlyWorkspace, realDataPreviewHost, isWorkspacePreview } from "@/lib/workspace-preview";
+import { isProductionWorkspaceHost, isReadOnlyWorkspace, realDataPreviewHost, isWorkspacePreview } from "@/lib/workspace-preview";
 import { updateSession } from "@/lib/supabase/proxy";
 
 /**
@@ -31,7 +31,7 @@ export async function proxy(request: NextRequest) {
   if ((pathname === "/dashboard" || pathname === "/analytics") && isWorkspacePreview(request.headers.get("host"))) {
     return NextResponse.next();
   }
-  const response = await updateSession(request);
+  const response = await updateSession(request, isProductionWorkspaceHost(request.headers.get("host")));
   if (previewHost) {
     const location = response.headers.get("location");
     if (location) {

@@ -11,10 +11,11 @@ const PROTECTED = ["/dashboard", "/builder", "/analytics", "/admin"];
  * Aposenta o painel VSL antigo: /admin* → /dashboard. Login em /admin/login.
  * Allowlist por email (ADMIN_EMAIL) garante 1 só dono.
  */
-export async function updateSession(request: NextRequest) {
+export async function updateSession(request: NextRequest, protectWorkspace = false) {
   const { pathname } = request.nextUrl;
   const isLoginRoute = pathname === "/admin/login";
-  const isProtected = PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  const protectedPaths = protectWorkspace ? [...PROTECTED, "/ctfunil", "/lab", "/importar"] : PROTECTED;
+  const isProtected = protectedPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   // PÁGINAS PÚBLICAS (funil da lead /q, APIs, home): nada de auth/getUser.
   // Isso tira ~200–400ms (1 ida ao Supabase) de TODA requisição pública —

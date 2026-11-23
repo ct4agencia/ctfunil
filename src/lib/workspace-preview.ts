@@ -6,16 +6,22 @@ export function isWorkspacePreview(host: string | null) {
     && !process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
-function isVercelPreview() {
-  return process.env.VERCEL_ENV === "preview" && Boolean(process.env.VERCEL_URL);
+function isVercelWorkspace() {
+  return process.env.VERCEL_ENV === "production" ||
+    (process.env.VERCEL_ENV === "preview" && Boolean(process.env.VERCEL_URL));
 }
 
 export function isReadOnlyWorkspace() {
-  return process.env.CTFUNIL_REAL_DATA_PREVIEW === "1" || isVercelPreview();
+  return process.env.CTFUNIL_REAL_DATA_PREVIEW === "1" || isVercelWorkspace();
+}
+
+export function isProductionWorkspaceHost(host: string | null) {
+  return process.env.VERCEL_ENV === "production" &&
+    (host === "ctfunil.vercel.app" || (Boolean(host) && host === process.env.VERCEL_URL));
 }
 
 export function realDataPreviewHost(host: string | null) {
-  if (isVercelPreview() && host === process.env.VERCEL_URL) return host;
+  if (isVercelWorkspace() && (host === process.env.VERCEL_URL || isProductionWorkspaceHost(host))) return host;
   if (
     process.env.CTFUNIL_REAL_DATA_PREVIEW === "1" &&
     host &&
