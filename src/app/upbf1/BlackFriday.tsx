@@ -9,8 +9,14 @@ import styles from "./black-friday.module.css";
 
 const benefit = "GUIA COMPLETO + 80% OFF 🔥";
 const storageKey = "bf_sonia_roleta_girou_v1";
-const segments = ["GUIA COMPLETO + 80% OFF", "30% OFF", "APOSTILA VIP", "10% OFF", "LISTA DE MATERIAIS", "TENTE NOVAMENTE"]
-  .map((label, index) => ({ label, color: index % 2 === 0 ? "#1c1915" : "#e3c48d" }));
+const segments = [
+  { label: benefit, labelLines: ["GUIA", "COMPLETO", "+ 80% OFF 🔥"], labelSize: 7.5 },
+  { label: "30% OFF" },
+  { label: "APOSTILA VIP" },
+  { label: "10% OFF" },
+  { label: "LISTA DE MATERIAIS" },
+  { label: "TENTE NOVAMENTE", labelSize: 10 },
+].map((segment, index) => ({ ...segment, color: index % 2 === 0 ? "#1c1915" : "#e3c48d" }));
 const chrome = { rim: "#e3c48d", rimInner: "#8c6a33", pegColor: "#fff1d4", pointer: "#e3c48d", dark: true };
 
 type CampaignWindow = Window & {

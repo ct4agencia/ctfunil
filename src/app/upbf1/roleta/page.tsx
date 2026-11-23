@@ -7,8 +7,7 @@ export const metadata: Metadata = { title: "Roleta de benefício — Black Frida
 const message = "Sônia, tirei o GUIA COMPLETO + 80% OFF 🔥 e quero desbloquear o meu benefício!!!";
 
 function getRedirectUrl() {
-  const input = process.env.UPBF1_REDIRECT_URL;
-  if (!input) return;
+  const input = process.env.UPBF1_REDIRECT_URL || "https://app.goredirect.com.br/fd61/bf-01";
   try {
     const url = new URL(input);
     if (url.protocol !== "https:" || url.username || url.password) return;

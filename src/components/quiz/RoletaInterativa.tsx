@@ -26,7 +26,7 @@ import { ajustarRotulo } from "@/lib/quiz/roleta-texto";
 
 export interface RoletaInterativaProps {
   /** `labelSize` por fatia vence o da lâmina — prêmio de nome longo encolhe sozinho */
-  segments: { label: string; color: string; labelSize?: number }[];
+  segments: { label: string; color: string; labelSize?: number; labelLines?: string[] }[];
   /** tamanho padrão do texto nas fatias, em px do viewBox (padrão 11) */
   labelSize?: number;
   /** índice JÁ SORTEADO. A física é calculada para parar exatamente nele. */
@@ -274,7 +274,9 @@ export default function RoletaInterativa({
             const [tx, ty] = polar(62, i * SEG);
             // mesma regra da roleta clássica — antes eram duas cópias divergentes
             const fixo = s.labelSize != null;
-            const { linhas, fontSize: fs } = ajustarRotulo(
+            const { linhas, fontSize: fs } = s.labelLines?.length
+              ? { linhas: s.labelLines, fontSize: s.labelSize ?? labelSize ?? 11 }
+              : ajustarRotulo(
               s.label, N, 62, s.labelSize ?? labelSize ?? 11, fixo,
             );
             const dy0 = linhas.length === 1 ? "0" : `${-((linhas.length - 1) * 0.55)}em`;
