@@ -8,7 +8,6 @@ const benefit = "GUIA COMPLETO + 80% OFF 🔥";
 const storageKey = "bf_sonia_roleta_girou_v1";
 const segments = ["GUIA\nCOMPLETO\n+ 80% OFF", "30%\nOFF", "APOSTILA\nVIP", "10%\nOFF", "LISTA DE\nMATERIAIS", "TENTE\nNOVAMENTE"];
 const colors = ["#E3C48D", "#16834A", "#F6F1E7", "#C9A15C", "#E8743B"];
-const message = "Sônia, tirei o GUIA COMPLETO + 80% OFF 🔥 e quero desbloquear o meu benefício!!!";
 
 type CampaignWindow = Window & {
   dataLayer?: Record<string, unknown>[];
@@ -23,7 +22,6 @@ function track(event: string, data: Record<string, string> = {}) {
   try {
     browser.fbq?.("trackCustom", event, payload);
   } catch {}
-
 }
 
 function playApplause(audio: AudioContext) {
@@ -44,7 +42,7 @@ function playApplause(audio: AudioContext) {
   }
 }
 
-export default function BlackFriday({ roulette = false, whatsappNumber }: { roulette?: boolean; whatsappNumber?: string }) {
+export default function BlackFriday({ roulette = false, redirectUrl }: { roulette?: boolean; redirectUrl?: string }) {
   const [phase, setPhase] = useState<"idle" | "spinning" | "done">("idle");
   const [rotation, setRotation] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -150,9 +148,9 @@ export default function BlackFriday({ roulette = false, whatsappNumber }: { roul
             <h2 id="upbf1-result">PARABÉNS!!!</h2>
             <p>Seu benefício está liberado.</p>
             <strong>{benefit}</strong>
-            {whatsappNumber ? (
+            {redirectUrl ? (
               <>
-                <a className={styles.green} href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`} onClick={() => track("whatsapp_cta_click")}><Lock aria-hidden="true" /> DESBLOQUEAR BENEFÍCIO</a>
+                <a className={styles.green} href={redirectUrl} onClick={() => track("whatsapp_cta_click")}><Lock aria-hidden="true" /> DESBLOQUEAR BENEFÍCIO</a>
                 <p>Você vai para o WhatsApp da Sônia.</p>
               </>
             ) : <p>O atendimento por WhatsApp está indisponível no momento.</p>}
