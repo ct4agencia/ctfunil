@@ -112,7 +112,15 @@ export default function BlackFriday({ roulette = false, redirectUrl }: { roulett
 
   return (
     <main className={styles.page}>
-      <div className={styles.banner} aria-hidden="true">BLACK FRIDAY · BLACK FRIDAY · BLACK FRIDAY · BLACK FRIDAY</div>
+      <div className={styles.banner} aria-hidden="true">
+        <div className={styles.bannerTrack}>
+          {[0, 1].map(copy => (
+            <span className={styles.bannerRepeat} key={copy}>
+              {"BLACK FRIDAY · ".repeat(6)}
+            </span>
+          ))}
+        </div>
+      </div>
       {!roulette ? (
         <>
           <p className={styles.kicker}>Um presente da Sônia</p>
