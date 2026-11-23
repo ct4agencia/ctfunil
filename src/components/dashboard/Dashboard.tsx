@@ -1,281 +1,305 @@
 "use client";
 
-import { useState } from "react";
+import RollingNumber from "@/components/ui/RollingNumber";
+import { clearWorkspaceNotices, recordWorkspaceNotice } from "@/components/workspace/WorkspaceNoticeHistory";
+import WorkspaceNotice from "@/components/ui/WorkspaceNotice";
+import WorkspaceStatus from "@/components/ui/WorkspaceStatus";
+import ActiveTab from "@/components/ui/ActiveTab";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { WorkspaceFrame } from "@/components/workspace/WorkspaceFrame";
+import { FolderKanban, Users, MousePointer2, CheckCheck, Eye, EyeOff } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { FunnelSummary } from "@/lib/quiz/funnels-db";
 import type { DashboardMetrics } from "@/lib/quiz/metrics";
-import { PRESETS } from "@/lib/quiz/presets";
+import CreateFunnelDialog from "./CreateFunnelDialog";
+import SnapshotTimestamp from "./SnapshotTimestamp";
 import { getPalette } from "@/lib/quiz/theme";
 import { createFunnel, duplicateFunnel, deleteFunnel } from "@/app/dashboard/actions";
 import { signOut } from "@/app/auth/actions";
+import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import Pagination from "@/components/ui/Pagination";
+import WorkspaceDateRange, { type DateRange } from "@/components/ui/WorkspaceDateRange";
 
-const PER_PAGE = 20;
+const PER_PAGE = 12;
+const updateDayFormat = new Intl.DateTimeFormat("sv-SE", { timeZone: "America/Sao_Paulo" });
+
+function updateDay(timestamp: string) {
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? "" : updateDayFormat.format(date);
+}
+
+const folders = ["Todos", "CDB", "SRC", "Resinas", "Páginas", "Quizzes"];
+
+type ModuleTab = "quizzes" | "pages" | "spy";
+type VslPage = { name: string; slug: string; tracked: number };
+
+function readTab(value: string | null): ModuleTab {
+  return value === "pages" || value === "spy" ? value : "quizzes";
+}
 
 function fmtDate(s: string): string {
-  // timeZone fixo: sem isso o server (UTC) e o client (BRT) formatam dias diferentes
-  // perto da meia-noite → hydration mismatch (React #418).
-  try { return new Date(s).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", timeZone: "America/Sao_Paulo" }); } catch { return ""; }
+  try {
+    return new Date(s).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", timeZone: "America/Sao_Paulo" });
+  } catch {
+    return "";
+  }
 }
 
-
-/* ── Card de métrica (Datacrazy) ───────────────────────────── */
-function MetricCard({ label, value, sub, icon, active }: { label: string; value: string; sub: string; icon: React.ReactNode; active?: boolean }) {
-  return (
-    <div className={`rounded-2xl border bg-white p-4 ${active ? "border-blue-500 ring-1 ring-blue-100" : "border-neutral-200"}`}>
-      <div className="flex items-start justify-between">
-        <p className="text-[13px] font-medium text-neutral-500">{label}</p>
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-neutral-100 text-neutral-400">{icon}</span>
-      </div>
-      <p className="mt-3 text-[26px] font-bold leading-none tracking-tight text-neutral-900">{value}</p>
-      <p className="mt-1.5 text-xs text-neutral-400">{sub}</p>
-    </div>
-  );
-}
-
-/* ── Gráfico de barras diário ──────────────────────────────── */
-function DailyChart({ data }: { data: DashboardMetrics["daily"] }) {
-  const max = Math.max(1, ...data.map((d) => d.sessoes));
-  return (
-    <div className="flex h-44 items-end gap-3 px-1">
-      {data.map((d) => (
-        <div key={d.day} className="flex flex-1 flex-col items-center gap-2">
-          <div className="flex w-full flex-1 items-end">
-            <div className="w-full rounded-t-md bg-blue-500/90 transition-all" style={{ height: `${(d.sessoes / max) * 100}%`, minHeight: d.sessoes ? 4 : 0 }} title={`${d.sessoes} sessões`} />
-          </div>
-          <span className="text-[10px] text-neutral-400">{d.day}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ── Donut (sessões por funil) ─────────────────────────────── */
-function Donut({ data }: { data: DashboardMetrics["porFunil"] }) {
-  const total = data.reduce((a, b) => a + b.sessoes, 0);
-  const R = 54, C = 2 * Math.PI * R;
-  const segs = total > 0
-    ? data.filter((d) => d.sessoes > 0).reduce<Array<{ slug: string; color: string; len: number; offset: number }>>((acc, d) => {
-        const offset = acc.reduce((sum, seg) => sum + seg.len, 0);
-        return [...acc, { slug: d.slug, color: d.color, len: (d.sessoes / total) * C, offset }];
-      }, [])
-    : [];
-  return (
-    <div className="flex items-center gap-5">
-      <svg viewBox="0 0 140 140" className="h-36 w-36 -rotate-90">
-        <circle cx="70" cy="70" r={R} fill="none" stroke="#eef1f5" strokeWidth="16" />
-        {segs.map((d) => <circle key={d.slug} cx="70" cy="70" r={R} fill="none" stroke={d.color} strokeWidth="16" strokeDasharray={`${d.len} ${C - d.len}`} strokeDashoffset={-d.offset} />)}
-      </svg>
-      <div className="space-y-1.5 text-sm">
-        {data.slice(0, 5).map((d) => (
-          <div key={d.slug} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: d.color }} /><span className="max-w-[140px] truncate text-neutral-600">{d.name}</span><span className="ml-auto font-semibold text-neutral-800">{d.pct}%</span></div>
-        ))}
-        {!segs.length ? <p className="text-xs text-neutral-400">Sem sessões ainda.</p> : null}
-      </div>
-    </div>
-  );
-}
-
-export default function Dashboard({ funnels, metrics }: { funnels: FunnelSummary[]; metrics: DashboardMetrics }) {
+export default function Dashboard({ funnels, metrics, preview = false, snapshotAt, pagesCapturedAt, pages = [] }: { funnels: FunnelSummary[]; metrics: DashboardMetrics; preview?: boolean; snapshotAt?: string; pagesCapturedAt?: string; pages?: VslPage[] }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tab = readTab(searchParams.get("tab"));
+  function setTab(next: ModuleTab) {
+    if (next === tab) return;
+    const url = new URL(window.location.href);
+    if (next === "quizzes") url.searchParams.delete("tab");
+    else url.searchParams.set("tab", next);
+    window.history.pushState(null, "", url);
+  }
+  const [hideMetrics, setHideMetrics] = useState(false);
   const [q, setQ] = useState("");
+  const [pageQuery, setPageQuery] = useState("");
+  const [folder, setFolder] = useState("Todos");
+  const [updateRange, setUpdateRange] = useState<DateRange>({ from: "", to: "" });
   const [menu, setMenu] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [name, setName] = useState("");
-  const [presetId, setPresetId] = useState(PRESETS[0].id);
-  const [page, setPage] = useState(1);
-  const [showSettings, setShowSettings] = useState(false);
-  const [theme, setThemeState] = useState<"light" | "dark" | "system">(() => {
-    try {
-      if (typeof window === "undefined") return "light";
-      return (localStorage.getItem("ctf-theme") as "light" | "dark" | "system") || "light";
-    } catch {
-      return "light";
-    }
-  });
-  const setTheme = (t: "light" | "dark" | "system") => {
-    setThemeState(t);
-    try { localStorage.setItem("ctf-theme", t); } catch { /* noop */ }
-    const d = document.documentElement;
-    if (t === "system") d.removeAttribute("data-theme"); else d.setAttribute("data-theme", t);
-  };
+  const [pendingDelete, setPendingDelete] = useState<FunnelSummary | null>(null);
+  const confirmation = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = confirmation.current;
+    if (!dialog) return;
+    if (pendingDelete && !dialog.open) dialog.showModal();
+    if (!pendingDelete && dialog.open) dialog.close();
+  }, [pendingDelete]);
+  const [notice, setNotice] = useState<{ message: string; error?: boolean } | null>(null);
+  function notify(message: string, error = false) {
+    recordWorkspaceNotice("Meus funis", message, error);
+    setNotice({ message, error });
+  }
 
-  // Busca por nome + slug + nicho (funis são citados pelo slug em URLs/relatórios).
-  const filtered = funnels.filter((f) => `${f.name} ${f.slug} ${f.niche ?? ""}`.toLowerCase().includes(q.toLowerCase()));
+  function leaveWorkspace() {
+    clearWorkspaceNotices();
+    void signOut();
+  }
+
+  const [page, setPage] = useState(1);
+
+  const updateDates = useMemo(() => [...new Set(funnels.map(funnel => updateDay(funnel.updated_at)).filter(Boolean))].sort(), [funnels]);
+  const hasDateFilter = Boolean(updateRange.from || updateRange.to);
+  const filtered = useMemo(() => {
+    const query = q.trim().toLocaleLowerCase("pt-BR");
+    return funnels.filter((f) => {
+      const hay = `${f.name} ${f.slug} ${f.niche ?? ""} ${f.engine}`.toLowerCase();
+      const byQuery = hay.includes(query);
+      const byFolder = folder === "Todos" || hay.includes(folder.toLowerCase());
+      const day = hasDateFilter ? updateDay(f.updated_at) : "";
+      const byDate = !hasDateFilter || (Boolean(day)
+        && (!updateRange.from || day >= updateRange.from)
+        && (!updateRange.to || day <= updateRange.to));
+      return byQuery && byFolder && byDate;
+    });
+  }, [funnels, folder, q, hasDateFilter, updateRange]);
+  const filteredPages = pages.filter(item => `${item.name} ${item.slug}`.toLocaleLowerCase("pt-BR").includes(pageQuery.trim().toLocaleLowerCase("pt-BR")));
+  const onPages = tab === "pages";
+  const libraryCapturedAt = onPages ? pagesCapturedAt : snapshotAt;
+  const count = onPages ? filteredPages.length : filtered.length;
+  const hasFilters = onPages ? Boolean(pageQuery.trim()) : Boolean(q.trim()) || folder !== "Todos" || hasDateFilter;
+  function clearFilters() {
+    if (onPages) setPageQuery("");
+    else {
+      setQ("");
+      setFolder("Todos");
+      setUpdateRange({ from: "", to: "" });
+      setPage(1);
+    }
+  }
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const curPage = Math.min(page, totalPages);
   const paged = filtered.slice((curPage - 1) * PER_PAGE, curPage * PER_PAGE);
-  const doCreate = async () => { if (busy) return; setBusy(true); const r = await createFunnel(name.trim() || "Novo funil", presetId); setBusy(false); if (r.ok && r.slug) router.push(`/builder/${r.slug}`); else alert(r.error ?? "Erro"); };
-  // Duplicou → abre direto o builder da cópia (antes: só refresh, tinha que achar o card).
-  const doDuplicate = async (slug: string) => { setMenu(null); setBusy(true); const r = await duplicateFunnel(slug); setBusy(false); if (r.ok && r.slug) router.push(`/builder/${r.slug}`); else if (r.ok) router.refresh(); else alert(r.error ?? "Erro"); };
-  const doDelete = async (slug: string) => { setMenu(null); if (!confirm(`Excluir "${slug}"?`)) return; setBusy(true); const r = await deleteFunnel(slug); setBusy(false); if (r.ok) router.refresh(); else alert(r.error ?? "Erro"); };
 
-  const cards = [
-    { label: "Total de funis", value: String(metrics.totalFunis), sub: `${funnels.length} ativos`, icon: "⛢", active: true },
-    { label: "Sessões", value: String(metrics.totalSessoes), sub: "visitantes únicos", icon: "👁" },
-    { label: "Respostas", value: String(metrics.totalRespostas), sub: "iniciaram o quiz", icon: "✍" },
-    { label: "Leads", value: String(metrics.totalLeads), sub: "deixaram contato", icon: "👤" },
-    { label: "Conclusões", value: `${metrics.taxaConclusao}%`, sub: `${metrics.totalConclusoes} concluíram`, icon: "✓" },
-  ];
+  const doDuplicate = async (slug: string) => {
+    if (busy) return;
+    setMenu(null);
+    setBusy(true);
+    try {
+      const result = await duplicateFunnel(slug);
+      if (result.ok && result.slug) router.push(`/builder/${result.slug}`);
+      else if (result.ok) router.refresh();
+      else notify(result.error ?? "Não foi possível duplicar o funil.", true);
+    } catch {
+      notify("Não foi possível duplicar o funil.", true);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const doDelete = async () => {
+    if (!pendingDelete || busy) return;
+    setBusy(true);
+    try {
+      const result = await deleteFunnel(pendingDelete.slug);
+      if (result.ok) {
+        setPendingDelete(null);
+        notify("Funil excluído.");
+        router.refresh();
+      } else {
+        setPendingDelete(null);
+        notify(result.error ?? "Não foi possível excluir o funil.", true);
+      }
+    } catch {
+      setPendingDelete(null);
+      notify("Não foi possível excluir o funil.", true);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9] font-[var(--font-admin)] text-neutral-900" onClick={() => setMenu(null)}>
-      <div className="overflow-x-clip">
-        <div className="mx-auto max-w-[1180px] px-7 py-6">
-          {/* header */}
-          <div className="flex flex-wrap items-end justify-between gap-3">
+    <WorkspaceFrame title="Meus funis" activeTab={tab} demo={preview && !snapshotAt}>
+      <div onClick={() => setMenu(null)}>
+        <header className="ct-page-heading"><div><h1>Meus funis</h1><p>{snapshotAt ? "Dados reais em modo de consulta" : "Criação e desempenho dos funis da CT4 Educação."}</p></div>
+          {preview ? <div className="flex items-center gap-3">{snapshotAt && <button className="text-sm text-ct-dim" onClick={leaveWorkspace}>Sair</button>}<Link className="ct-action-link" href="/lab/construtor">Criar rascunho</Link></div> : <div className="flex items-center gap-3"><button className="text-sm text-ct-dim" onClick={leaveWorkspace}>Sair</button>
+            <button className="ct-action-link" onClick={() => setCreating(true)}>Criar funil</button></div>}
+        </header>
+        <section aria-labelledby="dashboard-metrics-heading">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h1 className="text-[26px] font-bold tracking-tight">Dashboard</h1>
-              <p className="text-sm text-neutral-500">Visão geral do desempenho dos seus funis</p>
+              <h2 id="dashboard-metrics-heading" className="text-sm font-semibold">Indicadores gerais</h2>
+              {snapshotAt && <p className="text-xs text-ct-dim">Dados capturados em <SnapshotTimestamp capturedAt={snapshotAt} />.</p>}
             </div>
-            <div className="flex items-center gap-2">
-              <Link href="/analytics" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">📊 Analytics</Link>
-              <button onClick={() => setCreating(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Criar funil</button>
-              <button onClick={() => setShowSettings(true)} title="Configurações" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⚙ Configurações</button>
-              <button onClick={() => signOut()} title="Sair" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-500 hover:bg-neutral-50">⎋ Sair</button>
+            <button type="button" aria-pressed={hideMetrics} aria-controls="dashboard-metric-values"
+              className="inline-flex items-center gap-2 rounded-lg border border-ct-line px-3 py-2 text-xs text-ct-dim hover:bg-ct-raised"
+              onClick={() => setHideMetrics(hidden => !hidden)}>
+              {hideMetrics ? <EyeOff size={15} aria-hidden="true" /> : <Eye size={15} aria-hidden="true" />}
+              Ocultar valores
+            </button>
+          </div>
+          <div id="dashboard-metric-values" className="ct-metrics">
+            {([{ label: "Funis", value: metrics.totalFunis, icon: FolderKanban }, { label: "Sessões", value: metrics.totalSessoes, icon: MousePointer2 },
+              { label: "Leads", value: metrics.totalLeads, icon: Users }, { label: "Conclusões", value: metrics.totalConclusoes, icon: CheckCheck }]).map(({ label, value, icon: Icon }) => (
+              <div className="ct-metric" key={label}>
+                <div><span>{label}</span><Icon size={17} aria-hidden="true" /></div>
+                <strong><RollingNumber value={value} hidden={hideMetrics} /></strong>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="ct-panel pb-3">
+          <header className="ct-section-heading flex-wrap gap-3">
+            <div><h2>Biblioteca</h2>{tab !== "spy" && <p role="status">{count} {onPages ? (count === 1 ? "página" : "páginas") : (count === 1 ? "funil" : "funis")}</p>}
+              {tab !== "spy" && libraryCapturedAt && (
+                <p>Dados capturados em <SnapshotTimestamp capturedAt={libraryCapturedAt} />.</p>
+              )}
             </div>
-          </div>
-
-          {/* métricas */}
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            {cards.map((c) => <MetricCard key={c.label} {...c} />)}
-          </div>
-
-          {/* charts */}
-          <div className="mt-4 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-            <section className="rounded-2xl border border-neutral-200 bg-white p-5">
-              <h2 className="text-sm font-semibold text-neutral-700">Dados diários</h2>
-              <p className="text-xs text-neutral-400">Sessões nos últimos 7 dias</p>
-              <div className="mt-4"><DailyChart data={metrics.daily} /></div>
-            </section>
-            <section className="rounded-2xl border border-neutral-200 bg-white p-5">
-              <h2 className="text-sm font-semibold text-neutral-700">Sessões por funil</h2>
-              <p className="mb-3 text-xs text-neutral-400">Distribuição</p>
-              <Donut data={metrics.porFunil} />
-            </section>
-          </div>
-
-          {/* funis */}
-          <div className="mt-6 flex items-center justify-between">
-            <h2 className="text-base font-bold">Meus funis <span className="ml-1 rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-semibold text-neutral-600">{funnels.length}</span></h2>
-            <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Buscar funil..." className="w-60 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500" />
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="mt-3 rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center text-sm text-neutral-500">
-              {funnels.length === 0 ? "Nenhum funil ainda." : "Nada encontrado."}<br />
-              <button onClick={() => setCreating(true)} className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Criar funil</button>
-            </div>
-          ) : (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {paged.map((f) => {
-                const pal = getPalette(f.palette_id);
-                return (
-                  <div key={f.slug} className={`relative rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md ${menu === f.slug ? "z-30" : ""}`}>
-                    <div className="h-1 rounded-t-2xl" style={{ background: pal.primary }} />
-                    <div className="p-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <button onClick={() => router.push(`/builder/${f.slug}`)} className="min-w-0 flex-1 text-left" title="Abrir construtor">
-                          <h3 className="truncate font-bold text-neutral-800">{f.name}</h3>
-                          <p className="mt-0.5 text-xs text-neutral-400">{fmtDate(f.updated_at)}{f.niche ? ` · ${f.niche}` : ""}</p>
-                        </button>
-                        <div className="relative">
-                          <button onClick={(e) => { e.stopPropagation(); setMenu(menu === f.slug ? null : f.slug); }} className="rounded-md px-1.5 text-lg text-neutral-400 hover:bg-neutral-100">⋮</button>
-                          {menu === f.slug ? (
-                            <div onClick={(e) => e.stopPropagation()} className="absolute right-0 z-40 mt-1 w-40 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 text-sm shadow-xl">
-                              <button onClick={() => router.push(`/builder/${f.slug}`)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">✏️ Editar</button>
-                              <button onClick={() => router.push(`/dashboard/${f.slug}`)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">📈 Performance</button>
-                              <a href={`/api/export-leads?slug=${encodeURIComponent(f.slug)}`} className="block px-3 py-1.5 hover:bg-neutral-50">⬇ Exportar leads</a>
-                              <a href={f.domain ? `https://${f.domain}/${f.slug}` : `/${f.slug}`} target="_blank" rel="noreferrer" className="block px-3 py-1.5 hover:bg-neutral-50">👁 Visualizar</a>
-                              <button onClick={() => doDuplicate(f.slug)} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">⧉ Duplicar</button>
-                              <button onClick={() => doDelete(f.slug)} className="block w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50">🗑 Excluir</button>
-                            </div>
-                          ) : null}
+            {tab !== "spy" && <label className="ct-search"><input
+              aria-label={onPages ? "Buscar página" : "Buscar funil"}
+              placeholder={onPages ? "Buscar página" : "Buscar funil"}
+              value={onPages ? pageQuery : q}
+              onChange={event => {
+                if (onPages) setPageQuery(event.target.value);
+                else { setQ(event.target.value); setPage(1); }
+              }}
+            /></label>}
+          </header>
+          <div className="ct-filters"><div className="ct-segments">{([["quizzes","Funis"],["pages","Páginas"],["spy","Referências"]] as const).map(([key,label]) =>
+            <button key={key} aria-pressed={tab === key} onClick={()=>setTab(key)}>{tab === key && <ActiveTab group="dashboard-tabs" />}<span>{label}</span></button>)}</div>
+            {tab === "quizzes" && <WorkspaceSelect searchable label="Filtrar por pasta" value={folder} onChange={value=>{setFolder(value);setPage(1);}} options={folders.map(f=>({value:f,label:f}))}/>}</div>
+          {tab === "quizzes" && updateDates.length > 1 && <div className="px-4 pb-1">
+            <WorkspaceDateRange days={updateDates} value={updateRange} label="Atualização dos funis"
+              onChange={range => { setUpdateRange(range); setPage(1); }} />
+          </div>}
+          <div className="px-4">
+              {tab === "quizzes" ? (
+                <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-2">
+                  {paged.map((f) => {
+                    const pal = getPalette(f.palette_id);
+                    return (
+                      <article key={f.slug} className={`ct-dashboard-card relative min-w-0 overflow-visible rounded-xl bg-ct-raised p-4 ${menu === f.slug ? "z-30" : ""}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <button type="button" onClick={() => router.push(snapshotAt ? `/dashboard/${encodeURIComponent(f.slug)}` : preview ? "/lab/sonia?view=builder" : `/builder/${f.slug}`)} className="min-w-0 flex-1 text-left">
+                            <span className="mb-3 block h-1.5 w-16 rounded-full" style={{ background: pal.primary }} />
+                            <h3 className="truncate text-lg font-black">{f.name}</h3>
+                            <p className="mt-1 text-xs text-ct-dim [overflow-wrap:anywhere]">/{f.slug} · {fmtDate(f.updated_at)}{f.niche ? ` · ${f.niche}` : ""}</p>
+                          </button>
+                          {!preview && <div className="relative">
+                            <button onClick={(e) => { e.stopPropagation(); setMenu(menu === f.slug ? null : f.slug); }} className="rounded-xl px-2 py-1 text-xl text-ct-dim hover:bg-ct-raised">⋮</button>
+                            {menu === f.slug ? (
+                              <div onClick={(e) => e.stopPropagation()} className="absolute right-0 z-40 mt-1 w-44 overflow-hidden rounded-2xl border border-ct-line bg-ct-surface py-1 text-sm shadow-2xl">
+                                <button onClick={() => router.push(`/builder/${f.slug}`)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Editar</button>
+                                <button onClick={() => router.push(`/dashboard/${f.slug}`)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Performance</button>
+                                <a href={`/api/export-leads?slug=${encodeURIComponent(f.slug)}`} className="block px-3 py-2 hover:bg-ct-raised">Exportar leads</a>
+                                <a href={f.domain ? `https://${f.domain}/${f.slug}` : `/${f.slug}`} target="_blank" rel="noreferrer" className="block px-3 py-2 hover:bg-ct-raised">Visualizar</a>
+                                <button disabled={busy} onClick={() => doDuplicate(f.slug)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Duplicar</button>
+                                <button disabled={busy} onClick={() => { setMenu(null); setPendingDelete(f); }} className="block w-full px-3 py-2 text-left text-red-600 hover:bg-red-50">Excluir</button>
+                              </div>
+                            ) : null}
+                          </div>}
                         </div>
-                      </div>
-                      <div className="mt-4 flex items-center gap-2">
-                        <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold capitalize" style={{ background: pal.bgSoft, color: pal.primaryDark }}>{f.status}</span>
-                        {/* Badge do motor — antes só se descobria abrindo o builder */}
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${f.engine === "typebot" ? "bg-violet-100 text-violet-700" : f.engine === "layers" ? "bg-orange-100 text-orange-700" : "bg-sky-100 text-sky-700"}`}>{f.engine === "typebot" ? "typebot" : f.engine === "layers" ? "layers" : "steps"}</span>
-                        <span className="text-[11px] text-neutral-400">/{f.slug}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+                          <WorkspaceStatus status={f.status} />
+                          <span className="rounded-full bg-ct-raised px-2.5 py-1 text-[11px] font-bold uppercase text-ct-dim">{f.engine}</span>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              {tab === "pages" && (
+                <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-3">
+                  {filteredPages.map(item => (
+                    <article key={item.slug} className="ct-dashboard-card min-w-0 rounded-xl border border-ct-line bg-ct-surface p-4 [overflow-wrap:anywhere]">
+                      <p className="text-xs font-medium text-ct-dim">Página VSL · /{item.slug}</p>
+                      <h3 className="mt-2 text-lg font-semibold">{item.name}</h3>
+                      <p className="mt-1 text-sm text-ct-dim">{item.tracked.toLocaleString("pt-BR")} sessões com rastreamento de vídeo</p>
+                      <Link href={`/dashboard/${encodeURIComponent(item.slug)}`} className="mt-3 inline-block text-sm text-ct-blue">Ver relatório</Link>
+                    </article>
+                  ))}
+
+                </div>
+              )}
+
+              {tab === "spy" && (
+                <article className="ct-dashboard-card mt-4 rounded-xl border border-ct-line bg-ct-surface p-4">
+                  <h3 className="text-lg font-semibold">Importar referência</h3>
+                  <p className="mt-2 text-sm text-ct-dim">Anexe um arquivo HTML ou ZIP no assistente para revisar a estrutura e criar um rascunho editável.</p>
+                  <Link href="/ctfunil#anexar-referencia" className="mt-3 inline-block text-sm text-ct-blue">Anexar referência no assistente</Link>
+                </article>
+              )}
+
+              {tab !== "spy" && count === 0 && (
+                <div className="ct-empty mt-4 rounded-xl border border-dashed border-ct-line">
+                  <p>{hasFilters
+                    ? (onPages ? "Nenhuma página corresponde à busca." : "Nenhum funil corresponde aos filtros.")
+                    : (onPages ? "Nenhuma página VSL disponível para consulta." : "Nenhum funil disponível.")}</p>
+                  {hasFilters && <button type="button" className="mt-2 text-ct-blue underline" onClick={clearFilters}>Limpar filtros</button>}
+                </div>
+              )}
+              {tab === "quizzes" && totalPages > 1 ? <div className="mt-5"><Pagination current={curPage} total={totalPages} onChange={setPage} /></div> : null}
             </div>
-          )}
-          {totalPages > 1 ? (
-            <div className="mt-5">
-              <Pagination current={curPage} total={totalPages} onChange={setPage} accent="#3b82f6" />
-            </div>
-          ) : null}
-        </div>
+        </section>
+        <Link className="inline-flex items-center gap-2 text-sm text-ct-blue" href="https://viverdebolsas.com.br/calculadora-lucrativa" target="_blank" rel="noreferrer">Calculadora de Lucro ↗</Link>
+        {!preview && <button className="ml-5 text-sm text-ct-blue" onClick={()=>setCreating(true)}>Criar um novo funil</button>}
       </div>
 
-      {creating ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setCreating(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-bold">Criar funil</h3>
-            <p className="mt-1 text-sm text-neutral-500">Escolha um modelo e dê um nome.</p>
-            <label className="mt-4 block text-xs font-semibold text-neutral-500">Nome do funil</label>
-            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Bolsas - SRC 02" className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500" />
-            <label className="mt-4 block text-xs font-semibold text-neutral-500">Modelo (preset)</label>
-            <div className="mt-1 grid gap-2">
-              {PRESETS.map((p) => (
-                <button key={p.id} disabled={p.comingSoon} onClick={() => setPresetId(p.id)} className={`rounded-xl border-2 p-3 text-left transition ${p.comingSoon ? "cursor-not-allowed border-neutral-200 opacity-60" : presetId === p.id ? "border-blue-600 bg-blue-50" : "border-neutral-200 hover:border-neutral-400"}`}>
-                  <div className="flex items-center gap-2">
-                    <span className="h-4 w-4 rounded-full" style={{ background: getPalette(p.paletteId).primary }} />
-                    <span className="text-sm font-bold">{p.name}</span>
-                    {p.comingSoon ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">em construção</span> : null}
-                  </div>
-                  <p className="mt-0.5 text-xs text-neutral-500">{p.description}</p>
-                </button>
-              ))}
-            </div>
-            <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setCreating(false)} className="rounded-lg px-4 py-2 text-sm font-semibold text-neutral-500">Cancelar</button>
-              <button onClick={doCreate} disabled={busy} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Criando..." : "Criar e editar →"}</button>
-            </div>
-          </div>
+      {creating && <CreateFunnelDialog onClose={() => setCreating(false)} onCreate={async input => {
+        const result = await createFunnel(input);
+        if (result.ok && result.slug) router.push('/builder/' + result.slug);
+        return result;
+      }}/>}
+      {notice && <WorkspaceNotice {...notice} onDismiss={() => setNotice(null)} />}
+      <dialog ref={confirmation} className="ct-confirm" aria-labelledby="ct-delete-title" aria-describedby="ct-delete-summary"
+        onCancel={event => { event.preventDefault(); if (!busy) setPendingDelete(null); }}>
+        <h2 id="ct-delete-title" className="font-semibold">Excluir funil?</h2>
+        <p id="ct-delete-summary" className="mt-2 text-sm text-ct-dim">O funil {pendingDelete?.name} será excluído. Essa ação é permanente.</p>
+        <div className="mt-5 flex justify-end gap-3">
+          <button type="button" disabled={busy} className="ct-confirm-cancel" onClick={() => setPendingDelete(null)} autoFocus>Cancelar</button>
+          <button type="button" disabled={busy} className="ct-confirm-delete" onClick={doDelete}>{busy ? "Excluindo…" : "Excluir funil"}</button>
         </div>
-      ) : null}
-
-      {showSettings ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setShowSettings(false)}>
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-neutral-900">⚙ Configurações</h2>
-              <button onClick={() => setShowSettings(false)} className="text-neutral-400 hover:text-neutral-700">✕</button>
-            </div>
-
-            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-neutral-400">Aparência</p>
-            {/* dark/system desativados: o admin usa cores fixas (bg-white etc.) — oferecer
-                um dark que não funciona parece bug. Reativar após o design pass de tokens. */}
-            <div className="mb-4 grid grid-cols-3 gap-2">
-              {([["light", "☀️ Claro", false], ["dark", "🌙 Escuro", true], ["system", "🖥️ Sistema", true]] as const).map(([k, l, soon]) => (
-                <button key={k} disabled={soon} onClick={() => setTheme(k)} className={`relative rounded-xl border-2 px-2 py-3 text-xs font-semibold transition ${soon ? "cursor-not-allowed border-neutral-200 text-neutral-400 opacity-60" : theme === k ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-400"}`}>
-                  {l}
-                  {soon ? <span className="absolute -top-1.5 right-1 rounded-full bg-amber-100 px-1.5 text-[9px] font-bold uppercase text-amber-700">em breve</span> : null}
-                </button>
-              ))}
-            </div>
-
-            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-neutral-400">Idioma</p>
-            <div className="mb-4 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm text-neutral-700">🇧🇷 Português (Brasil)</div>
-
-            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-neutral-400">Conta</p>
-            <div className="mb-4 flex items-center justify-between rounded-xl border border-neutral-200 px-3 py-2.5">
-              <span className="text-sm text-neutral-700">Admin do CTFUNNEL</span>
-              <button onClick={() => signOut()} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50">⎋ Sair</button>
-            </div>
-
-            <p className="text-center text-[11px] text-neutral-400">CTFUNNEL · construtor de funis (quiz + typebot)</p>
-          </div>
-        </div>
-      ) : null}
-    </div>
+      </dialog>
+    </WorkspaceFrame>
   );
 }

@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Fraunces, Plus_Jakarta_Sans, Poppins } from "next/font/google";
+import { display, sans, poppins } from "@/app/fonts/funnel-fonts";
 import FunnelRenderer from "@/components/quiz/FunnelRenderer";
 import VisitBeacon from "@/components/quiz/VisitBeacon";
 import HeroPreload from "@/components/quiz/HeroPreload";
 import PixelScripts from "@/components/vsl/PixelScripts";
-import { resolveFunnel } from "@/lib/quiz/funnels-db";
+import { resolvePublicFunnel } from "@/lib/quiz/funnels-db";
 import { leadGeo } from "@/lib/quiz/geo";
 
 // preload:false: fontes com display:swap pintam com fallback e não competem
 // com o texto do LCP no 4G (mesma otimização da rota /[slug]).
-const display = Fraunces({ subsets: ["latin"], weight: ["600", "700", "900"], variable: "--font-display", preload: false });
-const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans-q", preload: false });
 // Poppins (vivadevelas) — display + corpo alternativos
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700", "800", "900"], variable: "--font-poppins", preload: false });
 
 export async function generateMetadata({
   params,
@@ -21,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const funnel = await resolveFunnel(slug);
+  const funnel = await resolvePublicFunnel(slug);
   if (!funnel) return { title: "Quiz" };
   const seo = funnel.settings?.seo ?? {};
   return {
@@ -46,7 +43,7 @@ export default async function QuizPage({
   const { slug } = await params;
   const { preview } = await searchParams;
   const isPreview = preview === "1";
-  const funnel = await resolveFunnel(slug);
+  const funnel = await resolvePublicFunnel(slug);
   if (!funnel) notFound();
   const geo = isPreview ? {} : await leadGeo();
 

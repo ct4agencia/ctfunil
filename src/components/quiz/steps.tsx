@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { prefereMenosMovimento } from "@/lib/quiz/motion";
+import { useReducedMotion } from "@/components/referencias/beui/lib/reduced-motion-seguro";
 import { comRastreio } from "@/lib/quiz/rastreio";
 import type {
   RouletteStep, RouletteStyle, ScratchStep, MeasureStep, SliderStep, Palette, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep, ResultStep,
@@ -156,6 +156,9 @@ function contrastText(hex?: string): string {
 export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepCtx }) {
   const [spinning, setSpinning] = useState(false);
   const [done, setDone] = useState(false);
+  const [spinCount, setSpinCount] = useState(0);
+  const spinTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(spinTimer.current), []);
   const N = step.segments.length;
   const seg = 360 / N;
   // rotação inicial: mostra a fatia `initialIndex` sob o ponteiro antes de girar
@@ -193,8 +196,12 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   // Popup de prêmio: AUSENTE = desligado, para as roletas que já rodam não
   // ganharem uma tela nova sem ninguém ter pedido.
   const popupOn = !!step.popupEnabled;
+  const retryIndex = Number.isInteger(step.retryIndex) && step.retryIndex! >= 0 && step.retryIndex! < N
+    ? step.retryIndex!
+    : null;
+  const hasRetrySpin = retryIndex != null && retryIndex !== step.winningIndex;
   // mesma guarda do bloco `check`: quem pediu menos movimento vê o emoji parado
-  const reduzMovimento = prefereMenosMovimento();
+  const reduzMovimento = useReducedMotion();
   const premio = step.segments[vencedor];
 
   /** Vitória: som, confete e liberação do botão. Um só lugar para os dois motores. */
@@ -204,21 +211,43 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
       if (step.sound.winUrl) playUrl(step.sound.winUrl);
       else playWin();
     }
-    import("canvas-confetti").then((m) => m.default({ particleCount: 170, spread: 95, origin: { y: 0.4 } })).catch(() => {});
+    import("canvas-confetti").then((m) => m.default({ particleCount: 170, spread: 95, origin: { y: 0.4 }, disableForReducedMotion: true })).catch(() => {});
+  };
+
+  /** O primeiro giro controlado para no índice de tentativa; só o seguinte premia. */
+  const finalizarGiro = (resultado = vencedor) => {
+    if (hasRetrySpin && spinCount === 0 && resultado === retryIndex) {
+      setSpinCount(1);
+      setSpinning(false);
+      setDone(false);
+      return;
+    }
+    celebrar();
   };
 
   const spin = () => {
     if (spinning || done) return;
     setSpinning(true);
 
-    const win = step.mode === "random" ? Math.floor(Math.random() * N) : step.winningIndex;
+    const primeiroGiroDeTentativa = hasRetrySpin && spinCount === 0;
+    const win = primeiroGiroDeTentativa
+      ? retryIndex!
+      : step.mode === "random" && !hasRetrySpin
+        ? Math.floor(Math.random() * N)
+        : step.winningIndex;
     setVencedor(win);
     // trava 24h: registra o prêmio no aparelho (fixa no reload + bloqueia novo giro).
     // NUNCA no preview: ali a trava sobrevive à remontagem do componente, então
     // o "Reiniciar" do construtor remontava a lâmina e a roleta voltava já
     // ganha. Mesma guarda que a raspadinha usa no `oncePerDevice`.
-    if (step.lockReplay && !ctx.preview && typeof window !== "undefined") {
+    if (step.lockReplay && !ctx.preview && typeof window !== "undefined" && !primeiroGiroDeTentativa) {
       try { localStorage.setItem(`cdb-rl-${step.id}`, JSON.stringify({ w: win, ts: Date.now() })); } catch { /* noop */ }
+    }
+
+    if (reduzMovimento && !simulada) {
+      setRotation(-win * seg);
+      finalizarGiro(win);
+      return;
     }
 
     // Na interativa o som dos pinos nasce da própria simulação, então NÃO se
@@ -230,8 +259,11 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     }
     if (simulada) return; // o fim chega pelo callback do componente
 
-    setRotation(360 * 6 - win * seg); // win=0 → 6 voltas exatas, labels terminam retas
-    setTimeout(celebrar, 4300);
+    const moduloAtual = ((rotation % 360) + 360) % 360;
+    const moduloPremio = ((-win * seg) % 360 + 360) % 360;
+    const ajuste = (moduloPremio - moduloAtual + 360) % 360;
+    setRotation(rotation + 360 * 6 + ajuste);
+    spinTimer.current = setTimeout(() => finalizarGiro(win), 4300);
   };
 
   // após vencer, avança sozinho (sem 2º clique) quando autoAdvance.
@@ -281,7 +313,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               /* o índice que chega é o REALMENTE entregue: no modo "não passa"
                  a roda para no prêmio anterior, e celebrar o alvo seria mentir
                  sobre o que está debaixo do ponteiro */
-              onFim={(real) => { setVencedor(real); celebrar(); }}
+              onFim={(real) => { setVencedor(real); finalizarGiro(real); }}
               som={!!step.sound?.enabled && !step.sound?.tickUrl}
               centerImage={step.centerImage}
               // o corpo do texto vem do painel, como nos outros motores
@@ -299,7 +331,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               labelSize={step.labelSize}
               vencedor={vencedor}
               girando={spinning}
-              onFim={celebrar}
+              onFim={() => finalizarGiro()}
               som={!!step.sound?.enabled && !step.sound?.tickUrl}
               preset={step.preset}
               intensidade={step.intensidade ?? 0}
@@ -327,7 +359,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                 style={{ width: 26, height: 26, background: ch.pointer, border: "3px solid #fff", borderRadius: "50% 50% 0 50%", transform: "rotate(45deg)", boxShadow: "0 4px 9px rgba(0,0,0,.28)" }} />
             )}
             <motion.div className="h-full w-full" initial={false} animate={{ rotate: rotation }}
-              transition={{ duration: instant ? 0 : 4.2, ease: [0.16, 1, 0.3, 1] }}>
+              transition={{ duration: instant || reduzMovimento ? 0 : 4.2, ease: [0.16, 1, 0.3, 1] }}>
               <svg viewBox="0 0 200 200" className="h-full w-full" style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,.22))" }}>
                 <circle cx={c} cy={c} r={97} fill={ch.rim} />
                 <circle cx={c} cy={c} r={88.5} fill="none" stroke={ch.rimInner} strokeWidth={3} />
@@ -402,11 +434,19 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
         {step.ctaBelow ? (
           <div className="mx-auto mt-6 w-full max-w-xs">
             {!done ? (
-              <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : step.cta}</CtaButton>
+              <>
+                {hasRetrySpin && spinCount > 0 && !spinning ? <p className="mb-3 text-center text-sm font-semibold text-[var(--q-primary-dark)]">Quase! Gire mais uma vez para revelar seu bônus.</p> : null}
+                <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : spinCount > 0 ? (step.retryCta ?? "Girar novamente") : step.cta}</CtaButton>
+              </>
             ) : !step.autoAdvance && !popupOn ? (
               <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
             ) : null}
           </div>
+        ) : null}
+        {!step.ctaBelow && hasRetrySpin && spinCount > 0 && !spinning ? (
+          <p className="mt-4 text-center text-sm font-semibold text-[var(--q-primary-dark)]">
+            Quase! Gire mais uma vez para revelar seu bônus.
+          </p>
         ) : null}
       </StepShell>
 
@@ -417,7 +457,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
           {done ? (
             popupOn ? null : <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
           ) : (
-            <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : step.cta}</CtaButton>
+            <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : spinCount > 0 ? (step.retryCta ?? "Girar novamente") : step.cta}</CtaButton>
           )}
         </StickyCta>
       ) : null}
@@ -492,13 +532,25 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                   </div>
                 )
               )}
-              <button
-                onClick={ctx.advance}
-                className="mt-5 w-full rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
-                style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
-              >
-                {step.winCta ?? "Pegar meu prêmio"}
-              </button>
+              {step.winCtaUrl ? (
+                <motion.a
+                  href={step.winCtaUrl}
+                  className="fx-pulse fx-shine relative mt-5 block w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
+                  style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {step.winCta ?? "Pegar meu prêmio"}
+                </motion.a>
+              ) : (
+                <motion.button
+                  onClick={ctx.advance}
+                  className="fx-pulse fx-shine relative mt-5 w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
+                  style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {step.winCta ?? "Pegar meu prêmio"}
+                </motion.button>
+              )}
             </motion.div>
           </motion.div>
         ) : null}
@@ -604,6 +656,7 @@ const REGUA_MAX_MARCAS = 400;
 export function MeasureStepView({ step, ctx }: { step: MeasureStep; ctx: StepCtx }) {
   const titulo = step.title ?? step.question ?? "";
   const ajuda = step.subtitle ?? step.help;
+  const titleId = useId();
   const min = step.min ?? 0;
   const max = Math.max(min + 1, step.max ?? 100);
   const passo = Math.max(0.01, step.step ?? 1);
@@ -699,6 +752,25 @@ export function MeasureStepView({ step, ctx }: { step: MeasureStep; ctx: StepCtx
   };
   const soltarFita = () => { puxada.current = null; };
 
+  const handleRulerKeys = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    let next = ultimoIdx.current;
+    switch (event.key) {
+      case "ArrowRight":
+      case "ArrowUp": next += 1; break;
+      case "ArrowLeft":
+      case "ArrowDown": next -= 1; break;
+      case "Home": next = 0; break;
+      case "End": next = marcas.length - 1; break;
+      default: return;
+    }
+    event.preventDefault();
+    next = Math.max(0, Math.min(marcas.length - 1, next));
+    ultimoIdx.current = next;
+    setIdx(next);
+    setTocou(true);
+    event.currentTarget.scrollLeft = next * REGUA_PX;
+  };
+
   const valor = marcas[idx] ?? inicial;
   const sufixo = units[unit] ?? step.suffix ?? "";
   const go = () => {
@@ -709,12 +781,12 @@ export function MeasureStepView({ step, ctx }: { step: MeasureStep; ctx: StepCtx
   return (
     <>
       <StepShell center>
-        <div className="text-center"><Title>{interp(titulo, ctx)}</Title></div>
+        <div id={titleId} className="text-center"><Title>{interp(titulo, ctx)}</Title></div>
         {ajuda ? <p className="mt-2 text-center text-sm text-[var(--q-text-muted)]"><RichText text={interp(ajuda, ctx)} /></p> : null}
         {units.length > 1 ? (
-          <div className="mx-auto mt-5 inline-flex rounded-full bg-[var(--q-bg-soft)] p-1">
+          <div role="group" aria-label="Unidade de medida" className="mx-auto mt-5 inline-flex rounded-full bg-[var(--q-bg-soft)] p-1">
             {units.map((u, i) => (
-              <button key={i} onClick={() => setUnit(i)} className="rounded-full px-5 py-1.5 text-sm font-bold transition"
+              <button key={i} type="button" aria-pressed={unit === i} onClick={() => setUnit(i)} className="rounded-full px-5 py-1.5 text-sm font-bold transition"
                 style={{ background: unit === i ? "var(--q-primary)" : "transparent", color: unit === i ? "#fff" : "var(--q-text-muted)" }}>{u}</button>
             ))}
           </div>
@@ -745,13 +817,18 @@ export function MeasureStepView({ step, ctx }: { step: MeasureStep; ctx: StepCtx
 
           {/* altura fixa: marca alta (34) + respiro (4) + número (16) = 54 */}
           <div ref={fita} onScroll={aoRolar}
+            role="slider" tabIndex={0}
+            aria-labelledby={titulo ? titleId : undefined} aria-label={titulo ? undefined : "Medida"}
+            aria-valuemin={min} aria-valuemax={marcas.at(-1) ?? max}
+            aria-valuenow={valor} aria-valuetext={`${valor} ${sufixo}`.trim()}
+            onKeyDown={handleRulerKeys}
             onPointerDown={pegarFita} onPointerMove={moverFita}
             onPointerUp={soltarFita} onPointerCancel={soltarFita}
-            className="qf-regua overflow-x-auto overflow-y-hidden"
+            className="qf-regua overflow-x-auto overflow-y-hidden focus-visible:outline-2 focus-visible:outline-[var(--q-primary)]"
             style={{ height: 63, paddingTop: 9, cursor: "grab", scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
             {/* `w-max` faz o scrollWidth medir a fita inteira; os espaçadores em
                 px (meia tela menos meia marca) fazem scrollLeft = i * REGUA_PX. */}
-            <div className="flex w-max items-start">
+            <div aria-hidden="true" className="flex w-max items-start">
               <div className="shrink-0" style={{ width: pad }} />
               {marcas.map((m, i) => {
                 const alta = i % majorEvery === 0;
@@ -932,11 +1009,14 @@ function MedidorArco({ valor, max, zonas, sufixo, rotulo }: {
   const faixas = zonas?.length ? zonas : [{ label: "", color: "var(--q-primary)" }];
   const razao = Math.max(0, Math.min(1, valor / (max || 100)));
 
+  const reducedMotion = useReducedMotion();
+  const targetAngle = -90 + razao * 180;
   const [angulo, setAngulo] = useState(-90);
   useEffect(() => {
-    const t = setTimeout(() => setAngulo(-90 + razao * 180), 220);
+    if (reducedMotion) return;
+    const t = setTimeout(() => setAngulo(targetAngle), 220);
     return () => clearTimeout(t);
-  }, [razao]);
+  }, [targetAngle, reducedMotion]);
 
   const pt = (deg: number, r = R) => {
     const rad = (deg - 180) * (Math.PI / 180);
@@ -975,8 +1055,8 @@ function MedidorArco({ valor, max, zonas, sufixo, rotulo }: {
           style={{
             transformBox: "view-box",
             transformOrigin: `${CX}px ${CY}px`,
-            transform: `rotate(${angulo}deg)`,
-            transition: "transform .9s cubic-bezier(.2,.8,.2,1)",
+            transform: `rotate(${reducedMotion ? targetAngle : angulo}deg)`,
+            transition: reducedMotion ? "none" : "transform .9s cubic-bezier(.2,.8,.2,1)",
           }} />
         <circle cx={CX} cy={CY} r={6.5} fill="var(--q-text)" />
         <circle cx={CX} cy={CY} r={3} fill="var(--q-surface, #fff)" />
@@ -994,10 +1074,12 @@ function MedidorArco({ valor, max, zonas, sufixo, rotulo }: {
 }
 
 export function ConfirmStepView({ step, ctx }: { step: ConfirmStep; ctx: StepCtx }) {
+  const reducedMotion = useReducedMotion();
+  const body = step.body ?? step.subtitle;
   return (
     <>
       <StepShell center>
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        <motion.div initial={reducedMotion ? false : { scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
           className="mx-auto w-full rounded-3xl bg-[var(--q-surface)] p-7 text-center shadow-xl">
           {step.gaugeValue != null ? (
             <div className="mb-4">
@@ -1007,7 +1089,7 @@ export function ConfirmStepView({ step, ctx }: { step: ConfirmStep; ctx: StepCtx
           ) : null}
           {step.emoji ? <div className="mb-2 text-4xl">{step.emoji}</div> : null}
           <Title>{interp(step.title, ctx)}</Title>
-          {step.body ? <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(step.body, ctx)} /></p> : null}
+          {body ? <p className="mt-3 text-[15px] leading-relaxed text-[var(--q-text-muted)]"><RichText text={interp(body, ctx)} /></p> : null}
           {step.seal ? (
             <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--q-bg-soft)] px-4 py-2 text-xs font-semibold text-[var(--q-primary)]">
               🔒 {step.seal}
@@ -1215,11 +1297,14 @@ export function GaugeStepView({ step, ctx }: { step: GaugeStep; ctx: StepCtx }) 
   const zones = step.zones && step.zones.length ? step.zones : [{ label: "", color: "var(--q-primary)" }];
   const ratio = Math.max(0, Math.min(1, (value - sMin) / (sMax - sMin)));
   // ponteiro: -90° (esquerda) → +90° (direita)
+  const reducedMotion = useReducedMotion();
+  const targetAngle = -90 + ratio * 180;
   const [angle, setAngle] = useState(-90);
   useEffect(() => {
-    const t = setTimeout(() => setAngle(-90 + ratio * 180), 250);
+    if (reducedMotion) return;
+    const t = setTimeout(() => setAngle(targetAngle), 250);
     return () => clearTimeout(t);
-  }, [ratio]);
+  }, [targetAngle, reducedMotion]);
 
   const R = 86, CX = 100, CY = 100;
   const pt = (deg: number, r = R) => {
@@ -1296,8 +1381,8 @@ export function GaugeStepView({ step, ctx }: { step: GaugeStep; ctx: StepCtx }) 
               style={{
                 transformBox: "view-box",
                 transformOrigin: `${CX}px ${CY}px`,
-                transform: `rotate(${angle}deg)`,
-                transition: "transform .9s cubic-bezier(.2,.8,.2,1)",
+                transform: `rotate(${reducedMotion ? targetAngle : angle}deg)`,
+                transition: reducedMotion ? "none" : "transform .9s cubic-bezier(.2,.8,.2,1)",
               }} />
             <circle cx={CX} cy={CY} r={8} fill="var(--q-text)" />
             <circle cx={CX} cy={CY} r={3.5} fill="var(--q-bg, #fff)" />

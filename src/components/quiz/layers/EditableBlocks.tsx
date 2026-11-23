@@ -19,6 +19,7 @@ function EditBlock({ layer, ctx, question, edit }: { layer: Layer; ctx: LayersCt
   return (
     <div
       ref={setNodeRef}
+      data-editor-block={layer.id}
       onClickCapture={(e) => {
         if ((e.target as HTMLElement).closest("[data-block-toolbar]")) return; // toolbar/⠿ funcionam
         e.stopPropagation(); e.preventDefault(); edit.onSelect(layer.id);

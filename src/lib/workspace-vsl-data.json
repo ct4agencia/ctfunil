@@ -1,0 +1,1888 @@
+{
+  "rows": [
+    {
+      "name": "SDB 👛 [BOLSAS] - COM PITCH 5",
+      "slug": "sdbcpit5",
+      "tracked": 2091,
+      "avg_watch": 86.9,
+      "at_least_25": 1988,
+      "at_least_50": 1939,
+      "at_least_75": 1884,
+      "at_least_95": 859
+    },
+    {
+      "name": "SDB 👛 [BOLSAS] - SEM PITCH 5",
+      "slug": "sdbspit5",
+      "tracked": 1576,
+      "avg_watch": 83.8,
+      "at_least_25": 1485,
+      "at_least_50": 1434,
+      "at_least_75": 1372,
+      "at_least_95": 465
+    },
+    {
+      "name": "SDB 👛 [BOLSAS] - CURTA COM PITCH 4",
+      "slug": "sdbcpit4",
+      "tracked": 1284,
+      "avg_watch": 92.9,
+      "at_least_25": 1248,
+      "at_least_50": 1239,
+      "at_least_75": 1219,
+      "at_least_95": 953
+    },
+    {
+      "name": "SDB👛 [BOLSAS] - CURTA SEM PITCH 4",
+      "slug": "sdbspit4",
+      "tracked": 1214,
+      "avg_watch": 90.7,
+      "at_least_25": 1180,
+      "at_least_50": 1169,
+      "at_least_75": 1150,
+      "at_least_95": 796
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - CURTA SEM PITCH 3",
+      "slug": "cdbspit3",
+      "tracked": 1031,
+      "avg_watch": 90.4,
+      "at_least_25": 989,
+      "at_least_50": 979,
+      "at_least_75": 955,
+      "at_least_95": 673
+    },
+    {
+      "name": "SDB [BOLSAS] - COM PITCH 6",
+      "slug": "sdbcpit6",
+      "tracked": 1007,
+      "avg_watch": 84.9,
+      "at_least_25": 944,
+      "at_least_50": 917,
+      "at_least_75": 895,
+      "at_least_95": 427
+    },
+    {
+      "name": "SDB [BOLSAS] - SEM PITCH 6",
+      "slug": "sdbspit6",
+      "tracked": 915,
+      "avg_watch": 82.8,
+      "at_least_25": 860,
+      "at_least_50": 836,
+      "at_least_75": 804,
+      "at_least_95": 276
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - CURTA COM PITCH 3",
+      "slug": "cdbcpit3",
+      "tracked": 828,
+      "avg_watch": 91.5,
+      "at_least_25": 789,
+      "at_least_50": 781,
+      "at_least_75": 774,
+      "at_least_95": 621
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - DEU PLAY - SEM PITCH",
+      "slug": "cdbspit2",
+      "tracked": 647,
+      "avg_watch": 82.4,
+      "at_least_25": 564,
+      "at_least_50": 554,
+      "at_least_75": 543,
+      "at_least_95": 380
+    },
+    {
+      "name": "VDM [MODAS] - SEM PITCH 6",
+      "slug": "vdmspit6",
+      "tracked": 199,
+      "avg_watch": 81.5,
+      "at_least_25": 187,
+      "at_least_50": 182,
+      "at_least_75": 176,
+      "at_least_95": 52
+    },
+    {
+      "name": "VDM [MODAS] - COM PITCH 6",
+      "slug": "vdmcpit6",
+      "tracked": 135,
+      "avg_watch": 82.6,
+      "at_least_25": 127,
+      "at_least_50": 125,
+      "at_least_75": 117,
+      "at_least_95": 40
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - BLOCO 1 VIU PITCH",
+      "slug": "cdbcpit",
+      "tracked": 93,
+      "avg_watch": 84.4,
+      "at_least_25": 83,
+      "at_least_50": 79,
+      "at_least_75": 78,
+      "at_least_95": 67
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - BLOCO 2 SEM PITCH",
+      "slug": "cdbspit",
+      "tracked": 89,
+      "avg_watch": 56.3,
+      "at_least_25": 55,
+      "at_least_50": 50,
+      "at_least_75": 43,
+      "at_least_95": 26
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - DEU PLAY - COM PITCH",
+      "slug": "cdbcpit2",
+      "tracked": 78,
+      "avg_watch": 88.3,
+      "at_least_25": 72,
+      "at_least_50": 70,
+      "at_least_75": 68,
+      "at_least_95": 58
+    }
+  ],
+  "captured_at": "2026-11-21 13:28:52.779821+00",
+  "timeZone": "America/Sao_Paulo",
+  "daily": [
+    {
+      "day": "2026-10-06",
+      "slug": "cdbcpit",
+      "tracked": 3,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 102
+    },
+    {
+      "day": "2026-10-07",
+      "slug": "cdbcpit",
+      "tracked": 11,
+      "at_least_25": 9,
+      "at_least_50": 7,
+      "at_least_75": 7,
+      "at_least_95": 7,
+      "watched_sum": 765
+    },
+    {
+      "day": "2026-10-07",
+      "slug": "cdbspit",
+      "tracked": 27,
+      "at_least_25": 16,
+      "at_least_50": 15,
+      "at_least_75": 14,
+      "at_least_95": 8,
+      "watched_sum": 1548
+    },
+    {
+      "day": "2026-10-08",
+      "slug": "cdbcpit",
+      "tracked": 63,
+      "at_least_25": 58,
+      "at_least_50": 56,
+      "at_least_75": 56,
+      "at_least_95": 46,
+      "watched_sum": 5540
+    },
+    {
+      "day": "2026-10-08",
+      "slug": "cdbspit",
+      "tracked": 50,
+      "at_least_25": 32,
+      "at_least_50": 29,
+      "at_least_75": 23,
+      "at_least_95": 13,
+      "watched_sum": 2804
+    },
+    {
+      "day": "2026-10-09",
+      "slug": "cdbcpit",
+      "tracked": 16,
+      "at_least_25": 15,
+      "at_least_50": 15,
+      "at_least_75": 14,
+      "at_least_95": 13,
+      "watched_sum": 1446
+    },
+    {
+      "day": "2026-10-09",
+      "slug": "cdbspit",
+      "tracked": 11,
+      "at_least_25": 7,
+      "at_least_50": 6,
+      "at_least_75": 6,
+      "at_least_95": 5,
+      "watched_sum": 654
+    },
+    {
+      "day": "2026-10-10",
+      "slug": "cdbcpit2",
+      "tracked": 5,
+      "at_least_25": 5,
+      "at_least_50": 5,
+      "at_least_75": 5,
+      "at_least_95": 5,
+      "watched_sum": 500
+    },
+    {
+      "day": "2026-10-10",
+      "slug": "cdbspit2",
+      "tracked": 12,
+      "at_least_25": 11,
+      "at_least_50": 11,
+      "at_least_75": 11,
+      "at_least_95": 8,
+      "watched_sum": 1054
+    },
+    {
+      "day": "2026-10-11",
+      "slug": "cdbspit2",
+      "tracked": 97,
+      "at_least_25": 86,
+      "at_least_50": 84,
+      "at_least_75": 82,
+      "at_least_95": 59,
+      "watched_sum": 8064
+    },
+    {
+      "day": "2026-10-12",
+      "slug": "cdbspit",
+      "tracked": 1,
+      "at_least_25": 0,
+      "at_least_50": 0,
+      "at_least_75": 0,
+      "at_least_95": 0,
+      "watched_sum": 8
+    },
+    {
+      "day": "2026-10-12",
+      "slug": "cdbspit2",
+      "tracked": 163,
+      "at_least_25": 139,
+      "at_least_50": 137,
+      "at_least_75": 134,
+      "at_least_95": 93,
+      "watched_sum": 13209
+    },
+    {
+      "day": "2026-10-13",
+      "slug": "cdbspit2",
+      "tracked": 228,
+      "at_least_25": 200,
+      "at_least_50": 198,
+      "at_least_75": 194,
+      "at_least_95": 143,
+      "watched_sum": 19096
+    },
+    {
+      "day": "2026-10-14",
+      "slug": "cdbcpit2",
+      "tracked": 18,
+      "at_least_25": 15,
+      "at_least_50": 15,
+      "at_least_75": 15,
+      "at_least_95": 12,
+      "watched_sum": 1482
+    },
+    {
+      "day": "2026-10-14",
+      "slug": "cdbspit2",
+      "tracked": 95,
+      "at_least_25": 84,
+      "at_least_50": 81,
+      "at_least_75": 80,
+      "at_least_95": 51,
+      "watched_sum": 7810
+    },
+    {
+      "day": "2026-10-15",
+      "slug": "cdbcpit2",
+      "tracked": 53,
+      "at_least_25": 50,
+      "at_least_50": 48,
+      "at_least_75": 46,
+      "at_least_95": 39,
+      "watched_sum": 4709
+    },
+    {
+      "day": "2026-10-15",
+      "slug": "cdbcpit3",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 0,
+      "watched_sum": 82
+    },
+    {
+      "day": "2026-10-15",
+      "slug": "cdbspit2",
+      "tracked": 49,
+      "at_least_25": 42,
+      "at_least_50": 41,
+      "at_least_75": 40,
+      "at_least_95": 25,
+      "watched_sum": 3874
+    },
+    {
+      "day": "2026-10-15",
+      "slug": "cdbspit3",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 97
+    },
+    {
+      "day": "2026-10-16",
+      "slug": "cdbcpit2",
+      "tracked": 2,
+      "at_least_25": 2,
+      "at_least_50": 2,
+      "at_least_75": 2,
+      "at_least_95": 2,
+      "watched_sum": 200
+    },
+    {
+      "day": "2026-10-16",
+      "slug": "cdbcpit3",
+      "tracked": 56,
+      "at_least_25": 52,
+      "at_least_50": 51,
+      "at_least_75": 49,
+      "at_least_95": 38,
+      "watched_sum": 4882
+    },
+    {
+      "day": "2026-10-16",
+      "slug": "cdbspit2",
+      "tracked": 3,
+      "at_least_25": 2,
+      "at_least_50": 2,
+      "at_least_75": 2,
+      "at_least_95": 1,
+      "watched_sum": 186
+    },
+    {
+      "day": "2026-10-16",
+      "slug": "cdbspit3",
+      "tracked": 21,
+      "at_least_25": 21,
+      "at_least_50": 21,
+      "at_least_75": 21,
+      "at_least_95": 15,
+      "watched_sum": 1983
+    },
+    {
+      "day": "2026-10-17",
+      "slug": "cdbcpit3",
+      "tracked": 24,
+      "at_least_25": 22,
+      "at_least_50": 22,
+      "at_least_75": 22,
+      "at_least_95": 12,
+      "watched_sum": 2055
+    },
+    {
+      "day": "2026-10-17",
+      "slug": "cdbspit3",
+      "tracked": 16,
+      "at_least_25": 15,
+      "at_least_50": 15,
+      "at_least_75": 15,
+      "at_least_95": 9,
+      "watched_sum": 1387
+    },
+    {
+      "day": "2026-10-18",
+      "slug": "cdbcpit3",
+      "tracked": 26,
+      "at_least_25": 23,
+      "at_least_50": 23,
+      "at_least_75": 23,
+      "at_least_95": 20,
+      "watched_sum": 2260
+    },
+    {
+      "day": "2026-10-18",
+      "slug": "cdbspit3",
+      "tracked": 17,
+      "at_least_25": 17,
+      "at_least_50": 16,
+      "at_least_75": 16,
+      "at_least_95": 10,
+      "watched_sum": 1528
+    },
+    {
+      "day": "2026-10-19",
+      "slug": "cdbcpit3",
+      "tracked": 27,
+      "at_least_25": 24,
+      "at_least_50": 24,
+      "at_least_75": 24,
+      "at_least_95": 19,
+      "watched_sum": 2358
+    },
+    {
+      "day": "2026-10-19",
+      "slug": "cdbspit3",
+      "tracked": 23,
+      "at_least_25": 22,
+      "at_least_50": 21,
+      "at_least_75": 19,
+      "at_least_95": 11,
+      "watched_sum": 1922
+    },
+    {
+      "day": "2026-10-20",
+      "slug": "cdbcpit3",
+      "tracked": 22,
+      "at_least_25": 21,
+      "at_least_50": 21,
+      "at_least_75": 21,
+      "at_least_95": 15,
+      "watched_sum": 2005
+    },
+    {
+      "day": "2026-10-20",
+      "slug": "cdbspit3",
+      "tracked": 19,
+      "at_least_25": 19,
+      "at_least_50": 19,
+      "at_least_75": 18,
+      "at_least_95": 11,
+      "watched_sum": 1743
+    },
+    {
+      "day": "2026-10-21",
+      "slug": "cdbcpit3",
+      "tracked": 25,
+      "at_least_25": 25,
+      "at_least_50": 25,
+      "at_least_75": 25,
+      "at_least_95": 23,
+      "watched_sum": 2450
+    },
+    {
+      "day": "2026-10-21",
+      "slug": "cdbspit3",
+      "tracked": 19,
+      "at_least_25": 17,
+      "at_least_50": 17,
+      "at_least_75": 17,
+      "at_least_95": 9,
+      "watched_sum": 1583
+    },
+    {
+      "day": "2026-10-22",
+      "slug": "cdbcpit3",
+      "tracked": 24,
+      "at_least_25": 22,
+      "at_least_50": 22,
+      "at_least_75": 21,
+      "at_least_95": 19,
+      "watched_sum": 2145
+    },
+    {
+      "day": "2026-10-22",
+      "slug": "cdbspit3",
+      "tracked": 29,
+      "at_least_25": 29,
+      "at_least_50": 29,
+      "at_least_75": 29,
+      "at_least_95": 20,
+      "watched_sum": 2748
+    },
+    {
+      "day": "2026-10-23",
+      "slug": "cdbcpit3",
+      "tracked": 63,
+      "at_least_25": 62,
+      "at_least_50": 62,
+      "at_least_75": 62,
+      "at_least_95": 48,
+      "watched_sum": 5964
+    },
+    {
+      "day": "2026-10-23",
+      "slug": "cdbspit3",
+      "tracked": 29,
+      "at_least_25": 28,
+      "at_least_50": 28,
+      "at_least_75": 27,
+      "at_least_95": 16,
+      "watched_sum": 2604
+    },
+    {
+      "day": "2026-10-24",
+      "slug": "cdbcpit3",
+      "tracked": 23,
+      "at_least_25": 22,
+      "at_least_50": 20,
+      "at_least_75": 20,
+      "at_least_95": 12,
+      "watched_sum": 1926
+    },
+    {
+      "day": "2026-10-24",
+      "slug": "cdbspit3",
+      "tracked": 14,
+      "at_least_25": 14,
+      "at_least_50": 14,
+      "at_least_75": 14,
+      "at_least_95": 12,
+      "watched_sum": 1356
+    },
+    {
+      "day": "2026-10-25",
+      "slug": "cdbcpit3",
+      "tracked": 15,
+      "at_least_25": 15,
+      "at_least_50": 15,
+      "at_least_75": 15,
+      "at_least_95": 11,
+      "watched_sum": 1426
+    },
+    {
+      "day": "2026-10-25",
+      "slug": "cdbspit3",
+      "tracked": 13,
+      "at_least_25": 12,
+      "at_least_50": 12,
+      "at_least_75": 12,
+      "at_least_95": 9,
+      "watched_sum": 1170
+    },
+    {
+      "day": "2026-10-26",
+      "slug": "cdbcpit3",
+      "tracked": 24,
+      "at_least_25": 24,
+      "at_least_50": 24,
+      "at_least_75": 24,
+      "at_least_95": 21,
+      "watched_sum": 2344
+    },
+    {
+      "day": "2026-10-26",
+      "slug": "cdbspit3",
+      "tracked": 20,
+      "at_least_25": 18,
+      "at_least_50": 18,
+      "at_least_75": 18,
+      "at_least_95": 13,
+      "watched_sum": 1755
+    },
+    {
+      "day": "2026-10-27",
+      "slug": "cdbcpit3",
+      "tracked": 9,
+      "at_least_25": 9,
+      "at_least_50": 9,
+      "at_least_75": 9,
+      "at_least_95": 9,
+      "watched_sum": 898
+    },
+    {
+      "day": "2026-10-27",
+      "slug": "cdbspit3",
+      "tracked": 46,
+      "at_least_25": 42,
+      "at_least_50": 42,
+      "at_least_75": 40,
+      "at_least_95": 30,
+      "watched_sum": 4003
+    },
+    {
+      "day": "2026-10-28",
+      "slug": "cdbcpit3",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 98
+    },
+    {
+      "day": "2026-10-28",
+      "slug": "cdbspit3",
+      "tracked": 73,
+      "at_least_25": 70,
+      "at_least_50": 70,
+      "at_least_75": 70,
+      "at_least_95": 52,
+      "watched_sum": 6746
+    },
+    {
+      "day": "2026-10-29",
+      "slug": "cdbcpit3",
+      "tracked": 17,
+      "at_least_25": 16,
+      "at_least_50": 16,
+      "at_least_75": 16,
+      "at_least_95": 16,
+      "watched_sum": 1598
+    },
+    {
+      "day": "2026-10-29",
+      "slug": "cdbspit3",
+      "tracked": 151,
+      "at_least_25": 145,
+      "at_least_50": 145,
+      "at_least_75": 141,
+      "at_least_95": 102,
+      "watched_sum": 13745
+    },
+    {
+      "day": "2026-10-30",
+      "slug": "cdbcpit3",
+      "tracked": 22,
+      "at_least_25": 21,
+      "at_least_50": 21,
+      "at_least_75": 21,
+      "at_least_95": 17,
+      "watched_sum": 2057
+    },
+    {
+      "day": "2026-10-30",
+      "slug": "cdbspit3",
+      "tracked": 145,
+      "at_least_25": 141,
+      "at_least_50": 141,
+      "at_least_75": 137,
+      "at_least_95": 95,
+      "watched_sum": 13313
+    },
+    {
+      "day": "2026-10-31",
+      "slug": "cdbcpit3",
+      "tracked": 114,
+      "at_least_25": 109,
+      "at_least_50": 109,
+      "at_least_75": 108,
+      "at_least_95": 89,
+      "watched_sum": 10591
+    },
+    {
+      "day": "2026-10-31",
+      "slug": "cdbspit3",
+      "tracked": 107,
+      "at_least_25": 102,
+      "at_least_50": 100,
+      "at_least_75": 97,
+      "at_least_95": 68,
+      "watched_sum": 9532
+    },
+    {
+      "day": "2026-10-31",
+      "slug": "sdbcpit4",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 0,
+      "at_least_95": 0,
+      "watched_sum": 74
+    },
+    {
+      "day": "2026-11-01",
+      "slug": "cdbcpit3",
+      "tracked": 128,
+      "at_least_25": 124,
+      "at_least_50": 122,
+      "at_least_75": 122,
+      "at_least_95": 101,
+      "watched_sum": 11935
+    },
+    {
+      "day": "2026-11-01",
+      "slug": "cdbspit3",
+      "tracked": 106,
+      "at_least_25": 102,
+      "at_least_50": 100,
+      "at_least_75": 99,
+      "at_least_95": 72,
+      "watched_sum": 9685
+    },
+    {
+      "day": "2026-11-01",
+      "slug": "sdbspit4",
+      "tracked": 132,
+      "at_least_25": 129,
+      "at_least_50": 128,
+      "at_least_75": 126,
+      "at_least_95": 87,
+      "watched_sum": 12059
+    },
+    {
+      "day": "2026-11-02",
+      "slug": "cdbcpit3",
+      "tracked": 116,
+      "at_least_25": 109,
+      "at_least_50": 109,
+      "at_least_75": 108,
+      "at_least_95": 83,
+      "watched_sum": 10506
+    },
+    {
+      "day": "2026-11-02",
+      "slug": "cdbspit3",
+      "tracked": 87,
+      "at_least_25": 85,
+      "at_least_50": 83,
+      "at_least_75": 81,
+      "at_least_95": 59,
+      "watched_sum": 7924
+    },
+    {
+      "day": "2026-11-02",
+      "slug": "sdbcpit4",
+      "tracked": 17,
+      "at_least_25": 15,
+      "at_least_50": 15,
+      "at_least_75": 15,
+      "at_least_95": 13,
+      "watched_sum": 1488
+    },
+    {
+      "day": "2026-11-02",
+      "slug": "sdbcpit5",
+      "tracked": 16,
+      "at_least_25": 13,
+      "at_least_50": 13,
+      "at_least_75": 13,
+      "at_least_95": 6,
+      "watched_sum": 1220
+    },
+    {
+      "day": "2026-11-02",
+      "slug": "sdbspit4",
+      "tracked": 169,
+      "at_least_25": 165,
+      "at_least_50": 164,
+      "at_least_75": 163,
+      "at_least_95": 117,
+      "watched_sum": 15520
+    },
+    {
+      "day": "2026-11-02",
+      "slug": "sdbspit5",
+      "tracked": 16,
+      "at_least_25": 12,
+      "at_least_50": 12,
+      "at_least_75": 11,
+      "at_least_95": 5,
+      "watched_sum": 1112
+    },
+    {
+      "day": "2026-11-03",
+      "slug": "cdbcpit3",
+      "tracked": 42,
+      "at_least_25": 42,
+      "at_least_50": 41,
+      "at_least_75": 40,
+      "at_least_95": 34,
+      "watched_sum": 4012
+    },
+    {
+      "day": "2026-11-03",
+      "slug": "cdbspit3",
+      "tracked": 52,
+      "at_least_25": 51,
+      "at_least_50": 50,
+      "at_least_75": 49,
+      "at_least_95": 32,
+      "watched_sum": 4721
+    },
+    {
+      "day": "2026-11-03",
+      "slug": "sdbcpit4",
+      "tracked": 48,
+      "at_least_25": 47,
+      "at_least_50": 45,
+      "at_least_75": 45,
+      "at_least_95": 33,
+      "watched_sum": 4373
+    },
+    {
+      "day": "2026-11-03",
+      "slug": "sdbcpit5",
+      "tracked": 57,
+      "at_least_25": 54,
+      "at_least_50": 54,
+      "at_least_75": 52,
+      "at_least_95": 19,
+      "watched_sum": 4964
+    },
+    {
+      "day": "2026-11-03",
+      "slug": "sdbspit4",
+      "tracked": 50,
+      "at_least_25": 48,
+      "at_least_50": 47,
+      "at_least_75": 47,
+      "at_least_95": 36,
+      "watched_sum": 4534
+    },
+    {
+      "day": "2026-11-03",
+      "slug": "sdbspit5",
+      "tracked": 56,
+      "at_least_25": 53,
+      "at_least_50": 50,
+      "at_least_75": 48,
+      "at_least_95": 16,
+      "watched_sum": 4641
+    },
+    {
+      "day": "2026-11-04",
+      "slug": "cdbcpit3",
+      "tracked": 16,
+      "at_least_25": 16,
+      "at_least_50": 14,
+      "at_least_75": 14,
+      "at_least_95": 11,
+      "watched_sum": 1411
+    },
+    {
+      "day": "2026-11-04",
+      "slug": "cdbspit3",
+      "tracked": 3,
+      "at_least_25": 3,
+      "at_least_50": 3,
+      "at_least_75": 2,
+      "at_least_95": 1,
+      "watched_sum": 256
+    },
+    {
+      "day": "2026-11-04",
+      "slug": "sdbcpit4",
+      "tracked": 44,
+      "at_least_25": 42,
+      "at_least_50": 42,
+      "at_least_75": 41,
+      "at_least_95": 34,
+      "watched_sum": 4053
+    },
+    {
+      "day": "2026-11-04",
+      "slug": "sdbcpit5",
+      "tracked": 85,
+      "at_least_25": 78,
+      "at_least_50": 75,
+      "at_least_75": 71,
+      "at_least_95": 30,
+      "watched_sum": 7023
+    },
+    {
+      "day": "2026-11-04",
+      "slug": "sdbspit4",
+      "tracked": 32,
+      "at_least_25": 32,
+      "at_least_50": 32,
+      "at_least_75": 30,
+      "at_least_95": 19,
+      "watched_sum": 2917
+    },
+    {
+      "day": "2026-11-04",
+      "slug": "sdbspit5",
+      "tracked": 59,
+      "at_least_25": 58,
+      "at_least_50": 57,
+      "at_least_75": 56,
+      "at_least_95": 22,
+      "watched_sum": 5290
+    },
+    {
+      "day": "2026-11-05",
+      "slug": "cdbcpit3",
+      "tracked": 5,
+      "at_least_25": 4,
+      "at_least_50": 4,
+      "at_least_75": 4,
+      "at_least_95": 3,
+      "watched_sum": 391
+    },
+    {
+      "day": "2026-11-05",
+      "slug": "cdbspit3",
+      "tracked": 5,
+      "at_least_25": 5,
+      "at_least_50": 5,
+      "at_least_75": 5,
+      "at_least_95": 4,
+      "watched_sum": 494
+    },
+    {
+      "day": "2026-11-05",
+      "slug": "sdbcpit4",
+      "tracked": 111,
+      "at_least_25": 110,
+      "at_least_50": 110,
+      "at_least_75": 108,
+      "at_least_95": 82,
+      "watched_sum": 10531
+    },
+    {
+      "day": "2026-11-05",
+      "slug": "sdbcpit5",
+      "tracked": 88,
+      "at_least_25": 87,
+      "at_least_50": 86,
+      "at_least_75": 85,
+      "at_least_95": 39,
+      "watched_sum": 8017
+    },
+    {
+      "day": "2026-11-05",
+      "slug": "sdbspit4",
+      "tracked": 86,
+      "at_least_25": 84,
+      "at_least_50": 84,
+      "at_least_75": 82,
+      "at_least_95": 60,
+      "watched_sum": 7926
+    },
+    {
+      "day": "2026-11-05",
+      "slug": "sdbspit5",
+      "tracked": 54,
+      "at_least_25": 51,
+      "at_least_50": 49,
+      "at_least_75": 49,
+      "at_least_95": 18,
+      "watched_sum": 4578
+    },
+    {
+      "day": "2026-11-06",
+      "slug": "cdbcpit3",
+      "tracked": 9,
+      "at_least_25": 7,
+      "at_least_50": 7,
+      "at_least_75": 6,
+      "at_least_95": 6,
+      "watched_sum": 661
+    },
+    {
+      "day": "2026-11-06",
+      "slug": "cdbspit3",
+      "tracked": 4,
+      "at_least_25": 4,
+      "at_least_50": 4,
+      "at_least_75": 4,
+      "at_least_95": 3,
+      "watched_sum": 384
+    },
+    {
+      "day": "2026-11-06",
+      "slug": "sdbcpit4",
+      "tracked": 222,
+      "at_least_25": 213,
+      "at_least_50": 211,
+      "at_least_75": 207,
+      "at_least_95": 166,
+      "watched_sum": 20398
+    },
+    {
+      "day": "2026-11-06",
+      "slug": "sdbcpit5",
+      "tracked": 89,
+      "at_least_25": 85,
+      "at_least_50": 79,
+      "at_least_75": 78,
+      "at_least_95": 43,
+      "watched_sum": 7705
+    },
+    {
+      "day": "2026-11-06",
+      "slug": "sdbspit4",
+      "tracked": 148,
+      "at_least_25": 142,
+      "at_least_50": 140,
+      "at_least_75": 139,
+      "at_least_95": 98,
+      "watched_sum": 13319
+    },
+    {
+      "day": "2026-11-06",
+      "slug": "sdbspit5",
+      "tracked": 88,
+      "at_least_25": 82,
+      "at_least_50": 81,
+      "at_least_75": 79,
+      "at_least_95": 24,
+      "watched_sum": 7408
+    },
+    {
+      "day": "2026-11-07",
+      "slug": "cdbcpit3",
+      "tracked": 4,
+      "at_least_25": 4,
+      "at_least_50": 4,
+      "at_least_75": 4,
+      "at_least_95": 3,
+      "watched_sum": 380
+    },
+    {
+      "day": "2026-11-07",
+      "slug": "cdbspit3",
+      "tracked": 5,
+      "at_least_25": 4,
+      "at_least_50": 4,
+      "at_least_75": 4,
+      "at_least_95": 4,
+      "watched_sum": 405
+    },
+    {
+      "day": "2026-11-07",
+      "slug": "sdbcpit4",
+      "tracked": 206,
+      "at_least_25": 202,
+      "at_least_50": 200,
+      "at_least_75": 197,
+      "at_least_95": 151,
+      "watched_sum": 19191
+    },
+    {
+      "day": "2026-11-07",
+      "slug": "sdbcpit5",
+      "tracked": 82,
+      "at_least_25": 76,
+      "at_least_50": 75,
+      "at_least_75": 73,
+      "at_least_95": 31,
+      "watched_sum": 6993
+    },
+    {
+      "day": "2026-11-07",
+      "slug": "sdbspit4",
+      "tracked": 128,
+      "at_least_25": 127,
+      "at_least_50": 123,
+      "at_least_75": 122,
+      "at_least_95": 86,
+      "watched_sum": 11736
+    },
+    {
+      "day": "2026-11-07",
+      "slug": "sdbspit5",
+      "tracked": 75,
+      "at_least_25": 71,
+      "at_least_50": 69,
+      "at_least_75": 68,
+      "at_least_95": 29,
+      "watched_sum": 6484
+    },
+    {
+      "day": "2026-11-08",
+      "slug": "cdbcpit3",
+      "tracked": 4,
+      "at_least_25": 4,
+      "at_least_50": 4,
+      "at_least_75": 4,
+      "at_least_95": 4,
+      "watched_sum": 396
+    },
+    {
+      "day": "2026-11-08",
+      "slug": "cdbspit3",
+      "tracked": 3,
+      "at_least_25": 3,
+      "at_least_50": 3,
+      "at_least_75": 2,
+      "at_least_95": 2,
+      "watched_sum": 274
+    },
+    {
+      "day": "2026-11-08",
+      "slug": "sdbcpit4",
+      "tracked": 199,
+      "at_least_25": 193,
+      "at_least_50": 192,
+      "at_least_75": 188,
+      "at_least_95": 144,
+      "watched_sum": 18340
+    },
+    {
+      "day": "2026-11-08",
+      "slug": "sdbcpit5",
+      "tracked": 108,
+      "at_least_25": 105,
+      "at_least_50": 101,
+      "at_least_75": 99,
+      "at_least_95": 46,
+      "watched_sum": 9495
+    },
+    {
+      "day": "2026-11-08",
+      "slug": "sdbspit4",
+      "tracked": 176,
+      "at_least_25": 168,
+      "at_least_50": 168,
+      "at_least_75": 163,
+      "at_least_95": 101,
+      "watched_sum": 15514
+    },
+    {
+      "day": "2026-11-08",
+      "slug": "sdbspit5",
+      "tracked": 72,
+      "at_least_25": 67,
+      "at_least_50": 64,
+      "at_least_75": 62,
+      "at_least_95": 15,
+      "watched_sum": 5849
+    },
+    {
+      "day": "2026-11-09",
+      "slug": "cdbcpit3",
+      "tracked": 4,
+      "at_least_25": 4,
+      "at_least_50": 4,
+      "at_least_75": 4,
+      "at_least_95": 2,
+      "watched_sum": 368
+    },
+    {
+      "day": "2026-11-09",
+      "slug": "cdbspit3",
+      "tracked": 5,
+      "at_least_25": 5,
+      "at_least_50": 5,
+      "at_least_75": 5,
+      "at_least_95": 4,
+      "watched_sum": 484
+    },
+    {
+      "day": "2026-11-09",
+      "slug": "sdbcpit4",
+      "tracked": 226,
+      "at_least_25": 223,
+      "at_least_50": 222,
+      "at_least_75": 220,
+      "at_least_95": 172,
+      "watched_sum": 21406
+    },
+    {
+      "day": "2026-11-09",
+      "slug": "sdbcpit5",
+      "tracked": 95,
+      "at_least_25": 91,
+      "at_least_50": 88,
+      "at_least_75": 85,
+      "at_least_95": 38,
+      "watched_sum": 8240
+    },
+    {
+      "day": "2026-11-09",
+      "slug": "sdbspit4",
+      "tracked": 147,
+      "at_least_25": 144,
+      "at_least_50": 143,
+      "at_least_75": 140,
+      "at_least_95": 93,
+      "watched_sum": 13330
+    },
+    {
+      "day": "2026-11-09",
+      "slug": "sdbspit5",
+      "tracked": 77,
+      "at_least_25": 74,
+      "at_least_50": 74,
+      "at_least_75": 71,
+      "at_least_95": 23,
+      "watched_sum": 6738
+    },
+    {
+      "day": "2026-11-10",
+      "slug": "cdbcpit3",
+      "tracked": 2,
+      "at_least_25": 2,
+      "at_least_50": 2,
+      "at_least_75": 2,
+      "at_least_95": 1,
+      "watched_sum": 188
+    },
+    {
+      "day": "2026-11-10",
+      "slug": "sdbcpit4",
+      "tracked": 136,
+      "at_least_25": 132,
+      "at_least_50": 131,
+      "at_least_75": 129,
+      "at_least_95": 104,
+      "watched_sum": 12711
+    },
+    {
+      "day": "2026-11-10",
+      "slug": "sdbcpit5",
+      "tracked": 61,
+      "at_least_25": 58,
+      "at_least_50": 57,
+      "at_least_75": 57,
+      "at_least_95": 33,
+      "watched_sum": 5429
+    },
+    {
+      "day": "2026-11-10",
+      "slug": "sdbspit4",
+      "tracked": 92,
+      "at_least_25": 92,
+      "at_least_50": 91,
+      "at_least_75": 90,
+      "at_least_95": 69,
+      "watched_sum": 8645
+    },
+    {
+      "day": "2026-11-10",
+      "slug": "sdbspit5",
+      "tracked": 41,
+      "at_least_25": 40,
+      "at_least_50": 39,
+      "at_least_75": 36,
+      "at_least_95": 14,
+      "watched_sum": 3565
+    },
+    {
+      "day": "2026-11-11",
+      "slug": "cdbcpit3",
+      "tracked": 2,
+      "at_least_25": 2,
+      "at_least_50": 2,
+      "at_least_75": 2,
+      "at_least_95": 1,
+      "watched_sum": 183
+    },
+    {
+      "day": "2026-11-11",
+      "slug": "sdbcpit4",
+      "tracked": 46,
+      "at_least_25": 45,
+      "at_least_50": 45,
+      "at_least_75": 45,
+      "at_least_95": 37,
+      "watched_sum": 4378
+    },
+    {
+      "day": "2026-11-11",
+      "slug": "sdbcpit5",
+      "tracked": 138,
+      "at_least_25": 131,
+      "at_least_50": 128,
+      "at_least_75": 126,
+      "at_least_95": 65,
+      "watched_sum": 12174
+    },
+    {
+      "day": "2026-11-11",
+      "slug": "sdbspit4",
+      "tracked": 39,
+      "at_least_25": 37,
+      "at_least_50": 37,
+      "at_least_75": 36,
+      "at_least_95": 23,
+      "watched_sum": 3446
+    },
+    {
+      "day": "2026-11-11",
+      "slug": "sdbspit5",
+      "tracked": 96,
+      "at_least_25": 88,
+      "at_least_50": 84,
+      "at_least_75": 79,
+      "at_least_95": 20,
+      "watched_sum": 7732
+    },
+    {
+      "day": "2026-11-12",
+      "slug": "cdbspit3",
+      "tracked": 4,
+      "at_least_25": 4,
+      "at_least_50": 3,
+      "at_least_75": 3,
+      "at_least_95": 2,
+      "watched_sum": 327
+    },
+    {
+      "day": "2026-11-12",
+      "slug": "sdbcpit4",
+      "tracked": 6,
+      "at_least_25": 6,
+      "at_least_50": 6,
+      "at_least_75": 6,
+      "at_least_95": 5,
+      "watched_sum": 589
+    },
+    {
+      "day": "2026-11-12",
+      "slug": "sdbcpit5",
+      "tracked": 223,
+      "at_least_25": 211,
+      "at_least_50": 204,
+      "at_least_75": 201,
+      "at_least_95": 82,
+      "watched_sum": 19083
+    },
+    {
+      "day": "2026-11-12",
+      "slug": "sdbspit4",
+      "tracked": 4,
+      "at_least_25": 4,
+      "at_least_50": 4,
+      "at_least_75": 4,
+      "at_least_95": 2,
+      "watched_sum": 374
+    },
+    {
+      "day": "2026-11-12",
+      "slug": "sdbspit5",
+      "tracked": 147,
+      "at_least_25": 139,
+      "at_least_50": 135,
+      "at_least_75": 130,
+      "at_least_95": 45,
+      "watched_sum": 12415
+    },
+    {
+      "day": "2026-11-13",
+      "slug": "cdbcpit3",
+      "tracked": 1,
+      "at_least_25": 0,
+      "at_least_50": 0,
+      "at_least_75": 0,
+      "at_least_95": 0,
+      "watched_sum": 7
+    },
+    {
+      "day": "2026-11-13",
+      "slug": "sdbcpit4",
+      "tracked": 7,
+      "at_least_25": 7,
+      "at_least_50": 7,
+      "at_least_75": 7,
+      "at_least_95": 5,
+      "watched_sum": 666
+    },
+    {
+      "day": "2026-11-13",
+      "slug": "sdbcpit5",
+      "tracked": 248,
+      "at_least_25": 239,
+      "at_least_50": 234,
+      "at_least_75": 225,
+      "at_least_95": 101,
+      "watched_sum": 21764
+    },
+    {
+      "day": "2026-11-13",
+      "slug": "sdbspit5",
+      "tracked": 171,
+      "at_least_25": 162,
+      "at_least_50": 155,
+      "at_least_75": 150,
+      "at_least_95": 42,
+      "watched_sum": 14280
+    },
+    {
+      "day": "2026-11-14",
+      "slug": "cdbspit3",
+      "tracked": 2,
+      "at_least_25": 2,
+      "at_least_50": 2,
+      "at_least_75": 2,
+      "at_least_95": 1,
+      "watched_sum": 188
+    },
+    {
+      "day": "2026-11-14",
+      "slug": "sdbcpit4",
+      "tracked": 4,
+      "at_least_25": 4,
+      "at_least_50": 4,
+      "at_least_75": 4,
+      "at_least_95": 3,
+      "watched_sum": 383
+    },
+    {
+      "day": "2026-11-14",
+      "slug": "sdbcpit5",
+      "tracked": 342,
+      "at_least_25": 331,
+      "at_least_50": 325,
+      "at_least_75": 317,
+      "at_least_95": 138,
+      "watched_sum": 30308
+    },
+    {
+      "day": "2026-11-14",
+      "slug": "sdbspit4",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 99
+    },
+    {
+      "day": "2026-11-14",
+      "slug": "sdbspit5",
+      "tracked": 255,
+      "at_least_25": 240,
+      "at_least_50": 230,
+      "at_least_75": 219,
+      "at_least_95": 83,
+      "watched_sum": 21334
+    },
+    {
+      "day": "2026-11-15",
+      "slug": "cdbcpit3",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 100
+    },
+    {
+      "day": "2026-11-15",
+      "slug": "cdbspit3",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 100
+    },
+    {
+      "day": "2026-11-15",
+      "slug": "sdbcpit4",
+      "tracked": 4,
+      "at_least_25": 3,
+      "at_least_50": 3,
+      "at_least_75": 2,
+      "at_least_95": 0,
+      "watched_sum": 247
+    },
+    {
+      "day": "2026-11-15",
+      "slug": "sdbcpit5",
+      "tracked": 371,
+      "at_least_25": 351,
+      "at_least_50": 344,
+      "at_least_75": 332,
+      "at_least_95": 163,
+      "watched_sum": 32270
+    },
+    {
+      "day": "2026-11-15",
+      "slug": "sdbspit4",
+      "tracked": 4,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 105
+    },
+    {
+      "day": "2026-11-15",
+      "slug": "sdbspit5",
+      "tracked": 273,
+      "at_least_25": 259,
+      "at_least_50": 249,
+      "at_least_75": 236,
+      "at_least_95": 81,
+      "watched_sum": 22910
+    },
+    {
+      "day": "2026-11-16",
+      "slug": "sdbcpit4",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 100
+    },
+    {
+      "day": "2026-11-16",
+      "slug": "sdbcpit5",
+      "tracked": 82,
+      "at_least_25": 74,
+      "at_least_50": 72,
+      "at_least_75": 67,
+      "at_least_95": 23,
+      "watched_sum": 6662
+    },
+    {
+      "day": "2026-11-16",
+      "slug": "sdbspit4",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 0,
+      "watched_sum": 83
+    },
+    {
+      "day": "2026-11-16",
+      "slug": "sdbspit5",
+      "tracked": 85,
+      "at_least_25": 80,
+      "at_least_50": 77,
+      "at_least_75": 71,
+      "at_least_95": 24,
+      "watched_sum": 6937
+    },
+    {
+      "day": "2026-11-17",
+      "slug": "cdbspit3",
+      "tracked": 1,
+      "at_least_25": 0,
+      "at_least_50": 0,
+      "at_least_75": 0,
+      "at_least_95": 0,
+      "watched_sum": 21
+    },
+    {
+      "day": "2026-11-17",
+      "slug": "sdbcpit5",
+      "tracked": 4,
+      "at_least_25": 4,
+      "at_least_50": 4,
+      "at_least_75": 3,
+      "at_least_95": 2,
+      "watched_sum": 346
+    },
+    {
+      "day": "2026-11-17",
+      "slug": "sdbcpit6",
+      "tracked": 148,
+      "at_least_25": 138,
+      "at_least_50": 133,
+      "at_least_75": 131,
+      "at_least_95": 66,
+      "watched_sum": 12449
+    },
+    {
+      "day": "2026-11-17",
+      "slug": "sdbspit4",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 99
+    },
+    {
+      "day": "2026-11-17",
+      "slug": "sdbspit5",
+      "tracked": 10,
+      "at_least_25": 9,
+      "at_least_50": 9,
+      "at_least_75": 7,
+      "at_least_95": 4,
+      "watched_sum": 791
+    },
+    {
+      "day": "2026-11-17",
+      "slug": "sdbspit6",
+      "tracked": 139,
+      "at_least_25": 131,
+      "at_least_50": 128,
+      "at_least_75": 123,
+      "at_least_95": 44,
+      "watched_sum": 11562
+    },
+    {
+      "day": "2026-11-17",
+      "slug": "vdmcpit6",
+      "tracked": 27,
+      "at_least_25": 24,
+      "at_least_50": 24,
+      "at_least_75": 23,
+      "at_least_95": 4,
+      "watched_sum": 2110
+    },
+    {
+      "day": "2026-11-17",
+      "slug": "vdmspit6",
+      "tracked": 43,
+      "at_least_25": 40,
+      "at_least_50": 40,
+      "at_least_75": 40,
+      "at_least_95": 12,
+      "watched_sum": 3550
+    },
+    {
+      "day": "2026-11-18",
+      "slug": "cdbcpit3",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 99
+    },
+    {
+      "day": "2026-11-18",
+      "slug": "cdbspit3",
+      "tracked": 4,
+      "at_least_25": 3,
+      "at_least_50": 3,
+      "at_least_75": 3,
+      "at_least_95": 2,
+      "watched_sum": 295
+    },
+    {
+      "day": "2026-11-18",
+      "slug": "sdbcpit4",
+      "tracked": 1,
+      "at_least_25": 0,
+      "at_least_50": 0,
+      "at_least_75": 0,
+      "at_least_95": 0,
+      "watched_sum": 1
+    },
+    {
+      "day": "2026-11-18",
+      "slug": "sdbcpit6",
+      "tracked": 242,
+      "at_least_25": 229,
+      "at_least_50": 221,
+      "at_least_75": 216,
+      "at_least_95": 95,
+      "watched_sum": 20593
+    },
+    {
+      "day": "2026-11-18",
+      "slug": "sdbspit4",
+      "tracked": 3,
+      "at_least_25": 3,
+      "at_least_50": 3,
+      "at_least_75": 3,
+      "at_least_95": 2,
+      "watched_sum": 274
+    },
+    {
+      "day": "2026-11-18",
+      "slug": "sdbspit6",
+      "tracked": 244,
+      "at_least_25": 233,
+      "at_least_50": 224,
+      "at_least_75": 214,
+      "at_least_95": 62,
+      "watched_sum": 19993
+    },
+    {
+      "day": "2026-11-18",
+      "slug": "vdmcpit6",
+      "tracked": 45,
+      "at_least_25": 44,
+      "at_least_50": 44,
+      "at_least_75": 40,
+      "at_least_95": 17,
+      "watched_sum": 3884
+    },
+    {
+      "day": "2026-11-18",
+      "slug": "vdmspit6",
+      "tracked": 33,
+      "at_least_25": 33,
+      "at_least_50": 33,
+      "at_least_75": 32,
+      "at_least_95": 5,
+      "watched_sum": 2804
+    },
+    {
+      "day": "2026-11-19",
+      "slug": "cdbspit3",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 97
+    },
+    {
+      "day": "2026-11-19",
+      "slug": "sdbcpit4",
+      "tracked": 2,
+      "at_least_25": 2,
+      "at_least_50": 2,
+      "at_least_75": 2,
+      "at_least_95": 1,
+      "watched_sum": 183
+    },
+    {
+      "day": "2026-11-19",
+      "slug": "sdbcpit5",
+      "tracked": 2,
+      "at_least_25": 0,
+      "at_least_50": 0,
+      "at_least_75": 0,
+      "at_least_95": 0,
+      "watched_sum": 8
+    },
+    {
+      "day": "2026-11-19",
+      "slug": "sdbcpit6",
+      "tracked": 273,
+      "at_least_25": 257,
+      "at_least_50": 249,
+      "at_least_75": 240,
+      "at_least_95": 123,
+      "watched_sum": 23225
+    },
+    {
+      "day": "2026-11-19",
+      "slug": "sdbspit5",
+      "tracked": 1,
+      "at_least_25": 0,
+      "at_least_50": 0,
+      "at_least_75": 0,
+      "at_least_95": 0,
+      "watched_sum": 4
+    },
+    {
+      "day": "2026-11-19",
+      "slug": "sdbspit6",
+      "tracked": 236,
+      "at_least_25": 219,
+      "at_least_50": 213,
+      "at_least_75": 204,
+      "at_least_95": 74,
+      "watched_sum": 19369
+    },
+    {
+      "day": "2026-11-19",
+      "slug": "vdmcpit6",
+      "tracked": 29,
+      "at_least_25": 29,
+      "at_least_50": 27,
+      "at_least_75": 26,
+      "at_least_95": 11,
+      "watched_sum": 2462
+    },
+    {
+      "day": "2026-11-19",
+      "slug": "vdmspit6",
+      "tracked": 62,
+      "at_least_25": 58,
+      "at_least_50": 55,
+      "at_least_75": 52,
+      "at_least_95": 23,
+      "watched_sum": 5063
+    },
+    {
+      "day": "2026-11-20",
+      "slug": "cdbspit3",
+      "tracked": 5,
+      "at_least_25": 3,
+      "at_least_50": 3,
+      "at_least_75": 2,
+      "at_least_95": 2,
+      "watched_sum": 295
+    },
+    {
+      "day": "2026-11-20",
+      "slug": "sdbcpit4",
+      "tracked": 2,
+      "at_least_25": 2,
+      "at_least_50": 2,
+      "at_least_75": 2,
+      "at_least_95": 2,
+      "watched_sum": 200
+    },
+    {
+      "day": "2026-11-20",
+      "slug": "sdbcpit6",
+      "tracked": 312,
+      "at_least_25": 293,
+      "at_least_50": 289,
+      "at_least_75": 283,
+      "at_least_95": 128,
+      "watched_sum": 26761
+    },
+    {
+      "day": "2026-11-20",
+      "slug": "sdbspit4",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 0,
+      "watched_sum": 82
+    },
+    {
+      "day": "2026-11-20",
+      "slug": "sdbspit6",
+      "tracked": 270,
+      "at_least_25": 253,
+      "at_least_50": 248,
+      "at_least_75": 241,
+      "at_least_95": 91,
+      "watched_sum": 22774
+    },
+    {
+      "day": "2026-11-20",
+      "slug": "vdmcpit6",
+      "tracked": 34,
+      "at_least_25": 30,
+      "at_least_50": 30,
+      "at_least_75": 28,
+      "at_least_95": 8,
+      "watched_sum": 2701
+    },
+    {
+      "day": "2026-11-20",
+      "slug": "vdmspit6",
+      "tracked": 58,
+      "at_least_25": 53,
+      "at_least_50": 51,
+      "at_least_75": 49,
+      "at_least_95": 12,
+      "watched_sum": 4534
+    },
+    {
+      "day": "2026-11-21",
+      "slug": "sdbcpit4",
+      "tracked": 1,
+      "at_least_25": 0,
+      "at_least_50": 0,
+      "at_least_75": 0,
+      "at_least_95": 0,
+      "watched_sum": 8
+    },
+    {
+      "day": "2026-11-21",
+      "slug": "sdbcpit6",
+      "tracked": 32,
+      "at_least_25": 27,
+      "at_least_50": 25,
+      "at_least_75": 25,
+      "at_least_95": 15,
+      "watched_sum": 2429
+    },
+    {
+      "day": "2026-11-21",
+      "slug": "sdbspit6",
+      "tracked": 26,
+      "at_least_25": 24,
+      "at_least_50": 23,
+      "at_least_75": 22,
+      "at_least_95": 5,
+      "watched_sum": 2077
+    },
+    {
+      "day": "2026-11-21",
+      "slug": "vdmspit6",
+      "tracked": 3,
+      "at_least_25": 3,
+      "at_least_50": 3,
+      "at_least_75": 3,
+      "at_least_95": 0,
+      "watched_sum": 258
+    }
+  ]
+}

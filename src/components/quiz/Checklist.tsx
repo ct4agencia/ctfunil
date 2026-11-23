@@ -18,8 +18,9 @@
  * no formato do seu próprio motor.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { motion } from "motion/react";
+import { useReducedMotion } from "@/components/referencias/beui/lib/reduced-motion-seguro";
 
 export interface ChecklistCheckpoint {
   /** percentual (0–100) em que a barra pausa e abre o modal */
@@ -52,6 +53,9 @@ export default function Checklist({
   const trilho = cor ? `${cor}22` : "var(--q-bg-soft)";
   const bars = barras.length ? barras : ["Processando…"];
   const checkpoints = useMemo(() => (cps ?? []).slice().sort((a, b) => a.at - b.at), [cps]);
+  const reducedMotion = useReducedMotion();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const questionId = useId();
 
   const [pct, setPct] = useState(0);
   const [pausado, setPausado] = useState<number | null>(null);
@@ -62,6 +66,7 @@ export default function Checklist({
 
   useEffect(() => {
     let parado = false;
+    let finishTimer: ReturnType<typeof setTimeout> | undefined;
     const tick = (ts: number) => {
       if (parado) return;
       if (inicio.current == null) inicio.current = ts;
@@ -77,11 +82,15 @@ export default function Checklist({
         return;
       }
       setPct(p);
-      if (p >= 100) { if (onFim) setTimeout(onFim, 350); return; }
+      if (p >= 100) { if (onFim) finishTimer = setTimeout(onFim, 350); return; }
       raf.current = requestAnimationFrame(tick);
     };
     if (pausado == null) raf.current = requestAnimationFrame(tick);
-    return () => { parado = true; if (raf.current) cancelAnimationFrame(raf.current); };
+    return () => {
+      parado = true;
+      if (raf.current) cancelAnimationFrame(raf.current);
+      if (finishTimer !== undefined) clearTimeout(finishTimer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pausado]);
 
@@ -94,6 +103,12 @@ export default function Checklist({
   const fatia = 100 / bars.length;
   const ativa = Math.min(bars.length - 1, Math.floor(pct / fatia));
   const cp = pausado != null ? checkpoints[pausado] : null;
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!cp || !dialog) return;
+    dialog.showModal();
+    return () => dialog.close();
+  }, [cp]);
 
   return (
     <div className={`relative flex w-full flex-1 flex-col items-center justify-center px-7 ${escuro ? "text-white" : ""}`}>
@@ -123,7 +138,7 @@ export default function Checklist({
               </div>
               <div className="h-2.5 w-full overflow-hidden rounded-full" style={{ background: trilho }}>
                 <motion.div className="h-full rounded-full" style={{ background: acento }}
-                  animate={{ width: `${enche}%` }} transition={{ ease: "linear", duration: 0.15 }} />
+                  animate={{ width: `${enche}%` }} transition={{ ease: "linear", duration: reducedMotion ? 0 : 0.15 }} />
               </div>
             </div>
           );
@@ -132,27 +147,24 @@ export default function Checklist({
 
       {legenda ? <p className="mt-7 text-center text-sm text-[var(--q-text-muted)]">{legenda}</p> : null}
 
-      {/* modal de micro-pergunta */}
-      <AnimatePresence>
-        {cp ? (
-          <motion.div className="absolute inset-0 z-20 flex items-center justify-center bg-black/45 px-6 backdrop-blur-sm"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl"
-              initial={{ scale: 0.9, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 26 }}>
-              <p className="mb-4 text-center text-[17px] font-bold leading-snug text-neutral-900">{cp.question}</p>
-              <div className="space-y-2">
-                {cp.options.map((o, k) => (
-                  <button key={k} onClick={() => responder(pausado!, o)}
-                    className="w-full rounded-xl border-2 border-neutral-200 px-4 py-3 text-sm font-semibold text-neutral-800 transition hover:border-current">
-                    {o}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
+      <dialog ref={dialogRef} aria-labelledby={questionId} closedby="none" onCancel={(event) => event.preventDefault()}
+        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-3rem)] max-w-sm overflow-auto rounded-2xl bg-transparent p-0 shadow-2xl backdrop:bg-black/45 backdrop:backdrop-blur-sm">
+        {cp && pausado !== null ? (
+          <motion.div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl"
+            initial={reducedMotion ? false : { scale: 0.9, y: 16 }} animate={{ scale: 1, y: 0 }}
+            transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 320, damping: 26 }}>
+            <p id={questionId} className="mb-4 text-center text-[17px] font-bold leading-snug text-neutral-900">{cp.question}</p>
+            <div className="space-y-2">
+              {cp.options.map((o, k) => (
+                <button key={k} type="button" onClick={() => responder(pausado, o)}
+                  className="w-full rounded-xl border-2 border-neutral-200 px-4 py-3 text-sm font-semibold text-neutral-800 transition hover:border-current">
+                  {o}
+                </button>
+              ))}
+            </div>
           </motion.div>
         ) : null}
-      </AnimatePresence>
+      </dialog>
     </div>
   );
 }

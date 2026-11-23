@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
 import { createClient } from "@/lib/supabase/server";
 import {
   vturbListPlayers,
@@ -19,6 +20,11 @@ export async function GET(request: Request) {
   const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
   if (!user || (!adminEmail || user.email?.toLowerCase() !== adminEmail)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  if (isReadOnlyWorkspace()) {
+    return NextResponse.json({ error: "Consulte os indicadores disponíveis na aba VSL do preview." }, {
+      status: 403, headers: { "Cache-Control": "no-store" },
+    });
   }
   if (!process.env.VTURB_API_TOKEN) {
     return NextResponse.json({ error: "no_token" }, { status: 200 });

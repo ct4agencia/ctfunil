@@ -1,0 +1,1078 @@
+{
+  "capturedAt": "2026-11-21 03:57:36.559675+00",
+  "timeZone": "America/Sao_Paulo",
+  "rows": [
+    {
+      "slug": "cdb-estado",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-estado",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-estado",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-estado",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-r",
+      "id": "3j9c6x",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-r",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-r",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 2,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-r",
+      "id": "TOAPKV",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-r",
+      "id": "TOAPKV",
+      "option": 1,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-r",
+      "id": "wljlUP",
+      "option": 1,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-r",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide",
+      "id": "rg-opts",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide",
+      "id": "S2bNJ1",
+      "option": 1,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-06-27",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero09",
+      "id": "c2opt-cdb-hero09",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-hero10",
+      "id": "3j9c6x",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-hero10",
+      "id": "c2opt-cdb-hero10",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-hero10",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-hero10",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-hero10",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-hero11",
+      "id": "c2opt-cdb-hero11",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero11",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero11",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero11",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero11",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-06-28",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero08",
+      "id": "c2opt-cdb-hero08",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero08",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero08",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero08",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero08",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-r",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-r",
+      "id": "S2bNJ1",
+      "option": 1,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-r",
+      "id": "TOAPKV",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-r",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-r",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-slide",
+      "id": "3j9c6x",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-slide",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-slide",
+      "id": "rg-opts",
+      "option": 1,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-slide",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-06-29",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-hero11",
+      "id": "c2opt-cdb-hero11",
+      "option": 0,
+      "day": "2026-06-30",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero11",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-06-30",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero11",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-06-30",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero11",
+      "id": "wljlUP",
+      "option": 1,
+      "day": "2026-06-30",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide-vsl",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-07-03",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide-vsl",
+      "id": "rg-opts",
+      "option": 0,
+      "day": "2026-07-03",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide-vsl",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-07-03",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide-vsl",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-07-03",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide-vsl",
+      "id": "XMMdV8",
+      "option": 1,
+      "day": "2026-07-03",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "3j9c6x",
+      "option": 0,
+      "day": "2026-07-09",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "IyfszP",
+      "option": 1,
+      "day": "2026-07-09",
+      "sessions": 2,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-07-09",
+      "sessions": 2,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "TOAPKV",
+      "option": 0,
+      "day": "2026-07-09",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "wljlUP",
+      "option": 1,
+      "day": "2026-07-09",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "wljlUP",
+      "option": 2,
+      "day": "2026-07-09",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "XMMdV8",
+      "option": 2,
+      "day": "2026-07-09",
+      "sessions": 2,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "3j9c6x",
+      "option": 0,
+      "day": "2026-07-10",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-07-10",
+      "sessions": 3,
+      "leads": 2
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-07-10",
+      "sessions": 10,
+      "leads": 5
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "S2bNJ1",
+      "option": 1,
+      "day": "2026-07-10",
+      "sessions": 6,
+      "leads": 5
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-07-10",
+      "sessions": 7,
+      "leads": 5
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "wljlUP",
+      "option": 1,
+      "day": "2026-07-10",
+      "sessions": 4,
+      "leads": 2
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "wljlUP",
+      "option": 2,
+      "day": "2026-07-10",
+      "sessions": 4,
+      "leads": 3
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-07-10",
+      "sessions": 6,
+      "leads": 3
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "XMMdV8",
+      "option": 1,
+      "day": "2026-07-10",
+      "sessions": 7,
+      "leads": 5
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-07-14",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "S2bNJ1",
+      "option": 1,
+      "day": "2026-07-14",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-07-14",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-slide-vsl",
+      "id": "rg-opts",
+      "option": 0,
+      "day": "2026-07-16",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-slide-vsl",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-07-16",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-01",
+      "id": "3j9c6x",
+      "option": 0,
+      "day": "2026-07-24",
+      "sessions": 8,
+      "leads": 7
+    },
+    {
+      "slug": "cdb-01",
+      "id": "IyfszP",
+      "option": 0,
+      "day": "2026-07-24",
+      "sessions": 4,
+      "leads": 3
+    },
+    {
+      "slug": "cdb-01",
+      "id": "IyfszP",
+      "option": 1,
+      "day": "2026-07-24",
+      "sessions": 2,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-01",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-07-24",
+      "sessions": 14,
+      "leads": 9
+    },
+    {
+      "slug": "cdb-01",
+      "id": "S2bNJ1",
+      "option": 1,
+      "day": "2026-07-24",
+      "sessions": 3,
+      "leads": 3
+    },
+    {
+      "slug": "cdb-01",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-07-24",
+      "sessions": 8,
+      "leads": 7
+    },
+    {
+      "slug": "cdb-01",
+      "id": "wljlUP",
+      "option": 1,
+      "day": "2026-07-24",
+      "sessions": 4,
+      "leads": 3
+    },
+    {
+      "slug": "cdb-01",
+      "id": "wljlUP",
+      "option": 2,
+      "day": "2026-07-24",
+      "sessions": 2,
+      "leads": 2
+    },
+    {
+      "slug": "cdb-01",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-07-24",
+      "sessions": 7,
+      "leads": 6
+    },
+    {
+      "slug": "cdb-01",
+      "id": "XMMdV8",
+      "option": 1,
+      "day": "2026-07-24",
+      "sessions": 5,
+      "leads": 3
+    },
+    {
+      "slug": "cdb-01",
+      "id": "XMMdV8",
+      "option": 2,
+      "day": "2026-07-24",
+      "sessions": 2,
+      "leads": 2
+    },
+    {
+      "slug": "cdb-insta",
+      "id": "c03-opt",
+      "option": 0,
+      "day": "2026-08-21",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-insta",
+      "id": "c04-opt",
+      "option": 0,
+      "day": "2026-08-21",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-insta",
+      "id": "c05-opt",
+      "option": 0,
+      "day": "2026-08-21",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-insta",
+      "id": "c06-opt",
+      "option": 0,
+      "day": "2026-08-21",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-insta",
+      "id": "c07-opt",
+      "option": 0,
+      "day": "2026-08-21",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "S2bNJ1",
+      "option": 1,
+      "day": "2026-08-24",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb-hero04-2",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-08-24",
+      "sessions": 1,
+      "leads": 0
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "0ofcxO",
+      "option": 0,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "0ofcxO",
+      "option": 1,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "3j9c6x",
+      "option": 0,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "3j9c6x",
+      "option": 1,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "I300TG",
+      "option": 1,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "I300TG",
+      "option": 2,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "k04G5v",
+      "option": 0,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "rKHWwO",
+      "option": 0,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "rKHWwO",
+      "option": 1,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "rNGU6S",
+      "option": 0,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "rNGU6S",
+      "option": 3,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "S2bNJ1",
+      "option": 2,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "TOAPKV",
+      "option": 0,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "TOAPKV",
+      "option": 1,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "wljlUP",
+      "option": 1,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "XMMdV8",
+      "option": 1,
+      "day": "2026-10-17",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "0ofcxO",
+      "option": 0,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "0ofcxO",
+      "option": 1,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "0ofcxO",
+      "option": 2,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "3j9c6x",
+      "option": 0,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "3j9c6x",
+      "option": 1,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "3j9c6x",
+      "option": 2,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "I300TG",
+      "option": 0,
+      "day": "2026-10-18",
+      "sessions": 2,
+      "leads": 2
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "I300TG",
+      "option": 1,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "k04G5v",
+      "option": 0,
+      "day": "2026-10-18",
+      "sessions": 2,
+      "leads": 2
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "k04G5v",
+      "option": 1,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "rKHWwO",
+      "option": 0,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "rKHWwO",
+      "option": 1,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "rKHWwO",
+      "option": 2,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "rNGU6S",
+      "option": 0,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "rNGU6S",
+      "option": 1,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "rNGU6S",
+      "option": 2,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "S2bNJ1",
+      "option": 0,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "S2bNJ1",
+      "option": 1,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "S2bNJ1",
+      "option": 3,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "TOAPKV",
+      "option": 0,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "TOAPKV",
+      "option": 2,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "TOAPKV",
+      "option": 3,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "wljlUP",
+      "option": 0,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "wljlUP",
+      "option": 1,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "wljlUP",
+      "option": 2,
+      "day": "2026-10-18",
+      "sessions": 1,
+      "leads": 1
+    },
+    {
+      "slug": "cdb12-apost",
+      "id": "XMMdV8",
+      "option": 0,
+      "day": "2026-10-18",
+      "sessions": 2,
+      "leads": 2
+    }
+  ]
+}

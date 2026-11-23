@@ -1,0 +1,25 @@
+.ct-design-panel { max-width: 560px; margin: 0 auto; color: var(--ct-ink); }
+.ct-design-panel h2 { margin: 4px 0 20px; font-size: 18px; font-weight: 600; }
+.ct-design-panel fieldset { padding: 0 16px 12px; margin-bottom: 20px; min-width: 0; border: 1px solid var(--ct-line); border-radius: 12px; background: var(--ct-surface); }
+.ct-design-panel legend { font-size: 13px; font-weight: 600; padding: 0 6px; }
+.ct-design-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--ct-line); }
+.ct-design-row > span { font-size: 12px; color: var(--ct-dim); }
+.ct-design-row > div { display: flex; align-items: center; justify-content: flex-end; gap: 7px; min-width: 0; font-size: 12px; }
+.ct-design-panel :is(select,input[type=number],input[type=url]), .ct-design-stage select { min-height: 36px; padding: 6px 8px; border: 1px solid var(--ct-line-strong); border-radius: 8px; color: var(--ct-ink); background: var(--ct-surface); max-width: 100%; font-size: 12px; }
+.ct-design-row select { max-width: 170px; }
+.ct-design-row input[type=number] { width: 76px; }
+.ct-design-row input[type=range] { width: 90px; accent-color: var(--ct-blue); }
+.ct-design-row output { min-width: 44px; text-align: right; color: var(--ct-dim); font-variant-numeric: tabular-nums; }
+.ct-design-panel :is(input,select,button):focus-visible { outline: 2px solid var(--ct-blue); outline-offset: 2px; }
+.ct-design-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; font-size: 12px; gap: 12px; }
+.ct-design-toggle input { width: 17px; height: 17px; accent-color: var(--ct-blue); }
+.ct-design-panel p { font-size: 11px; color: var(--ct-faint); margin-top: 12px; }
+.ct-design-media { display: grid; gap: 8px; margin: 12px 0; font-size: 12px; }
+.ct-design-stage { display: flex; justify-content: center; align-items: center; gap: 12px; font-size: 12px; color: var(--ct-dim); padding: 12px; border-bottom: 1px solid var(--ct-line); }
+.ct-design-preview { display: flex; flex-direction: column; min-height: 0; }
+.ct-design-preview > :last-child { flex: 1; min-height: 0; }
+@media (max-width: 1023px) {
+  .ct-design-layout { overflow-y: auto; display: flex; flex-direction: column; }
+  .ct-design-layout > :first-child { overflow: visible; }
+  .ct-design-preview { min-height: 620px; }
+}

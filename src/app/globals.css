@@ -1,4 +1,7 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "../";
+@import "./ct-workspace.css";
+@import "../components/workspace/frame.css";
 
 :root {
   --background: #ffffff;
@@ -6,6 +9,16 @@
 }
 
 @theme inline {
+  --color-ct-bg: var(--ct-bg);
+  --color-ct-surface: var(--ct-surface);
+  --color-ct-raised: var(--ct-raised);
+  --color-ct-ink: var(--ct-ink);
+  --color-ct-dim: var(--ct-dim);
+  --color-ct-blue: var(--ct-blue);
+  --color-ct-selected: var(--ct-selected);
+  --color-ct-action: var(--ct-action);
+  --color-ct-line: var(--ct-line);
+  --color-ct-line-strong: var(--ct-line-strong);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-admin);
@@ -156,6 +169,10 @@ body.vsl-bg-dark {
 }
 .fx-pulse {
   animation: fx-pulse-kf 1.3s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-pulse { animation: none; }
+  .fx-shine::after { display: none; }
 }
 /* CTA único do chat (typebot): pulso mais forte + glow temático via --tb-cta-glow */
 @keyframes tb-cta-kf {

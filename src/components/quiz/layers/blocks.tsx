@@ -1,16 +1,21 @@
 "use client";
+import CatalogBlock, { AdvancedField, VideoIntroduction } from "./CatalogBlocks";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "@/components/referencias/beui/lib/reduced-motion-seguro";
 import { fireMetaEvent } from "@/lib/tracking";
 import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 // relógio da VSL: revela por tempo de VÍDEO, com queda para tempo de página
-import { useTempoVsl } from "@/lib/quiz/relogio-vsl";
+import { rankingVideoRange, useTempoVsl } from "@/lib/quiz/relogio-vsl";
 import { interpEstado } from "@/lib/quiz/estado";
 import { DedoArrasta } from "../ui";
 import dynamic from "next/dynamic";
 import { entradaBloco, prefereMenosMovimento, DUR, EASE } from "@/lib/quiz/motion";
 import { estiloOpcao, estiloCheck, gradienteTema } from "@/lib/quiz/resina";
+import { buttonDestination, selectedAnswer, componentIdentity } from "@/lib/quiz/layers/component-settings";
+import { ComponentFrame, interactiveStyles } from "./ComponentFrame";
+import type { LayerAnswer } from "@/lib/quiz/layers/types";
 import type { Layer, InleadOption, InleadDesign, InleadMedia } from "@/lib/quiz/layers/types";
 
 // Tela do bloco `loading` no estilo "diagnóstico", dividida com o motor tipado.
@@ -60,9 +65,15 @@ export interface LayersCtx {
   funnelSlug: string;
   stepId: string;
   preview?: boolean;
+  previewVideoSeconds?: number;
   hasFields: boolean;
   submitting: boolean;
-  submitFields: () => void;
+  submitFields: (destination?: string) => void;
+  previewWidth?: number;
+  answers?: Record<string, LayerAnswer>;
+  setAnswer?: (layerId: string, answer: LayerAnswer) => void;
+  continueFrom?: (layer: Layer, destination?: string) => void;
+  missingPreviewDestination?: (destination?: string) => boolean;
   navigate: (dest?: string) => void;
   trackAnswer: (stepId: string, question: string, answer: string) => void;
 }
@@ -93,7 +104,7 @@ export function interpHtml(html: string | undefined, ctx: LayersCtx): string {
     .replace(/\{nome\}/gi, cap(ctx.name) || "você");
   // {estado} com concordância de preposição (da Bahia / do Paraná / de São Paulo)
   out = interpEstado(out, ctx.estado);
-  return out.replace(/\{cidade\}/gi, ctx.cidade || "sua cidade");
+  return out.replace(/\{cidade\}/gi, ctx.cidade || "sua cidade").replace(/\{pontos\}/gi, String(Object.values(ctx.answers || {}).reduce((sum, answer) => sum + answer.points, 0)));
 }
 
 /** Texto puro de um HTML (para tracking de resposta). */
@@ -179,6 +190,8 @@ function AlertBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const style = layer.design?.style || "default";
   const pad = Number(layer.design?.padding) || 16;
   const theme = ctx.design.themeColor || "#ea580c";
+  const reducedMotion = useReducedMotion();
+  const initial = reducedMotion ? false : { opacity: 0, y: 8 };
   /* PÍLULA: cápsula preenchida com o gradiente do tema, centrada. É o "selo"
      do topo da captura — que antes vivia fixo dentro da tela e por isso não
      aparecia no construtor nem podia ser editado. */
@@ -186,7 +199,7 @@ function AlertBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     return (
       <div className="flex w-full justify-center">
         <motion.span
-          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          initial={initial} animate={{ opacity: 1, y: 0 }}
           className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider text-white sm:text-sm"
           style={{ background: gradienteTema(theme), boxShadow: `0 4px 16px ${theme}66` }}
         >
@@ -201,7 +214,7 @@ function AlertBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     : style === "theme" ? { bg: "#f8fafc", border: theme }
     : { bg: "#f8fafc", border: "#e2e8f0" };
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+    <motion.div initial={initial} animate={{ opacity: 1, y: 0 }}
       className="mx-auto w-full"
       style={{ background: tint.bg, border: `${layer.design?.borderWidth ?? 1}px solid ${tint.border}`, borderRadius: radius(ctx.design), padding: pad }}>
       <Html html={interpHtml(layer.content.text, ctx)} style={{ fontSize: `${remContent(ctx)}px` }} />
@@ -281,9 +294,15 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
             — se subissem junto, a peça inteira respiraria e viraria distração. */}
         <motion.div
           className="relative block"
-          animate={d.flutua && !prefereMenosMovimento() ? { y: [0, -9, 0] } : undefined}
-          transition={d.flutua ? { duration: 3.4, repeat: Infinity, ease: "easeInOut" } : undefined}
+          animate={d.flutua && !prefereMenosMovimento()
+            ? d.glow ? { y: [0, -7, 0], rotate: [0, -0.5, 0] } : { y: [0, -9, 0] }
+            : undefined}
+          transition={d.flutua ? { duration: d.glow ? 4.6 : 3.4, repeat: Infinity, ease: "easeInOut" } : undefined}
         >
+        {d.glow && <motion.div aria-hidden="true" className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(closest-side, rgba(45,145,230,.3), rgba(45,145,230,0) 72%)" }}
+          animate={prefereMenosMovimento() ? undefined : { opacity: [0.85, 1, 0.85], scale: [1.03, 1.06, 1.03] }}
+          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }} />}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src} alt="" loading="lazy" decoding="async"
@@ -296,7 +315,7 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
             objectFit: d.redonda ? "cover" : undefined,
             boxShadow: d.redonda ? `0 0 0 5px #fff, 0 12px 34px -12px ${ctx.design.themeColor || "#ea580c"}66` : undefined,
           }}
-          className="block"
+          className={d.glow ? "relative block" : "block"}
         />
         {/* SELO VERIFICADO — sobreposto no canto, como no print da Sônia */}
         {d.selo === "verificado" ? (
@@ -343,86 +362,101 @@ function ImageBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 // ─────────────────────────────── BUTTON ─────────────────────────────
 function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const c = layer.content;
+  const reducedMotion = useReducedMotion();
+  const destinationHintId = useId();
   const d = layer.design || {};
   const basis = Number(d.basis) || 100;
   const bg = d.backgroundColor || ctx.design.themeColor || "#ea580c";
-  const dest = c.destination || (c.type === "next" ? "next" : c.destination);
+  const dest = buttonDestination(layer);
   const isExternal = typeof dest === "string" && /^https?:\/\//i.test(dest);
 
   // revealAt: botão de checkout só aparece após N segundos (pitch da VSL)
   const revealAt = Number(c.revealAt) || 0;
+  const simulatedSeconds = ctx.preview && c.revealClock === "video" ? ctx.previewVideoSeconds : undefined;
   const showCountdown = !!c.countdown;
   const [reveal, setReveal] = useState(revealAt <= 0);
   const [remaining, setRemaining] = useState(revealAt);
   useEffect(() => {
-    if (reveal) return;
+    if (reveal || simulatedSeconds !== undefined) return;
     const t = setTimeout(() => setReveal(true), revealAt * 1000);
     return () => clearTimeout(t);
-  }, [reveal, revealAt]);
+  }, [reveal, revealAt, simulatedSeconds]);
   useEffect(() => {
-    if (reveal || !showCountdown) return;
+    if (reveal || !showCountdown || simulatedSeconds !== undefined) return;
     const iv = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
     return () => clearInterval(iv);
-  }, [reveal, showCountdown]);
+  }, [reveal, showCountdown, simulatedSeconds]);
 
   const onClick = () => {
-    // checkout externo (ex: botão da VSL): SEMPRE avisa a Meta (InitiateCheckout)
-    if (isExternal) { fireMetaEvent("InitiateCheckout"); ctx.navigate(dest); return; }
-    if (ctx.hasFields) { ctx.submitFields(); return; }
+    if (ctx.continueFrom) { ctx.continueFrom(layer, dest); return; }
+    // Checkout externo avisa a Meta apenas fora do preview.
+    if (isExternal) { if (!ctx.preview) fireMetaEvent("InitiateCheckout"); ctx.navigate(dest); return; }
+    if (ctx.hasFields) { ctx.submitFields(dest); return; }
     ctx.navigate(dest);
   };
 
-  if (!reveal) {
-    const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
-    const ss = String(remaining % 60).padStart(2, "0");
+  const visible = simulatedSeconds === undefined ? reveal : simulatedSeconds >= revealAt;
+  if (!visible) {
+    const secondsLeft = simulatedSeconds === undefined ? remaining : Math.ceil(revealAt - simulatedSeconds);
+    const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+    const ss = String(secondsLeft % 60).padStart(2, "0");
     const wait = c.waitText || "⏳ Assista o vídeo para liberar o acesso…";
     return <p className="mx-auto w-full text-center text-sm opacity-60">{wait}{showCountdown ? ` ${mm}:${ss}` : ""}</p>;
   }
+  const missingDestination = ctx.missingPreviewDestination?.(dest);
+  const destinationHint = missingDestination
+    ? <p id={destinationHintId} className="mt-2 text-center text-xs opacity-75">Este botão está sem destino nesta prévia.</p>
+    : null;
   // Efeito de animação configurável (igual a roleta): brilho que varre + pulsar.
   // Pulsa o wrapper (não conflita com o transform do motion); brilho vai no botão.
-  const effect = (d.effect as string) || "none";
+  const effect = missingDestination ? "none" : (d.effect as string) || "none";
   const pulseCls = effect === "pulse" || effect === "shine-pulse" ? "fx-pulse" : "";
   const shineCls = effect === "shine" || effect === "shine-pulse" ? "fx-shine" : "";
   // Botão-IMAGEM (estilo inlead: o CTA é um PNG clicável, ex. botão verde "INICIAR").
   // Se content.imageSrc estiver setado, renderiza a imagem no lugar do botão estilizado.
   const imgSrc = (c as { imageSrc?: string }).imageSrc || null;
+  const initial = revealAt > 0 && !reducedMotion ? { opacity: 0, y: 14 } : false;
+  const whileTap = reducedMotion ? undefined : { scale: 0.97 };
   if (imgSrc) {
     return (
       <div className={`${hAlign(d)} w-full ${pulseCls}`} style={{ maxWidth: `${basis}%` }}>
-        <motion.img
-          src={imgSrc} alt={c.label || ""} onClick={ctx.submitting ? undefined : onClick}
-          initial={revealAt > 0 ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }}
-          whileTap={{ scale: 0.97 }} decoding="async"
-          className={`mx-auto block w-full cursor-pointer select-none ${shineCls}`}
+        <motion.button type="button" {...componentIdentity(layer)} aria-label={c.label || "Continuar"} onClick={onClick} disabled={ctx.submitting || missingDestination}
+          aria-describedby={missingDestination ? destinationHintId : undefined}
+          initial={initial} animate={{ opacity: 1, y: 0 }}
+          whileTap={whileTap}
+          className={`mx-auto block w-full cursor-pointer select-none disabled:opacity-60 ${shineCls}`}
           style={{ maxWidth: "100%" }}
-        />
+        >{/* eslint-disable-next-line @next/next/no-img-element */}<img src={imgSrc} alt="" decoding="async" className="block w-full" /></motion.button>
+        {destinationHint}
       </div>
     );
   }
   return (
     <div className={`${hAlign(d)} w-full ${pulseCls}`} style={{ maxWidth: `${basis}%` }}>
-      <motion.button
-        onClick={onClick} disabled={ctx.submitting}
-        initial={revealAt > 0 ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }}
-        whileTap={{ scale: 0.97 }}
-        className={`w-full font-bold disabled:opacity-60 ${shineCls}`}
-        style={{
+      <motion.button type="button" {...componentIdentity(layer)}
+        onClick={onClick} disabled={ctx.submitting || missingDestination}
+        aria-describedby={missingDestination ? destinationHintId : undefined}
+        initial={initial} animate={{ opacity: 1, y: 0 }}
+        whileTap={whileTap}
+        className={`ct-interactive w-full font-bold disabled:opacity-60 ${shineCls}`}
+        style={interactiveStyles({
           background: bg, color: d.color || "#fff",
-          border: d.borderColor ? `1px solid ${d.borderColor}` : "none",
+          borderStyle: "solid", borderWidth: d.borderColor ? 1 : 0, borderColor: d.borderColor || "transparent",
           borderRadius: radius(ctx.design), minHeight: ctx.design.elementSize || "64px",
           fontSize: `${remContent(ctx) + 1}px`, padding: "0 1.25rem",
           // GRADIENTE + HALO da cor do botão. A referência não usa cor chapada:
           // o degradê dá volume e o halo destaca o CTA do fundo claro sem
           // precisar de borda. `sombraChapada` volta ao antigo se alguém quiser.
-          ...(d.sombraChapada
+          ...(d.relief === false ? { boxShadow: "none" } : d.sombraChapada
             ? { boxShadow: "0 12px 24px -10px rgba(0,0,0,.3)" }
             : {
                 background: `linear-gradient(135deg, ${bg} 0%, ${escurecerHex(bg, 0.18)} 100%)`,
                 boxShadow: `0 13px 38px 0 ${bg}91, 0 2px 6px 0 rgba(0,0,0,.10)`,
               }),
-        }}>
+        })}>
         {ctx.submitting ? "Enviando…" : `${c.icon ? `${c.icon} ` : ""}${c.label || ""}`}
       </motion.button>
+      {destinationHint}
     </div>
   );
 }
@@ -448,32 +482,37 @@ function CarouselBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const interval = (Number(layer.content.interval) || 2) * 1000;
   const n = imgs.length;
   const [i, setI] = useState(0);
+  const reducedMotion = useReducedMotion();
   const theme = ctx.design.themeColor || "#ea580c";
-  const startX = useRef<number | null>(null);
+  const gestureStart = useRef<{ x: number; y: number } | null>(null);
   const go = (d: number) => setI((x) => (x + d + n) % n);
 
   // auto-play: re-arma a cada troca (manual ou automática) → swipe não briga com o timer
   useEffect(() => {
-    if (n <= 1) return;
+    if (n <= 1 || reducedMotion) return;
     const id = setTimeout(() => setI((x) => (x + 1) % n), interval);
     return () => clearTimeout(id);
-  }, [i, n, interval]);
+  }, [i, n, interval, reducedMotion]);
 
   if (!n) return null;
-  const onDown = (x: number) => { startX.current = x; };
-  const onUp = (x: number) => {
-    if (startX.current == null) return;
-    const dx = x - startX.current; startX.current = null;
-    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+  const onDown = (x: number, y: number) => { gestureStart.current = { x, y }; };
+  const onUp = (x: number, y: number) => {
+    const start = gestureStart.current;
+    gestureStart.current = null;
+    if (!start) return;
+    const dx = x - start.x;
+    const dy = y - start.y;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
   };
   return (
     <div className="mx-auto w-full select-none">
       <div
         className="relative overflow-hidden rounded-2xl"
-        onTouchStart={(e) => onDown(e.touches[0].clientX)}
-        onTouchEnd={(e) => onUp(e.changedTouches[0].clientX)}
-        onPointerDown={(e) => onDown(e.clientX)}
-        onPointerUp={(e) => onUp(e.clientX)}
+        onTouchStart={(e) => onDown(e.touches[0].clientX, e.touches[0].clientY)}
+        onTouchEnd={(e) => onUp(e.changedTouches[0].clientX, e.changedTouches[0].clientY)}
+        onTouchCancel={() => { gestureStart.current = null; }}
+        onPointerDown={(e) => onDown(e.clientX, e.clientY)}
+        onPointerUp={(e) => onUp(e.clientX, e.clientY)}
       >
         {/* FADE: as fotos ficam empilhadas e cruzam opacidade, em vez de
             deslizar. Some o "corte" entre uma e outra — pedido do Luca para a
@@ -487,12 +526,12 @@ function CarouselBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
                 className="absolute inset-0 h-full w-full object-cover"
                 style={{
                   opacity: k === i ? 1 : 0,
-                  transition: `opacity ${DUR.tela}ms cubic-bezier(${EASE.suave.join(",")})`,
+                  transition: reducedMotion ? "none" : `opacity ${DUR.tela}ms cubic-bezier(${EASE.suave.join(",")})`,
                 }} />
             ))}
           </div>
         ) : (
-          <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${i * 100}%)` }}>
+          <div className="flex motion-safe:transition-transform motion-safe:duration-500 ease-out" style={{ transform: `translateX(-${i * 100}%)` }}>
             {imgs.map((src, k) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img key={k} src={src} alt="" loading={k === 0 ? undefined : "lazy"} decoding="async" draggable={false} className="w-full shrink-0 object-cover" style={{ aspectRatio: "1 / 1" }} />
@@ -501,9 +540,13 @@ function CarouselBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
         )}
       </div>
       {n > 1 ? (
-        <div className="mt-2.5 flex justify-center gap-1.5">
+        <div className="mt-2.5 flex flex-wrap justify-center">
           {imgs.map((_, k) => (
-            <button key={k} onClick={() => setI(k)} aria-label={`Foto ${k + 1}`} className="h-2 rounded-full transition-all" style={{ width: k === i ? 18 : 8, background: k === i ? theme : "rgba(0,0,0,.18)" }} />
+            <button key={k} type="button" onClick={() => setI(k)} aria-label={`Foto ${k + 1}`} aria-pressed={k === i}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full">
+              <span aria-hidden="true" className="h-2 rounded-full motion-safe:transition-all"
+                style={{ width: k === i ? 18 : 8, background: k === i ? theme : "rgba(0,0,0,.18)" }} />
+            </button>
           ))}
         </div>
       ) : null}
@@ -548,13 +591,30 @@ const NOMES_RANKING = [
  * ela cai. Nomes fixos denunciariam o teatro: a lead cairia vinte lugares com
  * as mesmas duas pessoas em volta.
  */
+function TrustBlock({ layer }: { layer: Layer }) {
+  const { seloGarantia, dias, bandeiras, formas, seguranca, selosConfianca } = layer.content;
+  const methods = bandeiras === false ? [] : String(formas ?? "").split(",").map(item => item.trim()).filter(Boolean);
+  const security = methods.length > 0 ? String(seguranca ?? "").trim() : "";
+  if (seloGarantia === false && !methods.length && selosConfianca === false) return null;
+
+  return (
+    <section aria-label="Garantia e pagamento" className="rounded-xl border border-ct-line bg-ct-surface p-4 text-center text-sm text-ct-ink">
+      {seloGarantia !== false && <p className="font-semibold">Garantia de {Number(dias) || 7} dias</p>}
+      {methods.length > 0 && <ul aria-label="Formas de pagamento" className="mt-2 flex flex-wrap justify-center gap-2">
+        {methods.map((method, index) => <li key={`${method}-${index}`} className="rounded-md bg-ct-raised px-2 py-1">{method}</li>)}
+      </ul>}
+      {security && <p className="mt-2">{security}</p>}
+      {selosConfianca !== false && <p className="mt-2 text-xs text-ct-dim">Compra segura · Satisfação · Privacidade</p>}
+    </section>
+  );
+}
+
 function RankingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const c = layer.content;
   const d = layer.design || {};
-  const revelarEm = Number(c.revealAt) || 0;
+  const { start: revelarEm, end: fim } = rankingVideoRange(c.revealAt, c.fimEm);
   const de = Number(c.posDe) || 28;
   const ate = Number(c.posAte) || 48;
-  const fim = Math.max(revelarEm + 1, Number(c.fimEm) || revelarEm + 60);
   const pct = Number(c.pct) || 83;
   const rotulo = String(c.rotulo || "VOCÊ");
   const nomes = (Array.isArray(c.nomes) && c.nomes.length ? c.nomes : NOMES_RANKING) as string[];
@@ -576,15 +636,17 @@ function RankingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
      Antes era `Date.now()` desde a montagem, e quem pausasse para atender o
      telefone via a posição despencar sozinha enquanto o vídeo estava parado. */
   const { segundos, fonte } = useTempoVsl();
+  const simulatedSeconds = ctx.previewVideoSeconds;
+  const elapsed = simulatedSeconds ?? segundos;
 
   /* No construtor já nasce visível: o canvas existe para conferir layout, e
      obedecer o relógio o esconderia atrás de minutos de espera. */
-  const visivel = !!ctx.preview || revelarEm <= 0
-    || (fonte !== "esperando" && segundos >= revelarEm);
+  const visivel = simulatedSeconds !== undefined ? elapsed >= revelarEm
+    : !!ctx.preview || revelarEm <= 0 || (fonte !== "esperando" && elapsed >= revelarEm);
 
   /* A posição sai do tempo, não de um contador próprio: assim ela é sempre
      coerente com o vídeo, mesmo depois de pausar, voltar ou recarregar. */
-  const progresso = Math.min(1, Math.max(0, (segundos - revelarEm) / Math.max(1, fim - revelarEm)));
+  const progresso = Math.min(1, Math.max(0, (elapsed - revelarEm) / Math.max(1, fim - revelarEm)));
   const pos = Math.round(de + (ate - de) * progresso);
 
   if (!visivel) return null;
@@ -906,7 +968,7 @@ function EmbedBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
-    if (!el || !html) return;
+    if (!el || !html || ctx.preview) return;
     el.innerHTML = html;
     el.querySelectorAll("script").forEach((old) => {
       const s = document.createElement("script");
@@ -919,6 +981,11 @@ function EmbedBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     const detach = attachVslWatch({ funnelSlug: ctx.funnelSlug, html, disabled: ctx.preview });
     return () => { el.innerHTML = ""; detach(); };
   }, [html, ctx.funnelSlug, ctx.preview]);
+  if (ctx.preview) return (
+    <div className="mx-auto grid aspect-video w-full place-items-center rounded-2xl bg-neutral-900 p-4 text-center text-sm text-white">
+      <p><span aria-hidden="true">▶ </span>{html.trim() ? "Vídeo incorporado · reprodução desativada na prévia" : "Vídeo incorporado · fonte ausente nesta cópia"}</p>
+    </div>
+  );
   return <div ref={ref} className="mx-auto w-full overflow-hidden rounded-2xl shadow-2xl" />;
 }
 
@@ -958,7 +1025,7 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   const cols = Math.max(1, parseInt(String(c.cols || "grid-cols-1").replace(/\D/g, "")) || 1);
   // multi-coluna: card vira COLUNA (emoji em cima, texto embaixo, centralizado) —
   // senão o texto é espremido numa coluna estreita e quebra letra a letra.
-  const multi = cols > 1;
+  const multi = d.orientation ? d.orientation === "vertical" : cols > 1;
   // espessura da borda: "border-[4px]" → 4px | "border" → 1px
   const bw = (() => { const m = String(d.border || "border").match(/\[(\d+)px\]/); return m ? parseInt(m[1]) : 1; })();
   // fundo "contrast" = leve tom do tema (pêssego); senão branco
@@ -968,7 +1035,9 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   const showIcon = d.icon && d.icon !== "none";
   const iconStart = d.iconPosition === "start";
   const multiple = !!c.multiple;
-  const [sel, setSel] = useState<string[]>([]);
+  const [localSelection, setLocalSelection] = useState<string[]>([]);
+  const sel = ctx.answers?.[layer.id]?.optionIds || localSelection;
+  const setSelection = (ids: string[]) => { setLocalSelection(ids); ctx.setAnswer?.(layer.id, selectedAnswer(opts, ids)); };
   // Estilo do card: "lista" (padrão de sempre) ou "foto" (a imagem É o card,
   // rótulo em cápsula por cima). `fx` controla o brilho do selecionado.
   const cardFoto = d.cardStyle === "foto";
@@ -984,19 +1053,22 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
   const q = intro ? plain(intro) : plain(question);
 
   const pick = (o: InleadOption) => {
-    if (multiple) { setSel((s) => (s.includes(o.id) ? s.filter((x) => x !== o.id) : [...s, o.id])); return; }
-    ctx.trackAnswer(ctx.stepId, q, plain(o.label));
+    if (multiple) { setSelection(sel.includes(o.id) ? sel.filter(id => id !== o.id) : [...sel, o.id]); return; }
+    setSelection([o.id]);
+    if (c.awaitSubmit) return;
+    ctx.trackAnswer(layer.id, q, o.value || plain(o.label));
     ctx.navigate(o.destination || "next");
   };
 
   return (
-    <div className="mx-auto w-full" style={{ maxWidth: `${obasis}%` }}>
+    <div className={`${hAlign(d)} w-full`} style={{ maxWidth: `${obasis}%` }}>
+    {c.introductionType === "video" && <VideoIntroduction layer={layer} ctx={ctx}/>}
     {intro ? (
       <div className="mb-3 w-full">
         <Html html={interpHtml(intro, ctx)} style={{ fontSize: `${remContent(ctx)}px`, color: ctx.design.contentColor || "#000" }} />
       </div>
     ) : null}
-    <div className="grid w-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: cardFoto ? ".7rem" : ".55rem" }}>
+    <div className="grid w-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: d.optionGap != null ? `${d.optionGap}px` : cardFoto ? ".7rem" : ".55rem" }}>
       {opts.map((o) => {
         const img = o.image?.type === "image" ? o.image?.src : null;
         const emoji = o.image?.type === "emoji" ? o.image?.src : o.emoji;
@@ -1007,11 +1079,11 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
         // serve para ícone, não para foto que precisa ser lida de longe.
         if (cardFoto && img) {
           return (
-            <motion.button key={o.id} onClick={() => pick(o)} whileTap={{ scale: 0.98 }}
+            <motion.button key={o.id} onClick={() => pick(o)} aria-pressed={active} whileTap={{ scale: 0.98 }}
               className="relative overflow-hidden"
               style={{
                 borderRadius: radius(ctx.design),
-                aspectRatio: "3 / 4",
+                aspectRatio: d.imageRatio || "3 / 4",
                 border: `${Math.max(2, bw)}px solid ${active ? theme : "rgba(255,255,255,.10)"}`,
                 boxShadow: active ? sombraFx(theme, fx) : shadow,
               }}>
@@ -1019,7 +1091,7 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
               <img src={img} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
               {/* véu embaixo: sem ele o rótulo some numa foto clara */}
               <span className="absolute inset-x-0 bottom-0 h-2/5" style={{ background: "linear-gradient(to top, rgba(0,0,0,.72), transparent)" }} />
-              {active ? (
+              {active && d.icon !== "none" ? (
                 <span className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full text-[13px] font-black text-white" style={{ background: theme }}>✓</span>
               ) : null}
               <span className="absolute inset-x-0 bottom-2.5 flex justify-center px-2">
@@ -1032,19 +1104,19 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
         }
 
         return (
-          <motion.button key={o.id} onClick={() => pick(o)} whileTap={{ scale: 0.98 }}
-            className={`flex transition ${multi ? "flex-col items-center justify-center gap-2 text-center" : "flex-row items-center justify-start gap-3 text-left"}`}
-            style={presetResina && !multi ? estiloOpcao(theme, active) : {
+          <motion.button key={o.id} onClick={() => pick(o)} aria-pressed={active} whileTap={{ scale: 0.98 }}
+            className={`ct-interactive flex transition ${multi ? "flex-col items-center justify-center gap-2 text-center" : "flex-row items-center justify-start gap-3 text-left"}`}
+            style={interactiveStyles(presetResina && !multi ? { ...estiloOpcao(theme, active), borderColor: active ? theme : "#e5e7eb", borderWidth: 1.5, color: ctx.design.contentColor || "#000" } : {
               borderRadius: radius(ctx.design), minHeight: ctx.design.elementSize || "64px",
-              background: cardBg,
-              border: `${bw}px solid ${active ? theme : contrast ? `color-mix(in srgb, ${theme} 55%, #ffffff)` : "#e5e7eb"}`,
+              background: cardBg, color: ctx.design.contentColor || "#000",
+              borderStyle: "solid", borderWidth: bw, borderColor: active ? theme : contrast ? `color-mix(in srgb, ${theme} 55%, #ffffff)` : "#e5e7eb",
               boxShadow: active ? sombraFx(theme, fx) : shadow,
               padding: multi ? ".9rem .65rem" : ".75rem 1rem",
-            }}>
+            })}>
             {showIcon && iconStart ? <Chevron color={theme} /> : null}
             {img ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={img} alt="" loading="lazy" decoding="async" className={`rounded-lg object-cover ${multi ? "h-12 w-12" : "h-10 w-10"}`} />
+              <img src={img} alt="" loading="lazy" decoding="async" className={`rounded-lg object-cover ${multi ? "h-12 w-12" : "h-10 w-10"}`} style={{ order: d.imageAfterText ? 2 : undefined, aspectRatio: d.imageRatio || undefined, height: d.imageRatio ? "auto" : undefined }} />
             ) : emoji ? (
               // tamanho do emoji configurável: na referência ele é o peso visual
               // da opção, não um enfeite ao lado do texto
@@ -1076,9 +1148,9 @@ function OptionsBlock({ layer, ctx, question }: { layer: Layer; ctx: LayersCtx; 
           </motion.button>
         );
       })}
-      {multiple ? (
-        <button onClick={() => { ctx.trackAnswer(ctx.stepId, plain(question), sel.map((id) => plain(opts.find((o) => o.id === id)?.label)).join(", ")); ctx.navigate("next"); }}
-          className="mt-1 w-full font-bold text-white"
+      {multiple && !c.awaitSubmit ? (
+        <button disabled={!!c.required && !sel.length} onClick={() => { ctx.trackAnswer(layer.id, q, selectedAnswer(opts, sel).values.join(", ")); ctx.navigate("next"); }}
+          className="mt-1 w-full font-bold text-white disabled:opacity-40"
           style={{ background: theme, borderRadius: radius(ctx.design), minHeight: "56px", gridColumn: `1 / -1` }}>
           Continuar
         </button>
@@ -1101,23 +1173,25 @@ function maskPhoneBr(v: string): string {
 }
 function FieldBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const c = layer.content;
+  const inputId = useId();
   const key = c.name || c.id || "campo";
   const isPhone = c.mask === "phone_br" || c.type === "phone";
+  const label = c.label || c.title;
   const val = ctx.fields[key] || "";
   const onChange = (raw: string) => {
     const v = isPhone ? maskPhoneBr(raw) : raw;
     ctx.setField(key, v);
     if (key === "nome") ctx.setName(v);
   };
-  const boxStyle = { borderRadius: radius(ctx.design), borderColor: "#e5e7eb", fontSize: `${remContent(ctx)}px` };
+  const boxStyle = { borderRadius: layer.design?.cornerRadius ?? radius(ctx.design), borderColor: layer.design?.borderColor || "#e5e7eb", borderWidth: layer.design?.borderWidth ?? 1, background:layer.design?.backgroundColor || "white", fontSize: `${remContent(ctx)}px` };
   return (
-    <div className="mx-auto w-full text-left">
+    <div className="mx-auto w-full text-left" style={{width:`${layer.design?.basis || 100}%`,marginLeft:layer.design?.align === "left" ? 0 : "auto",marginRight:layer.design?.align === "right" ? 0 : "auto"}}>
       {/* `label` vem primeiro: é o campo que as telas de preset leem, e enquanto
           este bloco olhava só para `title` o construtor mostrava um rótulo e o
           site mostrava outro. `title` continua valendo para os funis antigos. */}
-      {(c.label || c.title) ? (
-        <label className="mb-1.5 block text-sm font-semibold" style={{ color: ctx.design.contentColor || "#000" }}>
-          {String(c.label || c.title)}
+      {label ? (
+        <label htmlFor={inputId} className="mb-1.5 block text-sm font-semibold" style={{ color: ctx.design.contentColor || "#000" }}>
+          {String(label)}
         </label>
       ) : null}
       {isPhone ? (
@@ -1131,6 +1205,7 @@ function FieldBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
             </span>
           ) : null}
           <input
+            id={inputId} required={!!c.required} aria-label={label ? undefined : layer.title || "Telefone"}
             value={val} onChange={(e) => onChange(e.target.value)}
             placeholder={c.placeholder || "(00) 00000-0000"} inputMode="tel" type="tel"
             className="w-full border-0 bg-transparent px-4 py-3.5 outline-none"
@@ -1139,6 +1214,7 @@ function FieldBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
         </div>
       ) : (
         <input
+          id={inputId} required={!!c.required} aria-label={label ? undefined : layer.title || "Campo"}
           value={val} onChange={(e) => onChange(e.target.value)}
           placeholder={c.placeholder} inputMode="text"
           className="w-full border bg-white px-4 py-3.5 outline-none focus:ring-2"
@@ -1273,6 +1349,8 @@ function TimerBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 // ──────────────────────────── NOTIFICATION ──────────────────────────
 function NotificationBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const c = layer.content;
+  const reducedMotion = useReducedMotion();
+  const hiddenOffset = reducedMotion ? 0 : -20;
   const [show, setShow] = useState(false);
   useEffect(() => {
     const showT = setTimeout(() => setShow(true), 1500);
@@ -1283,7 +1361,9 @@ function NotificationBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const d = layer.design || {};
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }} animate={show ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+      initial={{ opacity: 0, x: hiddenOffset }}
+      animate={{ opacity: show ? 1 : 0, x: show ? 0 : hiddenOffset }}
+      transition={reducedMotion ? { duration: 0 } : undefined}
       className="fixed bottom-4 left-4 z-50 max-w-[78%] shadow-xl"
       style={{ background: d.backgroundColor || "#52525b", color: d.color || "#fff", borderRadius: radius(ctx.design), padding: "10px 14px", pointerEvents: "none" }}>
       <Html html={interpHtml(c.text, ctx)} style={{ fontSize: "13px", color: d.color || "#fff" }} />
@@ -1372,20 +1452,22 @@ function LevelBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const atual = Math.min(Math.max(0, Number(c.atual) || 0), Math.max(0, niveis.length - 1));
   const theme = ctx.design.themeColor || "#ea580c";
   const alvo = Number(niveis[atual]?.pct ?? ((atual + 1) / Math.max(1, niveis.length)) * 100);
+  const reducedMotion = useReducedMotion();
   const [w, setW] = useState(0);
   useEffect(() => {
+    if (reducedMotion) return;
     const t0 = performance.now();
     let raf = 0;
     const tick = (n: number) => { const p = Math.min(alvo, ((n - t0) / 1200) * alvo); setW(p); if (p < alvo) raf = requestAnimationFrame(tick); };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [alvo]);
+  }, [alvo, reducedMotion]);
   if (!niveis.length) return null;
   return (
     <div className="mx-auto w-full">
       {c.title ? <Html html={interpHtml(String(c.title), ctx)} className="mb-2 text-center" /> : null}
       <div className="h-3 w-full overflow-hidden rounded-full" style={{ background: "rgba(0,0,0,.08)" }}>
-        <div className="h-full rounded-full transition-none" style={{ width: `${w}%`, background: `linear-gradient(90deg, ${theme}, ${theme}bb)` }} />
+        <div className="h-full rounded-full transition-none" style={{ width: `${reducedMotion ? alvo : w}%`, background: `linear-gradient(90deg, ${theme}, ${theme}bb)` }} />
       </div>
       <div className="mt-2 flex justify-between gap-1">
         {niveis.map((n, i) => (
@@ -1412,9 +1494,10 @@ function BeforeAfterBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const [i, setI] = useState(0);
   const n = pares.length;
   if (!n) return null;
-  const p = pares[Math.min(i, n - 1)];
+  const current = Math.min(i, n - 1);
+  const p = pares[current];
   const rot = radius(ctx.design);
-  const go = (d: number) => setI((x) => (x + d + n) % n);
+  const go = (d: number) => setI((x) => (Math.min(x, n - 1) + d + n) % n);
   return (
     <div className="mx-auto w-full select-none">
       <div className="grid grid-cols-2 gap-2">
@@ -1434,14 +1517,15 @@ function BeforeAfterBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
       {p.legenda ? <Html html={interpHtml(p.legenda, ctx)} className="mt-2 text-center" style={{ fontSize: `${remContent(ctx) - 2}px` }} /> : null}
       {n > 1 ? (
         <div className="mt-2 flex items-center justify-center gap-3">
-          <button onClick={() => go(-1)} aria-label="Anterior" className="grid h-7 w-7 place-items-center rounded-full border border-black/10 text-sm">‹</button>
-          <div className="flex gap-1.5">
+          <button type="button" onClick={() => go(-1)} aria-label="Anterior" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-black/10 text-sm">‹</button>
+          <span role="status" className="sr-only">Comparação {current + 1} de {n}</span>
+          <div aria-hidden="true" className="flex min-w-0 flex-wrap justify-center gap-1.5" data-before-after-indicators>
             {pares.map((_, k) => (
-              <span key={k} className="h-1.5 rounded-full transition-all"
-                style={{ width: k === i ? 16 : 6, background: k === i ? (ctx.design.themeColor || "#ea580c") : "rgba(0,0,0,.2)" }} />
+              <span key={k} className="h-1.5 rounded-full motion-safe:transition-all"
+                style={{ width: k === current ? 16 : 6, background: k === current ? (ctx.design.themeColor || "#ea580c") : "rgba(0,0,0,.2)" }} />
             ))}
           </div>
-          <button onClick={() => go(1)} aria-label="Próximo" className="grid h-7 w-7 place-items-center rounded-full border border-black/10 text-sm">›</button>
+          <button type="button" onClick={() => go(1)} aria-label="Próximo" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-black/10 text-sm">›</button>
         </div>
       ) : null}
     </div>
@@ -1458,32 +1542,37 @@ function ChartsBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const c = layer.content;
   const barras = (c.bars as { label: string; value: number }[]) || [];
   const theme = ctx.design.themeColor || "#ea580c";
-  const [f, setF] = useState(0);
+  const reducedMotion = useReducedMotion();
+  const [progress, setProgress] = useState(0);
+  const f = reducedMotion ? 1 : progress;
   useEffect(() => {
+    if (reducedMotion) return;
     const t0 = performance.now();
     let raf = 0;
-    const tick = (n: number) => { const p = Math.min(1, (n - t0) / 1100); setF(p); if (p < 1) raf = requestAnimationFrame(tick); };
+    const tick = (n: number) => { const p = Math.min(1, (n - t0) / 1100); setProgress(p); if (p < 1) raf = requestAnimationFrame(tick); };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [reducedMotion]);
   if (!barras.length) return null;
   const max = Math.max(...barras.map((b) => Number(b.value) || 0), 1);
   return (
     <div className="mx-auto w-full">
       {c.title ? <Html html={interpHtml(String(c.title), ctx)} className="mb-3 text-center" /> : null}
-      <div className="flex items-end justify-between gap-2" style={{ height: 150 }}>
+      <div className="grid gap-x-2 gap-y-1" style={{ gridTemplateColumns: `repeat(${barras.length}, minmax(0, 1fr))`, gridTemplateRows: "150px auto" }}>
         {barras.map((b, i) => {
           const v = Number(b.value) || 0;
           const h = (v / max) * 100 * f;
           const ultima = i === barras.length - 1;
           return (
-            <div key={i} className="flex flex-1 flex-col items-center justify-end gap-1" style={{ height: "100%" }}>
-              <span className="text-[11px] font-bold" style={{ color: ultima ? theme : "var(--q-text-muted, #9ca3af)" }}>
-                {Math.round(v * f)}{String(c.suffix || "")}
-              </span>
-              <div className="w-full rounded-t-md"
-                style={{ height: `${h}%`, background: ultima ? theme : `${theme}59`, minHeight: 2 }} />
-              <span className="text-[10px] font-semibold text-[var(--q-text-muted,#9ca3af)]">{b.label}</span>
+            <div key={i} className="row-span-2 grid min-w-0 grid-rows-subgrid">
+              <div className="flex min-w-0 flex-col items-center justify-end gap-1">
+                <span className="max-w-full text-center text-[11px] font-bold [overflow-wrap:anywhere]" style={{ color: ultima ? theme : "var(--q-text-muted, #9ca3af)" }}>
+                  {Math.round(v * f)}{String(c.suffix || "")}
+                </span>
+                <div className="w-full rounded-t-md"
+                  style={{ height: `${h}%`, background: ultima ? theme : `${theme}59`, minHeight: 2 }} />
+              </div>
+              <span className="text-center text-[10px] font-semibold text-[var(--q-text-muted,#9ca3af)] [overflow-wrap:anywhere]">{b.label}</span>
             </div>
           );
         })}
@@ -1493,27 +1582,35 @@ function ChartsBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 }
 
 function GraphicsBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
-  const g = (layer.content.graphics || [])[0];
-  if (!g) return null;
-  return <AnimatedGraphic g={g} ctx={ctx} />;
+  const graphics = layer.content.graphics ?? [];
+  if (!graphics.length) return null;
+  if (graphics.length === 1) return <AnimatedGraphic g={graphics[0]} ctx={ctx} />;
+  return (
+    <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] gap-4">
+      {graphics.map((graphic, index) => <AnimatedGraphic key={graphic.id || index} g={graphic} ctx={ctx} />)}
+    </div>
+  );
 }
 
 function AnimatedGraphic({ g, ctx }: { g: NonNullable<Layer["content"]["graphics"]>[number]; ctx: LayersCtx }) {
   const pct = Number(g.percent) || 0;
   const color = g.style || "#16a34a";
-  const [val, setVal] = useState(0);
+  const reducedMotion = useReducedMotion();
+  const [animatedValue, setAnimatedValue] = useState(0);
+  const val = reducedMotion ? pct : animatedValue;
   useEffect(() => {
+    if (reducedMotion) return;
     const t0 = performance.now();
     let raf = 0;
-    const tick = (n: number) => { const p = Math.min(pct, (n - t0) / 1400 * pct); setVal(p); if (p < pct) raf = requestAnimationFrame(tick); };
+    const tick = (n: number) => { const p = Math.min(pct, (n - t0) / 1400 * pct); setAnimatedValue(p); if (p < pct) raf = requestAnimationFrame(tick); };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [pct]);
+  }, [pct, reducedMotion]);
   const R = 54, C = 2 * Math.PI * R;
   return (
     <div className="mx-auto w-full text-center">
-      <div className="relative mx-auto" style={{ width: 150, height: 150 }}>
-        <svg width="150" height="150" viewBox="0 0 130 130" className="-rotate-90">
+      <div className="relative mx-auto aspect-square w-full max-w-[150px]">
+        <svg aria-hidden="true" viewBox="0 0 130 130" className="h-full w-full -rotate-90">
           <circle cx="65" cy="65" r={R} fill="none" stroke="#e5e7eb" strokeWidth="12" />
           <circle cx="65" cy="65" r={R} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round"
             strokeDasharray={C} strokeDashoffset={C - (val / 100) * C} />
@@ -1534,12 +1631,19 @@ export function SliderHero({
 }: {
   step: { min?: unknown; max?: unknown; step?: unknown; question?: unknown; help?: React.ReactNode; image?: string | InleadMedia }; ctx: LayersCtx; theme: string; bgColor: string;
 }) {
-  const min = Number(step.min) || 0;
-  const max = Number(step.max) ?? 10;
-  const stp = Number(step.step) || 1;
+  const configuredMin = Number(step.min);
+  const configuredMax = Number(step.max ?? 10);
+  const configuredStep = Number(step.step);
+  const min = Number.isFinite(configuredMin) ? configuredMin : 0;
+  const max = Number.isFinite(configuredMax) && configuredMax > min ? configuredMax : Math.max(10, min + 1);
+  const stp = Number.isFinite(configuredStep) && configuredStep > 0 ? configuredStep : 1;
+  const questionId = useId();
+  const instructionId = useId();
   const [v, setV] = useState(min);          // começa sempre no 0
   const [touched, setTouched] = useState(false);
   const advanced = useRef(false);
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(advanceTimer.current), []);
   const pct = ((v - min) / (max - min)) * 100;
   const imageSrc = typeof step.image === "string" ? step.image : step.image?.src || "";
 
@@ -1551,7 +1655,7 @@ export function SliderHero({
     if (advanced.current || v <= min) return;
     advanced.current = true;
     ctx.trackAnswer(ctx.stepId, String(step.question || "Nota 0–10").replace(/[*=]/g, "").trim(), String(v));
-    setTimeout(() => ctx.navigate("next"), 280);
+    advanceTimer.current = setTimeout(() => ctx.navigate("next"), 280);
   };
 
   return (
@@ -1559,7 +1663,7 @@ export function SliderHero({
       <div className="flex flex-1 flex-col">
         {/* conteúdo */}
         <div className="px-6 pt-12">
-          <h2 className="text-center text-[26px] font-extrabold leading-tight">
+          <h2 id={questionId} className="text-center text-[26px] font-extrabold leading-tight">
             {titleParts.map((p: string, i: number) =>
               i % 2 === 1 ? <span key={i} style={{ color: theme }}>{p}</span> : <span key={i}>{p}</span>,
             )}
@@ -1569,7 +1673,15 @@ export function SliderHero({
           <div className="relative mt-16">
             <input
               type="range" min={min} max={max} step={stp} value={v}
+              aria-labelledby={titleParts.length ? questionId : undefined}
+              aria-label={titleParts.length ? undefined : "Nível"}
+              aria-describedby={instructionId}
               onChange={(e) => { setV(Number(e.target.value)); setTouched(true); }}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter") return;
+                event.preventDefault();
+                release();
+              }}
               onPointerUp={release} onTouchEnd={release} onMouseUp={release}
               className="q-slider h-3 w-full cursor-pointer appearance-none rounded-full"
               style={{ accentColor: theme, background: `linear-gradient(90deg, ${theme} ${pct}%, #e7e1d8 ${pct}%)` }}
@@ -1581,8 +1693,8 @@ export function SliderHero({
             <div className="relative h-9">
               <DedoArrasta visivel={!touched} />
             </div>
-            <p className="mt-2 text-center text-sm font-semibold" style={{ color: theme }}>
-              {touched ? "Solte para continuar" : "Arraste o seletor para responder"}
+            <p id={instructionId} className="mt-2 text-center text-sm font-semibold" style={{ color: theme }}>
+              {touched && v > min ? "Solte o seletor ou pressione Enter para continuar" : "Arraste o seletor ou use as setas para responder"}
             </p>
           </div>
         </div>
@@ -1604,18 +1716,25 @@ export function SliderHero({
 // ─────────────────────────── DISPATCHER ─────────────────────────────
 export function Block({ layer, ctx, question, indice = 0 }: { layer: Layer; ctx: LayersCtx; question: string; indice?: number }) {
   const edit = useContext(LayersEditContext);
+  if (!edit && ctx.preview && ctx.previewVideoSeconds !== undefined &&
+      (layer.type === "text" || layer.type === "image") && layer.content.revealClock === "video" &&
+      ctx.previewVideoSeconds < Number(layer.content.revealAt)) {
+    return null;
+  }
   const inner = ((): React.ReactNode => {
     switch (layer.type) {
       case "text": return <TextBlock layer={layer} ctx={ctx} />;
       case "clear": return <ClearBlock layer={layer} ctx={ctx} />;
       case "check": return <CheckBlock layer={layer} ctx={ctx} />;
       case "disclaimer": return <DisclaimerBlock layer={layer} ctx={ctx} />;
+      case "trust": return <TrustBlock layer={layer} />;
       case "ranking": return <RankingBlock layer={layer} ctx={ctx} />;
       case "alert": return <AlertBlock layer={layer} ctx={ctx} />;
       case "image": return <ImageBlock layer={layer} ctx={ctx} />;
       case "button": return <ButtonBlock layer={layer} ctx={ctx} />;
       case "options": return <OptionsBlock layer={layer} ctx={ctx} question={question} />;
-      case "field": return <FieldBlock layer={layer} ctx={ctx} />;
+      case "field": return layer.content.type === "phone" || layer.content.mask === "phone_br" ? <FieldBlock layer={layer} ctx={ctx} /> : <AdvancedField layer={layer} ctx={ctx}/>;
+      case "audio": case "arguments": case "testimonials": case "faq": case "price": case "checklist": case "html": return <CatalogBlock key={`${layer.id}:${layer.content.firstOpen}`} layer={layer} ctx={ctx}/>;
       case "loading": return <LoadingBlock layer={layer} ctx={ctx} />;
       case "timer": return <TimerBlock layer={layer} ctx={ctx} />;
       case "notification": return <NotificationBlock layer={layer} ctx={ctx} />;
@@ -1634,16 +1753,11 @@ export function Block({ layer, ctx, question, indice = 0 }: { layer: Layer; ctx:
   const node = op !== undefined ? <div style={{ opacity: op }}>{inner}</div> : inner;
   // ── modo de edição: o EditBlock (LayersRunner) cuida de wrapper/seleção/drag ──
   const hidden = !!layer.design?.hidden;
-  if (edit) return <>{node}</>;            // EditBlock provê o wrapper/toolbar/sortable
-  if (hidden) return null;                 // runtime: bloco oculto não renderiza
-  // revelação progressiva (effects.starts) — ex: botão Continuar da VAGAS só após o loading.
-  if (layer.effects?.starts) return <Reveal delay={layer.effects.starts}>{node}</Reveal>;
-
-  // ENTRADA: cada bloco chega com fade + leve subida, escalonado pela posição.
-  // Antes tudo aparecia de uma vez e a lâmina "piscava" pronta — era o que dava
-  // a sensação de página estática. `entradaBloco` respeita
-  // `prefers-reduced-motion`: quem pediu menos movimento recebe só o fade.
-  return <motion.div {...entradaBloco(indice)}>{node}</motion.div>;
+  const framed = <ComponentFrame layer={layer} answers={ctx.answers} fields={ctx.fields} editing={!!edit} viewportWidth={ctx.previewWidth}>{node}</ComponentFrame>;
+  if (edit) return framed;
+  if (hidden) return null;
+  if (layer.effects?.starts || layer.display?.entrance || layer.design?.stickyFooter) return framed;
+  return <motion.div {...entradaBloco(indice)}>{framed}</motion.div>;
 }
 
 /** Wrapper de edição no canvas: seleção + toolbar + arrastar (sortable).

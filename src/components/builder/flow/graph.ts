@@ -21,13 +21,15 @@
  */
 
 import type { InleadStep } from "@/lib/quiz/layers/types";
+import { soniaDestination } from "@/lib/quiz/layers/sonia";
+import { resolveLayerDestination } from "@/lib/quiz/layers/navigation";
 
 /** Geometria do nó. Uma fonte só: o cálculo do path e a posição da bolinha
  *  precisam concordar, senão a linha sai de um lugar e o ponto fica em outro. */
 export const FLOW = {
-  W: 264,        // largura do nó
+  W: 320,        // largura do nó
   HEAD: 40,      // altura do cabeçalho (título)
-  ROW: 28,       // altura de cada linha de saída
+  ROW: 44,       // altura de cada linha de saída
   PADB: 34,      // rodapé: onde mora a bolinha "→ próxima lâmina"
   GAPX: 120,     // espaço horizontal entre colunas
   GAPY: 28,      // espaço vertical entre nós da mesma coluna
@@ -92,7 +94,10 @@ export function flowExits(s: InleadStep): FlowExit[] {
 
     if (l.type === "button") {
       out.push({ key: `${id}:_`, layerId: id, optId: null, icon: "🔘", label: strip(c.label) || "Botão", dest: c.destination, editable: true });
+    } else if (l.type === "price" && c.mode === "redirect" && /^https?:\/\//i.test(c.destination || '')) {
+      out.push({key: id+':_',layerId:id,optId:null,icon:'↗',label:strip(c.buttonLabel)||'Escolher oferta',dest:c.destination,editable:false});
     } else if (l.type === "options") {
+      if (c.multiple && c.awaitSubmit) continue;
       if (c.multiple) {
         // achado 1: múltipla escolha navega pelo "Continuar", destino fixo
         out.push({
@@ -101,13 +106,17 @@ export function flowExits(s: InleadStep): FlowExit[] {
           dest: "next", editable: false,
         });
       } else {
+        const continuation = s.layers.find(layer => layer.type === "button" && !layer.design?.hidden);
+        if (c.awaitSubmit && !continuation) continue;
         for (const o of ((c.options || []) as any[])) {
-          out.push({ key: `${id}:${o.id}`, layerId: id, optId: String(o.id), icon: "☑️", label: strip(o.label) || "Opção", dest: o.destination, editable: true });
+          out.push({ key: `${id}:${o.id}`, layerId: id, optId: String(o.id), icon: "☑️", label: `${c.awaitSubmit ? "Após botão · " : ""}${strip(o.label) || "Opção"}`, dest: c.awaitSubmit && (!o.destination || o.destination === "next") ? continuation?.content.destination : o.destination, editable: true });
         }
       }
     } else if (l.type === "loading" && c.type !== "none") {
       // achado 2: loading navega sozinho quando tem tipo — e é configurável
       out.push({ key: `${id}:_`, layerId: id, optId: null, icon: "⏳", label: `após ${Number(c.seconds) || 4}s`, dest: c.destination, editable: true });
+    } else if (l.type === "sonia-numbers") {
+      if (c.destination || s.nextStep) out.push({ key: `${id}:_`, layerId: id, optId: null, icon: "🔢", label: "após continuar seleção", dest: c.destination || s.nextStep, editable: true });
     } else if (l.type === "slider") {
       out.push({ key: `${id}:_`, layerId: id, optId: null, icon: "🎚️", label: "ao soltar", dest: "next", editable: false });
     } else if (l.type === "roulette") {
@@ -136,17 +145,27 @@ export function nextVisibleId(steps: InleadStep[], i: number): string | undefine
 
 /** Monta os nós na ordem do funil. */
 export function buildNodes(steps: InleadStep[]): FlowNode[] {
+  const active = steps.filter((s) => !s.disabled);
   return steps.map((s, i) => {
     // `nextStep` (definido arrastando a bolinha do rodapé) vence a posição —
     // mesma precedência do LayersRunner.navigate.
-    const alvo = s.nextStep && steps.some((t) => t.id === s.nextStep) ? s.nextStep : undefined;
+    const alvo = s.nextStep && active.some((t) => t.id === s.nextStep) ? s.nextStep : undefined;
+    const sonia = s.layers.find((l) => l.type === "sonia-numbers" && !l.design?.hidden);
+    const destination = sonia ? soniaDestination(sonia.content.destination, active, active.indexOf(s)) : null;
+    const soniaNext = destination === "next" ? s.nextStep || nextVisibleId(steps, i) : undefined;
+    const exits = flowExits(s).flatMap((x) => {
+      const layer = s.layers.find((l) => l.id === x.layerId);
+      if (layer?.type !== "sonia-numbers") return [x];
+      const dest = soniaDestination(layer.content.destination, active, active.indexOf(s));
+      return dest ? [{ ...x, dest: dest === "next" ? s.nextStep || nextVisibleId(steps, i) : dest }] : [];
+    });
     return {
       id: s.id,
       idx: i,
       title: strip(s.title) || `Lâmina ${i + 1}`,
       disabled: !!s.disabled,
-      exits: flowExits(s),
-      proxima: alvo ?? nextVisibleId(steps, i),
+      exits,
+      proxima: sonia ? soniaNext : alvo ?? nextVisibleId(steps, i),
       fixado: s.flowPos,
     };
   });
@@ -154,29 +173,28 @@ export function buildNodes(steps: InleadStep[]): FlowNode[] {
 
 /**
  * Resolve um `destination` para o id de lâmina. Espelha LayersRunner.tsx:64-69:
- * ausente/"next" = próxima visível; URL = sai do funil; id inválido = próxima.
+ * ausente/"next" = destino padrão ou próxima visível; URL = sai do funil;
+ * id inválido = próxima visível.
  */
 export function resolveDest(steps: InleadStep[], i: number, dest?: string): { to: string | null; extern: boolean } {
-  if (!dest || dest === "next") return { to: nextVisibleId(steps, i) ?? null, extern: false };
-  if (/^https?:\/\//i.test(dest)) return { to: null, extern: true };
-  const existe = steps.some((s) => s.id === dest);
-  return { to: existe ? dest : (nextVisibleId(steps, i) ?? null), extern: false };
+  const active = steps.filter(step => !step.disabled);
+  return resolveLayerDestination(active, active.findIndex(step => step.id === steps[i]?.id), dest);
 }
 
 /**
  * Arestas do grafo.
  *
- * Saída cujo destino é a própria "próxima lâmina" NÃO vira aresta: ela cai na
- * bolinha padrão. Sem isso, 6 opções com destino "next" desenhavam 6 curvas
- * idênticas empilhadas, e o mapa virava um borrão.
+ * Cada saída conserva sua própria aresta, inclusive quando várias respostas
+ * compartilham o destino. O destaque por foco permite acompanhar cada caminho.
  */
 export function buildEdges(steps: InleadStep[], nodes: FlowNode[]): FlowEdge[] {
   const edges: FlowEdge[] = [];
   const ordem = new Map(nodes.map((n) => [n.id, n.idx]));
 
   nodes.forEach((n) => {
+    if (n.disabled) return;
     // bolinha padrão: sempre presente enquanto houver próxima lâmina
-    if (n.proxima) {
+    if (n.proxima && n.exits.length === 0) {
       edges.push({ id: `${n.id}:default`, from: n.id, to: n.proxima, kind: "seq", fromY: defaultDotY(n.exits.length) });
     }
     n.exits.forEach((x, k) => {
@@ -185,9 +203,9 @@ export function buildEdges(steps: InleadStep[], nodes: FlowNode[]): FlowEdge[] {
         edges.push({ id: `${n.id}:${x.key}`, from: n.id, to: null, kind: "extern", fromY: rowY(k), label: x.label });
         return;
       }
-      if (!to || to === n.proxima) return;   // segue o padrão: não duplica a seta
+      if (!to) return;
       const volta = (ordem.get(to) ?? 0) <= n.idx;
-      edges.push({ id: `${n.id}:${x.key}`, from: n.id, to, kind: volta ? "back" : "jump", fromY: rowY(k), label: x.label });
+      edges.push({ id: `${n.id}:${x.key}`, from: n.id, to, kind: volta ? "back" : to === n.proxima ? "seq" : "jump", fromY: rowY(k), label: x.label });
     });
   });
   return edges;
@@ -322,8 +340,8 @@ export function edgePath(x1: number, y1: number, x2: number, y2: number, kind: E
 }
 
 export const EDGE_COLOR: Record<EdgeKind, string> = {
-  seq: "#94a3b8",      // segue o padrão
-  jump: "#ea580c",     // pulo explícito
-  back: "#7c3aed",     // volta pra trás
-  extern: "#a3a3a3",   // sai do funil
+  seq: "var(--ct-dim)",
+  jump: "var(--ct-blue)",
+  back: "var(--ct-success)",
+  extern: "var(--ct-faint)",
 };

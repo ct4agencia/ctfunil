@@ -1,0 +1,1084 @@
+{
+  "capturedAt": "2026-11-21 03:55:27.146514+00",
+  "timeZone": "America/Sao_Paulo",
+  "rows": [
+    {
+      "id": "IyfszP",
+      "day": "2026-06-27",
+      "slug": "cdb-estado",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-06-27",
+      "slug": "cdb-estado",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-06-27",
+      "slug": "cdb-estado",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-06-27",
+      "slug": "cdb-estado",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-06-27",
+      "slug": "cdb-slide",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "rg-opts",
+      "day": "2026-06-27",
+      "slug": "cdb-slide",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "rg-opts",
+      "day": "2026-06-27",
+      "slug": "cdb-slide",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-06-27",
+      "slug": "cdb-slide",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-06-27",
+      "slug": "cdb-slide",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-06-27",
+      "slug": "cdb-slide",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "c2opt-cdb-hero09",
+      "day": "2026-06-28",
+      "slug": "cdb-hero09",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-06-28",
+      "slug": "cdb-hero10",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "c2opt-cdb-hero10",
+      "day": "2026-06-28",
+      "slug": "cdb-hero10",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-06-28",
+      "slug": "cdb-hero10",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-06-28",
+      "slug": "cdb-hero10",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-06-28",
+      "slug": "cdb-hero10",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "c2opt-cdb-hero11",
+      "day": "2026-06-28",
+      "slug": "cdb-hero11",
+      "option": 0,
+      "responses": 3
+    },
+    {
+      "id": "c2opt-cdb-hero11",
+      "day": "2026-06-28",
+      "slug": "cdb-hero11",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-06-28",
+      "slug": "cdb-hero11",
+      "option": 0,
+      "responses": 3
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-06-28",
+      "slug": "cdb-hero11",
+      "option": 0,
+      "responses": 3
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-06-28",
+      "slug": "cdb-hero11",
+      "option": 0,
+      "responses": 4
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-06-28",
+      "slug": "cdb-hero11",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "c2opt-cdb-hero08",
+      "day": "2026-06-29",
+      "slug": "cdb-hero08",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-06-29",
+      "slug": "cdb-hero08",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-06-29",
+      "slug": "cdb-hero08",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-06-29",
+      "slug": "cdb-hero08",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-06-29",
+      "slug": "cdb-hero08",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-06-29",
+      "slug": "cdb-r",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-06-29",
+      "slug": "cdb-r",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-06-29",
+      "slug": "cdb-r",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-06-29",
+      "slug": "cdb-r",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-06-29",
+      "slug": "cdb-r",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-06-29",
+      "slug": "cdb-slide",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-06-29",
+      "slug": "cdb-slide",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "rg-opts",
+      "day": "2026-06-29",
+      "slug": "cdb-slide",
+      "option": 0,
+      "responses": 3
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-06-29",
+      "slug": "cdb-slide",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "c2opt-cdb-hero11",
+      "day": "2026-06-30",
+      "slug": "cdb-hero11",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-06-30",
+      "slug": "cdb-hero11",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-06-30",
+      "slug": "cdb-hero11",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-06-30",
+      "slug": "cdb-hero11",
+      "option": 1,
+      "responses": 2
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-07-03",
+      "slug": "cdb-slide-vsl",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "rg-opts",
+      "day": "2026-07-03",
+      "slug": "cdb-slide-vsl",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-07-03",
+      "slug": "cdb-slide-vsl",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-07-03",
+      "slug": "cdb-slide-vsl",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-07-03",
+      "slug": "cdb-slide-vsl",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-07-09",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-07-09",
+      "slug": "cdb-hero04-2",
+      "option": 1,
+      "responses": 2
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-07-09",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 3
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-07-09",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-07-09",
+      "slug": "cdb-hero04-2",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-07-09",
+      "slug": "cdb-hero04-2",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-07-09",
+      "slug": "cdb-hero04-2",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-07-09",
+      "slug": "cdb-hero04-2",
+      "option": 2,
+      "responses": 2
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-07-10",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-07-10",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 3
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-07-10",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 10
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-07-10",
+      "slug": "cdb-hero04-2",
+      "option": 1,
+      "responses": 6
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-07-10",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 7
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-07-10",
+      "slug": "cdb-hero04-2",
+      "option": 1,
+      "responses": 4
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-07-10",
+      "slug": "cdb-hero04-2",
+      "option": 2,
+      "responses": 4
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-07-10",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 6
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-07-10",
+      "slug": "cdb-hero04-2",
+      "option": 1,
+      "responses": 7
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-07-14",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-07-14",
+      "slug": "cdb-hero04-2",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-07-14",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "rg-opts",
+      "day": "2026-07-16",
+      "slug": "cdb-slide-vsl",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-07-16",
+      "slug": "cdb-slide-vsl",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 0,
+      "responses": 8
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 0,
+      "responses": 4
+    },
+    {
+      "id": "IyfszP",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 1,
+      "responses": 2
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 0,
+      "responses": 14
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 1,
+      "responses": 3
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 0,
+      "responses": 8
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 1,
+      "responses": 4
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 2,
+      "responses": 2
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 0,
+      "responses": 7
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 1,
+      "responses": 5
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "option": 2,
+      "responses": 2
+    },
+    {
+      "id": "c03-opt",
+      "day": "2026-08-21",
+      "slug": "cdb-insta",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "c03-opt",
+      "day": "2026-08-21",
+      "slug": "cdb-insta",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "c04-opt",
+      "day": "2026-08-21",
+      "slug": "cdb-insta",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "c05-opt",
+      "day": "2026-08-21",
+      "slug": "cdb-insta",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "c06-opt",
+      "day": "2026-08-21",
+      "slug": "cdb-insta",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "c07-opt",
+      "day": "2026-08-21",
+      "slug": "cdb-insta",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-08-24",
+      "slug": "cdb-hero04-2",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-08-24",
+      "slug": "cdb-hero04-2",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "0ofcxO",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "0ofcxO",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "0ofcxO",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "I300TG",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "I300TG",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 2
+    },
+    {
+      "id": "I300TG",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "k04G5v",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "rKHWwO",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "rKHWwO",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "rKHWwO",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "rKHWwO",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 3,
+      "responses": 1
+    },
+    {
+      "id": "rNGU6S",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 3
+    },
+    {
+      "id": "rNGU6S",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 3,
+      "responses": 1
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 2
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 3,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "0ofcxO",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "0ofcxO",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "0ofcxO",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "0ofcxO",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 3,
+      "responses": 1
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "3j9c6x",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 3,
+      "responses": 1
+    },
+    {
+      "id": "I300TG",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "I300TG",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "I300TG",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "k04G5v",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "k04G5v",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "rKHWwO",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "rKHWwO",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "rKHWwO",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "rNGU6S",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "rNGU6S",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 2
+    },
+    {
+      "id": "rNGU6S",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 3,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 2
+    },
+    {
+      "id": "S2bNJ1",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 3,
+      "responses": 1
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 1
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 2
+    },
+    {
+      "id": "TOAPKV",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 3,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    },
+    {
+      "id": "wljlUP",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 2,
+      "responses": 1
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 0,
+      "responses": 2
+    },
+    {
+      "id": "XMMdV8",
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "option": 1,
+      "responses": 1
+    }
+  ]
+}

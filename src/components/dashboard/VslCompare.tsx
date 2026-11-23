@@ -119,7 +119,7 @@ export default function VslCompare({ rows }: { rows: VslCompareRow[] }) {
       </div>
 
       {/* tabela de métricas com melhor/pior */}
-      <div className="mt-4 overflow-x-auto">
+      <div role="region" aria-label="Métricas da comparação de players" tabIndex={0} className="ct-comparison-scroll mt-4 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-left text-xs text-neutral-400">
             <tr>
@@ -143,7 +143,7 @@ export default function VslCompare({ rows }: { rows: VslCompareRow[] }) {
                   {rows.map((r, i) => {
                     const v = vals[i];
                     const cls = !spread ? "text-neutral-700" : v === best ? "font-bold text-green-600" : v === worst ? "font-semibold text-red-500" : "text-neutral-700";
-                    return <td key={r.playerId} className={`px-3 py-2 text-right ${cls}`}>{m.fmt(v)}{spread && v === best ? " 🏆" : ""}</td>;
+                    return <td key={r.playerId} className={`px-3 py-2 text-right ${cls}`}>{m.fmt(v)}{spread && v === best && <span className="ml-1 text-[10px] font-normal">melhor</span>}</td>;
                   })}
                 </tr>
               );

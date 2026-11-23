@@ -1,162 +1,361 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import WorkspaceCheckbox from "@/components/ui/WorkspaceCheckbox";
+
+import WorkspaceMultiSelect from "@/components/ui/WorkspaceMultiSelect";
+import WorkspaceDateRange, { analyticsDateKey, calendarSeriesDays, type DateRange } from "@/components/ui/WorkspaceDateRange";
+import Bars from "./Bars";
+import SnapshotQuizView, { type QuizSnapshot } from "./SnapshotQuizView";
+import SnapshotLeadsView, { type LeadsDaily } from "./SnapshotLeadsView";
+import SnapshotSalesView, { type SalesSnapshot } from "./SnapshotSalesView";
+import SnapshotVslView, { type VslSnapshot } from "./SnapshotVslView";
+import SnapshotDiagnosisView, { type DiagnosisSnapshot } from "./SnapshotDiagnosisView";
+import SnapshotTimestamp from "./SnapshotTimestamp";
+import Pagination from "@/components/ui/Pagination";
+import ActiveTab from "@/components/ui/ActiveTab";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { WorkspaceFrame } from "@/components/workspace/WorkspaceFrame";
+import { useRouter, useSearchParams } from "next/navigation";
+import { filterAttribution, type AttributionDaily } from "@/lib/analytics-attribution";
 import type { GlobalAnalytics } from "@/lib/quiz/metrics";
 import ContainerScroll from "@/components/ui/ContainerScroll";
 import VslDetail from "@/components/dashboard/VslDetail";
+import { House, Scale, CircleDollarSign, Stethoscope, CircleHelp, Palette, Play, TrendingUp, Settings, Users, Construction, GripVertical, ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import VslCompare from "@/components/dashboard/VslCompare";
+import AdAccountCard, { type AdAccount, UNVERIFIED_AD_ACCOUNT } from "./AdAccountCard";
 
-const ACCENT = "#3b82f6";
-
-/* ── Sidebar escura (Datacrazy) ── */
-function SidebarIcon({
-  children,
-  active,
-  title,
-  onClick,
-}: { children: React.ReactNode; active?: boolean; title?: string; onClick?: () => void }) {
-  return (
-    <div onClick={onClick} title={title} className={`grid h-10 w-10 cursor-pointer place-items-center rounded-xl text-[18px] transition ${active ? "bg-blue-600 text-white" : "text-white/45 hover:bg-white/10 hover:text-white/80"}`}>{children}</div>
-  );
-}
-
-function Sidebar({ onHome }: { onHome: () => void }) {
-  return (
-    <aside className="sticky top-0 flex h-screen w-[60px] shrink-0 flex-col items-center gap-1.5 border-r border-white/5 bg-[#0d0f1a] py-4">
-      <div className="mb-1 grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 text-sm font-black text-white">ᗯ</div>
-      <SidebarIcon title="Dashboard" onClick={onHome}>▦</SidebarIcon>
-      <SidebarIcon active title="Analytics">📊</SidebarIcon>
-      <div className="mt-auto"><SidebarIcon title="Configurações">⚙</SidebarIcon></div>
-    </aside>
-  );
-}
+const operationColumns = [
+  ["name", "Funil"], ["visitantes", "Sessões"], ["respostas", "Respostas"],
+  ["leads", "Leads"], ["taxaConclusao", "Conclusão"], ["score", "Score"],
+] as const;
+const OPERATION_PAGE_SIZE = 12;
+const OPERATION_ROW_HEIGHT = 48;
+const OPERATION_VIEWPORT_HEIGHT = 512;
+const OPERATION_OVERSCAN = 4;
+const operationWidths = { name: 250, visitantes: 115, respostas: 122, leads: 100, taxaConclusao: 125, score: 100 };
+type OperationSort = (typeof operationColumns)[number][0];
 
 function Card({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-4">
-      <p className="text-[13px] font-medium text-neutral-500">{label}</p>
-      <p className="mt-2 text-[24px] font-bold leading-none tracking-tight text-neutral-900">{value}</p>
-      {sub ? <p className="mt-1.5 text-xs text-neutral-400">{sub}</p> : null}
-    </div>
-  );
-}
-
-function Bars({ rows, color = ACCENT }: { rows: { label: string; value: number; pct: number }[]; color?: string }) {
-  if (!rows.length) return <p className="py-6 text-center text-sm text-neutral-400">Sem dados ainda.</p>;
-  return (
-    <div className="space-y-2.5">
-      {/* key com índice: funis podem ter o MESMO nome (ex. duplicatas) */}
-      {rows.map((r, i) => (
-        <div key={`${r.label}-${i}`}>
-          <div className="mb-1 flex justify-between text-xs"><span className="truncate font-medium text-neutral-700">{r.label}</span><span className="text-neutral-500">{r.value} · {r.pct}%</span></div>
-          <div className="h-2 overflow-hidden rounded-full bg-neutral-100"><div className="h-full rounded-full" style={{ width: `${Math.max(3, r.pct)}%`, background: color }} /></div>
-        </div>
-      ))}
+    <div className="rounded-2xl border border-ct-line bg-ct-surface p-4">
+      <p className="text-[13px] font-medium text-ct-dim">{label}</p>
+      <p className="mt-2 text-[24px] font-bold leading-none tracking-tight text-ct-ink">{value}</p>
+      {sub ? <p className="mt-1.5 text-xs text-ct-dim">{sub}</p> : null}
     </div>
   );
 }
 
 function DailyChart({ data }: { data: GlobalAnalytics["overview"]["daily"] }) {
   const max = Math.max(1, ...data.map((d) => d.sessoes));
+  const number = new Intl.NumberFormat("pt-BR");
   return (
-    <div className="flex h-40 items-end gap-3 px-1">
-      {data.map((d) => (
-        <div key={d.day} className="flex flex-1 flex-col items-center gap-2">
-          <div className="flex w-full flex-1 items-end"><div className="w-full rounded-t-md bg-blue-500/90" style={{ height: `${(d.sessoes / max) * 100}%`, minHeight: d.sessoes ? 4 : 0 }} title={`${d.sessoes}`} /></div>
-          <span className="text-[10px] text-neutral-400">{d.day}</span>
-        </div>
+    <ul className="flex h-40 items-stretch gap-1 px-1 sm:gap-3" aria-label="Sessões por dia no período selecionado">
+      {data.map(day => (
+        <li key={day.day} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+          <div className="flex w-full min-h-0 flex-1 items-end" aria-hidden="true">
+            <div className="w-full rounded-t-md bg-ct-action" style={{ height: `${day.sessoes / max * 100}%`, minHeight: day.sessoes ? 4 : 0 }} title={number.format(day.sessoes)} />
+          </div>
+          <span className="text-[10px] text-ct-dim">{day.day}<span className="sr-only"> · {number.format(day.sessoes)} sessões</span></span>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
 function ComingSoon({ title, desc, source }: { title: string; desc: string; source: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-8 text-center">
-      <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-neutral-100 text-2xl">🚧</div>
-      <h3 className="text-base font-bold text-neutral-800">{title}</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm text-neutral-500">{desc}</p>
+    <div className="rounded-2xl border border-dashed border-ct-line-strong bg-ct-surface p-8 text-center">
+      <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-ct-raised"><Construction size={20} aria-hidden="true"/></div>
+      <h3 className="text-base font-bold text-ct-ink">{title}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm text-ct-dim">{desc}</p>
       <p className="mx-auto mt-3 inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Fonte de dados: {source}</p>
     </div>
   );
 }
 
 const TABS = [
-  { key: "geral", label: "Visão Geral", icon: "🏠" },
-  { key: "comparar", label: "Comparar", icon: "⚖️" },
-  { key: "vendas", label: "Vendas", icon: "💰" },
-  { key: "diagnostico", label: "Diagnóstico", icon: "🩺" },
-  { key: "quiz", label: "Quiz", icon: "❓" },
-  { key: "criativos", label: "Criativos", icon: "🎨" },
-  { key: "vsl", label: "VSL", icon: "▶️" },
-  { key: "trafego", label: "Tráfego", icon: "📈" },
-  { key: "operacao", label: "Operação", icon: "⚙️" },
-  { key: "leads", label: "Leads", icon: "👥" },
+  { key: "geral", label: "Visão Geral", icon: House },
+  { key: "comparar", label: "Comparar", icon: Scale },
+  { key: "vendas", label: "Vendas", icon: CircleDollarSign },
+  { key: "diagnostico", label: "Diagnóstico", icon: Stethoscope },
+  { key: "quiz", label: "Quiz", icon: CircleHelp },
+  { key: "criativos", label: "Criativos", icon: Palette },
+  { key: "vsl", label: "VSL", icon: Play },
+  { key: "trafego", label: "Tráfego", icon: TrendingUp },
+  { key: "operacao", label: "Operação", icon: Settings },
+  { key: "leads", label: "Leads", icon: Users },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 const isTab = (v: string | null): v is TabKey => !!v && TABS.some((t) => t.key === v);
-function currentTabFromUrl(): TabKey {
-  try {
-    if (typeof window === "undefined") return "geral";
-    const fromUrl = new URLSearchParams(window.location.search).get("tab");
-    return isTab(fromUrl) ? fromUrl : "geral";
-  } catch {
-    return "geral";
-  }
-}
-
-export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics }) {
+export default function GlobalAnalyticsView({ data, preview = false, snapshotAt, attributionCapturedAt, attributionDaily, adAccounts, vslSnapshot, salesSnapshot, quizSnapshot, diagnosisSnapshot, leadsDaily }: { data: GlobalAnalytics; preview?: boolean; snapshotAt?: string; attributionCapturedAt?: string; attributionDaily?: AttributionDaily; adAccounts?: AdAccount[]; vslSnapshot?: VslSnapshot; salesSnapshot?: SalesSnapshot; quizSnapshot?: QuizSnapshot; diagnosisSnapshot?: DiagnosisSnapshot; leadsDaily?: LeadsDaily }) {
   const router = useRouter();
-  // Aba sincronizada com a URL (?tab=): o voltar do navegador navega entre abas
-  // e o link de uma aba específica é compartilhável.
-  const [tab, setTabState] = useState<TabKey>(currentTabFromUrl);
-  useEffect(() => {
-    const onPop = () => {
-      const t = new URLSearchParams(window.location.search).get("tab");
-      setTabState(isTab(t) ? t : "geral");
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
+  const [operationQuery, setOperationQuery] = useState("");
+  const operationSearch = useRef<HTMLInputElement>(null);
+  const [operationPage, setOperationPage] = useState(1);
+  const [continuous, setContinuous] = useState(false);
+  const [operationWindow, setOperationWindow] = useState(0);
+  const operationRegion = useRef<HTMLDivElement>(null);
+  const attachOperationRegion = useCallback((region: HTMLDivElement | null) => {
+    operationRegion.current = region;
+    if (region) setOperationWindow(0);
   }, []);
-  const setTab = (t: TabKey) => {
-    setTabState(t);
-    try {
-      const u = new URL(window.location.href);
-      if (t === "geral") u.searchParams.delete("tab"); else u.searchParams.set("tab", t);
-      window.history.pushState(null, "", u.toString());
-    } catch { /* noop */ }
-  };
+
+  function resetOperationScroll() {
+    setOperationWindow(0);
+    if (operationRegion.current) operationRegion.current.scrollTop = 0;
+  }
+  const [columns, setColumns] = useState<ReadonlyArray<(typeof operationColumns)[number]>>(operationColumns);
+  const [widths, setWidths] = useState(operationWidths);
+  const [adjustedColumn, setAdjustedColumn] = useState<OperationSort>("name");
+  const adjustedIndex = columns.findIndex(([key]) => key === adjustedColumn);
+
+  const gesture = useRef<{ key: OperationSort; x: number; width: number; mode: "move" | "resize" } | null>(null);
+  const [dropColumn, setDropColumn] = useState<string | null>(null);
+
+  function placeOperationColumn(key: OperationSort, target: string) {
+    setColumns(previous => {
+      const from = previous.findIndex(([column]) => column === key);
+      const to = previous.findIndex(([column]) => column === target);
+      if (from === to || from < 0 || to < 0) return previous;
+      const next = [...previous];
+      next.splice(to, 0, ...next.splice(from, 1));
+      return next;
+    });
+  }
+
+  function moveOperationColumn(direction: -1 | 1) {
+    const target = columns[adjustedIndex + direction];
+    if (target) placeOperationColumn(adjustedColumn, target[0]);
+  }
+
+  function startColumnGesture(event: PointerEvent<HTMLSpanElement>, key: OperationSort, mode: "move" | "resize") {
+    if (!event.isPrimary || event.button !== 0) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    gesture.current = { key, mode, x: event.clientX, width: widths[key] };
+  }
+
+  function columnAtPointer(event: PointerEvent<HTMLSpanElement>) {
+    return document.elementFromPoint(event.clientX, event.clientY)
+      ?.closest<HTMLElement>("th[data-operation-column]")?.dataset.operationColumn;
+  }
+
+  function updateColumnGesture(event: PointerEvent<HTMLSpanElement>) {
+    const drag = gesture.current;
+    if (!drag || !event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    if (drag.mode === "move") {
+      setDropColumn(columnAtPointer(event) ?? null);
+      return;
+    }
+    const min = drag.key === "name" ? 150 : 100;
+    const width = Math.max(min, Math.min(420, Math.round(drag.width + event.clientX - drag.x)));
+    setWidths(previous => ({ ...previous, [drag.key]: width }));
+  }
+
+  function endColumnGesture(event: PointerEvent<HTMLSpanElement>) {
+    const drag = gesture.current;
+    if (!drag || !event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    const destination = columnAtPointer(event);
+    if (drag.mode === "move" && destination) placeOperationColumn(drag.key, destination);
+    gesture.current = null;
+    setDropColumn(null);
+  }
+
+  function columnHandleEvents(key: OperationSort, mode: "move" | "resize") {
+    return {
+      onPointerDown: (event: PointerEvent<HTMLSpanElement>) => startColumnGesture(event, key, mode),
+      onPointerMove: updateColumnGesture,
+      onPointerUp: endColumnGesture,
+      onLostPointerCapture: () => { gesture.current = null; setDropColumn(null); },
+    };
+  }
+
+  const [operationSort, setOperationSort] = useState<{ key: OperationSort; ascending: boolean }>({ key: "visitantes", ascending: false });
+  const [chartRange, setChartRange] = useState<DateRange>({ from: "", to: "" });
+  const referenceDay = new Intl.DateTimeFormat("sv-SE", { timeZone: "America/Sao_Paulo" })
+    .format(new Date(snapshotAt || Date.now()));
+  const chartDates = data.overview.daily
+    .map(item => ({ item, day: analyticsDateKey(item.day, referenceDay) }))
+    .filter(({ day }) => Boolean(day))
+    .sort((left, right) => left.day.localeCompare(right.day));
+  const chartDays = chartDates.map(({ day }) => day);
+  const chartData = chartDates.filter(({ day }) =>
+    (!chartRange.from || day >= chartRange.from) && (!chartRange.to || day <= chartRange.to)
+  ).map(({ item }) => item);
+  const operationRows = useMemo(() => {
+    const query = operationQuery.trim().toLocaleLowerCase("pt-BR");
+    const { key, ascending } = operationSort;
+    return data.operacao.filter(row => `${row.name} ${row.slug}`.toLocaleLowerCase("pt-BR").includes(query)).sort((a, b) => {
+      const order = key === "name" ? a.name.localeCompare(b.name, "pt-BR") : a[key] - b[key];
+      return (ascending ? order : -order) || a.slug.localeCompare(b.slug);
+    });
+  }, [data.operacao, operationQuery, operationSort]);
+  const operationTotalPages = Math.max(1, Math.ceil(operationRows.length / OPERATION_PAGE_SIZE));
+  const currentOperationPage = Math.min(operationPage, operationTotalPages);
+  const operationStart = (currentOperationPage - 1) * OPERATION_PAGE_SIZE;
+  const pageRows = operationRows.slice(operationStart, operationStart + OPERATION_PAGE_SIZE);
+
+  const visibleStart = continuous ? Math.max(0, operationWindow - OPERATION_OVERSCAN) : operationStart;
+  const visibleEnd = continuous
+    ? Math.min(operationRows.length, operationWindow + Math.ceil(OPERATION_VIEWPORT_HEIGHT / OPERATION_ROW_HEIGHT) + OPERATION_OVERSCAN + 1)
+    : operationStart + pageRows.length;
+  const renderedRows = continuous ? operationRows.slice(visibleStart, visibleEnd) : pageRows;
+  const selectionRows = continuous ? operationRows : pageRows;
+
+  function searchOperation(query: string) {
+    resetOperationScroll();
+    setOperationQuery(query);
+    setOperationPage(1);
+  }
+
+  function clearOperationSearch() {
+    searchOperation("");
+    operationSearch.current?.focus();
+  }
+
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const tab = isTab(tabParam) ? tabParam : "geral";
+  function setTab(next: TabKey) {
+    if (next === tab) return;
+    if (next === "operacao" || tab === "operacao") resetOperationScroll();
+    const url = new URL(window.location.href);
+    if (next === "geral") url.searchParams.delete("tab");
+    else url.searchParams.set("tab", next);
+    window.history.pushState(null, "", url);
+  }
   const o = data.overview;
   const topFunnel = data.operacao[0]?.slug;
   // preview do funil em destaque só carrega no clique (iframe pesado na 1ª dobra)
   const [showPreview, setShowPreview] = useState(false);
   // seleção de funis pra comparação (ilimitada)
   const [cmp, setCmp] = useState<string[]>([]);
-  const toggleCmp = (slug: string) => setCmp((s) => (s.includes(slug) ? s.filter((x) => x !== slug) : [...s, slug]));
-  const cmpRows = useMemo(() => data.operacao.filter((r) => cmp.includes(r.slug)), [cmp, data.operacao]);
+  const selectedForComparison = useMemo(() => new Set(cmp), [cmp]);
+  const selectedOnPage = useMemo(() => selectionRows.filter(row => selectedForComparison.has(row.slug)).length,
+    [selectionRows, selectedForComparison]);
+  const entirePageSelected = selectionRows.length > 0 && selectedOnPage === selectionRows.length;
+
+  function toggleComparisonRow(slug: string) {
+    setCmp(previous => previous.includes(slug) ? previous.filter(item => item !== slug) : [...previous, slug]);
+  }
+
+  function toggleComparisonPage() {
+    const pageSlugs = new Set(selectionRows.map(row => row.slug));
+    setCmp(previous => entirePageSelected
+      ? previous.filter(slug => !pageSlugs.has(slug))
+      : [...new Set([...previous, ...pageSlugs])]);
+  }
+  const cmpRows = useMemo(() => {
+    const rows = new Map(data.operacao.map(row => [row.slug, row]));
+    return cmp.flatMap(slug => {
+      const row = rows.get(slug);
+      return row ? [row] : [];
+    });
+  }, [cmp, data.operacao]);
   // seleção de criativos e de VSLs pra comparação
   const [cmpCreat, setCmpCreat] = useState<string[]>([]);
   const toggleCreat = (c: string) => setCmpCreat((s) => (s.includes(c) ? s.filter((x) => x !== c) : [...s, c]));
   // ordenação + filtro por funil dos criativos (comináveis: 1 slug + conversão desc)
   const [creatSort, setCreatSort] = useState<"leads" | "clicks" | "conv" | "slug">("leads");
   const [creatFunnel, setCreatFunnel] = useState<string>("");
-  const creatSlugs = useMemo(() => Array.from(new Set(data.creatives.flatMap((c) => c.funnels))).sort(), [data.creatives]);
+  const [accountFilter, setAccountFilter] = useState("");
+  const attributionDays = useMemo(() => attributionDaily
+    ? calendarSeriesDays([...attributionDaily.sources, ...attributionDaily.campaigns, ...attributionDaily.creatives],
+      attributionDaily.capturedAt, attributionDaily.timeZone)
+    : [], [attributionDaily]);
+  const attributionFrom = searchParams.get("atrDe") ?? "";
+  const attributionTo = searchParams.get("atrAte") ?? "";
+  const attributionRange = useMemo<DateRange>(() => {
+    const min = attributionDays[0];
+    const max = attributionDays.at(-1);
+    const isDate = (value: string) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+      const day = new Date(`${value}T00:00:00Z`);
+      return Number.isFinite(day.getTime()) && day.toISOString().slice(0, 10) === value;
+    };
+    return min && max && attributionFrom >= min && attributionTo <= max &&
+      attributionFrom <= attributionTo && isDate(attributionFrom) && isDate(attributionTo)
+      ? { from: attributionFrom, to: attributionTo }
+      : { from: "", to: "" };
+  }, [attributionDays, attributionFrom, attributionTo]);
+  const { traffic, creatives: periodCreatives } = useMemo(
+    () => filterAttribution(data, attributionDaily, attributionRange), [data, attributionDaily, attributionRange]
+  );
+
+  function changeAttributionRange(range: DateRange) {
+    const url = new URL(window.location.href);
+    if (range.from && range.to) {
+      url.searchParams.set("atrDe", range.from);
+      url.searchParams.set("atrAte", range.to);
+    } else {
+      url.searchParams.delete("atrDe");
+      url.searchParams.delete("atrAte");
+    }
+    window.history.replaceState(null, "", url);
+    setCreatFunnel("");
+    setCmpCreat([]);
+  }
+
+  const account = adAccounts?.find(item => item.id === accountFilter);
+  const verifiedCreatives = useMemo(() => new Set(adAccounts?.flatMap(item => item.creatives)), [adAccounts]);
+  const unverifiedBySource = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const creative of data.creatives) {
+      if (verifiedCreatives.has(creative.content)) continue;
+      const source = creative.source?.trim().toLowerCase();
+      const label = source === "fb" || source === "facebook" ? "Facebook"
+        : source === "google" ? "Google"
+        : creative.source?.trim() || "Origem não informada";
+      counts.set(label, (counts.get(label) ?? 0) + 1);
+    }
+    return [...counts].sort(([a], [b]) => a.localeCompare(b, "pt-BR"));
+  }, [data.creatives, verifiedCreatives]);
+  const accountCreatives = useMemo(() => {
+    if (accountFilter === UNVERIFIED_AD_ACCOUNT) {
+      return periodCreatives.filter(creative => !verifiedCreatives.has(creative.content));
+    }
+    if (!account) return periodCreatives;
+    const included = new Set(account.creatives);
+    return periodCreatives.filter(creative => included.has(creative.content));
+  }, [account, accountFilter, periodCreatives, verifiedCreatives]);
+  const creatSlugs = useMemo(() => Array.from(new Set(accountCreatives.flatMap((c) => c.funnels))).sort(), [accountCreatives]);
   const creatList = useMemo(() => {
-    const base = creatFunnel ? data.creatives.filter((c) => c.funnels.includes(creatFunnel)) : data.creatives;
+    const base = creatFunnel ? accountCreatives.filter((c) => c.funnels.includes(creatFunnel)) : accountCreatives;
     const arr = [...base];
     if (creatSort === "clicks") arr.sort((a, b) => b.clicks - a.clicks);
     else if (creatSort === "conv") arr.sort((a, b) => b.conv - a.conv || b.leads - a.leads);
     else if (creatSort === "slug") arr.sort((a, b) => (a.funnels[0] ?? "").localeCompare(b.funnels[0] ?? ""));
     else arr.sort((a, b) => b.leads - a.leads || b.clicks - a.clicks);
     return arr;
-  }, [data.creatives, creatFunnel, creatSort]);
+  }, [accountCreatives, creatFunnel, creatSort]);
   // métricas VTurb (aba VSL) — carrega ao abrir a aba; players extras selecionáveis
   interface VtRow { playerId: string; playerName: string; funnels: { slug: string; name: string }[]; stats: { views: number; plays: number; playRate: number; engagement: number; pitchAudience: number; pitchRetention: number; clicks: number; conversions: number; convRate: number; amountBrl: number } }
   interface VtData { vsls: VtRow[]; allPlayers: { id: string; name: string; linked: boolean }[] }
   const [vturb, setVturb] = useState<VtData | "idle" | "loading" | "error" | "no_token">("idle");
   const [detailPlayer, setDetailPlayer] = useState<string | null>(null);
+  const playerDetail = useRef<HTMLElement>(null);
+  const playerDetailTrigger = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (detailPlayer) playerDetail.current?.focus();
+  }, [detailPlayer]);
+
+  function closePlayerDetail() {
+    setDetailPlayer(null);
+    playerDetailTrigger.current?.focus();
+  }
+
+  function togglePlayerDetail(id: string, trigger: HTMLButtonElement | null) {
+    if (detailPlayer === id) {
+      closePlayerDetail();
+      return;
+    }
+    playerDetailTrigger.current = trigger;
+    setDetailPlayer(id);
+  }
+
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
   const [cmpPlayers, setCmpPlayers] = useState<string[]>([]);
@@ -169,7 +368,7 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
       .catch(() => setVturb("error"));
   };
   useEffect(() => {
-    if (tab !== "vsl" || vturb !== "idle") return;
+    if (vslSnapshot || tab !== "vsl" || vturb !== "idle") return;
     let cancelled = false;
     const extras = extraPlayers;
     async function run() {
@@ -184,7 +383,7 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
     }
     run();
     return () => { cancelled = true; };
-  }, [tab, vturb, extraPlayers]);
+  }, [tab, vturb, extraPlayers, vslSnapshot]);
   const [cmpVsl, setCmpVsl] = useState<string[]>([]);
   const toggleVsl = (slug: string) => setCmpVsl((s) => (s.includes(slug) ? s.filter((x) => x !== slug) : [...s, slug]));
   // "VSL" por funil: quem chegou na lâmina de VSL (conclusão) e a taxa de chegada
@@ -194,41 +393,51 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
   })), [data.operacao]);
 
   return (
-    <div className="flex min-h-screen bg-[#f4f6f9] font-[var(--font-admin)] text-neutral-900">
-      <Sidebar onHome={() => router.push("/dashboard")} />
-      <div className="flex-1 overflow-x-clip">
-        <div className="mx-auto max-w-[1180px] px-7 py-6">
+    <WorkspaceFrame title="Analytics" activeTab={tab} demo={preview && !snapshotAt}>
+      {snapshotAt && <p className="mb-4 text-sm text-ct-dim">Dados reais em modo de consulta.</p>}
+      <div className="ct-controls min-w-0">
+        <div className="min-w-0">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="flex items-center gap-3">
               <button onClick={() => router.back()} title="Voltar" aria-label="Voltar"
-                className="grid h-9 w-9 place-items-center rounded-lg border border-neutral-200 bg-white text-base font-bold text-neutral-600 hover:bg-neutral-50">←</button>
+                className="grid h-9 w-9 place-items-center rounded-lg border border-ct-line bg-ct-surface text-base font-bold text-ct-dim hover:bg-ct-raised">←</button>
               <div>
                 <h1 className="text-[26px] font-bold tracking-tight">Analytics</h1>
-                <p className="text-sm text-neutral-500">Visão consolidada de todos os funis</p>
+                <p className="text-sm text-ct-dim">Visão consolidada de todos os funis</p>
               </div>
             </div>
-            <Link href="/dashboard" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">▦ Dashboard</Link>
+            <Link href="/dashboard" className="rounded-lg border border-ct-line bg-ct-surface px-3 py-2 text-xs font-semibold text-ct-dim hover:bg-ct-raised">▦ Dashboard</Link>
           </div>
 
           {/* abas */}
-          <div className="mt-4 flex gap-1 overflow-x-auto border-b border-neutral-200">
+          <div className="ct-segments mt-4" aria-label="Seções de Analytics">
             {TABS.map((t) => (
-              <button key={t.key} onClick={() => setTab(t.key)}
-                className={`-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-semibold transition ${tab === t.key ? "border-blue-600 text-blue-700" : "border-transparent text-neutral-500 hover:text-neutral-800"}`}>
-                <span>{t.icon}</span>{t.label}
+              <button type="button" key={t.key} aria-pressed={tab === t.key} onClick={() => setTab(t.key)}>
+                {tab === t.key && <ActiveTab group="analytics-tabs" />}
+                <span className="inline-flex items-center gap-1.5"><t.icon size={15} aria-hidden="true" />{t.label}</span>
               </button>
             ))}
           </div>
 
           <div className="mt-5">
+            {snapshotAt && (tab === "geral" || tab === "comparar" || tab === "operacao") && (
+              <p className="mb-4 text-xs text-ct-dim">Dados capturados em <SnapshotTimestamp capturedAt={snapshotAt} />.</p>
+            )}
+            {attributionCapturedAt && (tab === "trafego" || tab === "criativos") && <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-ct-dim">
+              Atribuição capturada em <SnapshotTimestamp capturedAt={attributionCapturedAt} />.
+              </p>
+              {attributionDays.length > 0 && <WorkspaceDateRange days={attributionDays} value={attributionRange}
+                onChange={changeAttributionRange} label="Período das sessões" />}
+            </div>}
             {tab === "geral" && (
               <div className="space-y-5">
                 {topFunnel ? (
                   <ContainerScroll titleComponent={
                     <div className="pb-4">
                       <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">Funil em destaque</p>
-                      <h2 className="mt-1 text-3xl font-black tracking-tight text-neutral-900">{data.operacao[0].name}</h2>
-                      <p className="mt-1 text-sm text-neutral-500">{data.operacao[0].visitantes} sessões · {data.operacao[0].taxaConclusao}% conclusão</p>
+                      <h2 className="mt-1 text-3xl font-black tracking-tight text-ct-ink">{data.operacao[0].name}</h2>
+                      <p className="mt-1 text-sm text-ct-dim">{data.operacao[0].visitantes} sessões · {data.operacao[0].taxaConclusao}% conclusão</p>
                     </div>
                   }>
                     {showPreview ? (
@@ -251,13 +460,21 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                   <Card label="Leads" value={String(o.totalLeads)} sub="contatos" />
                   <Card label="Conclusões" value={`${o.taxaConclusao}%`} sub={`${o.totalConclusoes} concluíram`} />
                 </div>
-                <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-                  <section className="rounded-2xl border border-neutral-200 bg-white p-5">
-                    <h2 className="text-sm font-semibold text-neutral-700">Sessões (7 dias)</h2>
-                    <div className="mt-4"><DailyChart data={o.daily} /></div>
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+                  <section className="rounded-2xl border border-ct-line bg-ct-surface p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <h2 className="text-sm font-semibold text-ct-ink">Sessões por dia</h2>
+                        <p role="status" className="mt-1 text-xs text-ct-dim">
+                          {chartData.reduce((total, day) => total + day.sessoes, 0).toLocaleString("pt-BR")} sessões no período selecionado
+                        </p>
+                      </div>
+                      <WorkspaceDateRange days={chartDays} value={chartRange} onChange={setChartRange} />
+                    </div>
+                    <div className="mt-4">{chartData.length ? <DailyChart data={chartData} /> : <p role="status" className="text-sm text-ct-dim">Sem sessões no período selecionado.</p>}</div>
                   </section>
-                  <section className="rounded-2xl border border-neutral-200 bg-white p-5">
-                    <h2 className="mb-3 text-sm font-semibold text-neutral-700">Sessões por funil</h2>
+                  <section className="rounded-2xl border border-ct-line bg-ct-surface p-5">
+                    <h2 className="mb-3 text-sm font-semibold text-ct-ink">Sessões por funil</h2>
                     <Bars rows={o.porFunil.map((p) => ({ label: p.name, value: p.sessoes, pct: p.pct }))} />
                   </section>
                 </div>
@@ -266,54 +483,43 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
 
             {tab === "comparar" && (
               <div className="space-y-4">
-                <section className="rounded-2xl border border-neutral-200 bg-white p-5">
-                  <div className="mb-1 flex items-center justify-between">
-                    <h2 className="text-sm font-bold text-neutral-800">Selecione os funis pra comparar</h2>
-                    <span className="text-xs text-neutral-400">{cmp.length} selecionado{cmp.length === 1 ? "" : "s"} · sem limite</span>
-                  </div>
-                  <p className="mb-3 text-xs text-neutral-400">Clique nos funis (2, 3, 4, 6… quantos quiser). O melhor valor de cada métrica fica verde.</p>
-                  <div className="flex flex-wrap gap-2">
-                    {data.operacao.map((r) => {
-                      const on = cmp.includes(r.slug);
-                      return (
-                        <button key={r.slug} onClick={() => toggleCmp(r.slug)}
-                          className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${on ? "border-blue-600 bg-blue-600 text-white" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-400"}`}>
-                          {on ? "✓ " : ""}{r.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {cmp.length ? <button onClick={() => setCmp([])} className="mt-3 text-xs font-semibold text-neutral-400 hover:text-neutral-700">limpar seleção</button> : null}
+                <section className="rounded-2xl border border-ct-line bg-ct-surface p-5">
+                  <h2 id="analytics-comparison-title" className="mb-2 text-sm font-bold text-ct-ink">Compare o desempenho dos funis</h2>
+                  <p className="mb-3 text-xs text-ct-dim">Selecione pelo menos dois funis. O melhor valor de cada métrica aparece em destaque.</p>
+                  <WorkspaceMultiSelect label="Funis para comparar" values={cmp} onChange={setCmp}
+                    options={data.operacao.map(row => ({ value: row.slug, label: row.name, detail: `/${row.slug}` }))} />
                 </section>
                 {cmpRows.length >= 2 ? (
-                  <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead className="bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-neutral-400">
+                  <section className="overflow-hidden rounded-2xl border border-ct-line bg-ct-surface">
+                    <div className="ct-comparison-scroll overflow-x-auto" role="region" aria-label="Resultados da comparação" tabIndex={0}>
+                      <table className="ct-comparison-table w-full text-sm" aria-labelledby="analytics-comparison-title">
+                        <thead className="bg-ct-raised text-left text-xs font-semibold uppercase tracking-wide text-ct-dim">
                           <tr>
-                            <th className="px-4 py-3">Métrica</th>
-                            {cmpRows.map((r) => <th key={r.slug} className="max-w-[180px] truncate px-3 py-3" title={r.name}>{r.name}<div className="font-normal normal-case text-neutral-400">/{r.slug}</div></th>)}
+                            <th scope="col" className="px-4 py-3">Métrica</th>
+                            {cmpRows.map((r) => <th scope="col" key={r.slug} className="max-w-[180px] truncate px-3 py-3" title={r.name}>{r.name}<div className="font-normal normal-case text-ct-dim">/{r.slug}</div></th>)}
                           </tr>
                         </thead>
                         <tbody>
                           {([
-                            ["Visitantes", (r: typeof cmpRows[number]) => r.visitantes, (v: number) => String(v)],
-                            ["Respostas (volume)", (r: typeof cmpRows[number]) => r.respostas, (v: number) => String(v)],
-                            ["% que respondem (respostas ÷ visitantes)", (r: typeof cmpRows[number]) => (r.visitantes ? Math.round((r.respostas / r.visitantes) * 1000) / 10 : 0), (v: number) => `${v}%`],
-                            ["Leads (volume)", (r: typeof cmpRows[number]) => r.leads, (v: number) => String(v)],
-                            ["% que viram lead (leads ÷ visitantes)", (r: typeof cmpRows[number]) => (r.visitantes ? Math.round((r.leads / r.visitantes) * 1000) / 10 : 0), (v: number) => `${v}%`],
-                            ["Conclusões (VSL)", (r: typeof cmpRows[number]) => r.conclusoes, (v: number) => String(v)],
-                            ["Taxa de conclusão", (r: typeof cmpRows[number]) => r.taxaConclusao, (v: number) => `${v}%`],
-                            ["Score", (r: typeof cmpRows[number]) => r.score, (v: number) => String(v)],
+                            ["Visitantes", (r: typeof cmpRows[number]) => r.visitantes, (v: number) => v.toLocaleString("pt-BR")],
+                            ["Respostas (volume)", (r: typeof cmpRows[number]) => r.respostas, (v: number) => v.toLocaleString("pt-BR")],
+                            ["% que respondem (respostas ÷ visitantes)", (r: typeof cmpRows[number]) => (r.visitantes ? Math.round((r.respostas / r.visitantes) * 1000) / 10 : null), (v: number) => `${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`],
+                            ["Leads (volume)", (r: typeof cmpRows[number]) => r.leads, (v: number) => v.toLocaleString("pt-BR")],
+                            ["% que viram lead (leads ÷ visitantes)", (r: typeof cmpRows[number]) => (r.visitantes ? Math.round((r.leads / r.visitantes) * 1000) / 10 : null), (v: number) => `${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`],
+                            ["Conclusões (VSL)", (r: typeof cmpRows[number]) => r.conclusoes, (v: number) => v.toLocaleString("pt-BR")],
+                            ["Taxa de conclusão", (r: typeof cmpRows[number]) => r.visitantes ? r.taxaConclusao : null, (v: number) => `${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`],
+                            ["Score", (r: typeof cmpRows[number]) => r.score, (v: number) => v.toLocaleString("pt-BR")],
                           ] as const).map(([label, get, fmt]) => {
                             const vals = cmpRows.map((r) => get(r));
-                            const best = Math.max(...vals);
+                            const best = Math.max(0, ...vals.filter((value): value is number => value !== null));
+                            const leaders = best > 0 ? vals.filter(value => value === best).length : 0;
                             return (
-                              <tr key={label} className="border-t border-neutral-100">
-                                <td className="px-4 py-2.5 font-medium text-neutral-600">{label}</td>
+                              <tr key={label} className="border-t border-ct-line">
+                                <th scope="row" className="px-4 py-2.5 text-left font-medium text-ct-dim">{label}</th>
                                 {vals.map((v, i) => (
-                                  <td key={cmpRows[i].slug} className={`px-3 py-2.5 font-bold ${v === best && best > 0 ? "text-green-600" : "text-neutral-800"}`}>
-                                    {fmt(v)}{v === best && best > 0 && vals.filter((x) => x === best).length === 1 ? " 🏆" : ""}
+                                  <td key={cmpRows[i].slug} className={`px-3 py-2.5 font-bold ${v === best && leaders > 0 ? "text-green-600" : "text-ct-ink"}`}>
+                                    {v === null ? <span className="font-normal text-ct-dim">Sem sessões</span> : fmt(v)}
+                                    {v === best && leaders > 0 && <span className="ml-1 text-[10px] font-normal">{leaders > 1 ? "empate" : "melhor"}</span>}
                                   </td>
                                 ))}
                               </tr>
@@ -322,19 +528,20 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                         </tbody>
                       </table>
                     </div>
-                    <p className="border-t border-neutral-100 px-4 py-3 text-[11px] text-neutral-400">🏆 = melhor da linha (único). Métricas do período todo — os mesmos números da aba Operação.</p>
+                    <p className="border-t border-ct-line px-4 py-3 text-[11px] text-ct-dim">Destaque para o melhor resultado de cada linha.</p>
                   </section>
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-400">Selecione pelo menos 2 funis pra ver a comparação lado a lado.</div>
+                  <div className="rounded-2xl border border-dashed border-ct-line-strong bg-ct-surface p-8 text-center text-sm text-ct-dim">Selecione pelo menos 2 funis pra ver a comparação lado a lado.</div>
                 )}
               </div>
             )}
 
-            {tab === "quiz" && (
+            {tab === "quiz" && quizSnapshot && <SnapshotQuizView data={quizSnapshot} />}
+            {tab === "quiz" && !quizSnapshot && (
               <div className="space-y-4">
                 {data.quiz.length ? data.quiz.map((q) => (
-                  <section key={q.question} className="rounded-2xl border border-neutral-200 bg-white p-5">
-                    <div className="mb-3 flex items-center justify-between"><h3 className="font-semibold text-neutral-800">{q.question}</h3><span className="text-xs text-neutral-400">{q.total} respostas</span></div>
+                  <section key={q.question} className="rounded-2xl border border-ct-line bg-ct-surface p-5">
+                    <div className="mb-3 flex items-center justify-between"><h3 className="font-semibold text-ct-ink">{q.question}</h3><span className="text-xs text-ct-dim">{q.total} respostas</span></div>
                     <Bars rows={q.options.map((opt) => ({ label: opt.label, value: opt.value, pct: opt.pct }))} color="#8b5cf6" />
                   </section>
                 )) : <ComingSoon title="Sem respostas ainda" desc="Quando o público responder os quizzes, a distribuição de cada pergunta aparece aqui." source="quiz_answers" />}
@@ -342,54 +549,142 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
             )}
 
             {tab === "trafego" && (
-              <div className="grid gap-4 lg:grid-cols-2">
-                <section className="rounded-2xl border border-neutral-200 bg-white p-5"><h2 className="mb-3 text-sm font-semibold text-neutral-700">Origens (utm_source)</h2><Bars rows={data.traffic.sources.map((s) => ({ label: s.name, value: s.value, pct: s.pct }))} /></section>
-                <section className="rounded-2xl border border-neutral-200 bg-white p-5"><h2 className="mb-3 text-sm font-semibold text-neutral-700">Campanhas (utm_campaign)</h2><Bars rows={data.traffic.campaigns.map((c) => ({ label: c.name, value: c.value, pct: c.pct }))} color="#ec4899" /></section>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <p className="text-xs text-ct-dim lg:col-span-2" role="status">{traffic.total.toLocaleString("pt-BR")} sessões com origem rastreada</p>
+                <section className="rounded-2xl border border-ct-line bg-ct-surface p-5"><h2 className="mb-3 text-sm font-semibold text-ct-ink">Origens (utm_source)</h2><Bars rows={traffic.sources.map((s) => ({ label: s.name, value: s.value, pct: s.pct }))} /></section>
+                <section className="rounded-2xl border border-ct-line bg-ct-surface p-5"><h2 className="mb-3 text-sm font-semibold text-ct-ink">Campanhas (utm_campaign)</h2><Bars rows={traffic.campaigns.map((c) => ({ label: c.name, value: c.value, pct: c.pct }))} color="#ec4899" /></section>
               </div>
             )}
 
             {tab === "operacao" && (
-              <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                    <tr><th className="px-4 py-3">Funil</th><th className="px-3 py-3">Sessões</th><th className="px-3 py-3">Respostas</th><th className="px-3 py-3">Leads</th><th className="px-3 py-3">Conclusão</th><th className="px-3 py-3">Score</th><th className="px-3 py-3"></th></tr>
+              <section className="overflow-hidden rounded-2xl border border-ct-line bg-ct-surface">
+                <header className="ct-section-heading">
+                  <div><h2 id="operation-heading">Desempenho por funil</h2><p role="status">{!continuous && operationRows.length ? `${operationStart + 1}–${operationStart + pageRows.length} de ` : ""}{operationRows.length} funis encontrados</p></div>
+                  <label className="ct-search"><input ref={operationSearch} aria-label="Buscar funil na operação" placeholder="Buscar funil" value={operationQuery}
+                    onChange={event => searchOperation(event.target.value)} /></label>
+                </header>
+                {cmp.length > 0 && <div className="flex flex-wrap items-center gap-3 border-y border-ct-line px-4 py-2 text-xs">
+                  <span role="status">{cmp.length} {cmp.length === 1 ? "funil selecionado" : "funis selecionados"}</span>
+                  <button type="button" disabled={cmp.length < 2} onClick={() => setTab("comparar")}
+                    className="rounded-lg bg-ct-action px-3 py-2 font-semibold text-white disabled:opacity-50">Comparar selecionados</button>
+                  <button type="button" className="text-ct-blue underline" onClick={() => setCmp([])}>Limpar seleção</button>
+                </div>}
+                <label className="flex min-h-11 items-center gap-2 border-b border-ct-line px-4 text-sm">
+                  <WorkspaceCheckbox checked={continuous} onChange={event => {
+                    resetOperationScroll();
+                    setContinuous(event.target.checked);
+                  }} />
+                  Rolagem contínua
+                </label>
+                <details className="ct-filter-disclosure border-b border-ct-line px-4 py-2">
+                  <summary className="min-h-8 cursor-pointer py-1 text-sm font-semibold">Ajustar colunas</summary>
+                  <div className="flex flex-wrap items-center gap-3 py-2 text-sm">
+                    <WorkspaceSelect label="Coluna para ajustar" value={adjustedColumn}
+                      options={columns.map(([value, label]) => ({ value, label }))}
+                      onChange={value => {
+                        const column = columns.find(([key]) => key === value);
+                        if (column) setAdjustedColumn(column[0]);
+                      }} />
+                    <span role="status" className="text-ct-dim">Posição {adjustedIndex + 1} de {columns.length}</span>
+                    <button type="button" disabled={adjustedIndex === 0} onClick={() => moveOperationColumn(-1)}
+                      className="min-h-11 rounded-lg border border-ct-line px-2 disabled:opacity-50">Mover à esquerda</button>
+                    <button type="button" disabled={adjustedIndex === columns.length - 1} onClick={() => moveOperationColumn(1)}
+                      className="min-h-11 rounded-lg border border-ct-line px-2 disabled:opacity-50">Mover à direita</button>
+                    <label className="flex min-h-11 flex-wrap items-center gap-2">
+                      Largura <input type="range" min={adjustedColumn === "name" ? 150 : 100} max={420} step={1} value={widths[adjustedColumn]}
+                        onChange={event => setWidths({ ...widths, [adjustedColumn]: Number(event.target.value) })} />
+                      <span>{widths[adjustedColumn]} px</span>
+                    </label>
+                    <button type="button" className="min-h-11 text-ct-blue underline" onClick={() => { setColumns(operationColumns); setWidths(operationWidths); }}>Restaurar colunas</button>
+                  </div>
+                </details>
+                <div ref={attachOperationRegion} role="region" aria-label="Rolagem da tabela de operação" tabIndex={0}
+                  className="overflow-auto focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ct-blue"
+                  style={{ maxHeight: OPERATION_VIEWPORT_HEIGHT, overflowAnchor: "none" }}
+                  onScroll={event => {
+                    if (continuous) setOperationWindow(Math.floor(event.currentTarget.scrollTop / OPERATION_ROW_HEIGHT));
+                  }}>
+                <table className="w-full table-fixed text-sm" aria-labelledby="operation-heading"
+                  aria-rowcount={continuous && operationRows.length ? operationRows.length + 1 : undefined}
+                  style={{ minWidth: 108 + columns.reduce((total, [key]) => total + widths[key], 0) }}>
+                  <colgroup>
+                    <col style={{ width: 44 }} />
+                    {columns.map(([key]) => <col key={key} style={{ width: widths[key] }} />)}
+                    <col style={{ width: 64 }} />
+                  </colgroup>
+                  <thead className="sticky top-0 z-10 bg-ct-raised text-left text-xs font-semibold uppercase tracking-wide text-ct-dim">
+                    <tr aria-rowindex={continuous && operationRows.length ? 1 : undefined}><th scope="col" className="px-3 py-3">
+                      <WorkspaceCheckbox aria-label={continuous ? "Selecionar todos os funis filtrados" : "Selecionar funis desta página"}
+                        disabled={!selectionRows.length} checked={entirePageSelected} onChange={toggleComparisonPage}
+                        mixed={selectedOnPage > 0 && !entirePageSelected} />
+                    </th>{columns.map(([key, label]) => {
+                      const active = operationSort.key === key;
+                      const SortIcon = active ? (operationSort.ascending ? ArrowUp : ArrowDown) : ArrowUpDown;
+                      return <th key={key} scope="col" data-operation-column={key} data-drop-target={dropColumn === key}
+                        aria-sort={active ? (operationSort.ascending ? "ascending" : "descending") : undefined}
+                        className="relative px-3 py-3 data-[drop-target=true]:bg-ct-selected">
+                        <span aria-hidden="true" title={`Arrastar coluna ${label}`} data-column-handle="move"
+                          className="absolute inset-y-0 left-0 grid w-3 touch-none cursor-grab place-items-center opacity-60 hover:opacity-100"
+                          {...columnHandleEvents(key, "move")}><GripVertical size={11} /></span>
+                        <button type="button" className="inline-flex items-center gap-1 whitespace-nowrap" onClick={() => {
+                          setOperationSort(previous => ({ key, ascending: previous.key === key ? !previous.ascending : key === "name" }));
+                          setOperationPage(1);
+                          resetOperationScroll();
+                        }}>{label}<SortIcon size={13} aria-hidden="true" /></button>
+                        <span aria-hidden="true" title={`Redimensionar coluna ${label}`} data-column-handle="resize"
+                          className="absolute inset-y-0 right-0 w-3 touch-none cursor-col-resize border-e border-ct-line hover:border-ct-blue"
+                          {...columnHandleEvents(key, "resize")} />
+                      </th>;
+                    })}<th scope="col"><span className="sr-only">Ações</span></th></tr>
                   </thead>
                   <tbody>
-                    {data.operacao.length ? data.operacao.map((r) => (
-                      <tr key={r.slug} className="border-t border-neutral-100">
-                        <td className="px-4 py-3 font-semibold text-neutral-800">{r.name}</td>
-                        <td className="px-3 py-3 text-neutral-600">{r.visitantes}</td>
-                        <td className="px-3 py-3 text-neutral-600">{r.respostas}</td>
-                        <td className="px-3 py-3 text-neutral-600">{r.leads}</td>
-                        <td className="px-3 py-3 font-semibold text-neutral-800">{r.taxaConclusao}%</td>
-                        <td className="px-3 py-3"><span className={`rounded-full px-2 py-0.5 text-xs font-bold ${r.score >= 70 ? "bg-green-100 text-green-700" : r.score >= 40 ? "bg-amber-100 text-amber-700" : "bg-neutral-100 text-neutral-500"}`}>{r.score}</span></td>
-                        <td className="px-3 py-3 text-right"><button onClick={() => router.push(`/dashboard/${r.slug}`)} className="text-xs font-semibold text-blue-600 hover:underline">Ver →</button></td>
+                    {continuous && visibleStart > 0 && <tr aria-hidden="true"><td colSpan={8} style={{ height: visibleStart * OPERATION_ROW_HEIGHT }} /></tr>}
+                    {renderedRows.length ? renderedRows.map((r, index) => (
+                      <tr key={r.slug} className="border-t border-ct-line data-[selected=true]:bg-ct-selected"
+                        data-selected={selectedForComparison.has(r.slug)}
+                        aria-rowindex={continuous ? visibleStart + index + 2 : undefined}
+                        style={continuous ? { height: OPERATION_ROW_HEIGHT } : undefined}>
+                        <td className="px-3 py-3"><WorkspaceCheckbox
+                          aria-label={`Selecionar ${r.name} para comparar`} checked={selectedForComparison.has(r.slug)}
+                          onChange={() => toggleComparisonRow(r.slug)} /></td>
+                        {columns.map(([key]) => {
+                          if (key === "name") return <th key={key} scope="row" className={`px-4 py-2 text-left font-semibold text-ct-ink ${continuous ? "truncate" : "break-words"}`} title={continuous ? r.name : undefined}>{r.name}</th>;
+                          if (key === "score") return <td key={key} className="px-3 py-3"><span className={`rounded-full px-2 py-0.5 text-xs font-bold ${r.score >= 70 ? "bg-green-100 text-green-700" : r.score >= 40 ? "bg-amber-100 text-amber-700" : "bg-ct-raised text-ct-dim"}`}>{r.score}</span></td>;
+                          if (key === "taxaConclusao") return <td key={key} className="px-3 py-3 font-semibold text-ct-ink">{r[key]}%</td>;
+                          return <td key={key} className="px-3 py-3 text-ct-dim">{r[key]}</td>;
+                        })}
+                        <td className="px-3 py-3 text-right"><Link href={`/dashboard/${encodeURIComponent(r.slug)}`} aria-label={`Ver relatório de ${r.name}`} className="text-xs font-semibold text-ct-blue hover:underline">Ver →</Link></td>
                       </tr>
-                    )) : <tr><td colSpan={7} className="px-4 py-8 text-center text-neutral-400">Nenhum funil ainda.</td></tr>}
+                    )) : <tr><td colSpan={8} className="px-4 py-8 text-center text-ct-dim">{operationQuery.trim() ? "Nenhum funil corresponde à busca." : "Nenhum funil ainda."}{operationQuery.trim() && <button type="button" onClick={clearOperationSearch} className="mx-auto mt-2 block text-ct-blue underline">Limpar busca</button>}</td></tr>}
+                    {continuous && visibleEnd < operationRows.length && <tr aria-hidden="true"><td colSpan={8} style={{ height: (operationRows.length - visibleEnd) * OPERATION_ROW_HEIGHT }} /></tr>}
                   </tbody>
                 </table>
                 </div>
+                {!continuous && operationTotalPages > 1 && <div className="p-4">
+                  <Pagination current={currentOperationPage} total={operationTotalPages} onChange={setOperationPage} />
+                </div>}
               </section>
             )}
 
-            {tab === "leads" && (
-              <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3">
-                  <h2 className="text-sm font-semibold text-neutral-700">Leads recentes <span className="ml-1 text-xs font-normal text-neutral-400">({data.leads.total} no total)</span></h2>
+            {tab === "leads" && (snapshotAt ? (
+              <SnapshotLeadsView rows={data.operacao} total={data.leads.total} daily={leadsDaily} />
+            ) : (
+              <section className="overflow-hidden rounded-2xl border border-ct-line bg-ct-surface">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ct-line px-4 py-3">
+                  <h2 className="text-sm font-semibold text-ct-ink">Leads recentes <span className="ml-1 text-xs font-normal text-ct-dim">({data.leads.total} no total)</span></h2>
                   <Link href="/api/export-leads" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-700">⬇ Exportar CSV (todos)</Link>
                 </div>
                 {data.leads.recent.length ? (
-                  <div className="overflow-x-auto">
+                  <div className="ct-comparison-scroll overflow-x-auto" role="region" aria-label="Tabela de leads recentes" tabIndex={0}>
                   <table className="w-full text-sm">
-                    <thead className="bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-neutral-400"><tr><th className="px-4 py-3">Nome</th><th className="px-3 py-3">WhatsApp</th><th className="px-3 py-3">Funil</th><th className="px-3 py-3">Quando</th></tr></thead>
+                    <thead className="bg-ct-raised text-left text-xs font-semibold uppercase tracking-wide text-ct-dim"><tr><th className="px-4 py-3">Nome</th><th className="px-3 py-3">WhatsApp</th><th className="px-3 py-3">Funil</th><th className="px-3 py-3">Quando</th></tr></thead>
                     <tbody>
                       {data.leads.recent.map((l, i) => (
-                        <tr key={i} className="border-t border-neutral-100">
-                          <td className="px-4 py-3 font-semibold text-neutral-800">{l.name}</td>
-                          <td className="px-3 py-3 text-neutral-600">{l.phone}</td>
-                          <td className="px-3 py-3 text-neutral-500">{l.funnel}</td>
-                          <td className="px-3 py-3 text-neutral-400">{l.when ? new Date(l.when).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}</td>
+                        <tr key={i} className="border-t border-ct-line">
+                          <td className="px-4 py-3 font-semibold text-ct-ink">{l.name}</td>
+                          <td className="px-3 py-3 text-ct-dim">{l.phone}</td>
+                          <td className="px-3 py-3 text-ct-dim">{l.funnel}</td>
+                          <td className="px-3 py-3 text-ct-dim">{l.when ? new Date(l.when).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -397,120 +692,118 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                   </div>
                 ) : <div className="p-6"><ComingSoon title="Sem leads capturados" desc="Os leads da lâmina de captura aparecem aqui (e disparam os webhooks configurados). Requer a migração 0010 aplicada." source="funnel_leads" /></div>}
               </section>
-            )}
+            ))}
 
-            {tab === "vendas" && <ComingSoon title="Vendas" desc="Receita, ticket médio e conversão de checkout. Integra com Hotmart/UTMify via webhook de venda." source="webhook de venda / UTMify (próxima etapa)" />}
-            {tab === "diagnostico" && <ComingSoon title="Diagnóstico" desc="Perfil agregado dos respondentes (dores, objeções, segmentos) cruzando respostas do quiz com conversão." source="quiz_answers × funnel_leads (próxima etapa)" />}
+            {tab === "vendas" && salesSnapshot && <SnapshotSalesView data={salesSnapshot} />}
+            {tab === "vendas" && !salesSnapshot && <ComingSoon title="Vendas" desc={snapshotAt ? "A cópia atual não contém transações de venda. As métricas de receita, ticket médio e conversão de checkout dependem de uma fonte de pedidos integrada." : "Receita, ticket médio e conversão de checkout. Integra com Hotmart/UTMify via webhook de venda."} source="webhook de venda / UTMify (próxima etapa)" />}
+            {tab === "diagnostico" && diagnosisSnapshot && <SnapshotDiagnosisView data={diagnosisSnapshot} />}
+            {tab === "diagnostico" && !diagnosisSnapshot && <ComingSoon title="Diagnóstico" desc="Perfil agregado dos respondentes (dores, objeções, segmentos) cruzando respostas do quiz com conversão." source="quiz_answers × funnel_leads (próxima etapa)" />}
             {tab === "criativos" && (data.creatives.length ? (
               <div className="space-y-4">
+                {adAccounts?.length ? <AdAccountCard accounts={adAccounts} account={account} filter={accountFilter} creatives={accountCreatives}
+                  total={data.creatives.length} unverifiedBySource={unverifiedBySource}
+                  onChange={id => { setAccountFilter(id); setCreatFunnel(""); setCmpCreat([]); }} /> : null}
                 {cmpCreat.length >= 2 ? (() => {
                   // ranking: conversão (desempate: leads) → melhor e pior explícitos
-                  const sel = data.creatives.filter((x) => cmpCreat.includes(x.content));
+                  const sel = accountCreatives.filter((x) => cmpCreat.includes(x.content));
                   const ranked = [...sel].sort((a, b) => b.conv - a.conv || b.leads - a.leads);
                   const bestKey = ranked[0]?.content, worstKey = ranked[ranked.length - 1]?.content;
                   const bestConv = Math.max(...sel.map((x) => x.conv)), worstConv = Math.min(...sel.map((x) => x.conv));
                   const bestLeads = Math.max(...sel.map((x) => x.leads)), worstLeads = Math.min(...sel.map((x) => x.leads));
                   return (
-                    <section className="rounded-2xl border border-blue-200 bg-blue-50/40 p-5">
+                    <section className="rounded-2xl border border-ct-line bg-ct-raised p-5">
                       <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-sm font-bold text-neutral-800">⚖️ Comparação de criativos ({cmpCreat.length})</h2>
-                        <button onClick={() => setCmpCreat([])} className="text-xs font-semibold text-neutral-400 hover:text-neutral-700">limpar</button>
+                        <h2 className="text-sm font-bold text-ct-ink">⚖️ Comparação de criativos ({cmpCreat.length})</h2>
+                        <button onClick={() => setCmpCreat([])} className="text-xs font-semibold text-ct-dim hover:text-ct-ink">limpar</button>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {ranked.map((c) => {
                           const isBest = c.content === bestKey && bestKey !== worstKey;
                           const isWorst = c.content === worstKey && bestKey !== worstKey;
                           return (
-                            <div key={c.content} className={`relative rounded-xl border-2 bg-white p-4 ${isBest ? "border-green-400" : isWorst ? "border-red-300" : "border-neutral-200"}`}>
+                            <div key={c.content} className={`relative rounded-xl border-2 bg-ct-surface p-4 ${isBest ? "border-green-400" : isWorst ? "border-red-300" : "border-ct-line"}`}>
                               {isBest ? <span className="absolute -top-2.5 left-3 rounded-full bg-green-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white">▲ Melhor</span> : null}
                               {isWorst ? <span className="absolute -top-2.5 left-3 rounded-full bg-red-400 px-2 py-0.5 text-[10px] font-bold uppercase text-white">▼ Pior</span> : null}
-                              <p className="truncate pt-1 text-xs font-bold text-neutral-800" title={c.content}>{c.content}</p>
-                              <p className="mt-0.5 truncate text-[11px] text-neutral-400" title={c.funnels.map((s) => `/${s}`).join(", ")}>📍 {c.funnels.length ? c.funnels.map((s) => `/${s}`).join(", ") : "—"}</p>
+                              <p className="truncate pt-1 text-xs font-bold text-ct-ink" title={c.content}>{c.content}</p>
+                              <p className="mt-0.5 truncate text-[11px] text-ct-dim" title={c.funnels.map((s) => `/${s}`).join(", ")}>{c.funnels.length ? c.funnels.map((s) => `/${s}`).join(", ") : "—"}</p>
                               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                                <div><p className="text-[10px] uppercase text-neutral-400">Cliques</p><p className="text-lg font-bold text-neutral-800">{c.clicks}</p></div>
-                                <div><p className="text-[10px] uppercase text-neutral-400">Leads</p><p className={`text-lg font-bold ${c.leads === bestLeads && bestLeads > 0 ? "text-green-600" : c.leads === worstLeads && bestLeads !== worstLeads ? "text-red-500" : "text-neutral-800"}`}>{c.leads}</p></div>
-                                <div><p className="text-[10px] uppercase text-neutral-400">Conv.</p><p className={`text-lg font-bold ${c.conv === bestConv && bestConv > 0 ? "text-green-600" : c.conv === worstConv && bestConv !== worstConv ? "text-red-500" : "text-neutral-800"}`}>{c.conv}%</p></div>
+                                <div><p className="text-[10px] uppercase text-ct-dim">Cliques</p><p className="text-lg font-bold text-ct-ink">{c.clicks}</p></div>
+                                <div><p className="text-[10px] uppercase text-ct-dim">Leads</p><p className={`text-lg font-bold ${c.leads === bestLeads && bestLeads > 0 ? "text-green-600" : c.leads === worstLeads && bestLeads !== worstLeads ? "text-red-500" : "text-ct-ink"}`}>{c.leads}</p></div>
+                                <div><p className="text-[10px] uppercase text-ct-dim">Conv.</p><p className={`text-lg font-bold ${c.conv === bestConv && bestConv > 0 ? "text-green-600" : c.conv === worstConv && bestConv !== worstConv ? "text-red-500" : "text-ct-ink"}`}>{c.conv}%</p></div>
                               </div>
                             </div>
                           );
                         })}
                       </div>
-                      <p className="mt-3 text-[11px] text-neutral-500">▲/▼ pelo ranking de <strong>conversão</strong> (desempate: leads). Verde = melhor da métrica · vermelho = pior.</p>
+                      <p className="mt-3 text-[11px] text-ct-dim">▲/▼ pelo ranking de <strong>conversão</strong> (desempate: leads). Verde = melhor da métrica · vermelho = pior.</p>
                     </section>
                   );
                 })() : null}
-                <section className="rounded-2xl border border-neutral-200 bg-white p-5">
+                <section className="rounded-2xl border border-ct-line bg-ct-surface p-5">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="text-sm font-bold text-neutral-800">Criativos / anúncios</h2>
+                    <h2 id="creative-results-heading" className="text-sm font-bold text-ct-ink">Criativos / anúncios</h2>
                     <div className="flex flex-wrap items-center gap-2">
                       {/* filtro por funil + ordenação — combináveis (ex.: 1 slug + conversão desc) */}
-                      <select value={creatFunnel} onChange={(e) => setCreatFunnel(e.target.value)} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-600 outline-none focus:border-blue-500" aria-label="Filtrar por funil">
-                        <option value="">Todos os funis</option>
-                        {creatSlugs.map((s) => <option key={s} value={s}>/{s}</option>)}
-                      </select>
-                      <select value={creatSort} onChange={(e) => setCreatSort(e.target.value as typeof creatSort)} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-600 outline-none focus:border-blue-500" aria-label="Ordenar por">
-                        <option value="leads">↓ Mais leads</option>
-                        <option value="clicks">↓ Mais cliques</option>
-                        <option value="conv">↓ Maior conversão</option>
-                        <option value="slug">A–Z por /slug</option>
-                      </select>
-                      <span className="text-xs text-neutral-400">{creatList.length} de {data.creatives.length} · ✓ 2+ pra comparar</span>
+                      <WorkspaceSelect searchable label="Filtrar por funil" value={creatFunnel} onChange={setCreatFunnel} options={[{value:'',label:'Todos os funis'},...creatSlugs.map(value=>({value,label:`/${value}`}))]}/>
+                      <WorkspaceSelect label="Ordenar por" value={creatSort} onChange={value=>setCreatSort(value as typeof creatSort)} options={[["leads","Mais leads"],["clicks","Mais cliques"],["conv","Maior conversão"],["slug","A–Z por slug"]].map(([value,label])=>({value,label}))}/>
+                      <span className="text-xs text-ct-dim">{creatList.length} de {accountCreatives.length} · ✓ 2+ pra comparar</span>
                     </div>
                   </div>
-                  <div className="overflow-x-auto">
+                  <div className="ct-comparison-scroll overflow-x-auto" role="region" aria-labelledby="creative-results-heading" tabIndex={0}>
                     <table className="w-full text-sm">
-                      <thead className="text-left text-xs text-neutral-400">
-                        <tr><th className="w-8 px-2 py-2"></th><th className="px-3 py-2 font-semibold">Criativo</th><th className="px-3 py-2 font-semibold">Funil</th><th className="px-3 py-2 font-semibold">Origem</th><th className="px-3 py-2 font-semibold">Campanha</th><th className="px-3 py-2 text-right font-semibold">Cliques</th><th className="px-3 py-2 text-right font-semibold">Leads</th><th className="px-3 py-2 text-right font-semibold">Conversão</th></tr>
+                      <thead className="text-left text-xs text-ct-dim">
+                        <tr><th scope="col" className="w-8 px-2 py-2"><span className="sr-only">Selecionar para comparar</span></th><th className="px-3 py-2 font-semibold">Criativo</th><th className="px-3 py-2 font-semibold">Funil</th><th className="px-3 py-2 font-semibold">Origem</th><th className="px-3 py-2 font-semibold">Campanha</th><th className="px-3 py-2 text-right font-semibold">Cliques</th><th className="px-3 py-2 text-right font-semibold">Leads</th><th className="px-3 py-2 text-right font-semibold">Conversão</th></tr>
                       </thead>
                       <tbody>
                         {creatList.map((c) => (
-                          <tr key={c.content} className={`border-t border-neutral-100 ${cmpCreat.includes(c.content) ? "bg-blue-50/50" : ""}`}>
-                            <td className="px-2 py-2.5"><input type="checkbox" checked={cmpCreat.includes(c.content)} onChange={() => toggleCreat(c.content)} className="h-3.5 w-3.5 accent-blue-600" aria-label={`Comparar ${c.content}`} /></td>
-                            <td className="max-w-[240px] truncate px-3 py-2.5 font-medium text-neutral-800" title={c.content}>{c.content}</td>
-                            <td className="max-w-[180px] truncate px-3 py-2.5 font-mono text-xs text-neutral-600" title={c.funnels.map((s) => `/${s}`).join(", ")}>{c.funnels.length ? c.funnels.map((s) => `/${s}`).join(", ") : "—"}</td>
-                            <td className="px-3 py-2.5 text-neutral-500">{c.source || "—"}</td>
-                            <td className="max-w-[180px] truncate px-3 py-2.5 text-neutral-500" title={c.campaign}>{c.campaign || "—"}</td>
-                            <td className="px-3 py-2.5 text-right text-neutral-600">{c.clicks}</td>
-                            <td className="px-3 py-2.5 text-right font-semibold text-neutral-800">{c.leads}</td>
-                            <td className="px-3 py-2.5 text-right"><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${c.conv >= 10 ? "bg-green-50 text-green-600" : c.conv > 0 ? "bg-amber-50 text-amber-600" : "bg-neutral-100 text-neutral-400"}`}>{c.conv}%</span></td>
+                          <tr key={c.content} className={`border-t border-ct-line ${cmpCreat.includes(c.content) ? "bg-ct-raised" : ""}`}>
+                            <td className="px-2 py-2.5"><WorkspaceCheckbox checked={cmpCreat.includes(c.content)} onChange={() => toggleCreat(c.content)} aria-label={`Comparar ${c.content}`} /></td>
+                            <td className="max-w-[240px] truncate px-3 py-2.5 font-medium text-ct-ink" title={c.content}>{c.content}</td>
+                            <td className="max-w-[180px] truncate px-3 py-2.5 font-mono text-xs text-ct-dim" title={c.funnels.map((s) => `/${s}`).join(", ")}>{c.funnels.length ? c.funnels.map((s) => `/${s}`).join(", ") : "—"}</td>
+                            <td className="px-3 py-2.5 text-ct-dim">{c.source || "—"}</td>
+                            <td className="max-w-[180px] truncate px-3 py-2.5 text-ct-dim" title={c.campaign}>{c.campaign || "—"}</td>
+                            <td className="px-3 py-2.5 text-right text-ct-dim">{c.clicks}</td>
+                            <td className="px-3 py-2.5 text-right font-semibold text-ct-ink">{c.leads}</td>
+                            <td className="px-3 py-2.5 text-right"><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${c.conv >= 10 ? "bg-green-50 text-green-600" : c.conv > 0 ? "bg-amber-50 text-amber-600" : "bg-ct-raised text-ct-dim"}`}>{c.conv}%</span></td>
                           </tr>
                         ))}
-                        {!creatList.length ? <tr><td colSpan={8} className="px-4 py-8 text-center text-neutral-400">Nenhum criativo nesse funil.</td></tr> : null}
+                        {!creatList.length ? <tr><td colSpan={8} className="px-4 py-8 text-center text-ct-dim">Nenhum criativo neste recorte.</td></tr> : null}
                       </tbody>
                     </table>
                   </div>
-                  <p className="mt-3 text-[11px] text-neutral-400">Cliques = sessões · Leads = capturas · Conversão = leads ÷ cliques · Funil = /slug onde o criativo rodou (mais tráfego primeiro). Gasto/CPL/ROAS entram ao ligar a UTMify (próxima etapa).</p>
+                  <p className="mt-3 text-[11px] text-ct-dim">Cliques = sessões · Leads = capturas · Conversão = leads ÷ cliques · Funil = /slug onde o criativo rodou (mais tráfego primeiro). Gasto/CPL/ROAS entram ao ligar a UTMify (próxima etapa).</p>
                 </section>
               </div>
             ) : <ComingSoon title="Criativos" desc="Ainda sem dados de criativo. Rode tráfego com utm_content nos anúncios pra preencher esta tabela." source="funnel_sessions × funnel_leads" />)}
-            {tab === "vsl" && (vsls.length ? (
+            {tab === "vsl" && vslSnapshot && <SnapshotVslView data={vslSnapshot} />}
+            {tab === "vsl" && !vslSnapshot && (vsls.length ? (
               <div className="space-y-4">
                 {/* ── Métricas do PLAYER (VTurb Analytics API) ── */}
-                <section className="rounded-2xl border border-neutral-200 bg-white p-5">
+                <section className="rounded-2xl border border-ct-line bg-ct-surface p-5">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="text-sm font-bold text-neutral-800">▶️ Métricas do vídeo (VTurb) <span className="ml-1 text-xs font-normal text-neutral-400">últimos 30 dias</span></h2>
+                    <h2 className="text-sm font-bold text-ct-ink">▶️ Métricas do vídeo (VTurb) <span className="ml-1 text-xs font-normal text-ct-dim">últimos 30 dias</span></h2>
                     <div className="flex items-center gap-2">
                       {typeof vturb === "object" && vturb.allPlayers.some((p) => !p.linked) ? (
                         <div className="relative">
                           <button onClick={() => { setPickerOpen((o) => !o); setPickerQuery(""); }}
-                            className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">
+                            className="rounded-lg border border-ct-line bg-ct-surface px-2.5 py-1.5 text-xs font-semibold text-ct-dim hover:bg-ct-raised">
                             + adicionar player da conta… ▾
                           </button>
                           {pickerOpen ? (
                             <>
                               <div className="fixed inset-0 z-40" onClick={() => setPickerOpen(false)} />
-                              <div className="absolute right-0 z-50 mt-1 w-[340px] rounded-xl border border-neutral-200 bg-white shadow-xl">
-                                <div className="border-b border-neutral-100 p-2">
+                              <div className="absolute right-0 z-50 mt-1 w-[340px] rounded-xl border border-ct-line bg-ct-surface shadow-xl">
+                                <div className="border-b border-ct-line p-2">
                                   <input autoFocus value={pickerQuery} onChange={(e) => setPickerQuery(e.target.value)}
-                                    placeholder="🔎 Buscar VSL pelo nome…"
-                                    className="w-full rounded-lg border border-neutral-200 px-3 py-1.5 text-xs outline-none focus:border-blue-500" />
+                                    placeholder="Buscar VSL pelo nome…"
+                                    className="w-full rounded-lg border border-ct-line px-3 py-1.5 text-xs outline-none focus:border-blue-500" />
                                 </div>
                                 <div className="max-h-72 overflow-auto p-1">
                                   {(() => {
                                     // agrupado por prefixo do nome (a API do VTurb não expõe as pastas)
                                     const q = pickerQuery.trim().toLowerCase();
                                     const avail = vturb.allPlayers.filter((p) => !p.linked && !extraPlayers.includes(p.id) && (!q || p.name.toLowerCase().includes(q)));
-                                    if (!avail.length) return <p className="px-3 py-4 text-center text-xs text-neutral-400">Nenhuma VSL bate com &quot;{pickerQuery}&quot;.</p>;
+                                    if (!avail.length) return <p className="px-3 py-4 text-center text-xs text-ct-dim">Nenhuma VSL bate com &quot;{pickerQuery}&quot;.</p>;
                                     const groups = new Map<string, typeof avail>();
                                     for (const p of avail) {
                                       const g = (p.name.split(/\s[-–|]\s|\s-\s?|-\s/)[0] || p.name).trim().toUpperCase().slice(0, 28) || "OUTROS";
@@ -521,11 +814,11 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                                       .sort((a, b) => a[0].localeCompare(b[0], "pt-BR"))
                                       .map(([g, ps]) => (
                                         <div key={g}>
-                                          <p className="sticky top-0 bg-white px-2 pb-0.5 pt-2 text-[10px] font-bold uppercase tracking-wide text-neutral-400">📁 {g} ({ps.length})</p>
+                                          <p className="sticky top-0 bg-ct-surface px-2 pb-0.5 pt-2 text-[10px] font-bold uppercase tracking-wide text-ct-dim">{g} ({ps.length})</p>
                                           {ps.sort((a, b) => a.name.localeCompare(b.name, "pt-BR")).map((p) => (
                                             <button key={p.id}
                                               onClick={() => { const next = [...extraPlayers, p.id]; setExtraPlayers(next); loadVturb(next); setPickerOpen(false); }}
-                                              className="block w-full truncate rounded-lg px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-blue-50" title={p.name}>
+                                              className="block w-full truncate rounded-lg px-2 py-1.5 text-left text-xs text-ct-ink hover:bg-blue-50" title={p.name}>
                                               {p.name}
                                             </button>
                                           ))}
@@ -538,72 +831,83 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                           ) : null}
                         </div>
                       ) : null}
-                      <button onClick={() => loadVturb(extraPlayers)} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">↻ Atualizar</button>
+                      <button onClick={() => loadVturb(extraPlayers)} className="rounded-lg border border-ct-line bg-ct-surface px-2.5 py-1.5 text-xs font-semibold text-ct-dim hover:bg-ct-raised">↻ Atualizar</button>
                     </div>
                   </div>
                   {vturb === "loading" || vturb === "idle" ? (
-                    <div className="space-y-2 animate-pulse">{[0, 1].map((i) => <div key={i} className="h-10 rounded-lg bg-neutral-100" />)}</div>
+                    <div className="space-y-2 animate-pulse">{[0, 1].map((i) => <div key={i} className="h-10 rounded-lg bg-ct-raised" />)}</div>
                   ) : vturb === "no_token" ? (
-                    <p className="py-4 text-center text-sm text-neutral-400">Token do VTurb não configurado no servidor (VTURB_API_TOKEN).</p>
+                    <p className="py-4 text-center text-sm text-ct-dim">Token do VTurb não configurado no servidor (VTURB_API_TOKEN).</p>
                   ) : vturb === "error" ? (
                     <p className="py-4 text-center text-sm text-red-500">Não consegui falar com a API do VTurb agora. Tenta o ↻ em instantes.</p>
                   ) : vturb.vsls.length ? (
-                    <div className="overflow-x-auto">
+                    <div className="ct-comparison-scroll overflow-x-auto" role="region" aria-label="Tabela de players VTurb" tabIndex={0}>
                       <table className="w-full text-sm">
-                        <thead className="text-left text-xs text-neutral-400">
+                        <thead className="text-left text-xs text-ct-dim">
                           <tr><th className="w-8 px-2 py-2" title="Marque 2+ pra comparar">⚖️</th><th className="px-3 py-2 font-semibold">VSL / Player</th><th className="px-3 py-2 font-semibold">Funil</th><th className="px-3 py-2 text-right font-semibold">Views</th><th className="px-3 py-2 text-right font-semibold">Plays</th><th className="px-3 py-2 text-right font-semibold">Play Rate</th><th className="px-3 py-2 text-right font-semibold">Engajamento</th><th className="px-3 py-2 text-right font-semibold">Aud. Pitch</th><th className="px-3 py-2 text-right font-semibold">Ret. Pitch</th><th className="px-3 py-2 text-right font-semibold">Cliques</th><th className="px-3 py-2 text-right font-semibold">Conv.</th></tr>
                         </thead>
                         <tbody>
                           {vturb.vsls.map((v) => (
-                            <tr key={v.playerId} onClick={() => setDetailPlayer(detailPlayer === v.playerId ? null : v.playerId)}
-                              className={`cursor-pointer border-t border-neutral-100 transition hover:bg-neutral-50 ${detailPlayer === v.playerId ? "bg-sky-50/60" : ""}`}
-                              title="Clique pra abrir a curva de retenção e segmentações">
+                            <tr key={v.playerId} onClick={event => togglePlayerDetail(v.playerId, event.currentTarget.querySelector("button"))}
+                              className={`cursor-pointer border-t border-ct-line transition hover:bg-ct-raised ${detailPlayer === v.playerId ? "bg-ct-raised" : ""}`}>
                               <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
-                                <input type="checkbox" checked={cmpPlayers.includes(v.playerId)} aria-label={`Comparar ${v.playerName}`}
+                                <WorkspaceCheckbox checked={cmpPlayers.includes(v.playerId)} aria-label={`Comparar ${v.playerName}`}
                                   onChange={(e) => setCmpPlayers((prev) => e.target.checked ? [...prev, v.playerId] : prev.filter((id) => id !== v.playerId))} />
                               </td>
-                              <td className="max-w-[220px] truncate px-3 py-2.5 font-medium text-neutral-800" title={v.playerName}>📈 {v.playerName}</td>
-                              <td className="max-w-[160px] truncate px-3 py-2.5 font-mono text-xs text-neutral-600" title={v.funnels.map((f) => `/${f.slug}`).join(", ")}>{v.funnels.length ? v.funnels.map((f) => `/${f.slug}`).join(", ") : "— (manual)"}</td>
-                              <td className="px-3 py-2.5 text-right text-neutral-600">{v.stats.views.toLocaleString("pt-BR")}</td>
-                              <td className="px-3 py-2.5 text-right text-neutral-600">{v.stats.plays.toLocaleString("pt-BR")}</td>
-                              <td className="px-3 py-2.5 text-right font-semibold text-neutral-800">{v.stats.playRate}%</td>
-                              <td className="px-3 py-2.5 text-right font-semibold text-neutral-800">{v.stats.engagement}%</td>
-                              <td className="px-3 py-2.5 text-right text-neutral-600">{v.stats.pitchAudience.toLocaleString("pt-BR")}</td>
-                              <td className="px-3 py-2.5 text-right font-semibold text-neutral-800">{v.stats.pitchRetention}%</td>
-                              <td className="px-3 py-2.5 text-right text-neutral-600">{v.stats.clicks.toLocaleString("pt-BR")}</td>
-                              <td className="px-3 py-2.5 text-right"><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${v.stats.convRate > 0 ? "bg-green-50 text-green-600" : "bg-neutral-100 text-neutral-400"}`}>{v.stats.conversions} · {v.stats.convRate}%</span></td>
+                              <th scope="row" className="max-w-[220px] px-3 py-2.5 text-left font-medium">
+                                <button type="button" className="block w-full truncate text-left text-ct-blue hover:underline"
+                                  title={v.playerName} aria-expanded={detailPlayer === v.playerId} aria-controls="vturb-player-detail"
+                                  onClick={event => {
+                                    event.stopPropagation();
+                                    togglePlayerDetail(v.playerId, event.currentTarget);
+                                  }}>
+                                  {v.playerName}
+                                </button>
+                              </th>
+                              <td className="max-w-[160px] truncate px-3 py-2.5 font-mono text-xs text-ct-dim" title={v.funnels.map((f) => `/${f.slug}`).join(", ")}>{v.funnels.length ? v.funnels.map((f) => `/${f.slug}`).join(", ") : "— (manual)"}</td>
+                              <td className="px-3 py-2.5 text-right text-ct-dim">{v.stats.views.toLocaleString("pt-BR")}</td>
+                              <td className="px-3 py-2.5 text-right text-ct-dim">{v.stats.plays.toLocaleString("pt-BR")}</td>
+                              <td className="px-3 py-2.5 text-right font-semibold text-ct-ink">{v.stats.playRate}%</td>
+                              <td className="px-3 py-2.5 text-right font-semibold text-ct-ink">{v.stats.engagement}%</td>
+                              <td className="px-3 py-2.5 text-right text-ct-dim">{v.stats.pitchAudience.toLocaleString("pt-BR")}</td>
+                              <td className="px-3 py-2.5 text-right font-semibold text-ct-ink">{v.stats.pitchRetention}%</td>
+                              <td className="px-3 py-2.5 text-right text-ct-dim">{v.stats.clicks.toLocaleString("pt-BR")}</td>
+                              <td className="px-3 py-2.5 text-right"><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${v.stats.convRate > 0 ? "bg-green-50 text-green-600" : "bg-ct-raised text-ct-dim"}`}>{v.stats.conversions} · {v.stats.convRate}%</span></td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                   ) : (
-                    <p className="py-4 text-center text-sm text-neutral-400">Nenhum player VTurb detectado nos embeds das VSLs. Usa o seletor acima pra adicionar um player da conta.</p>
+                    <p className="py-4 text-center text-sm text-ct-dim">Nenhum player VTurb detectado nos embeds das VSLs. Usa o seletor acima pra adicionar um player da conta.</p>
                   )}
                   {typeof vturb === "object" && cmpPlayers.length >= 2 ? (
                     <VslCompare rows={vturb.vsls.filter((v) => cmpPlayers.includes(v.playerId)).map((v) => ({ playerId: v.playerId, playerName: v.playerName, stats: v.stats }))} />
                   ) : null}
-                  {detailPlayer ? <VslDetail playerId={detailPlayer} onClose={() => setDetailPlayer(null)} /> : null}
-                  <p className="mt-3 text-[11px] text-neutral-400">Fonte: VTurb Analytics API (players detectados automaticamente no embed de cada funil). Play Rate = plays ÷ views · Ret. Pitch = % que passa do pitch. Clique numa linha pra ver retenção minuto a minuto e segmentações.</p>
+                  <section id="vturb-player-detail" aria-label="Detalhe do player VTurb" tabIndex={-1}
+                    ref={playerDetail} hidden={!detailPlayer} className="scroll-mt-20">
+                    {detailPlayer && <VslDetail playerId={detailPlayer} onClose={closePlayerDetail} />}
+                  </section>
+                  <p className="mt-3 text-[11px] text-ct-dim">Fonte: VTurb Analytics API (players detectados automaticamente no embed de cada funil). Play Rate = plays ÷ views · Ret. Pitch = % que passa do pitch. Selecione um player para ver a retenção minuto a minuto e as segmentações.</p>
                 </section>
                 {cmpVsl.length >= 2 ? (
                   <section className="rounded-2xl border border-blue-200 bg-blue-50/40 p-5">
                     <div className="mb-3 flex items-center justify-between">
-                      <h2 className="text-sm font-bold text-neutral-800">⚖️ Comparação de VSLs ({cmpVsl.length})</h2>
-                      <button onClick={() => setCmpVsl([])} className="text-xs font-semibold text-neutral-400 hover:text-neutral-700">limpar</button>
+                      <h2 className="text-sm font-bold text-ct-ink">⚖️ Comparação de VSLs ({cmpVsl.length})</h2>
+                      <button onClick={() => setCmpVsl([])} className="text-xs font-semibold text-ct-dim hover:text-ct-ink">limpar</button>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {vsls.filter((v) => cmpVsl.includes(v.slug)).map((v) => {
                         const sel = vsls.filter((x) => cmpVsl.includes(x.slug));
                         const bestPct = Math.max(...sel.map((x) => x.pct));
                         return (
-                          <div key={v.slug} className="rounded-xl border border-neutral-200 bg-white p-4">
-                            <p className="truncate text-xs font-bold text-neutral-800" title={v.name}>{v.name}</p>
-                            <p className="mt-0.5 text-[11px] text-neutral-400">📍 /{v.slug}</p>
+                          <div key={v.slug} className="rounded-xl border border-ct-line bg-ct-surface p-4">
+                            <p className="truncate text-xs font-bold text-ct-ink" title={v.name}>{v.name}</p>
+                            <p className="mt-0.5 text-[11px] text-ct-dim">/{v.slug}</p>
                             <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                              <div><p className="text-[10px] uppercase text-neutral-400">Visitantes</p><p className="text-lg font-bold text-neutral-800">{v.visitantes}</p></div>
-                              <div><p className="text-[10px] uppercase text-neutral-400">Na VSL</p><p className="text-lg font-bold text-neutral-800">{v.chegaram}</p></div>
-                              <div><p className="text-[10px] uppercase text-neutral-400">% chegada</p><p className={`text-lg font-bold ${v.pct === bestPct && bestPct > 0 ? "text-green-600" : "text-neutral-800"}`}>{v.pct}%</p></div>
+                              <div><p className="text-[10px] uppercase text-ct-dim">Visitantes</p><p className="text-lg font-bold text-ct-ink">{v.visitantes}</p></div>
+                              <div><p className="text-[10px] uppercase text-ct-dim">Na VSL</p><p className="text-lg font-bold text-ct-ink">{v.chegaram}</p></div>
+                              <div><p className="text-[10px] uppercase text-ct-dim">% chegada</p><p className={`text-lg font-bold ${v.pct === bestPct && bestPct > 0 ? "text-green-600" : "text-ct-ink"}`}>{v.pct}%</p></div>
                             </div>
                           </div>
                         );
@@ -611,38 +915,38 @@ export default function GlobalAnalyticsView({ data }: { data: GlobalAnalytics })
                     </div>
                   </section>
                 ) : null}
-                <section className="rounded-2xl border border-neutral-200 bg-white p-5">
+                <section className="rounded-2xl border border-ct-line bg-ct-surface p-5">
                   <div className="mb-3 flex items-center justify-between">
-                    <h2 className="text-sm font-bold text-neutral-800">VSL por funil</h2>
-                    <span className="text-xs text-neutral-400">✓ marque 2+ pra comparar</span>
+                    <h2 className="text-sm font-bold text-ct-ink">VSL por funil</h2>
+                    <span className="text-xs text-ct-dim">✓ marque 2+ pra comparar</span>
                   </div>
-                  <div className="overflow-x-auto">
+                  <div className="ct-comparison-scroll overflow-x-auto" role="region" aria-label="Tabela de VSL por funil" tabIndex={0}>
                     <table className="w-full text-sm">
-                      <thead className="text-left text-xs text-neutral-400">
+                      <thead className="text-left text-xs text-ct-dim">
                         <tr><th className="w-8 px-2 py-2"></th><th className="px-3 py-2 font-semibold">Funil</th><th className="px-3 py-2 text-right font-semibold">Visitantes</th><th className="px-3 py-2 text-right font-semibold">Chegaram na VSL</th><th className="px-3 py-2 text-right font-semibold">% de chegada</th><th className="px-3 py-2 text-right font-semibold">Leads</th><th className="px-3 py-2 text-right"></th></tr>
                       </thead>
                       <tbody>
                         {vsls.map((v) => (
-                          <tr key={v.slug} className={`border-t border-neutral-100 ${cmpVsl.includes(v.slug) ? "bg-blue-50/50" : ""}`}>
-                            <td className="px-2 py-2.5"><input type="checkbox" checked={cmpVsl.includes(v.slug)} onChange={() => toggleVsl(v.slug)} className="h-3.5 w-3.5 accent-blue-600" aria-label={`Comparar ${v.name}`} /></td>
-                            <td className="max-w-[260px] px-3 py-2.5"><p className="truncate font-medium text-neutral-800" title={v.name}>{v.name}</p><p className="text-[11px] text-neutral-400">/{v.slug}</p></td>
-                            <td className="px-3 py-2.5 text-right text-neutral-600">{v.visitantes}</td>
-                            <td className="px-3 py-2.5 text-right font-semibold text-neutral-800">{v.chegaram}</td>
-                            <td className="px-3 py-2.5 text-right"><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${v.pct >= 20 ? "bg-green-50 text-green-600" : v.pct > 0 ? "bg-amber-50 text-amber-600" : "bg-neutral-100 text-neutral-400"}`}>{v.pct}%</span></td>
-                            <td className="px-3 py-2.5 text-right text-neutral-600">{v.leads}</td>
+                          <tr key={v.slug} className={`border-t border-ct-line ${cmpVsl.includes(v.slug) ? "bg-blue-50/50" : ""}`}>
+                            <td className="px-2 py-2.5"><WorkspaceCheckbox checked={cmpVsl.includes(v.slug)} onChange={() => toggleVsl(v.slug)} aria-label={`Comparar ${v.name}`} /></td>
+                            <td className="max-w-[260px] px-3 py-2.5"><p className="truncate font-medium text-ct-ink" title={v.name}>{v.name}</p><p className="text-[11px] text-ct-dim">/{v.slug}</p></td>
+                            <td className="px-3 py-2.5 text-right text-ct-dim">{v.visitantes}</td>
+                            <td className="px-3 py-2.5 text-right font-semibold text-ct-ink">{v.chegaram}</td>
+                            <td className="px-3 py-2.5 text-right"><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${v.pct >= 20 ? "bg-green-50 text-green-600" : v.pct > 0 ? "bg-amber-50 text-amber-600" : "bg-ct-raised text-ct-dim"}`}>{v.pct}%</span></td>
+                            <td className="px-3 py-2.5 text-right text-ct-dim">{v.leads}</td>
                             <td className="px-3 py-2.5 text-right"><button onClick={() => router.push(`/dashboard/${v.slug}`)} className="text-xs font-semibold text-blue-600 hover:underline">Ver →</button></td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                  <p className="mt-3 text-[11px] text-neutral-400">Chegaram na VSL = sessões que alcançaram a lâmina de VSL (conclusão do funil), medidas pelo nosso tracking. As métricas do PLAYER (play rate, engajamento, pitch) estão na seção VTurb acima.</p>
+                  <p className="mt-3 text-[11px] text-ct-dim">Chegaram na VSL = sessões que alcançaram a lâmina de VSL (conclusão do funil), medidas pelo nosso tracking. As métricas do PLAYER (play rate, engajamento, pitch) estão na seção VTurb acima.</p>
                 </section>
               </div>
             ) : <ComingSoon title="VSL" desc="Sem funis com tráfego ainda. Assim que houver sessões, as métricas de chegada na VSL aparecem aqui." source="funnel_sessions (max_step ≥ lâmina VSL)" />)}
           </div>
         </div>
       </div>
-    </div>
+    </WorkspaceFrame>
   );
 }

@@ -251,7 +251,7 @@ export default function VslDetail({ playerId, onClose }: { playerId: string; onC
 
           {/* ── tabela minuto a minuto (planilha %RET/%QUEDA) ── */}
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="overflow-x-auto rounded-xl border border-neutral-200">
+            <div role="region" aria-label="Retenção minuto a minuto" tabIndex={0} className="ct-comparison-scroll overflow-x-auto rounded-xl border border-neutral-200">
               <table className="w-full text-xs">
                 <thead className="bg-neutral-50 text-left text-neutral-500">
                   <tr><th className="px-3 py-2">TEMPO</th><th className="px-3 py-2 text-right">% RET.</th><th className="px-3 py-2 text-right">% QUEDA</th></tr>

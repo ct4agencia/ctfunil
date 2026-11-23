@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Fraunces, Plus_Jakarta_Sans, Poppins } from "next/font/google";
+import { display, sans, poppins } from "@/app/fonts/funnel-fonts";
 import { createAdminClient } from "@/lib/supabase/server";
 import VslView from "@/components/vsl/VslView";
 import BlockRenderer from "@/components/vsl/BlockRenderer";
@@ -8,14 +8,11 @@ import PixelScripts from "@/components/vsl/PixelScripts";
 import FunnelRenderer from "@/components/quiz/FunnelRenderer";
 import VisitBeacon from "@/components/quiz/VisitBeacon";
 import HeroPreload from "@/components/quiz/HeroPreload";
-import { resolveFunnel } from "@/lib/quiz/funnels-db";
+import { resolvePublicFunnel } from "@/lib/quiz/funnels-db";
 import type { Vsl } from "@/lib/types";
 
 // preload:false: 8 arquivos de fonte preloadados competiam com o texto do LCP
 // no 4G (medido vs inlead). display:swap (default) pinta com fallback na hora.
-const display = Fraunces({ subsets: ["latin"], weight: ["600", "700", "900"], variable: "--font-display", preload: false });
-const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans-q", preload: false });
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700", "800", "900"], variable: "--font-poppins", preload: false });
 
 // ISR: HTML servido do cache de borda (igual o inlead faz via Cloudflare).
 // Salvar no builder revalida na hora (revalidatePath em saveFunnelAction);
@@ -36,7 +33,7 @@ async function getVsl(slug: string): Promise<Vsl | null> {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const funnel = await resolveFunnel(slug);
+  const funnel = await resolvePublicFunnel(slug);
   if (funnel) {
     const seo = funnel.settings?.seo ?? {};
     return {
@@ -56,7 +53,7 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
 
   // 1) FUNIL de quiz (CTFUNNEL) — prioridade
-  const funnel = await resolveFunnel(slug);
+  const funnel = await resolvePublicFunnel(slug);
   if (funnel) {
     const usePoppins = funnel.font === "poppins" || funnel.paletteId === "ambar-velas";
     return (

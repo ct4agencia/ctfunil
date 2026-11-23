@@ -1,10 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { rankingVideoRange } from "@/lib/quiz/relogio-vsl";
+import { useEffect, useRef, useState } from "react";
+import { resolveLayerDestination } from "@/lib/quiz/layers/navigation";
+import { designNumber, typographyStyles } from "@/lib/quiz/layers/design";
+import { funnelFontClasses } from "./fonts";
+import "./design.css";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, InleadDesign } from "@/lib/quiz/layers/types";
+import { ComponentFrame } from "./ComponentFrame";
+import { matchesDisplay, plainLabel, buttonDestination } from "@/lib/quiz/layers/component-settings";
+import type { LayerAnswer, Layer } from "@/lib/quiz/layers/types";
+import { fieldError, fieldKey } from "@/lib/quiz/layers/catalog";
 import { trackStep, trackAnswer } from "@/lib/quiz/track";
+import { initialSoniaState, soniaDestination, type SoniaState } from "@/lib/quiz/layers/sonia";
+import { SONIA_REDIRECT } from "@/lib/quiz/layers/sonia-draft";
 import { getSessionId, collectTrackingParams, fireMetaEvent } from "@/lib/tracking";
 import { ScrollHint } from "../ui";
 import { type StepCtx } from "../steps";
@@ -36,7 +47,7 @@ const semHtmlMultilinha = (h?: string) =>
     .replace(/[^\S\n]+/g, " ").replace(/ *\n */g, "\n").trim();
 import type { RouletteStep } from "@/lib/quiz/types";
 import dynamic from "next/dynamic";
-import { Block, Reveal, SliderHero, LayersEditContext, type LayersCtx, type LayersEdit } from "./blocks";
+import { Block, SliderHero, LayersEditContext, type LayersCtx, type LayersEdit } from "./blocks";
 
 // Modo editor (drag & drop com dnd-kit) carregado SÓ no construtor — mantém o
 // @dnd-kit + EditBlock fora do bundle do funil público.
@@ -53,6 +64,7 @@ const RouletteStepView = dynamic(() => import("../steps").then((m) => m.Roulette
  * isso desde sempre. Todos em `dynamic`: funil que não usa o bloco não baixa
  * uma linha a mais (o steps.tsx sozinho tem 1270 linhas).
  */
+const SoniaNumbers = dynamic(() => import("./SoniaNumbers"), { ssr: false });
 const ScratchGrid = dynamic(() => import("../ScratchGrid"), { ssr: false });
 const MeasureStepView = dynamic(() => import("../steps").then((m) => m.MeasureStepView), { ssr: false });
 const GaugeStepView = dynamic(() => import("../steps").then((m) => m.GaugeStepView), { ssr: false });
@@ -60,7 +72,7 @@ const VslStepView = dynamic(() => import("../steps").then((m) => m.VslStepView),
 const ConfirmStepView = dynamic(() => import("../steps").then((m) => m.ConfirmStepView), { ssr: false });
 
 /** Tipos de bloco que tomam a lâmina inteira (não empilham com outros). */
-const HERO_TIPADO = new Set(["roulette", "slider", "scratch", "measure", "gauge", "vsl", "confirm"]);
+const HERO_TIPADO = new Set(["roulette", "slider", "scratch", "measure", "gauge", "vsl", "confirm", "sonia-numbers"]);
 
 /**
  * Tipo que representa a lâmina no relatório. Bloco-hero manda (ele É a lâmina);
@@ -85,11 +97,27 @@ const ALIGN: Record<string, string> = {
   "justify-start": "flex-start", "justify-center": "center", "justify-end": "flex-end",
 };
 
-export default function LayersRunner({ funnel, geo, startIndex = 0, preview = false, editor }: { funnel: Funnel; geo?: { estado?: string; cidade?: string }; startIndex?: number; preview?: boolean; editor?: LayersEdit }) {
+type LayersRunnerProps = { funnel: Funnel; geo?: { estado?: string; cidade?: string }; startIndex?: number; preview?: boolean; editor?: LayersEdit; localPreviewRedirect?: string; previewWidth?: number; simulateVideoTime?: boolean };
+
+export default function LayersRunner(props: LayersRunnerProps) {
+  const design: InleadDesign = props.funnel.settings?.design || {};
+  return <div className={`ct-funnel-design contents ${funnelFontClasses}`} style={typographyStyles(design)}>
+    <LayersContent {...props} />
+  </div>;
+}
+
+export function LayersContent({ funnel, geo, startIndex = 0, preview = false, editor, localPreviewRedirect, previewWidth, simulateVideoTime = false }: LayersRunnerProps) {
+  const prefersReducedMotion = useReducedMotion();
+  const reducePreviewMotion = preview && prefersReducedMotion;
+  // Explicit local lab opt-in. Keep every tracking/capture preview guard active.
+  const canPreviewRedirect = () => preview && process.env.NODE_ENV === "development" && typeof window !== "undefined"
+    && ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname) && window.location.pathname === "/lab/sonia"
+    && localPreviewRedirect === SONIA_REDIRECT;
+  const allowedPreviewRedirect = canPreviewRedirect() ? SONIA_REDIRECT : undefined;
   const allSteps = funnel.steps as unknown as InleadStep[];
   // runtime PULA lâminas desativadas; no preview do construtor mostra todas (pra editar)
   const steps = preview ? allSteps : allSteps.filter((s) => !s.disabled);
-  const design = (funnel.settings?.design as InleadDesign) || {};
+  const globalDesign = (funnel.settings?.design as InleadDesign) || {};
   const total = steps.length;
   // Setinha "role pra baixo". Nasce LIGADA; o Design define o global e cada
   // lâmina pode sobrescrever (mesmo headerOverride de logo/progresso/voltar).
@@ -97,6 +125,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     ((funnel.settings as { header?: Record<string, boolean> })?.header || {}).show_scroll_hint !== false;
 
   const [idx, setIdx] = useState(startIndex);
+  const [videoSeconds, setVideoSeconds] = useState(0);
   const history = useRef<number[]>([]);
   const [canBack, setCanBack] = useState(false);
 
@@ -128,19 +157,34 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   useEffect(() => { primeiroPaint.current = false; }, []);
   const [name, setName] = useState("");
   const [fields, setFields] = useState<Record<string, string>>({});
+  // Mesmo lifetime de fields/history: voltar a uma lâmina não perde seleção.
+  // Chave inclui configuração para uma edição X/Y não herdar estado incompatível.
+  const [answers, setAnswers] = useState<Record<string, LayerAnswer>>({});
+  const [selectionError, setSelectionError] = useState("");
+  const [previewNavigationNotice, setPreviewNavigationNotice] = useState("");
+  const [soniaStates, setSoniaStates] = useState<Record<string, SoniaState>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const step = steps[idx];
+  const videoLimit = preview && simulateVideoTime ? Math.max(0, ...(step?.layers ?? [])
+    .flatMap(layer => {
+      if (layer.type === "ranking") return [rankingVideoRange(layer.content.revealAt, layer.content.fimEm).end];
+      if (layer.content.revealClock === "video" && (layer.type === "button" || layer.type === "text" || layer.type === "image")) {
+        return [Number(layer.content.revealAt)];
+      }
+      return [];
+    })
+    .filter(Number.isFinite)) : 0;
+  const stageTypography = step?.design || {};
+  const design: InleadDesign = { ...globalDesign };
+  for (const key of ['featuredFont','contentFont','titleSize','contentSize','titleColor','contentColor','titleWeight','contentWeight','titleLineHeight','contentLineHeight'] as const) {
+    if (stageTypography[key] != null) Object.assign(design, { [key]: stageTypography[key] });
+  }
   // override por lâmina vence o global; ausente nos dois = ligada
   const scrollHintLigado = (() => {
     const ov = (step?.headerOverride || {}) as Record<string, boolean | undefined>;
     return ov.show_scroll_hint !== undefined ? !!ov.show_scroll_hint : scrollHintGlobal;
   })();
-  const idById = useMemo(() => {
-    const m: Record<string, number> = {};
-    steps.forEach((s, i) => (m[s.id] = i));
-    return m;
-  }, [steps]);
 
   useEffect(() => {
     // tipo REAL da lâmina, não a string fixa "layers". Enquanto ia "layers"
@@ -154,27 +198,32 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     if (n < 0 || n >= total || n === idx) return;
     history.current.push(idx);
     setCanBack(true);
+    setSelectionError("");
+    setPreviewNavigationNotice("");
+    setVideoSeconds(0);
     setIdx(n);
   };
-  const navigate = (dest?: string) => {
-    if (!dest || dest === "next") {
-      // "próxima" pode ter destino próprio (`nextStep`), definido arrastando a
-      // bolinha do rodapé no mapa de fluxo. Sem o campo, segue por posição.
-      const padrao = step?.nextStep;
-      if (padrao && idById[padrao] != null) return go(idById[padrao]);
-      return go(idx + 1);
-    }
+  const navigate = (dest?: string, exactUrl = false) => {
+    const resolved = resolveLayerDestination(steps, idx, dest);
     /* Destino EXTERNO leva o rastreio junto. Os botões do funil são <button>,
        não <a> — a UTMify só reescreve links, então aqui ela não tinha o que
        reescrever e a pessoa chegava na Hotmart com a URL nua. Sem os
        parâmetros, a venda chega sem dono. */
-    if (/^https?:\/\//i.test(dest)) { window.location.assign(comRastreio(dest)); return; }
-    if (idById[dest] != null) return go(idById[dest]);
-    go(idx + 1);
+    if (resolved.extern && dest) {
+      if (preview) {
+        setPreviewNavigationNotice("No funil publicado, esta ação abre o destino externo configurado.");
+      } else {
+        window.location.assign(exactUrl ? dest : comRastreio(dest));
+      }
+      return;
+    }
+    if (resolved.to) go(steps.findIndex(s => s.id === resolved.to));
   };
   const back = () => {
     const prev = history.current.pop();
     if (prev != null) {
+      setPreviewNavigationNotice("");
+      setVideoSeconds(0);
       setIdx(prev);
       setCanBack(history.current.length > 0);
     }
@@ -202,10 +251,9 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
    * localmente. Sem isso, `setFields(...)` seguido de `submitFields()` no mesmo
    * tique enviaria o estado ANTERIOR, e o lead entraria vazio.
    */
-  const submitFields = async (direto?: { nome?: string; telefone?: string }) => {
+  const submitFields = async (direto?: { nome?: string; telefone?: string }, destination?: string) => {
     if (submitting) return;
-    if (preview) { const btn = (step.layers || []).find((l) => l.type === "button"); navigate(btn?.content.destination || "next"); return; }
-    const fls = (step.layers || []).filter((l) => l.type === "field");
+    const fls = (step.layers || []).filter((l) => l.type === "field" && !l.design?.hidden && matchesDisplay(l, answers, fields) && (l.display?.device !== "mobile" || (previewWidth ?? window.innerWidth) < 768) && (l.display?.device !== "desktop" || (previewWidth ?? window.innerWidth) >= 768));
     const keyOf = (l?: typeof fls[number]) => (l ? (l.content.name || l.content.id || "") : "");
     const PHONE_RE = /tel|whats|phone|celular|wpp|fone/i;
     const EMAIL_RE = /e-?mail/i;
@@ -218,18 +266,28 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     const nome = direto?.nome || (nameL ? fields[keyOf(nameL)] : "") || name || "";
     const email = emailL ? (fields[keyOf(emailL)] || "") : "";
 
+    for (const field of fls) {
+      const value = direto && field === nameL ? nome : direto && field === phoneL ? phone : fields[fieldKey(field)] || '';
+      const error = fieldError(field, value);
+      if (error) { setSelectionError(error); return; }
+    }
+    // Capturas especializadas mantêm sua validação de contato.
     // Nome e telefone são OBRIGATÓRIOS. A guarda vale quando a lâmina tem o
     // bloco correspondente OU quando os valores vieram por `direto` — a tela de
     // captura da referência não usa blocos `field`, e sem esta segunda condição
     // ela contornaria a validação e gravaria lead pela metade.
-    if ((nameL || direto) && nome.trim().length < 2) {
+    if ((direto || nameL?.content.required) && nome.trim().length < 2) {
       alert("Por favor, preencha seu nome 🙂");
       return;
     }
-    if ((phoneL || direto) && phone.length < 10) {
+    if ((direto || phoneL?.content.required || phone) && phone.length < 10) {
       alert("Confere seu número de Whatsapp com DDD 🙂");
       return;
     }
+    setSelectionError('');
+    const btn = (step.layers || []).find(l => l.type === 'button');
+    const nextDestination = destination || (btn ? buttonDestination(btn) : undefined) || 'next';
+    if (preview || (!nome && !phone && !email && !fls.some(layer => fields[fieldKey(layer)]))) { navigate(nextDestination); return; }
     setSubmitting(true);
     const payload = {
       funnelSlug: funnel.slug,
@@ -237,6 +295,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       phone,
       email: email || undefined,
       componentId: "captura",
+      answers: fls.map(layer => ({ id: layer.id, name: fieldKey(layer), question: String(layer.content.title || layer.title || fieldKey(layer)), value: direto && layer === nameL ? nome : direto && layer === phoneL ? phone : fields[fieldKey(layer)] || '' })),
       session_id: `${getSessionId()}::${funnel.slug}`,
       estado: geo?.estado || "",
       cidade: geo?.cidade || "",
@@ -264,8 +323,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
       } catch { /* noop */ }
     }
     setSubmitting(false);
-    const btn = (step.layers || []).find((l) => l.type === "button");
-    navigate(btn?.content.destination || "next");
+    navigate(nextDestination);
   };
 
   const ctx: LayersCtx = {
@@ -273,18 +331,49 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
     fields, setField: (k, v) => setFields((p) => ({ ...p, [k]: v })),
     estado: geo?.estado, cidade: geo?.cidade,
     funnelSlug: funnel.slug, stepId: step.id, preview,
-    hasFields, submitting, submitFields,
+    previewVideoSeconds: videoLimit > 0 ? videoSeconds : undefined,
+    hasFields, submitting, submitFields: destination => submitFields(undefined, destination),
+    previewWidth, answers, setAnswer: (id, answer) => { setAnswers(previous => ({ ...previous, [id]: answer })); setSelectionError(""); },
+    missingPreviewDestination: preview && !editor && !hasFields
+      && !step.layers.some(layer => layer.type === "options" && layer.content.awaitSubmit && !layer.content.multiple)
+      ? destination => {
+          const target = resolveLayerDestination(steps, idx, destination);
+          return !target.to && !target.extern;
+        }
+      : undefined,
+    continueFrom: (button: Layer, destination?: string) => {
+      const visible = (layer: Layer) => !layer.design?.hidden && matchesDisplay(layer, answers, fields)
+        && (layer.display?.device !== "mobile" || (previewWidth != null ? previewWidth < 768 : window.matchMedia("(max-width: 767px)").matches))
+        && (layer.display?.device !== "desktop" || (previewWidth != null ? previewWidth >= 768 : window.matchMedia("(min-width: 768px)").matches));
+      const questions = step.layers.filter(layer => layer.type === "options" && visible(layer));
+      if (questions.some(layer => layer.content.required && !answers[layer.id]?.optionIds.length)) {
+        setSelectionError("Selecione uma resposta para continuar."); return;
+      }
+      let chosenDestination = destination;
+      for (const layer of questions) {
+        const answer = answers[layer.id];
+        if (!answer) continue;
+        if (layer.content.awaitSubmit || layer.content.multiple) {
+          if (!preview) trackAnswer(funnel.slug, layer.id, plainLabel(layer.content.introduction) || step.title, answer.values.join(", "));
+          if (!layer.content.multiple && answer.destination && answer.destination !== "next") chosenDestination = answer.destination;
+        }
+      }
+      if (step.layers.some(layer => layer.type === "field" && visible(layer))) { void submitFields(undefined, chosenDestination); return; }
+      if (!preview && /^https?:\/\//i.test(chosenDestination || "")) fireMetaEvent("InitiateCheckout", { content_name: button.webhookKey || button.id, sub_id: button.subId });
+      navigate(chosenDestination);
+    },
     navigate,
     // guarda de preview: sem isso, editar/testar no construtor gravava resposta
     // real em quiz_answers e contaminava a aba Resultados.
     trackAnswer: (stepId, q, a) => { if (!preview) trackAnswer(funnel.slug, stepId, q, a); },
   };
 
-  const bgImg = step.design?.backgroundImage?.src || null;
-  const bgOpacity = Number(step.design?.backgroundOpacity ?? 100) / 100;
+  const stageImage = step.design?.backgroundImage?.src;
+  const bgImg = stageImage || (design.backgroundType === "image" ? design.backgroundImage?.src : null);
+  const bgOpacity = designNumber(stageImage ? step.design?.backgroundOpacity : design.backgroundOpacity, 100, 0, 100) / 100;
   // ajuste do fundo: cover (tela inteira) | none (original) | contain (adequar) | fill (esticar)
-  const bgFit = ({ cover: "cover", auto: "none", contain: "contain", fill: "fill" } as const)[(step.design?.backgroundSize as string) || "cover"] || "cover";
-  const bgPos = (step.design?.backgroundPosition as string) || "center";
+  const bgFit = ({ cover: "cover", auto: "none", contain: "contain", fill: "fill" } as const)[(stageImage ? step.design?.backgroundSize : design.backgroundSize) || "cover"] || "cover";
+  const bgPos = (stageImage ? step.design?.backgroundPosition : design.backgroundPosition) || "center";
   const pageBg = step.design?.backgroundColor || design.backgroundColor || "#ffffff";
   const question = step.title || "";
 
@@ -302,10 +391,32 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
   const acimaDoHero = iHero > 0 ? camadas.slice(0, iHero) : [];
   const abaixoDoHero = iHero >= 0 ? camadas.slice(iHero + 1) : [];
   if (hero) {
+    if (hero.type === "sonia-numbers") {
+      const key = JSON.stringify([step.id, hero.id, hero.content.numeroX ?? 42, hero.content.numeroY ?? 17]);
+      const state = soniaStates[key] ?? initialSoniaState;
+      return <div style={{ background: "#06152E", color: "#F7F2E8" }}>
+        {acimaDoHero.length ? <div className="mx-auto w-full max-w-[492px] px-4 pt-6">{acimaDoHero.map((l, i) => <Block key={l.id} layer={l} ctx={ctx} question={question} indice={i} />)}</div> : null}
+        <ComponentFrame key={hero.id} layer={hero} answers={answers} fields={fields} editing={!!editor} viewportWidth={previewWidth}><SoniaNumbers key={key} config={hero.content} state={state}
+        setState={(update) => setSoniaStates((prev) => ({ ...prev, [key]: typeof update === "function" ? update(prev[key] ?? initialSoniaState) : update }))}
+        preview={preview} destination={soniaDestination(hero.content.destination, steps, idx)}
+        allowExternalNavigation={!!allowedPreviewRedirect && hero.content.destination === allowedPreviewRedirect}
+        navigate={(destination) => {
+          if (!state.selected) return;
+          // Only SoniaNumbers continuation receives this permission, never ctx.
+          if (canPreviewRedirect() && destination === allowedPreviewRedirect && hero.content.destination === allowedPreviewRedirect) {
+            window.location.assign(destination);
+            return;
+          }
+          navigate(destination, true);
+        }} back={canBack ? back : undefined}
+        trackSelection={(value) => ctx.trackAnswer(step.id, "Seleção de número", value)} /></ComponentFrame>
+        {abaixoDoHero.length ? <div className="mx-auto w-full max-w-[492px] px-4 pb-8">{abaixoDoHero.map((l, i) => <Block key={l.id} layer={l} ctx={ctx} question={question} indice={acimaDoHero.length + 1 + i} />)}</div> : null}
+      </div>;
+    }
     const palette = getPalette(funnel.paletteId);
     // SLIDER hero: layout dedicado (foto full-bleed no rodapé + gradiente, botão acima).
     if (hero.type === "slider") {
-      return <SliderHero step={hero.content} ctx={ctx} theme={design.themeColor || palette.primary || "#ea580c"} bgColor={pageBg} />;
+      return <ComponentFrame key={hero.id} layer={hero} answers={answers} fields={fields} editing={!!editor} viewportWidth={previewWidth}><SliderHero step={hero.content} ctx={ctx} theme={design.themeColor || palette.primary || "#ea580c"} bgColor={pageBg} /></ComponentFrame>;
     }
     const stepCtx: StepCtx = {
       ...ctx,
@@ -368,13 +479,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
               ))}
             </div>
           ) : null}
-          {hero.type === "roulette" ? <RouletteStepView step={conteudo as RouletteStep} ctx={stepCtx} />
+          <ComponentFrame key={hero.id} layer={hero} answers={answers} fields={fields} editing={!!editor} viewportWidth={previewWidth}>{hero.type === "roulette" ? <RouletteStepView step={conteudo as RouletteStep} ctx={stepCtx} />
             : hero.type === "scratch" ? <ScratchGrid step={conteudo} ctx={stepCtx} />
               : hero.type === "measure" ? <MeasureStepView step={conteudo} ctx={stepCtx} />
                 : hero.type === "gauge" ? <GaugeStepView step={conteudo} ctx={stepCtx} />
                   : hero.type === "vsl" ? <VslStepView step={conteudo} ctx={stepCtx} />
                     : hero.type === "confirm" ? <ConfirmStepView step={conteudo} ctx={stepCtx} />
-                      : null}
+                      : null}</ComponentFrame>
           {abaixoDoHero.length ? (
             <div className="w-full px-5 pb-8 pt-4">
               {abaixoDoHero.map((l, i) => (
@@ -390,7 +501,25 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
 
   return (
     <LayersEditContext.Provider value={editor ?? null}>
-    <div className="relative flex min-h-[100dvh] flex-col overflow-x-hidden" style={{ background: pageBg, color: design.contentColor || "#000" }}>
+    {videoLimit > 0 && <section className="ct-workspace border-b border-ct-line bg-ct-surface px-4 py-3 text-sm text-ct-ink">
+      <label className="mx-auto grid max-w-md gap-2">
+        <span>Tempo simulado do vídeo <span className="text-ct-dim">· {videoSeconds} s</span></span>
+        <input className="w-full accent-ct-action" type="range" min={0} max={Math.ceil(videoLimit)} step={1}
+          value={videoSeconds} onChange={event => setVideoSeconds(event.currentTarget.valueAsNumber)}
+          aria-label="Tempo simulado do vídeo" aria-valuetext={`${videoSeconds} segundos`} />
+      </label>
+    </section>}
+    <div className="relative flex min-h-[100dvh] flex-col overflow-x-clip" style={{
+      ...typographyStyles(design), backgroundColor: pageBg, color: design.contentColor || "#000",
+      backgroundImage: !step.design?.backgroundColor && !stageImage && design.backgroundType === "gradient"
+        ? `linear-gradient(${designNumber(design.gradientAngle,135,0,360)}deg,${pageBg},${design.gradientColor || "#e1eef8"})`
+        : !stageImage && design.backgroundType === "effect" ? `radial-gradient(${design.themeColor || "#ea580c"} 1px, transparent 1px)` : undefined,
+      backgroundSize: design.backgroundType === "effect" && !stageImage ? "22px 22px" : undefined,
+    }}>
+      {!stageImage && design.backgroundType === "video" && design.backgroundVideo && <video
+        className="ct-funnel-background-video pointer-events-none absolute inset-0 h-full w-full object-cover"
+        src={design.backgroundVideo} autoPlay muted loop playsInline preload="metadata" aria-hidden="true"
+        style={{ opacity: designNumber(design.backgroundOpacity,100,0,100)/100 }} />}
       <style>{`
         .lyr-html{line-height:1.45;overflow-wrap:break-word}
         .lyr-html p{margin:0}
@@ -454,12 +583,13 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
         if (isVslStep && !hasOverride) return null;   // VSL sem header por padrão (salvo override por lâmina)
         if (!hdr.show_logo && !hdr.show_progress && !hdr.show_back) return null;
         return (
-          <header className="relative z-10 mx-auto flex w-full flex-col items-center gap-2 px-5 pt-5" style={{ maxWidth: containerMax(design.container) }}>
+          <header className="relative z-10 mx-auto flex w-full flex-col items-center gap-2 px-5 pt-5" style={{ maxWidth: containerMax(design.container),
+            ...(design.header?.progress === "fixed" ? { position: "sticky", top: 0, background: pageBg, paddingBottom: 12 } : {}) }}>
             {hdr.show_back && canBack ? <button onClick={back} className="self-start text-sm opacity-60">← Voltar</button> : null}
             {hdr.show_logo && design.logo?.src ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={design.logo.src} alt="" decoding="async" className="w-auto object-contain"
-                style={{ height: `${Number(design.logoSize) || 36}px`, opacity: (Number(design.logoOpacity ?? 100) || 100) / 100 }} />
+                style={{ height: `${Number(design.logoSize) || 36}px`, opacity: designNumber(design.logoOpacity,100,0,100) / 100, alignSelf: design.logoAlign === "left" ? "flex-start" : "center" }} />
             ) : null}
             {hdr.show_progress ? (() => {
               /* A barra conta só as lâminas que TÊM barra, não o funil inteiro.
@@ -470,7 +600,15 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                  então quem liga/desliga a barra no construtor já define o
                  denominador. Sem campo novo, sem migration. */
               const comBarra = steps
-                .map((s, i) => [i, ((s.headerOverride || {}) as Record<string, boolean | undefined>).show_progress] as const)
+                .map((s, i) => ({ step: s, index: i }))
+                .filter(({ step: s, index: i }) => {
+                  if (i === 0) return false;
+                  const hasHeaderOverride = Object.values(s.headerOverride || {}).some(value => value !== undefined);
+                  if (s.layers.some(l => l.type === "embed" || l.type === "video") && !hasHeaderOverride) return false;
+                  const ownHeader = s.tela || s.layers.some(l => l.type === "options" && l.design?.preset === "resina");
+                  return !((design as { presetTelas?: string }).presetTelas === "resina" && ownHeader);
+                })
+                .map(({ step: s, index: i }) => [i, ((s.headerOverride || {}) as Record<string, boolean | undefined>).show_progress] as const)
                 .filter(([, v]) => (v !== undefined ? v : g.show_progress))
                 .map(([i]) => i);
               const pos = comBarra.indexOf(idx);
@@ -481,15 +619,16 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                   {/* Pílula, não texto solto: é a forma da referência
                       (StepQuiz.tsx:60) — caixa alta, tracking largo, fundo e
                       borda claros derivados do tema. */}
-                  {quantas > 1 && pos >= 0 ? (
+                  {design.header?.progress !== "flat" && quantas > 1 && pos >= 0 ? (
                     <p className="mb-2 text-center">
                       <span style={estiloPilulaPergunta(design.themeColor || "#ea580c")}>
                         Pergunta {pos + 1} de {quantas}
                       </span>
                     </p>
                   ) : null}
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
-                    <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${pct}%`, background: design.themeColor || "#ea580c" }} />
+                  <div role="progressbar" aria-label="Progresso do funil" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)}
+                    className="h-1.5 w-full overflow-hidden bg-black/10" style={{ borderRadius: design.header?.progress === "flat" ? 0 : 9999 }}>
+                    <div className="h-full transition-[width] duration-500" style={{ width: `${pct}%`, background: design.themeColor || "#ea580c", borderRadius: "inherit" }} />
                   </div>
                 </div>
               );
@@ -518,11 +657,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
             // `false` só na primeira pintura: é o que tira o opacity:0 do HTML
             // servido. Da 2ª lâmina em diante o fade/slide de entrada continua.
             // eslint-disable-next-line react-hooks/refs
-            initial={primeiroPaint.current ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+            initial={primeiroPaint.current ? false : { opacity: 0, y: reducePreviewMotion ? 0 : 14 }}
+            animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reducePreviewMotion ? 0 : -8 }}
             transition={{ duration: 0.28 }}
             className="mx-auto flex w-full flex-col"
-            style={{ maxWidth: containerMax(design.container), gap: `${Number(design.gap) || 0.6}rem` }}
+            style={{ maxWidth: containerMax(design.container), gap: `${designNumber(design.gap,.6,0,3)}rem` }}
           >
             {(() => {
               /* Bloco OCULTO fica de fora aqui, na origem. O `Block` já pulava
@@ -540,9 +679,11 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                  de Etapa, que é por onde a seleção acontece nessas lâminas.
                  Lâmina SEM tela de preset continua na lista arrastável de
                  sempre — lá o clique no celular é o caminho natural. */
+              const contemVideo = ls.some(l => l.type === "embed" || l.type === "video");
+              const heroComVideo = contemVideo && (step as {tela?:string}).tela === "hero" && !ls.some(l => l.type === "text" && !/^\s*<style\b/i.test(String(l.content?.text || "")) && semHtml(l.content?.text));
               const temTelaPropria = (design as { presetTelas?: string }).presetTelas === "resina"
-                && (!!(step as { tela?: string }).tela
-                  || idx === 0
+                && ((!!(step as { tela?: string }).tela && !heroComVideo)
+                  || (idx === 0 && !contemVideo)
                   || ls.some((l) => l.type === "options" && l.design?.preset === "resina"));
               if (editor && !temTelaPropria) {
                 return <EditableBlockList layers={ls} ctx={ctx} question={question} editor={editor} />;
@@ -570,7 +711,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                  soltos e metade sumia. Quem declara `tela` já disse o que é;
                  a posição só decide quando ninguém disse nada. */
               const telaDeclarada = (step as { tela?: string }).tela;
-              if (presetTelas && ((idx === 0 && !telaDeclarada) || telaDeclarada === "hero")) {
+              if (presetTelas && ((idx === 0 && !telaDeclarada && !contemVideo) || (telaDeclarada === "hero" && !heroComVideo))) {
                 const textos = ls.filter((l) => l.type === "text" && semHtml(l.content?.text));
                 const btn = ls.find((l) => l.type === "button");
                 const imgs = [
@@ -890,7 +1031,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                 );
               }
               const opt = ls.find((l) => l.type === "options");
-              if (opt?.design?.preset === "resina" && !opt.content?.multiple) {
+              if (opt?.design?.preset === "resina" && !opt.content?.multiple && !opt.content?.awaitSubmit && !opt.display && !opt.design?.states && !opt.design?.fontFamily && opt.design?.fontSize == null && !opt.design?.textColor) {
                 const idsComBarra = steps
                   .map((s, i) => [i, ((s.headerOverride || {}) as Record<string, boolean | undefined>).show_progress] as const)
                   .filter(([, v]) => (v !== undefined ? v : ((funnel.settings as { header?: Record<string, boolean> })?.header || {}).show_progress))
@@ -927,7 +1068,8 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     onVoltar={canBack ? back : undefined}
                     onEscolha={(o) => {
                       const orig = (opt.content?.options || []).find((x) => x.id === o.id);
-                      ctx.trackAnswer(step.id, titulo, o.label);
+                      if (orig) ctx.setAnswer?.(opt.id, { optionIds: [orig.id], labels: [o.label], values: [orig.value || o.label], points: orig.points || 0, destination: orig.destination });
+                      ctx.trackAnswer(step.id, titulo, orig?.value || o.label);
                       ctx.navigate(orig?.destination || "next");
                     }}
                   />
@@ -944,10 +1086,7 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
                     <div key={l.id} className="flex w-full items-start justify-center gap-2">
                       {grp.map((g) => (
                         <div key={g.id} className="min-w-0 flex-1">
-                          <Reveal delay={g.effects?.starts}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={g.content.image?.src || ""} alt="" loading="lazy" decoding="async" className="h-auto w-full rounded-2xl object-contain" />
-                          </Reveal>
+                          <Block layer={g} ctx={ctx} question={question} />
                         </div>
                       ))}
                     </div>,
@@ -963,6 +1102,10 @@ export default function LayersRunner({ funnel, geo, startIndex = 0, preview = fa
             })()}
           </motion.div>
         </AnimatePresence>
+        {preview && <div role="status" className="mx-auto max-w-lg">
+          {previewNavigationNotice && <p className="my-3 rounded-lg bg-slate-100 p-3 text-sm text-slate-900">{previewNavigationNotice}</p>}
+        </div>}
+        {selectionError && <p role="alert" className="mx-auto my-3 max-w-lg rounded-lg bg-red-50 p-3 text-sm text-red-800">{selectionError}</p>}
       </main>
 
       {funnel.settings?.footer ? (

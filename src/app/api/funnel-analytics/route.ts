@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { funnelMetrics, type MetricsIssue } from "@/lib/quiz/metrics";
@@ -16,6 +17,11 @@ export async function GET(request: Request) {
   const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
   if (!user || (!adminEmail || user.email?.toLowerCase() !== adminEmail)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  if (isReadOnlyWorkspace()) {
+    return NextResponse.json({ error: "Consulte os indicadores no relatório do funil no preview." }, {
+      status: 403, headers: { "Cache-Control": "no-store" },
+    });
   }
   const params = new URL(request.url).searchParams;
   const slug = params.get("slug") || "";
@@ -177,14 +183,14 @@ export async function GET(request: Request) {
     const porStep = ansByStep.get(sid);
     const cells: Record<string, string> = {};
     for (const c of cols) {
-      if (c.kind === "options") cells[c.key] = porStep?.get(c.stepId) ?? "";
+      if (c.kind === "options") cells[c.key] = (c.layerId ? porStep?.get(c.layerId) : undefined) ?? porStep?.get(c.stepId) ?? "";
       // mesma regra do CSV: botão "clicado" = a sessão passou daquela lâmina
       else if (c.kind === "button") cells[c.key] = max > c.stepIdx ? "clicked" : "";
       // lâmina sem interação: registra só se a sessão chegou a vê-la
       else if (c.kind === "passou") cells[c.key] = max >= c.stepIdx ? "visto" : "";
       else {
         const n = (c.fieldName || "").toLowerCase();
-        cells[c.key] = /tel|phone|whats/.test(n) ? ((l?.phone as string) ?? "")
+        cells[c.key] = c.layerId && porStep?.has(c.layerId) ? (porStep.get(c.layerId) ?? "") : /tel|phone|whats/.test(n) ? ((l?.phone as string) ?? "")
           : /nome|name/.test(n) ? ((l?.name as string) ?? "")
             : "";
       }

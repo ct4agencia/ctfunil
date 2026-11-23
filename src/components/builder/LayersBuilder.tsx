@@ -1,22 +1,40 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { StatefulButton } from "@/components/referencias/beui/motion/button/stateful";
+
+import RollingNumber from "@/components/ui/RollingNumber";
+import StagePreviewRail from "./StagePreviewRail";
+import DeleteConfirmationIcon from "@/components/ui/DeleteConfirmationIcon";
+import WorkspaceNoticeHistory, { recordWorkspaceNotice } from "@/components/workspace/WorkspaceNoticeHistory";
+import WorkspaceNotice from "@/components/ui/WorkspaceNotice";
+import ActiveTab from "@/components/ui/ActiveTab";
+import { useContext, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
+import { EditorTop } from "@/components/workspace/WorkspaceFrame";
+import { AlignLeft, Bell, Calendar, Check, CircleDot, CircleHelp, Code, Columns2, CreditCard, FileText, Gauge, GitBranch, Hash, Heading, Image as ImageIcon, Layers, ListChecks, ListFilter, LoaderCircle, Mail, Megaphone, MessageSquare, MousePointer2, Pencil, PanelTop, Phone, Play, Ruler, ShieldCheck, SlidersHorizontal, Square, Star, Timer, TrendingUp, TriangleAlert, Volume2, type LucideIcon } from "lucide-react";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates, useSortable, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
+import { SONIA_DEFAULTS, soniaConfigError } from "@/lib/quiz/layers/sonia";
+import { cloneStageWithRules } from "@/lib/quiz/layers/component-settings";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import CanvasErrorBoundary from "@/components/builder/CanvasErrorBoundary";
 import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
 import PerformanceView from "@/components/dashboard/PerformanceView";
-import DevicePreview, { DEFAULT_DEVICE, type Zoom } from "@/components/builder/DevicePreview";
+import FunnelDesignPanel from "./FunnelDesignPanel";
+import CatalogFields from './CatalogFields';
+import { catalogLayer, NEW_COMPONENTS } from '@/lib/quiz/layers/catalog';
+import { ComponentAppearance, ComponentDisplay, StageAppearance } from "./ComponentSettings";
+import DevicePreview, { getDevice, DEFAULT_DEVICE, type Zoom } from "@/components/builder/DevicePreview";
+import { StepTemplatePicker, type StepTemplate } from "./StepTemplates";
+import { Copy, Ellipsis, Eye, FilePlus2, Trash2, X } from "lucide-react";
 // Editor dos blocos-hero herdados do motor tipado (raspadinha, pedida, medidor,
 // VSL, parabéns). Reusado em vez de duplicado: dois editores do mesmo bloco
 // viram dois comportamentos diferentes na primeira mudança.
 import StepEditor from "@/components/builder/StepEditor";
-import { HtmlField, ImageField, TemaFunilContext } from "@/components/builder/fields";
+import { HtmlField, ImageField, TemaFunilContext, LocalDraftContext } from "@/components/builder/fields";
 // Mesma normalização que gera o cabeçalho do CSV — se o construtor tivesse a
 // dele, o nome digitado e o nome exportado divergiriam no primeiro acento.
 import { normalizarChave } from "@/lib/quiz/colunas";
@@ -24,11 +42,12 @@ import { normalizarChave } from "@/lib/quiz/colunas";
 // que `/dashboard/[slug]` usa. Uma cópia só.
 import { PERIODOS, spYmd, dayBounds } from "@/lib/quiz/periodo";
 import ColorField from "@/components/ui/ColorField";
+import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import dynamic from "next/dynamic";
 // Mapa do funil: só carrega ao abrir a aba Fluxo (SVG + animação ficam fora do
 // chunk de quem só usa o construtor).
 const LayersFlow = dynamic(() => import("@/components/builder/flow/LayersFlow"), { ssr: false });
-import { saveFunnelAction } from "@/app/builder/[slug]/actions";
+import { saveFunnelAction, publishFunnelAction } from "@/app/builder/[slug]/actions";
 
 function genId() {
   try { return crypto.randomUUID().slice(0, 8); } catch { return `l-${Math.random().toString(36).slice(2, 10)}`; }
@@ -42,6 +61,7 @@ const BLOCK_META: Record<string, { icon: string; label: string }> = {
   graphics: { icon: "📊", label: "Gráfico" }, clear: { icon: "↕️", label: "Espaço" }, embed: { icon: "▶️", label: "Vídeo/Embed" },
   video: { icon: "▶️", label: "Vídeo" }, roulette: { icon: "🎡", label: "Roleta" }, slider: { icon: "🎚️", label: "Slider" },
   carousel: { icon: "🎠", label: "Carrossel" },
+  "sonia-numbers": { icon: "🔢", label: "Sorteio da Sônia" },
 };
 /** Paleta categorizada (ordem/categorias dos prints do inlead). */
 const CATS: { name: string; items: [string, string][] }[] = [
@@ -51,10 +71,10 @@ const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Quiz", items: [["options", "Opções"], ["multi", "Múltipla Escolha"], ["single", "Escolha Única"], ["yesno", "Sim/Não"], ["videoanswer", "Vídeo Resposta"]] },
   // Blocos-hero: ocupam a lâmina inteira. Vêm do motor tipado e nascem com
   // preset pronto — adicionar e já funciona.
-  { name: "Jogos (hero)", items: [["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
+  { name: "Jogos (hero)", items: [["sonia-numbers", "Sorteio da Sônia"], ["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
   { name: "Conversão (hero)", items: [["vsl", "VSL (vídeo + CTA)"], ["confirm", "Parabéns"]] },
   { name: "Mídia e conteúdo", items: [["text", "Texto"], ["card", "Card"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
-  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"], ["disclaimer", "Disclaimer"], ["trust", "Garantia e pagamento"]] },
+  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"], ["disclaimer", "Disclaimer"], ["trust", "Garantia e pagamento"], ["ranking", "Ranking"]] },
   { name: "Argumentação", items: [["arguments", "Argumentos"], ["testimonials", "Depoimentos"], ["faq", "FAQ"], ["price", "Preço"], ["checklist", "Checklist"], ["beforeafter", "Antes/Depois"], ["carousel", "Carrossel"]] },
   { name: "Gráficos", items: [["graphics", "Métricas"], ["charts", "Gráficos"]] },
   { name: "Personalização", items: [["clear", "Espaço"], ["html", "HTML/Script"]] },
@@ -83,22 +103,27 @@ const ROTULO_HERO: Record<string, string> = {
   scratch: "Raspadinha", measure: "Pedida (régua)", gauge: "Medidor",
   vsl: "VSL", confirm: "Parabéns",
 };
-const PALETTE_ICON: Record<string, string> = {
-  field: "📝", email: "✉️", phone: "📞", button: "🔘", number: "🔢", textarea: "📄", date: "📅", height: "📏", weight: "⚖️",
-  options: "☑️", multi: "🗂️", single: "⚪", yesno: "🔀", videoanswer: "🎬", text: "🔤", image: "🖼️", video: "▶️", audio: "🔊",
-  card: "🗂️", alert: "⚠️", notification: "🔔", timer: "⏱️", loading: "⏳", level: "📶", arguments: "💬", testimonials: "⭐", faq: "❓",
-  price: "💲", checklist: "✅", beforeafter: "🔁", carousel: "🎠", graphics: "📊", charts: "📈", clear: "↕️", html: "▟",
-  roulette: "🎡", slider: "🎚️", scratch: "🎟️", measure: "📐", gauge: "🎯", vsl: "🎥", confirm: "🎉",
+const BLOCK_ICONS: Record<string, LucideIcon> = {
+  field: AlignLeft, email: Mail, phone: Phone, button: MousePointer2, number: Hash, textarea: FileText, date: Calendar, height: Ruler, weight: Gauge,
+  options: ListFilter, multi: ListChecks, single: CircleDot, yesno: GitBranch, videoanswer: Play, text: Heading, image: ImageIcon, video: Play, audio: Volume2,
+  card: PanelTop, ranking: TrendingUp, alert: TriangleAlert, notification: Bell, timer: Timer, loading: LoaderCircle, level: SlidersHorizontal, arguments: MessageSquare, testimonials: Star,
+  faq: CircleHelp, price: CreditCard, checklist: ListChecks, beforeafter: Columns2, carousel: Layers, graphics: TrendingUp, charts: TrendingUp, html: Code,
+  roulette: CircleDot, slider: SlidersHorizontal, measure: Ruler, gauge: Gauge, confirm: Check, check: Check, trust: ShieldCheck, disclaimer: Megaphone, vsl: Play,
+  "sonia-numbers": Hash, scratch: Square, clear: AlignLeft,
 };
+function BlockIcon({ type }: { type: string }) {
+  const Icon = BLOCK_ICONS[type] ?? Layers;
+  return <Icon aria-hidden="true" size={15} strokeWidth={1.7}/>;
+}
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
-const ADDABLE = new Set(["text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "disclaimer", "trust", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
+const ADDABLE = new Set([...NEW_COMPONENTS,"multi", "single", "yesno", "text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "disclaimer", "trust", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
   // blocos-hero herdados do motor tipado (todos com preset pronto)
-  "scratch", "measure", "gauge", "vsl", "confirm",
+  "scratch", "measure", "gauge", "vsl", "confirm", "sonia-numbers",
   // Estes DOIS o funil já desenhava (blocks.tsx: GraphicsBlock e
   // NotificationBlock) e o construtor ainda dizia "em breve" — funcionalidade
   // pronta e trancada. O `graphics` é o anel de porcentagem que o cdb-01 usa
   // no "94% compatível": dava para ver no funil e não para adicionar num novo.
-  "graphics", "notification", "card",
+  "graphics", "notification", "card", "ranking",
   // Escritos a pedido do Luca: régua de níveis, prova social antes→depois com
   // carrossel, e barras de projeção. Diferente dos dois acima, estes NÃO
   // existiam no runtime — foram construídos, não destrancados.
@@ -116,12 +141,16 @@ const ATALHO_CAMPO: Record<string, Record<string, unknown>> = {
 
 function newLayer(type: LayerType): Layer {
   const id = genId();
+  const catalog = catalogLayer(type, id);
+  if (catalog) return catalog;
   const base = { id, type, content: { id: genId() } } as Layer;
   const atalho = ATALHO_CAMPO[type as string];
   if (atalho) return { id, type: "field", content: { id, ...atalho } } as unknown as Layer;
   switch (type) {
+    case "sonia-numbers": return { ...base, content: { id, ...SONIA_DEFAULTS } };
     case "text": return { ...base, content: { id, text: "<p class=\"ql-align-center\">Novo texto</p>" } };
     case "card": return { ...base, design: { basis: 100, variant: "suave", padding: 20 }, content: { id, text: "<p class=\"ql-align-center\">Texto dentro do card. Use a barra de formatação para destacar palavras.</p>" } };
+    case "ranking": return { ...base, design: { basis: 100 }, content: { id, posDe: 28, posAte: 48, revealAt: 0, fimEm: 60, pct: 83 } };
     case "alert": return { ...base, design: { style: "danger", padding: 14 }, content: { id, text: "<p class=\"ql-align-center\">Aviso importante</p>" } };
     // Botão novo já nasce com o efeito e a trava LIGADOS: são o padrão certo em
     // praticamente todo funil, e exigir que se ligue à mão os deixa esquecidos.
@@ -237,7 +266,7 @@ function newLayer(type: LayerType): Layer {
     case "confirm": return { ...base, content: {
       id, type: "confirm",
       title: "🎉 Parabéns, {nome}!",
-      subtitle: "Você deu o primeiro passo. Continue para ver o que preparamos.",
+      body: "Você deu o primeiro passo. Continue para ver o que preparamos.",
       cta: "Continuar →",
     } } as unknown as Layer;
 
@@ -245,13 +274,23 @@ function newLayer(type: LayerType): Layer {
   }
 }
 
+function createTemplateStep(template?: StepTemplate): InleadStep {
+  const layers = (template?.blocks ?? []).map(({ type, content, answers }) => {
+    const layer = newLayer(type);
+    Object.assign(layer.content, content);
+    if (answers) layer.content.options = answers.map(label => ({ id: genId(), label, destination: "next" }));
+    return layer;
+  });
+  return { id: genId(), title: template?.title ?? "Nova lâmina", layers, options: { show_logo: false, show_progress: false } };
+}
+
 /** Editor rico e campo de imagem — ambos compartilhados em builder/fields.tsx. */
 
-const Lbl = ({ children }: { children: React.ReactNode }) => <label className="mb-1 mt-2 block text-[11px] font-semibold text-neutral-500">{children}</label>;
+const Lbl = ({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor} className="mb-1 mt-2 block text-[11px] font-semibold text-neutral-500">{children}</label>;
 const inp = "w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs";
 
 /** Tipos de bloco que viram coluna na aba Leads — espelha `lib/quiz/colunas.ts`. */
-const GERA_COLUNA = new Set<string>(["options", "button", "field"]);
+
 
 /**
  * ID/Nome de um bloco ou de uma lâmina: o rótulo que vira chip na aba Leads e
@@ -282,6 +321,7 @@ function CampoId({ valor, aoSalvar, automatico, ajuda }: {
     <div className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 p-2.5">
       <Lbl>ID / Nome</Lbl>
       <input
+        aria-label="ID / Nome"
         value={txt}
         onChange={(e) => setTxt(e.target.value)}
         onBlur={commit}
@@ -290,12 +330,7 @@ function CampoId({ valor, aoSalvar, automatico, ajuda }: {
         spellCheck={false}
         className={inp}
       />
-      <p className="mt-1 text-[10px] leading-snug text-neutral-500">{ajuda}</p>
-      {!txt ? (
-        <p className="mt-0.5 text-[10px] leading-snug text-neutral-400">
-          Vazio = usa o código automático <code className="rounded bg-neutral-200 px-1">{automatico}</code>.
-        </p>
-      ) : null}
+      <details className="ct-disclosure mt-1 text-[11px] text-neutral-500"><summary className="cursor-pointer">Sobre o ID</summary><p className="mt-1">{ajuda} Sem um nome, será usado o ID automático <code>{automatico}</code>.</p></details>
     </div>
   );
 }
@@ -334,11 +369,11 @@ function Appearance({ layer, onChange }: { layer: Layer; onChange: (l: Layer) =>
       <div>
         <Lbl>Largura {basis > 100 ? "(ampliada)" : ""}</Lbl>
         <div className="flex items-center gap-2">
-          <button onClick={() => step(basis - 5)} className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-neutral-300 text-neutral-500 hover:bg-neutral-50">−</button>
-          <input type="range" min={20} max={200} value={basis} onChange={(e) => setD({ basis: Number(e.target.value) })} className="flex-1" />
-          <button onClick={() => step(basis + 5)} className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-neutral-300 text-neutral-500 hover:bg-neutral-50">+</button>
+          <button type="button" aria-label="Reduzir largura" onClick={() => step(basis - 5)} className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-neutral-300 text-neutral-500 hover:bg-neutral-50">−</button>
+          <input type="range" aria-label="Largura" min={20} max={200} value={basis} onChange={(e) => setD({ basis: Number(e.target.value) })} className="ct-range flex-1" />
+          <button type="button" aria-label="Aumentar largura" onClick={() => step(basis + 5)} className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-neutral-300 text-neutral-500 hover:bg-neutral-50">+</button>
         </div>
-        <p className="mt-0.5 text-center text-[11px] font-semibold text-neutral-400">{basis}%</p>
+        <p className="mt-0.5 text-center text-[11px] font-semibold text-neutral-400"><RollingNumber value={basis} suffix="%" /></p>
       </div>
       {/* ALINHAMENTO — 3 horizontais | 4 verticais (estilo inlead) */}
       <div>
@@ -360,54 +395,95 @@ function Appearance({ layer, onChange }: { layer: Layer; onChange: (l: Layer) =>
       <div>
         <Lbl>Opacidade</Lbl>
         <div className="flex items-center gap-2">
-          <input type="range" min={0} max={100} value={opacity} onChange={(e) => setD({ opacity: Number(e.target.value) === 100 ? undefined : Number(e.target.value) })} className="flex-1" />
-          <span className="w-9 shrink-0 text-right text-[11px] font-semibold text-neutral-400">{opacity}%</span>
+          <input type="range" aria-label="Opacidade" min={0} max={100} value={opacity} onChange={(e) => setD({ opacity: Number(e.target.value) === 100 ? undefined : Number(e.target.value) })} className="ct-range flex-1" />
+          <span className="w-9 shrink-0 text-right text-[11px] font-semibold text-neutral-400"><RollingNumber value={opacity} suffix="%" /></span>
         </div>
       </div>
-      {hasText ? (
-        <div>
-          <Lbl>Tamanho da fonte (bloco)</Lbl>
-          <div className="flex items-center gap-2">
-            <input type="number" min={10} max={60} placeholder="auto" value={(d.fontSize as number) || ""} onChange={(e) => setD({ fontSize: e.target.value ? Number(e.target.value) : undefined })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" />
-            <span className="text-[11px] text-neutral-400">px</span>
-          </div>
-        </div>
-      ) : null}
+      <ComponentAppearance layer={layer} onChange={onChange} />
     </div>
   );
 }
 
 /** Linha arrastável (render-prop injeta o "handle" ⠿). */
-function SortableItem({ id, children }: { id: string; children: (handle: React.ReactNode) => React.ReactNode }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const handle = <span {...attributes} {...listeners} className="cursor-grab select-none text-neutral-300 hover:text-neutral-500" title="Arrastar">⠿</span>;
+function SortableItem({ id, children, onMove }: { id: string; children: (handle: React.ReactNode) => React.ReactNode; onMove: (delta: -1 | 1) => void }) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const handle = <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners} className="ct-sort-handle" aria-label="Reordenar item" title="Reordenar item (Alt + seta)" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+    onKeyDown={event => {
+      if (event.altKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+        event.preventDefault();
+        onMove(event.key === "ArrowUp" ? -1 : 1);
+        return;
+      }
+      listeners?.onKeyDown?.(event);
+    }}>⠿</button>;
   return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}>{children(handle)}</div>;
 }
 
 /** Aba "Componente": campos de conteúdo por tipo de bloco. */
 function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadStep[]; onChange: (l: Layer) => void }) {
+  const releaseId = useId();
+  const trustId = useId();
+  const themeColor = useContext(TemaFunilContext) || "#1d4f88";
   const c = layer.content;
   const setC = (patch: Record<string, unknown>) => onChange({ ...layer, content: { ...c, ...patch } });
   const setD = (patch: Record<string, unknown>) => onChange({ ...layer, design: { ...(layer.design || {}), ...patch } });
-  const destOptions = (
-    <>
-      <option value="next">→ Próxima lâmina</option>
-      {steps.map((s) => <option key={s.id} value={s.id}>↪ {s.title || s.id}</option>)}
-    </>
-  );
+
 
   switch (layer.type) {
+    case "sonia-numbers":
+      return <>
+        <p className="text-xs text-neutral-600">Seleção demonstrativa, sem estoque ou reserva real. X pode ser escolhido diretamente; Y fica indisponível após o clique.</p>
+        <label className="mt-3 block text-xs">Número X (selecionável)
+          <input aria-label="Número X" type="number" min={1} max={60} step={1} className={inp} value={c.numeroX ?? SONIA_DEFAULTS.numeroX} onChange={(e) => setC({ numeroX: Number(e.target.value) })} />
+        </label>
+        <label className="mt-3 block text-xs">Número Y (indisponível após clique)
+          <input aria-label="Número Y" type="number" min={1} max={60} step={1} className={inp} value={c.numeroY ?? SONIA_DEFAULTS.numeroY} onChange={(e) => setC({ numeroY: Number(e.target.value) })} />
+        </label>
+        {soniaConfigError(c) ? <p role="alert" className="mt-2 text-xs text-red-700">{soniaConfigError(c)}</p> : null}
+        <label className="mt-3 block text-xs">Destino após confirmar
+          <WorkspaceSelect searchable label="Destino após confirmar" value={/^https?:/.test(c.destination||'')?'__url':(c.destination||'')} onChange={value=>setC({destination:value==='__url'?'https://':value||undefined})} options={[{value:'',label:'Pendente'},{value:'next',label:'Próxima etapa'},...steps.map(step=>({value:step.id,label:step.title||step.id})),{value:'__url',label:'Link externo'}]}/>
+        </label>
+        {/^https?:/.test(c.destination || "") ? <input aria-label="URL de destino" className={`${inp} mt-2`} value={c.destination} onChange={(e) => setC({ destination: e.target.value })} placeholder="https://…" /> : null}
+        <p className="mt-2 text-xs text-neutral-600">No runtime, destino ausente ou inválido bloqueia a confirmação. Preview nunca abre links externos.</p>
+      </>;
     case "text":
       return (<><Lbl>Texto</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} /></>);
     case "alert":
       return (<>
         <Lbl>Estilo</Lbl>
-        <select value={layer.design?.style || "danger"} onChange={(e) => setD({ style: e.target.value })} className={inp}>
-          <option value="danger">Destaque (laranja)</option><option value="success">Sucesso (verde)</option><option value="theme">Tema</option><option value="default">Neutro</option>
-          <option value="pilula">Pílula (cápsula do tema)</option>
-        </select>
+        <WorkspaceSelect label="Estilo" value={layer.design?.style||'danger'} onChange={value=>setD({style:value})} options={[["danger","Destaque"],["success","Sucesso"],["theme","Tema"],["default","Neutro"],["pilula","Pílula"]].map(([value,label])=>({value,label}))}/>
         <Lbl>Texto do alerta</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />
       </>);
+    case "ranking":
+      return <>
+        <p className="text-xs text-ct-dim">A prévia exibe a posição simulada. Os tempos acompanham o vídeo na página publicada.</p>
+        {([
+          ["posDe", "Posição inicial", 1, undefined],
+          ["posAte", "Posição final", 1, undefined],
+          ["revealAt", "Exibir após (segundos)", 0, undefined],
+          ["fimEm", "Encerrar movimento em (segundos)", 1, undefined],
+          ["pct", "Percentual exibido", 1, 100],
+        ] as const).map(([key, label, min, max]) => (
+          <label key={key} className="mb-2 block text-xs font-semibold">
+            {label}
+            <input type="number" min={min} max={max} value={c[key] ?? ""} className={inp}
+              onChange={event => {
+                const input = event.currentTarget;
+                if (input.validity.valid) setC({ [key]: input.value === "" ? undefined : input.valueAsNumber });
+              }} />
+          </label>
+        ))}
+        <label className="mb-2 block text-xs font-semibold">
+          Rótulo da posição
+          <input value={String(c.rotulo ?? "")} placeholder="VOCÊ" className={inp}
+            onChange={event => setC({ rotulo: event.target.value })} />
+        </label>
+        <label className="mb-2 block text-xs font-semibold">
+          Texto do selo
+          <input value={String(c.selo ?? "")} placeholder="Você está aqui" className={inp}
+            onChange={event => setC({ selo: event.target.value })} />
+        </label>
+      </>;
     case "trust":
       return (<>
         <p className="mb-2 text-[11px] leading-snug text-neutral-500">
@@ -419,8 +495,8 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           Medalhão de garantia
         </label>
         {c.seloGarantia !== false ? (<>
-          <Lbl>Dias de garantia</Lbl>
-          <input type="number" min={1} value={Number(c.dias) || 7} onChange={(e) => setC({ dias: Number(e.target.value) })} className={inp} />
+          <Lbl htmlFor={`${trustId}-days`}>Dias de garantia</Lbl>
+          <input id={`${trustId}-days`} type="number" min={1} value={Number(c.dias) || 7} onChange={(e) => setC({ dias: Number(e.target.value) })} className={inp} />
           <p className="mt-1 text-[11px] text-neutral-500">
             Uma imagem na lâmina substitui o desenho: a 1ª vira o selo, a 2ª as bandeiras.
           </p>
@@ -431,10 +507,10 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           Bandeiras de pagamento
         </label>
         {c.bandeiras !== false ? (<>
-          <Lbl>Formas aceitas (separe por vírgula)</Lbl>
-          <input value={String(c.formas ?? "")} onChange={(e) => setC({ formas: e.target.value })} className={inp} placeholder="VISA, MASTER, PIX" />
-          <Lbl>Linha de segurança (vazio = sem linha)</Lbl>
-          <input value={String(c.seguranca ?? "")} onChange={(e) => setC({ seguranca: e.target.value })} className={inp} />
+          <Lbl htmlFor={`${trustId}-methods`}>Formas aceitas (separe por vírgula)</Lbl>
+          <input id={`${trustId}-methods`} value={String(c.formas ?? "")} onChange={(e) => setC({ formas: e.target.value })} className={inp} placeholder="VISA, MASTER, PIX" />
+          <Lbl htmlFor={`${trustId}-security`}>Linha de segurança (vazio = sem linha)</Lbl>
+          <input id={`${trustId}-security`} value={String(c.seguranca ?? "")} onChange={(e) => setC({ seguranca: e.target.value })} className={inp} />
         </>) : null}
 
         <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-neutral-700">
@@ -538,7 +614,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
               <label> reenviaria o clique ao primeiro controle — o próprio botão
               — fechando o painel na hora. Mesmo mecanismo que roubava o foco no
               campo de texto. */}
-          <span className="flex items-center gap-1.5 text-xs text-neutral-600"><ColorField value={layer.design?.backgroundColor || "#ea580c"} onChange={(v) => setD({ backgroundColor: v })} className="h-7 w-9" label="Fundo do botão" /> Fundo</span>
+          <span className="flex items-center gap-1.5 text-xs text-neutral-600"><ColorField value={layer.design?.backgroundColor || themeColor} onChange={(v) => setD({ backgroundColor: v })} className="h-7 w-9" label="Fundo do botão" /> Fundo</span>
           <span className="flex items-center gap-1.5 text-xs text-neutral-600"><ColorField value={layer.design?.color || "#ffffff"} onChange={(v) => setD({ color: v })} className="h-7 w-9" label="Texto do botão" /> Texto</span>
         </div>
         {/* Duas coisas diferentes que estavam presas na mesma caixa.
@@ -549,32 +625,29 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
             de fato o define. O runtime já trata borda ausente como `none`
             (blocks.tsx:337), então nada muda no motor. */}
         <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
-          <input type="checkbox" checked={layer.design?.backgroundColor === "transparent"} onChange={(e) => setD({ borderColor: e.target.checked ? (layer.design?.backgroundColor === "transparent" ? layer.design?.borderColor : layer.design?.backgroundColor) || "#ea580c" : undefined, backgroundColor: e.target.checked ? "transparent" : (layer.design?.borderColor || "#ea580c") })} className="h-3.5 w-3.5 accent-neutral-900" /> Botão vazado (só contorno)
+          <input type="checkbox" checked={layer.design?.backgroundColor === "transparent"} onChange={(e) => setD({ borderColor: e.target.checked ? (layer.design?.backgroundColor === "transparent" ? layer.design?.borderColor : layer.design?.backgroundColor) || themeColor : undefined, backgroundColor: e.target.checked ? "transparent" : (layer.design?.borderColor || themeColor) })} className="h-3.5 w-3.5 accent-neutral-900" /> Botão vazado (só contorno)
         </label>
         <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
           <input type="checkbox" checked={!layer.design?.borderColor} disabled={layer.design?.backgroundColor === "transparent"}
-            onChange={(e) => setD({ borderColor: e.target.checked ? undefined : (layer.design?.backgroundColor || "#ea580c") })}
+            onChange={(e) => setD({ borderColor: e.target.checked ? undefined : (layer.design?.backgroundColor || themeColor) })}
             className="h-3.5 w-3.5 accent-neutral-900 disabled:opacity-40" /> Sem contorno
         </label>
         <Lbl>Efeito de animação</Lbl>
-        <select value={(layer.design?.effect as string) || "none"} onChange={(e) => setD({ effect: e.target.value })} className={inp}>
-          <option value="none">Nenhum</option>
-          <option value="shine">✨ Brilho (varre o botão)</option>
-          <option value="pulse">💓 Pulsar</option>
-          <option value="shine-pulse">🔥 Brilho + Pulsar (igual a roleta)</option>
-        </select>
+        <WorkspaceSelect label="Efeito de animação" value={(layer.design?.effect as string)||'none'} onChange={value=>setD({effect:value})} options={[["none","Nenhum"],["shine","Brilho"],["pulse","Pulsar"],["shine-pulse","Brilho e pulsar"]].map(([value,label])=>({value,label}))}/>
         <Lbl>Ao clicar</Lbl>
-        <select value={/^https?:/.test(c.destination || "") ? "__url" : (c.destination || "next")} onChange={(e) => setC({ destination: e.target.value === "__url" ? "https://" : e.target.value })} className={inp}>
-          {destOptions}<option value="__url">🔗 Link externo (checkout)</option>
-        </select>
+        <WorkspaceSelect searchable label="Ao clicar" value={/^https?:/.test(c.destination || '')?'__url':(c.destination||'next')} onChange={value=>setC({destination:value==='__url'?'https://':value})} options={[{value:'next',label:'Próxima etapa'},...steps.map(step=>({value:step.id,label:step.title||step.id})),{value:'__url',label:'Link externo'}]}/>
         {/^https?:/.test(c.destination || "") ? <input value={c.destination} onChange={(e) => setC({ destination: e.target.value })} placeholder="https://pay.hotmart.com/…" className={`${inp} mt-1`} /> : null}
-        <div className="mt-3 space-y-1.5 rounded-xl border border-orange-200 bg-orange-50/40 p-3">
-          <p className="text-xs font-bold text-neutral-700">⏱ Liberação (pitch da VSL)</p>
-          <Lbl>Liberar botão após (segundos) — 0 = já visível</Lbl>
-          <input type="number" min={0} value={c.revealAt ?? 0} onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
+        <div className="mt-3 space-y-1.5 rounded-xl border border-ct-line bg-ct-raised p-3">
+          <p className="text-xs font-bold text-neutral-700">Liberação do botão</p>
+          <Lbl htmlFor={releaseId}>Atraso do botão em segundos</Lbl>
+          <input id={releaseId} type="number" min={0} value={c.revealAt ?? 0} aria-describedby={`${releaseId}-clock`}
+            onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
+          <p id={`${releaseId}-clock`} className="text-xs text-ct-dim">
+            {c.revealClock === "video" ? "Na prévia, o atraso acompanha o relógio simulado do vídeo." : "O atraso começa quando a etapa abre."} Use 0 para exibir imediatamente.
+          </p>
           {Number(c.revealAt) > 0 ? (<>
-            <Lbl>Texto enquanto bloqueado</Lbl>
-            <input value={c.waitText || ""} onChange={(e) => setC({ waitText: e.target.value })} placeholder="⏳ Assista o vídeo para liberar o acesso…" className={inp} />
+            <Lbl htmlFor={`${releaseId}-wait`}>Texto enquanto o botão está bloqueado</Lbl>
+            <input id={`${releaseId}-wait`} value={c.waitText || ""} onChange={(e) => setC({ waitText: e.target.value })} placeholder="⏳ Assista o vídeo para liberar o acesso…" className={inp} />
             <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs text-neutral-600">
               <input type="checkbox" checked={!!c.countdown} onChange={(e) => setC({ countdown: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" /> Mostrar contagem regressiva (mm:ss)
             </label>
@@ -596,6 +669,10 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
             <input type="checkbox" checked={!!layer.design?.flutua} onChange={(e) => setD({ flutua: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" />
             Flutuar (sobe e desce devagar)
           </label>
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
+            <input type="checkbox" checked={!!layer.design?.glow} onChange={(e) => setD({ glow: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" />
+            Halo azul
+          </label>
           <Lbl>Tag no canto (vazio = sem tag)</Lbl>
           <div className="flex items-center gap-2">
             <input value={layer.design?.tag || ""} onChange={(e) => setD({ tag: e.target.value || undefined })} placeholder="GRÁTIS" className={`${inp} flex-1`} />
@@ -611,59 +688,24 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         {!(layer.design as any)?.fullBleed ? <><Lbl>Largura (%)</Lbl><input type="number" value={layer.design?.basis ?? 100} onChange={(e) => setD({ basis: Number(e.target.value) })} className={inp} /></> : null}
         <Lbl>Efeito (gradiente/fade com o fundo)</Lbl>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        <select value={((layer.design as any)?.fade as string) || "none"} onChange={(e) => setD({ fade: e.target.value === "none" ? undefined : e.target.value })} className={inp}>
-          <option value="none">Nenhum</option>
-          <option value="top">Fade no topo</option>
-          <option value="bottom">Fade na base</option>
-          <option value="both">Fade nos dois</option>
-        </select>
+        <WorkspaceSelect label="Efeito de fundo" value={((layer.design as any)?.fade as string)||'none'} onChange={value=>setD({fade:value==='none'?undefined:value})} options={[["none","Nenhum"],["top","Fade no topo"],["bottom","Fade na base"],["both","Fade nos dois"]].map(([value,label])=>({value,label}))}/>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {(layer.design as any)?.fade ? (
           <div className="mt-1.5 flex items-center gap-2">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <span className="w-28 shrink-0 text-[11px] text-neutral-500">Intensidade {Number((layer.design as any)?.fadeStrength) || 55}%</span>
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <input type="range" min={20} max={90} value={Number((layer.design as any)?.fadeStrength) || 55} onChange={(e) => setD({ fadeStrength: Number(e.target.value) })} className="flex-1" />
+            <input type="range" aria-label="Intensidade do desvanecimento" min={20} max={90} value={Number((layer.design as any)?.fadeStrength) || 55} onChange={(e) => setD({ fadeStrength: Number(e.target.value) })} className="ct-range flex-1" />
           </div>
         ) : null}</>);
-    case "field":
-      return (<>
-        <Lbl>Tipo</Lbl>
-        <select value={c.type || "text"} onChange={(e) => setC({ type: e.target.value, mask: e.target.value === "phone" ? "phone_br" : undefined, name: e.target.value === "phone" ? "telefone" : e.target.value === "email" ? "email" : "nome" })} className={inp}>
-          <option value="text">Nome</option><option value="phone">Telefone</option><option value="email">Email</option>
-        </select>
-        <Lbl>Rótulo</Lbl><input value={c.title || ""} onChange={(e) => setC({ title: e.target.value })} className={inp} />
-        <Lbl>Placeholder</Lbl><input value={c.placeholder || ""} onChange={(e) => setC({ placeholder: e.target.value })} className={inp} />
-      </>);
+    case "field": case "audio": case "arguments": case "testimonials": case "faq": case "price": case "checklist": case "html":
+      return <CatalogFields layer={layer} onChange={onChange}/>;
     case "options":
       return (<>
-        <Lbl>Colunas</Lbl>
-        <select value={c.cols || "grid-cols-1"} onChange={(e) => setC({ cols: e.target.value })} className={inp}>
-          <option value="grid-cols-1">1 (empilhado)</option><option value="grid-cols-2">2</option><option value="grid-cols-3">3</option>
-        </select>
-        <Lbl>Estilo do card</Lbl>
-        <select value={layer.design?.cardStyle || "lista"} onChange={(e) => setD({ cardStyle: e.target.value === "lista" ? undefined : e.target.value })} className={inp}>
-          <option value="lista">Lista (imagem pequena ao lado)</option>
-          <option value="foto">Foto (imagem ocupa o card, texto em cápsula)</option>
-        </select>
-        {layer.design?.cardStyle === "foto" ? (
-          <p className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-[11px] text-amber-700">
-            Cada opção precisa de <b>imagem</b> (não emoji). Quem não tiver cai no estilo lista. Use 2 colunas.
-          </p>
-        ) : null}
-        <Lbl>Marcador à direita</Lbl>
-        <select value={layer.design?.icon || "select"} onChange={(e) => setD({ icon: e.target.value })} className={inp}>
-          <option value="select">Seta ›</option>
-          <option value="check">Círculo de check ○ (marca ao clicar)</option>
-          <option value="none">Nenhum</option>
-        </select>
-        <Lbl>Brilho da opção escolhida</Lbl>
-        <select value={layer.design?.fx || "none"} onChange={(e) => setD({ fx: e.target.value === "none" ? undefined : e.target.value })} className={inp}>
-          <option value="none">Simples (contorno)</option>
-          <option value="glow">Neon (halo colorido)</option>
-          <option value="blur">Difuso (halo largo)</option>
-        </select>
+        <CatalogFields layer={layer} onChange={onChange}/>
+        <Lbl>Introdução da pergunta</Lbl><HtmlField value={c.introduction || ""} onChange={value => setC({ introduction: value })} />
         <Lbl>Opções</Lbl>
+        <p className="mb-2 text-[11px] text-neutral-500">Use {"{pontos}"} no texto para mostrar a pontuação.</p>
         {/* Cada opção aceita EMOJI ou IMAGEM à esquerda do rótulo. O runtime já
             desenhava as duas (`content.options[].image = {src, type}`) e o
             construtor só editava o texto — dava para ver opção com emoji num
@@ -694,13 +736,45 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
                   <input value={img.src || ""} onChange={(e) => patch({ image: { type: "emoji", src: e.target.value } })}
                     className={`${inp} text-center text-lg`} placeholder="🔥" maxLength={4} />
                 ) : ehImagem ? (
-                  <ImageField value={img.src || ""} onChange={(v) => patch({ image: { type: "image", src: v } })} />
+                  <><ImageField value={img.src || ""} onChange={(v) => patch({ image: { type: "image", src: v } })} /><a className="mt-1 block text-xs text-ct-blue" href="https://www.thiings.co/things" target="_blank" rel="noreferrer">Explorar ícones Thiings ↗</a></>
                 ) : null}
+                <div className="ct-component-settings"><div className="ct-component-pair">
+                  <label>Pontos<input aria-label={`Pontos da resposta ${i + 1}`} type="number" value={o.points ?? 0} onChange={e => patch({ points: Number(e.target.value) })} /></label>
+                  <label>Valor da resposta<input aria-label={`Valor da resposta ${i + 1}`} value={o.value || ""} placeholder="Ex.: A" onChange={e => patch({ value: e.target.value || undefined })} /></label>
+                </div></div>
+                {!c.multiple && (
+                  <label className="block text-xs text-neutral-600">
+                    Destino de {strip(o.label) || `opção ${i + 1}`}
+                    <WorkspaceSelect searchable label={`Destino de ${strip(o.label) || `opção ${i+1}`}`} value={o.destination||'next'} onChange={value=>patch({destination:value})} options={[{value:'next',label:'Próxima etapa'},...steps.map(step=>({value:step.id,label:step.title||step.id})),...(o.destination&&o.destination!=='next'&&!steps.some(step=>step.id===o.destination)?[{value:o.destination,label:o.destination}]:[])]}/>
+                  </label>
+                )}
               </div>
             );
           })}
           <button onClick={() => setC({ options: [...(c.options || []), { id: genId(), label: "<p>Nova opção</p>", destination: "next" }] })} className="rounded-md border border-dashed border-neutral-300 px-2 py-1 text-xs text-neutral-500">+ opção</button>
         </div>
+        <div className="mt-4 space-y-2">        <label className="mb-2 block text-xs font-semibold">
+          Seleção de respostas
+          <WorkspaceSelect label="Seleção de respostas" value={c.multiple ? "multiple" : "single"} onChange={value => setC({ multiple: value === "multiple" })} options={[{value:"single",label:"Uma resposta"},{value:"multiple",label:"Várias respostas e continuar"}]}/>
+        </label>
+        <label className="mb-2 flex items-center gap-2 text-xs"><input type="checkbox" checked={!!c.required} onChange={e => setC({ required: e.target.checked })} />Seleção obrigatória</label>
+        <label className="mb-2 flex items-center gap-2 text-xs"><input type="checkbox" checked={!!c.awaitSubmit} onChange={e => setC({ awaitSubmit: e.target.checked })} />Aguardar botão para continuar</label>
+        {c.awaitSubmit && <p className="mb-2 text-[11px] text-neutral-500">Adicione um botão à etapa. O destino da resposta única tem prioridade sobre o botão.</p>}
+        </div>
+        <details className="ct-disclosure mt-4"><summary className="cursor-pointer text-xs font-semibold text-neutral-500">Configurações de aparência das opções</summary>        <Lbl>Colunas</Lbl>
+        <WorkspaceSelect label="Colunas" value={c.cols||'grid-cols-1'} onChange={value=>setC({cols:value})} options={[1,2,3,4].map(value=>({value:`grid-cols-${value}`,label:value===1?'1 (empilhado)':String(value)}))}/>
+        <Lbl>Estilo do card</Lbl>
+        <WorkspaceSelect label="Estilo do card" value={layer.design?.cardStyle||'lista'} onChange={value=>setD({cardStyle:value==='lista'?undefined:value})} options={[{value:'lista',label:'Lista'},{value:'foto',label:'Foto'}]}/>
+        {layer.design?.cardStyle === "foto" ? (
+          <p className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-[11px] text-amber-700">
+            Use imagens e duas colunas para o formato de foto.
+          </p>
+        ) : null}
+        <Lbl>Marcador à direita</Lbl>
+        <WorkspaceSelect label="Marcador à direita" value={layer.design?.icon||'select'} onChange={value=>setD({icon:value})} options={[{value:'select',label:'Seta'},{value:'check',label:'Círculo de seleção'},{value:'none',label:'Nenhum'}]}/>
+        <Lbl>Brilho da opção escolhida</Lbl>
+        <WorkspaceSelect label="Brilho da opção escolhida" value={layer.design?.fx||'none'} onChange={value=>setD({fx:value==='none'?undefined:value})} options={[{value:'none',label:'Simples'},{value:'glow',label:'Neon'},{value:'blur',label:'Difuso'}]}/>
+        </details>
       </>);
     case "timer":
       return (<><Lbl>Tempo (segundos)</Lbl><input type="number" value={c.time ?? 300} onChange={(e) => setC({ time: Number(e.target.value) })} className={inp} />
@@ -720,10 +794,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
       });
       return (<><Lbl>Título</Lbl><input value={c.title || ""} onChange={(e) => setC({ title: e.target.value })} className={inp} />
         <Lbl>Estilo</Lbl>
-        <select value={diag ? "diagnostico" : "barra"} onChange={(e) => setC({ style: e.target.value === "diagnostico" ? "diagnostico" : undefined })} className={inp}>
-          <option value="barra">Barra de progresso</option>
-          <option value="diagnostico">Diagnóstico (anel + caixas)</option>
-        </select>
+        <WorkspaceSelect label="Estilo de carregamento" value={diag?'diagnostico':'barra'} onChange={value=>setC({style:value==='diagnostico'?'diagnostico':undefined})} options={[{value:'barra',label:'Barra de progresso'},{value:'diagnostico',label:'Diagnóstico'}]}/>
         <Lbl>Duração (s)</Lbl><input type="number" value={c.seconds ?? 4} onChange={(e) => setC({ seconds: Number(e.target.value) })} className={inp} />
         {/* PEÇAS DO DIAGNÓSTICO — antes eu escolhia por você e o construtor
             mostrava um desenho enquanto o site mostrava outro. Aqui a escolha é
@@ -731,10 +802,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
             progresso é sempre a mesma (a da referência) e não entra como opção,
             porque duas barras diferentes só criariam divergência de novo. */}
         <Lbl>Medalhão</Lbl>
-        <select value={(c.anel as string) || "novo"} onChange={(e) => setC({ anel: e.target.value })} className={inp}>
-          <option value="novo">Anel novo (arcos girando)</option>
-          <option value="antigo">Anel antigo (aros + progresso)</option>
-        </select>
+        <WorkspaceSelect label="Medalhão" value={(c.anel as string)||'novo'} onChange={value=>setC({anel:value})} options={[{value:'novo',label:'Arcos girando'},{value:'antigo',label:'Aros e progresso'}]}/>
         <Lbl>Indicadores</Lbl>
         <div className="space-y-1.5">
           {([["caixas", "Caixas (uma verificação por linha)", true],
@@ -750,7 +818,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           ))}
         </div>
         <Lbl>Auto-avançar ao terminar?</Lbl>
-        <select value={c.type === "none" ? "no" : "yes"} onChange={(e) => setC({ type: e.target.value === "no" ? "none" : "advance" })} className={inp}><option value="no">Não (revela a lâmina)</option><option value="yes">Sim</option></select>
+        <WorkspaceSelect label="Auto-avançar ao terminar" value={c.type==='none'?'no':'yes'} onChange={value=>setC({type:value==='no'?'none':'advance'})} options={[{value:'no',label:'Não'},{value:'yes',label:'Sim'}]}/>
         {diag ? (<>
           <Lbl>Subtítulo</Lbl>
           <input value={c.description || ""} onChange={(e) => setC({ description: e.target.value })} className={inp} placeholder="Estamos preparando…" />
@@ -790,7 +858,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <div className="space-y-1.5">
           {ns.map((n, i) => (
             <div key={i} className="flex items-center gap-1.5 rounded-lg border border-neutral-200 p-2">
-              <input type="radio" name={`nivel-${layer.id}`} checked={Number(c.atual) === i} onChange={() => setC({ atual: i })} className="h-4 w-4 accent-neutral-900" title="Nível do visitante" />
+              <input type="radio" name={`nivel-${layer.id}`} checked={Number(c.atual) === i} onChange={() => setC({ atual: i })} className="ct-editor-radio" aria-label={`Nível do visitante: ${n.label || i + 1}`} />
               <input value={n.label || ""} onChange={(e) => setN(i, { label: e.target.value })} className={`${inp} flex-1`} placeholder="Nome do nível" />
               <input type="number" min={0} max={100} value={Number(n.pct) || 0} onChange={(e) => setN(i, { pct: Number(e.target.value) })} className="w-16 rounded-md border border-neutral-300 px-2 py-1 text-sm" title="% da barra" />
               <button onClick={() => setC({ levels: ns.filter((_, k) => k !== i) })} className="text-red-400">✕</button>
@@ -853,12 +921,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
       return (<>
         <Lbl>Texto do card</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} rows={4} />
         <Lbl>Estilo</Lbl>
-        <select value={layer.design?.variant || "suave"} onChange={(e) => setD({ variant: e.target.value })} className={inp}>
-          <option value="suave">Suave — véu da cor do tema</option>
-          <option value="contorno">Contorno — só a borda</option>
-          <option value="escuro">Escuro — inverte o contraste</option>
-          <option value="destaque">Destaque — o tema cheio</option>
-        </select>
+        <WorkspaceSelect label="Estilo do card" value={layer.design?.variant||'suave'} onChange={value=>setD({variant:value})} options={[["suave","Suave"],["contorno","Contorno"],["escuro","Escuro"],["destaque","Destaque"]].map(([value,label])=>({value,label}))}/>
         <Lbl>Respiro interno (px)</Lbl>
         <input type="number" min={8} max={48} value={Number(layer.design?.padding) || 20}
           onChange={(e) => setD({ padding: Math.min(48, Math.max(8, Number(e.target.value))) })} className={inp} />
@@ -904,9 +967,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
 
     case "clear":
       return (<><Lbl>Altura</Lbl>
-        <select value={c.clear || "h-[1rem]"} onChange={(e) => setC({ clear: e.target.value })} className={inp}>
-          {["h-[0.5rem]", "h-[1rem]", "h-[2rem]", "h-[3rem]"].map((h) => <option key={h} value={h}>{h.replace(/h-\[|\]/g, "")}</option>)}
-        </select></>);
+        <WorkspaceSelect label="Altura" value={c.clear||'h-[1rem]'} onChange={value=>setC({clear:value})} options={['0.5','1','2','3'].map(size=>({value:`h-[${size}rem]`,label:`${size} rem`}))}/></>);
     case "embed": case "video":
       return (<><Lbl>Embed do player (cole o &lt;script&gt;+&lt;iframe&gt; do VTurb)</Lbl>
         <textarea value={c.embedHtml || ""} onChange={(e) => setC({ embedHtml: e.target.value })} rows={5} className={`${inp} font-mono`} /></>);
@@ -916,10 +977,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <Lbl>Passar a cada (segundos)</Lbl>
         <input type="number" min={1} value={Number(c.interval) || 2} onChange={(e) => setC({ interval: Number(e.target.value) })} className={inp} />
         <Lbl>Transição</Lbl>
-        <select value={layer.design?.transicao || "deslizar"} onChange={(e) => setD({ transicao: e.target.value === "deslizar" ? undefined : e.target.value })} className={inp}>
-          <option value="deslizar">Deslizar (padrão)</option>
-          <option value="fade">Fade — cruza as fotos, sem corte</option>
-        </select>
+        <WorkspaceSelect label="Transição" value={layer.design?.transicao||'deslizar'} onChange={value=>setD({transicao:value==='deslizar'?undefined:value})} options={[{value:'deslizar',label:'Deslizar'},{value:'fade',label:'Dissolver'}]}/>
         <Lbl>Fotos do carrossel</Lbl>
         <div className="space-y-2">
           {imgs.map((src, idx) => (
@@ -938,21 +996,6 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
 }
 
 /** Aba "Exibição": revelação e visibilidade do bloco. */
-function Exibicao({ layer, onChange }: { layer: Layer; onChange: (l: Layer) => void }) {
-  const starts = Number(layer.effects?.starts) || 0;
-  const hidden = !!layer.design?.hidden;
-  return (
-    <div>
-      <Lbl>Revelar após (segundos) — 0 = já aparece</Lbl>
-      <input type="number" min={0} value={starts} onChange={(e) => onChange({ ...layer, effects: { ...(layer.effects || {}), starts: Number(e.target.value) } })} className={inp} />
-      <label className="mt-3 flex cursor-pointer items-center justify-between text-sm">
-        <span className="text-neutral-600">Ocultar bloco</span>
-        <input type="checkbox" checked={hidden} onChange={(e) => onChange({ ...layer, design: { ...(layer.design || {}), hidden: e.target.checked } })} className="h-4 w-4 accent-neutral-900" />
-      </label>
-    </div>
-  );
-}
-
 /**
  * Painel direito: Componente / Aparência / Exibição (estilo inlead).
  *
@@ -961,105 +1004,51 @@ function Exibicao({ layer, onChange }: { layer: Layer; onChange: (l: Layer) => v
  * eram os únicos blocos sem Aparência e sem Exibição.
  */
 function RightPanel({ layer, steps, onChange, conteudo }: { layer: Layer; steps: InleadStep[]; onChange: (l: Layer) => void; conteudo?: React.ReactNode }) {
-  const [t, setT] = useState<"componente" | "aparencia" | "exibicao">("componente");
+  const tabs = [["componente", "Componente"], ["aparencia", "Aparência"], ["exibicao", "Exibição"]] as const;
+  const [t, setT] = useState<(typeof tabs)[number][0]>("componente");
+  const id = useId();
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   return (
     <div>
-      <div className="flex border-b border-neutral-200 text-xs font-semibold">
-        {([["componente", "Componente"], ["aparencia", "Aparência"], ["exibicao", "Exibição"]] as const).map(([k, label]) => (
-          <button key={k} onClick={() => setT(k)} className={`flex-1 py-2.5 ${t === k ? "border-b-2 border-neutral-900 text-neutral-900" : "text-neutral-400"}`}>{label}</button>
-        ))}
+      <div className="ct-block-tabs">
+        <div role="tablist" aria-label="Configurações do componente" className="ct-segments">
+          {tabs.map(([key, label], index) => <button type="button" key={key} role="tab" id={`${id}-${key}`}
+            ref={element => { tabRefs.current[index] = element; }}
+            aria-controls={`${id}-panel`} aria-selected={t === key} tabIndex={t === key ? 0 : -1}
+            onClick={() => setT(key)} onKeyDown={event => {
+              const next = event.key === "ArrowRight" ? (index + 1) % tabs.length
+                : event.key === "ArrowLeft" ? (index - 1 + tabs.length) % tabs.length
+                : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : null;
+              if (next === null) return;
+              event.preventDefault();
+              setT(tabs[next][0]);
+              tabRefs.current[next]?.focus();
+            }}>
+            {t === key && <ActiveTab group={id} />}<span>{label}</span>
+          </button>)}
+        </div>
       </div>
-      <div className="p-3">
-        {t === "componente" ? (
-          conteudo ?? (
-            <>
-              {GERA_COLUNA.has(layer.type) ? (
-                <CampoId
-                  valor={layer.webhookKey}
-                  aoSalvar={(v) => onChange({ ...layer, webhookKey: v })}
-                  automatico={layer.id}
-                  ajuda="Nomeia a coluna deste bloco na aba Leads e no CSV exportado."
-                />
-              ) : (
-                <p className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 p-2.5 text-[10px] leading-snug text-neutral-500">
-                  Este bloco não gera coluna própria na aba Leads. Quem nomeia a
-                  coluna da lâmina é o <b>ID / Nome</b> da <b>Etapa</b> — clique no
-                  fundo do celular para desselecionar o bloco e o painel aparece.
-                </p>
-              )}
-              <LayerFields layer={layer} steps={steps} onChange={onChange} />
-            </>
-          )
-        ) : null}
+      <div className="p-3" role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-${t}`}>
+        {t === "componente" ? <>
+          <label className="mb-3 block text-xs font-semibold">Nome do componente
+            <input aria-label="Nome do componente" value={layer.title || ""} placeholder={rotuloDoTipo(layer.type)} onChange={e => onChange({ ...layer, title: e.target.value || undefined })} className={inp} />
+          </label>
+          <CampoId valor={layer.webhookKey} aoSalvar={value => onChange({ ...layer, webhookKey: value })} automatico={layer.id} ajuda="Identifica o componente nos dados do funil." />
+          {layer.type === "button" && <div className="ct-component-settings mb-3">
+            <label>Sub ID<input aria-label="Sub ID" maxLength={120} value={layer.subId || ""} placeholder="Ex.: oferta_principal" onChange={e => onChange({ ...layer, subId: e.target.value || undefined })} /></label>
+            <p>Identificação complementar disponível no botão como data-sub-id.</p>
+            <label className="ct-component-toggle"><input type="checkbox" checked={!!layer.content.sendSubId} onChange={e => onChange({ ...layer, content: { ...layer.content, sendSubId: e.target.checked } })} />Enviar Sub ID no link externo (subid)</label>
+          </div>}
+          {conteudo ?? <LayerFields layer={layer} steps={steps} onChange={onChange} />}
+        </> : null}
         {t === "aparencia" ? <Appearance layer={layer} onChange={onChange} /> : null}
-        {t === "exibicao" ? <Exibicao layer={layer} onChange={onChange} /> : null}
+        {t === "exibicao" ? <ComponentDisplay layer={layer} steps={steps} onChange={onChange} /> : null}
       </div>
     </div>
   );
 }
 
 // ───────────────────────── B — DESIGN ─────────────────────────
-function DesignTab({ funnel, setFunnel }: { funnel: Funnel; setFunnel: (fn: (f: Funnel) => Funnel) => void }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const d = ((funnel.settings?.design as any) || {}) as Record<string, any>;
-  const setDesign = (patch: Record<string, unknown>) =>
-    setFunnel((f) => ({ ...f, settings: { ...(f.settings || {}), design: { ...((f.settings?.design as object) || {}), ...patch } } }));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const hdr = (((funnel.settings as any)?.header) || {}) as Record<string, boolean>;
-  const setHeader = (patch: Record<string, boolean>) =>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setFunnel((f) => ({ ...f, settings: { ...(f.settings || {}), header: { ...(((f.settings as any)?.header) || {}), ...patch } } as any }));
-  const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div className="flex items-center justify-between gap-3 border-b border-neutral-100 py-2.5"><span className="text-sm text-neutral-600">{label}</span><div className="flex items-center gap-2">{children}</div></div>
-  );
-  return (
-    <div className="mx-auto max-w-xl rounded-xl border border-neutral-200 bg-white p-5">
-      <h2 className="mb-3 text-base font-bold">🎨 Design global</h2>
-      <Row label="Cor do tema (botões/destaques)"><ColorField value={d.themeColor || "#ea580c"} onChange={(v) => setDesign({ themeColor: v })} className="h-8 w-12" label="Cor do tema" /></Row>
-      <Row label="Fundo da página"><ColorField value={d.backgroundColor || "#ffffff"} onChange={(v) => setDesign({ backgroundColor: v })} className="h-8 w-12" label="Fundo da página" /></Row>
-      <Row label="Cor do título"><ColorField value={d.titleColor || "#000000"} onChange={(v) => setDesign({ titleColor: v })} className="h-8 w-12" label="Cor do título" /></Row>
-      <Row label="Cor do texto"><ColorField value={d.contentColor || "#000000"} onChange={(v) => setDesign({ contentColor: v })} className="h-8 w-12" label="Cor do texto" /></Row>
-      <Row label="Tamanho do texto (px)"><input type="number" value={Number(d.contentSize) || 17} onChange={(e) => setDesign({ contentSize: String(e.target.value) })} className="w-20 rounded border border-neutral-300 px-2 py-1 text-xs" /></Row>
-      <Row label="Largura do container">
-        <select value={d.container || "max-w-[34rem]"} onChange={(e) => setDesign({ container: e.target.value })} className="rounded border border-neutral-300 px-2 py-1 text-xs">
-          {["max-w-[30rem]", "max-w-[34rem]", "max-w-[40rem]"].map((c) => <option key={c} value={c}>{c.replace(/max-w-\[|\]/g, "")}</option>)}
-        </select>
-      </Row>
-      <Row label="Fonte">
-        <select value={funnel.font || "poppins"} onChange={(e) => setFunnel((f) => ({ ...f, font: e.target.value as Funnel["font"] }))} className="rounded border border-neutral-300 px-2 py-1 text-xs">
-          <option value="poppins">Poppins</option><option value="serif">Serif (Fraunces)</option>
-        </select>
-      </Row>
-      <Lbl>Logo (topo das lâminas, quando ativado)</Lbl>
-      <ImageField value={d.logo?.src || ""} onChange={(v) => setDesign({ logo: { type: "image", src: v } })} />
-      <Row label="Tamanho da logo">
-        <input type="range" min={16} max={120} value={Number(d.logoSize) || 36} onChange={(e) => setDesign({ logoSize: e.target.value })} className="w-32 accent-neutral-900" />
-        <span className="w-12 text-right text-xs text-neutral-500">{Number(d.logoSize) || 36}px</span>
-      </Row>
-      <Row label="Opacidade da logo">
-        <input type="range" min={10} max={100} value={Number(d.logoOpacity ?? 100)} onChange={(e) => setDesign({ logoOpacity: Number(e.target.value) })} className="w-32 accent-neutral-900" />
-        <span className="w-12 text-right text-xs text-neutral-500">{Number(d.logoOpacity ?? 100)}%</span>
-      </Row>
-      <div className="mt-4 border-t border-neutral-100 pt-3">
-        <p className="mb-1 text-sm font-bold text-neutral-700">Header (todas as lâminas, exceto hero e VSL)</p>
-        {([["show_logo", "Mostrar logo"], ["show_progress", "Mostrar barra de progresso"], ["show_back", "Mostrar botão voltar"]] as const).map(([k, label]) => (
-          <label key={k} className="flex cursor-pointer items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">{label}</span>
-            <input type="checkbox" checked={!!hdr[k]} onChange={(e) => setHeader({ [k]: e.target.checked })} className="h-4 w-4 accent-neutral-900" /></label>
-        ))}
-        {/* Setinha: default LIGADA. Por isso o estado é `!== false` — funil que
-            nunca abriu esta tela não tem a chave e continua com a setinha. */}
-        <label className="flex cursor-pointer items-center justify-between py-1.5 text-sm">
-          <span className="text-neutral-600">Setinha “role para baixo”
-            <span className="ml-1 text-[11px] text-neutral-400">(aparece sozinha quando a lâmina não cabe)</span>
-          </span>
-          <input type="checkbox" checked={hdr.show_scroll_hint !== false}
-            onChange={(e) => setHeader({ show_scroll_hint: e.target.checked })} className="h-4 w-4 accent-neutral-900" />
-        </label>
-      </div>
-    </div>
-  );
-}
-
 // ───────────────────────── D — LEADS ─────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 // espelha FunnelCol de lib/quiz/colunas.ts (o mesmo módulo que gera o CSV) —
@@ -1436,16 +1425,48 @@ export function LeadsTab({ slug }: { slug: string }) {
   );
 }
 
-export default function LayersBuilder({ initial }: { initial: Funnel }) {
+export default function LayersBuilder({ initial, initialStepId, localDraft, initiallyDraft=false }: { initial: Funnel; initialStepId?: string; initiallyDraft?:boolean; localDraft?: {
+  save: (funnel: Funnel) => Promise<{ ok: boolean; error?: string }>;
+  previewHref: string;
+  reportHref?: string;
+  stagePreviewHref?: (stepId: string) => string;
+  commit?: (funnel:Funnel) => Promise<{ok:boolean;error?:string}>;
+} }) {
   const [funnel, setFunnel] = useState<Funnel>(initial);
+  const [isDraft,setIsDraft]=useState(initiallyDraft);
   const steps = funnel.steps as unknown as InleadStep[];
-  const [selStep, setSelStep] = useState(0);
+  const [selStep, setSelStep] = useState(() => Math.max(0, steps.findIndex(step => step.id === initialStepId)));
+  const stageDialog = useRef<HTMLDialogElement>(null);
+  const layerDeleteDialog = useRef<HTMLDialogElement>(null);
+  const [pendingLayerDelete, setPendingLayerDelete] = useState<{ stageId: string; layerId: string; label: string } | null>(null);
+  const [actionStepId, setActionStepId] = useState("");
+  const [confirmStageRemoval, setConfirmStageRemoval] = useState(false);
+  function cancelStageRemoval() {
+    setConfirmStageRemoval(false);
+    requestAnimationFrame(() => stageRemoveButton.current?.focus());
+  }
+  const [stageCopyResult, setStageCopyResult] = useState<"copied" | "error" | null>(null);
+  const stageRemoveButton = useRef<HTMLButtonElement>(null);
+  const actionIndex = steps.findIndex(s => s.id === actionStepId);
   const [selLayer, setSelLayer] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [notices, setNotices] = useState<ReturnType<typeof recordWorkspaceNotice>[]>([]);
+  function notify(message: string, error = false) {
+    const item = recordWorkspaceNotice("Editor", message, error);
+    setNotices(previous => [...previous.filter(notice => notice.message !== message), item].slice(-3));
+  }
   const [nonce, setNonce] = useState(0);
   /** Canvas do Construtor: editar blocos (padrão) ou ver a lâmina como o
    *  visitante vê. Estado de UI, nada é gravado. */
+  const [compactPanel, setCompactPanel] = useState<"steps" | "blocks" | "canvas" | "properties">("canvas");
+  const [blockSearch, setBlockSearch] = useState("");
+  const [draggingBlock, setDraggingBlock] = useState(false);
+  const normalize = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const query = normalize(blockSearch.trim());
+  const categories = CATS.map((category) => ({
+    ...category,
+    items: category.items.filter(([, label]) => normalize(label).includes(query) || normalize(category.name).includes(query)),
+  })).filter((category) => category.items.length > 0);
   const [verResultado, setVerResultado] = useState(false);
   const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">("construtor");
   const [showSettings, setShowSettings] = useState(false);
@@ -1458,24 +1479,43 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   const setLayers = (next: Layer[]) => patchStep(selStep, { layers: next });
 
   const step = steps[selStep];
+  const localPreviewHref = step && localDraft?.stagePreviewHref ? localDraft.stagePreviewHref(step.id) : localDraft?.previewHref;
   const layers = step?.layers || [];
 
   const save = async () => {
-    setSaving(true); setMsg(null);
+    if (saving) return;
+    setSaving(true);
     const renamed = funnel.slug !== initial.slug;
-    const r = await saveFunnelAction(funnel, renamed ? initial.slug : undefined);
-    setSaving(false);
-    setMsg(r.ok ? "✓ Salvo" : `Erro: ${r.error ?? "falhou"}`);
-    if (r.ok && renamed) { window.location.href = `/builder/${funnel.slug}`; return; }
-    setTimeout(() => setMsg(null), 4000);
-    if (r.ok) setNonce((n) => n + 1);
+    try {
+      const result = localDraft ? await localDraft.save(funnel) : await saveFunnelAction(funnel, renamed ? initial.slug : undefined);
+      if (!result.ok) {
+        notify(result.error ?? "Não foi possível salvar o funil.", true);
+        return;
+      }
+      notify(localDraft ? "Rascunho salvo neste navegador" : "Salvo");
+      if (renamed && !localDraft) {
+        window.location.href = `/builder/${encodeURIComponent(funnel.slug)}`;
+        return;
+      }
+      setNonce(n => n + 1);
+    } catch {
+      notify("Não foi possível salvar o funil. Tente novamente.", true);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const publish=async()=>{
+    if(funnel.slug!==initial.slug){notify('Salve o novo endereço antes de publicar.', true);return;}
+    setSaving(true);const result=await publishFunnelAction(funnel);setSaving(false);
+    if(result.ok){setIsDraft(false);notify('Publicado');}else notify(result.error || 'Não foi possível concluir a ação.', true);
+  };
+  const commit=async()=>{
+    if(!localDraft?.commit)return;setSaving(true);const result=await localDraft.commit(funnel);setSaving(false);if(!result.ok)notify(result.error || 'Não foi possível concluir a ação.', true);
   };
 
   // ── operações de lâmina ──
-  const addStep = () => {
-    const s: InleadStep = { id: genId(), title: "Nova lâmina", layers: [], options: { show_logo: false, show_progress: false } };
-    const next = [...steps.slice(0, selStep + 1), s, ...steps.slice(selStep + 1)];
-    setSteps(next); setSelStep(selStep + 1);
+  const addStep = (template?: StepTemplate) => {
+    insertStepAfter(createTemplateStep(template));
   };
   const delStep = (i: number) => { if (steps.length <= 1) return; const next = steps.filter((_, k) => k !== i); setSteps(next); setSelStep(Math.min(i, next.length - 1)); };
 
@@ -1495,48 +1535,58 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
   // referência `step` de cada bloco) — evita qualquer colisão/edição travada.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cloneStepFresh = (srcStep: any) => {
-    const s = JSON.parse(JSON.stringify(srcStep));
-    s.id = genId();
-    delete s.position; delete s.selected; delete s.chosen;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (Array.isArray(s.layers)) s.layers = s.layers.map((l: any) => {
-      const nl = { ...l, id: genId(), step: s.id };
-      if (nl.content) {
-        nl.content = { ...nl.content, id: genId() };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (Array.isArray(nl.content.options)) nl.content.options = nl.content.options.map((o: any) => ({ ...o, id: genId() }));
-      }
-      return nl;
-    });
+    const s = cloneStageWithRules(srcStep, genId);
     return s;
   };
   // inserir clone após a atual + selecionar (limpa o bloco selecionado pra abrir limpo)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const insertStepAfter = (s: any) => {
-    setSteps([...steps.slice(0, selStep + 1), s, ...steps.slice(selStep + 1)] as InleadStep[]);
-    setSelStep(selStep + 1); setSelLayer(null);
+  const insertStepAfter = (s: InleadStep, after = selStep) => {
+    const index = Math.min(after + 1, steps.length);
+    setSteps([...steps.slice(0, index), s, ...steps.slice(index)]);
+    setSelStep(index);
+    setSelLayer(null);
+    setVerResultado(false);
+    setCompactPanel("canvas");
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const importStep = (srcStep: any) => { insertStepAfter(cloneStepFresh(srcStep)); setImportOpen(false); };
-  const dupStep = () => { const s = cloneStepFresh(steps[selStep]); s.title = `${s.title || "Lâmina"} (cópia)`; insertStepAfter(s); };
+  const dupStep = (index: number) => { const s = cloneStepFresh(steps[index]); s.title = `${s.title || "Lâmina"} (cópia)`; insertStepAfter(s, index); };
 
   // ── operações de bloco ──
-  const addPaletteItem = (key: string, label: string) => {
-    if (!ADDABLE.has(key)) { window.alert(`Bloco "${label}" — em breve. Vamos ativar sob demanda.`); return; }
-    let l: Layer;
-    if (key === "email") { l = newLayer("field"); l.content = { ...l.content, name: "email", title: "Seu e-mail", placeholder: "voce@email.com", type: "email", mask: undefined }; }
-    else if (key === "phone") { l = newLayer("field"); }
-    else if (key === "video") { l = newLayer("embed"); }
-    else { l = newLayer(key as LayerType); }
-    setLayers([...layers, l]); setSelLayer(l.id);
+  const addPaletteItem = (key: string, beforeId?: string) => {
+    if (!step || !ADDABLE.has(key)) return;
+    const choice = key === "multi" || key === "single" || key === "yesno";
+    const layer = newLayer(choice ? "options" : key === "video" ? "embed" : key as LayerType);
+    if (choice) {
+      layer.content.multiple = key === "multi";
+      if (key === "yesno") {
+        layer.content.options = [
+          { id: genId(), label: "<p>Sim</p>", destination: "next" },
+          { id: genId(), label: "<p>Não</p>", destination: "next" },
+        ];
+      }
+    }
+    const index = layers.findIndex((item) => item.id === beforeId);
+    const next = [...layers];
+    next.splice(index < 0 ? next.length : index, 0, layer);
+    setLayers(next);
+    setSelLayer(layer.id);
+    setVerResultado(false);
+    setCompactPanel("properties");
   };
   const delLayer = (id: string) => setLayers(layers.filter((l) => l.id !== id));
   const updateLayer = (id: string, l: Layer) => setLayers(layers.map((x) => x.id === id ? l : x));
-  const onSelect = (id: string) => setSelLayer(id);
+  const onSelect = (id: string) => { setSelLayer(id); setCompactPanel("properties"); };
   const onAction = (id: string, action: "copy" | "hide" | "delete") => {
     const i = layers.findIndex((l) => l.id === id); if (i < 0) return;
-    if (action === "delete") { delLayer(id); setSelLayer(null); return; }
-    if (action === "copy") { const copy = { ...JSON.parse(JSON.stringify(layers[i])), id: genId() } as Layer; setLayers([...layers.slice(0, i + 1), copy, ...layers.slice(i + 1)]); setSelLayer(copy.id); return; }
+    if (action === "delete") {
+      const dialog = layerDeleteDialog.current;
+      if (!dialog || dialog.open) return;
+      setPendingLayerDelete({ stageId: step.id, layerId: id, label: layers[i].title || rotuloDoTipo(layers[i].type) });
+      dialog.returnValue = "";
+      dialog.showModal();
+      return;
+    }
+    if (action === "copy") { const copy = cloneStageWithRules({id:step.id,title:step.title,layers:[layers[i]]},genId,{keepStageId:true}).layers[0]; setLayers([...layers.slice(0, i + 1), copy, ...layers.slice(i + 1)]); setSelLayer(copy.id); return; }
     if (action === "hide") { const l = layers[i]; updateLayer(id, { ...l, design: { ...(l.design || {}), hidden: !l.design?.hidden } }); }
   };
   // arrastar bloco no canvas (⠿) → reordena
@@ -1549,46 +1599,74 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
 
   const sel = layers.find((l) => l.id === selLayer);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-  const onStepDragEnd = (e: DragEndEvent) => {
-    const { active, over } = e; if (!over || active.id === over.id) return;
-    const from = steps.findIndex((s) => s.id === active.id); const to = steps.findIndex((s) => s.id === over.id);
-    if (from < 0 || to < 0) return; setSteps(arrayMove(steps, from, to)); setSelStep(to);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const moveStep = (from: number, to: number) => {
+    if (from < 0 || to < 0 || to >= steps.length || from === to) return;
+    setSteps(arrayMove(steps, from, to));
+    setSelStep(to);
+    setSelLayer(null);
+  };
+  const onStepDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    moveStep(steps.findIndex(s => s.id === active.id), steps.findIndex(s => s.id === over.id));
   };
   return (
     // Tema do funil para os campos que geram HTML colorido (a pílula do editor
     // rico). Sem isso ela nascia laranja em funil de qualquer paleta.
+    <LocalDraftContext.Provider value={!!localDraft}>
     <TemaFunilContext.Provider value={theme}>
-    <div className="min-h-screen bg-neutral-100 text-neutral-900">
-      <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="rounded-md border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">← Funis</Link>
-          <div>
-            <h1 className="text-sm font-bold">Construtor · {funnel.name} <span className="ml-1 rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-700">LAYERS</span></h1>
-            <p className="text-xs text-neutral-500">/{funnel.slug} · {steps.length} lâminas</p>
+    <div className="ct-workspace ct-editor">
+      <EditorTop label={saving ? "Salvando" : localDraft ? "Rascunho local" : isDraft ? "Rascunho" : "Edição de funil"} busy={saving}/>
+      <header className="ct-toolbar flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
+        <div className="flex min-w-0 max-w-full items-center gap-3">
+          <Link href={localPreviewHref ?? "/dashboard"} className="rounded-md border border-ct-line px-2 py-1 text-xs font-semibold text-ct-dim hover:bg-ct-raised">{localDraft ? "← Preview local" : "← Funis"}</Link>
+          <div className="min-w-0 break-words">
+            <h1 className="text-sm font-bold">Construtor · {funnel.name}</h1>
+            <p className="text-xs text-ct-dim">/{funnel.slug} · {steps.length} lâminas{localDraft ? " · RASCUNHO LOCAL — não publicado" : ""}</p>
           </div>
         </div>
-        <nav className="flex items-center gap-1 rounded-lg bg-neutral-100 p-1">
-          {([["construtor", "🧩 Construtor"], ["fluxo", "🔀 Fluxo"], ["design", "🎨 Design"], ["leads", "👥 Leads"]] as const).map(([k, label]) => (
-            <button key={k} onClick={() => setTab(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${tab === k ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}>{label}</button>
+        <nav aria-label="Seções do construtor" className="ct-segments">
+          {([["construtor", "Construtor"], ["fluxo", "Fluxo"], ["design", "Design"], ["leads", "Leads"]] as const).map(([k, label]) => (
+            <button type="button" key={k} aria-pressed={tab === k} disabled={!!localDraft && !localDraft.reportHref && k === "leads"} onClick={() => setTab(k)}>
+              {tab === k && <ActiveTab group="builder-tabs" />}<span>{label}</span>
+            </button>
           ))}
         </nav>
-        <div className="flex items-center gap-3">
-          {msg ? <span className={`text-xs font-semibold ${msg.startsWith("✓") ? "text-green-600" : "text-red-600"}`}>{msg}</span> : null}
-          <button onClick={() => setShowSettings(true)} title="Configurações do funil" className="rounded-lg border border-neutral-300 px-2.5 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">⚙</button>
-          <button onClick={save} disabled={saving} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{saving ? "Salvando…" : "💾 Salvar"}</button>
-          <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white">Ver ao vivo ↗</a>
+        <div className="flex min-w-0 max-w-full flex-wrap items-center gap-3">
+          {notices.length > 0 && <div className="ct-notice-stack" aria-label="Avisos do editor">
+            {notices.map(({ id, message, error }) => (
+              <WorkspaceNotice key={id} message={message} error={error}
+                onDismiss={() => setNotices(previous => previous.filter(item => item.id !== id))} />
+            ))}
+          </div>}
+          <WorkspaceNoticeHistory />
+          <button onClick={() => setShowSettings(true)} title="Configurações do funil" aria-label="Configurações do funil" className="rounded-lg border border-ct-line px-2.5 py-2 text-xs font-semibold text-ct-ink hover:bg-ct-raised">⚙</button>
+          <StatefulButton type="button" onClick={save} state={saving ? "loading" : "idle"}
+            aria-label={saving ? "Salvando…" : "Salvar"} loadingText="Salvando…" size="sm"
+            className="ct-primary rounded-lg px-3 text-xs font-bold text-white disabled:opacity-50">
+            Salvar
+          </StatefulButton>
+          {localDraft?.commit&&<button onClick={commit} disabled={saving} className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Salvar nos meus funis</button>}
+          {isDraft&&!localDraft&&<button onClick={publish} disabled={saving} className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Publicar</button>}
+          {(!isDraft || localDraft)&&<a href={localPreviewHref ?? (funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`)} target="_blank" rel="noreferrer" className="rounded-lg bg-ct-action px-3 py-2 text-xs font-semibold text-white">{localDraft ? "Preview local ↗" : "Ver ao vivo ↗"}</a>}
         </div>
       </header>
 
       {/* Design com preview ao lado: cor, fonte e header mudam a lâmina inteira,
           então ver o resultado enquanto ajusta evita o vai-e-volta entre abas. */}
       {tab === "design" && (
-        <div className="grid h-[calc(100vh-49px)] grid-cols-1 bg-neutral-100 lg:grid-cols-[1fr_460px]">
+        <div className="ct-controls ct-design-layout grid min-h-0 flex-1 grid-cols-1 bg-neutral-100 lg:grid-cols-[minmax(320px,440px)_1fr]">
           <div className="overflow-y-auto p-4">
-            <DesignTab funnel={funnel} setFunnel={setFunnel} />
+            <FunnelDesignPanel funnel={funnel} setFunnel={setFunnel} />
           </div>
-          <div className="hidden border-l border-neutral-200 bg-white lg:block">
+          <div className="ct-design-preview border-l border-neutral-200 bg-white">
+            <label className="ct-design-stage">
+              Etapa da prévia
+              <WorkspaceSelect label="Etapa da prévia" value={String(selStep)} onChange={value=>{setSelStep(Number(value));setSelLayer(null);}} options={steps.map((step,index)=>({value:String(index),label:`${index+1}. ${step.title}`}))}/>
+            </label>
             <DevicePreview
               deviceId={device}
               onDeviceChange={setDevice}
@@ -1598,7 +1676,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
               scrollStyle={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
             >
               <CanvasErrorBoundary resetKey={`design-${selStep}-${nonce}`}>
-                <LayersRunner key={`design-${selStep}-${nonce}-${device}`} funnel={funnel} startIndex={selStep} preview />
+                <LayersRunner previewWidth={getDevice(device).w} key={`design-${selStep}-${nonce}-${device}`} funnel={funnel} startIndex={selStep} preview />
               </CanvasErrorBoundary>
             </DevicePreview>
           </div>
@@ -1607,7 +1685,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
       {tab === "fluxo" && (
         // `overflow-hidden`: o quadro do fluxo trata a roda do mouse por conta
         // própria (pan/zoom). Sem isto a página rolava atrás dele.
-        <div className="h-[calc(100vh-49px)] overflow-hidden p-4">
+        <div className="ct-controls min-h-0 flex-1 overflow-hidden p-4">
           <LayersFlow
             steps={steps}
             setSteps={setSteps}
@@ -1616,60 +1694,162 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           />
         </div>
       )}
-      {tab === "leads" && <div className="p-4"><LeadsTab slug={funnel.slug} /></div>}
+      {tab === "leads" && <div className="ct-controls min-h-0 flex-1 overflow-auto p-4">{localDraft?.reportHref
+        ? <Link href={localDraft.reportHref} className="text-sm text-ct-blue underline">Consultar indicadores no relatório do funil</Link>
+        : <LeadsTab slug={funnel.slug} />}</div>}
 
       {tab === "construtor" && (
-      // 2ª coluna (paleta) a 230px: com 180 + truncate os rótulos cortavam
-      // ("Vídeo Re…", "Múltipla …") e não dava pra saber o que era o bloco.
-      // 4ª coluna (config) cresce até 520px: o celular do preview tem largura
-      // fixa (390px + moldura), então tudo que passava disso na coluna `1fr`
-      // virava espaço morto em volta dele. Os `minmax` seguram o preview no
-      // tamanho mínimo do aparelho.
-      <div className="relative grid h-[calc(100vh-49px)] grid-cols-[180px_230px_minmax(420px,1fr)_minmax(360px,520px)] bg-neutral-100">
+      <>
+      <dialog ref={layerDeleteDialog} className="ct-template-dialog ct-stage-dialog" aria-labelledby="ct-delete-layer-title"
+        onClose={event => {
+          const confirmed = event.currentTarget.returnValue === "delete";
+          setPendingLayerDelete(null);
+          if (!confirmed || pendingLayerDelete?.stageId !== step?.id) return;
+          if (pendingLayerDelete) {
+            delLayer(pendingLayerDelete.layerId);
+            if (selLayer === pendingLayerDelete.layerId) setSelLayer(null);
+          }
+        }}>
+        <form method="dialog" className="ct-step-delete-confirmation space-y-3 p-4">
+          <DeleteConfirmationIcon />
+          <h2 id="ct-delete-layer-title" className="font-semibold">Excluir bloco?</h2>
+          <p className="text-sm text-ct-dim">O bloco “{pendingLayerDelete?.label}” será removido ao salvar.</p>
+          <div className="flex flex-wrap justify-end gap-2">
+            <button autoFocus value="cancel" className="ct-step-control">Cancelar</button>
+            <button value="delete" className="ct-step-control text-red-600">Confirmar exclusão</button>
+          </div>
+        </form>
+      </dialog>
+      <nav className="ct-compact-nav" aria-label="Painéis do editor">
+        {([["steps", "Etapas"], ["blocks", "Blocos"], ["canvas", "Prévia"], ["properties", "Ajustes"]] as const).map(([key, label]) => (
+          <button key={key} aria-pressed={compactPanel === key} onClick={() => setCompactPanel(key)}>{label}</button>
+        ))}
+      </nav>
+      <div className="ct-editor-grid">
         {/* 1 · ETAPAS */}
-        <aside className="overflow-y-auto border-r border-neutral-200 bg-white p-2">
+        <aside data-panel="steps" data-visible={compactPanel === "steps"} className="ct-sidebar overflow-y-auto border-r">
           <div className="mb-2 flex items-center justify-between px-1">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">Etapas</span>
+            <span className="text-[11px] font-bold uppercase tracking-wide text-ct-dim">Etapas</span>
             <div className="flex items-center gap-1">
-              <button onClick={openImport} title="Importar lâmina de outro funil" className="rounded border border-neutral-300 px-1.5 py-0.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⬇</button>
-              <button onClick={dupStep} title="Duplicar esta lâmina" className="rounded border border-neutral-300 px-1.5 py-0.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⧉</button>
-              <button onClick={addStep} title="Nova etapa" className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs font-semibold text-white">+</button>
+              <button disabled={!!localDraft} onClick={openImport} title="Importar lâmina de outro funil" className="rounded border border-ct-line px-1.5 py-0.5 text-xs font-semibold text-ct-dim hover:bg-ct-raised">⬇</button>
             </div>
           </div>
           <DndContext id="ll-steps" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onStepDragEnd}>
             <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
               <div className="space-y-0.5">
                 {steps.map((s, i) => (
-                  <SortableItem key={s.id} id={s.id}>{(handle) => (
-                    <div className={`group flex items-center gap-1 rounded-lg px-2 py-2 text-sm ${i === selStep ? "bg-neutral-900 text-white" : "text-neutral-700 hover:bg-neutral-100"}`}>
-                      <span className={i === selStep ? "text-white/50" : "text-neutral-300"}>{handle}</span>
-                      <button onClick={() => { setSelStep(i); setSelLayer(null); }} className={`flex min-w-0 flex-1 items-center gap-1.5 text-left ${s.disabled ? "opacity-45" : ""}`}>
-                        <span className={`text-[10px] ${i === selStep ? "text-white/60" : "text-neutral-400"}`}>{i + 1}</span>
+                  <SortableItem key={s.id} id={s.id} onMove={delta => moveStep(i, i + delta)}>{(handle) => (
+                    <div aria-current={i === selStep ? "step" : undefined} className={`ct-stage group flex items-center gap-1 rounded-lg px-2 py-2 text-sm ${i === selStep ? "bg-ct-action text-white" : "text-ct-ink hover:bg-ct-raised"}`}>
+                      <span className={i === selStep ? "text-white/50" : "text-ct-dim"}>{handle}</span>
+                      <button onClick={() => { setSelStep(i); setSelLayer(null); setCompactPanel("canvas"); }} className={`flex min-w-0 flex-1 items-center gap-1.5 text-left ${s.disabled ? "opacity-45" : ""}`}>
+                        <span className={`text-[10px] ${i === selStep ? "text-white/60" : "text-ct-dim"}`}>{i + 1}</span>
                         <span className={`min-w-0 flex-1 truncate font-medium ${s.disabled ? "line-through" : ""}`}>{s.title || s.id}</span>
-                        {s.disabled ? <span className="shrink-0 rounded bg-neutral-200 px-1 text-[9px] font-bold uppercase text-neutral-500">off</span> : null}
+                        {s.disabled ? <span className="shrink-0 rounded bg-neutral-200 px-1 text-[9px] font-bold uppercase text-ct-dim">off</span> : null}
                       </button>
-                      <button onClick={() => delStep(i)} className={`px-0.5 opacity-0 group-hover:opacity-100 ${i === selStep ? "text-white/70" : "text-red-400"}`}>✕</button>
+                      <button className="ct-stage-more" aria-label={`Ações da etapa ${i + 1}: ${s.title || s.id}`} aria-haspopup="dialog"
+                        onClick={() => { setConfirmStageRemoval(false); setStageCopyResult(null); setActionStepId(s.id); stageDialog.current?.showModal(); }}><Ellipsis size={16} /></button>
                     </div>
                   )}</SortableItem>
                 ))}
               </div>
             </SortableContext>
           </DndContext>
+          <div className="ct-step-tools">
+            <button type="button" className="ct-step-control" onClick={() => addStep()}><FilePlus2 size={15} />Em branco</button>
+            <StepTemplatePicker onSelect={addStep} />
+          </div>
+          <dialog ref={stageDialog} className="ct-template-dialog ct-stage-dialog" aria-label="Ações da etapa"
+            onClick={event => { if (event.target === stageDialog.current) stageDialog.current.close(); }}>
+            {actionIndex >= 0 && <div className="ct-template-body">
+              <header><h2>{steps[actionIndex].title || actionStepId}</h2><button aria-label="Fechar ações" onClick={() => stageDialog.current?.close()}><X size={18}/></button></header>
+              <p className="ct-step-id">
+                Etapa {actionIndex + 1} de {steps.length} · {steps[actionIndex].layers?.length ?? 0} blocos
+              </p>
+              <div className="ct-stage-identity">
+                <span>ID da etapa <code>{actionStepId}</code></span>
+                {!confirmStageRemoval && <button type="button" className="ct-step-control" onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(actionStepId);
+                    setStageCopyResult("copied");
+                  } catch {
+                    setStageCopyResult("error");
+                  }
+                }}><Copy size={14} aria-hidden="true" />Copiar ID</button>}
+              </div>
+              {stageCopyResult === "copied" && <p role="status" className="mt-2 text-xs text-ct-dim">ID copiado.</p>}
+              {stageCopyResult === "error" && <p role="alert" className="mt-2 text-xs text-ct-dim">Não foi possível copiar. Selecione o ID acima.</p>}
+              {!confirmStageRemoval && <>
+              <button className="ct-step-control" onClick={() => {
+                stageDialog.current?.close(); setSelStep(actionIndex); setSelLayer(null); setVerResultado(true); setNonce(n => n + 1); setCompactPanel("canvas");
+              }}><Eye size={16}/>Visualizar etapa</button>
+              <div className="ct-stage-action-preview">
+                <button type="button" className="ct-step-control" disabled={actionIndex === 0}
+                  aria-describedby="ct-stage-move-up-preview" onClick={() => moveStep(actionIndex, actionIndex - 1)}>Mover etapa para cima</button>
+                <p id="ct-stage-move-up-preview">{actionIndex === 0 ? "Esta é a primeira etapa."
+                  : <>Nova posição {actionIndex}, antes de <strong>{steps[actionIndex - 1].title || steps[actionIndex - 1].id}</strong>.</>}</p>
+              </div>
+              <div className="ct-stage-action-preview">
+                <button type="button" className="ct-step-control" disabled={actionIndex === steps.length - 1}
+                  aria-describedby="ct-stage-move-down-preview" onClick={() => moveStep(actionIndex, actionIndex + 1)}>Mover etapa para baixo</button>
+                <p id="ct-stage-move-down-preview">{actionIndex === steps.length - 1 ? "Esta é a última etapa."
+                  : <>Nova posição {actionIndex + 2}, depois de <strong>{steps[actionIndex + 1].title || steps[actionIndex + 1].id}</strong>.</>}</p>
+              </div>
+              <div className="ct-stage-action-preview">
+                <button type="button" className="ct-step-control" aria-describedby="ct-stage-copy-preview"
+                  onClick={() => { stageDialog.current?.close(); dupStep(actionIndex); }}><Copy size={16}/>Duplicar etapa</button>
+                <p id="ct-stage-copy-preview">A cópia entra na posição {actionIndex + 2}, logo após esta etapa.</p>
+              </div>
+              </>}
+              <button type="button" className="ct-step-control" ref={stageRemoveButton}
+                aria-expanded={confirmStageRemoval} aria-controls="ct-stage-delete-confirmation"
+                disabled={steps.length <= 1} onClick={() => {
+                  if (confirmStageRemoval) cancelStageRemoval();
+                  else setConfirmStageRemoval(true);
+                }}><Trash2 size={16}/>Excluir etapa</button>
+              <div id="ct-stage-delete-confirmation">
+                {confirmStageRemoval && (
+                  <div role="group" aria-label="Confirmar exclusão de etapa" className="ct-step-delete-confirmation mt-2 space-y-3" onKeyDown={event => {
+                    if (event.key !== "Escape") return;
+                    event.preventDefault();
+                    cancelStageRemoval();
+                  }}>
+                    <DeleteConfirmationIcon />
+                    <p className="text-sm text-ct-dim">Excluir esta etapa e seus blocos?</p>
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button type="button" className="ct-step-control" ref={button => button?.focus()}
+                        onClick={cancelStageRemoval}>Cancelar</button>
+                      <button type="button" className="ct-step-control text-red-600"
+                        onClick={() => { stageDialog.current?.close(); delStep(actionIndex); setSelLayer(null); }}>Confirmar exclusão</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>}
+          </dialog>
         </aside>
 
         {/* 2 · PALETA categorizada */}
-        <aside className="overflow-y-auto border-r border-neutral-200 bg-neutral-50 p-2">
-          {CATS.map((cat) => (
+        <aside data-panel="blocks" data-visible={compactPanel === "blocks"} className="ct-sidebar ct-library overflow-y-auto border-r">
+          <label className="mb-3 block text-sm font-bold">Blocos
+            <input type="search" value={blockSearch} onChange={(event) => setBlockSearch(event.target.value)} placeholder="Buscar bloco" className="mt-2 text-xs font-normal" />
+          </label>
+          {categories.length === 0 && <p role="status" className="text-xs">Nenhum bloco encontrado.</p>}
+          {categories.map((cat) => (
             <div key={cat.name} className="mb-2.5">
-              <p className="px-1 pb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">{cat.name}</p>
+              <p className="px-1 pb-1 text-[10px] font-bold uppercase tracking-wide text-ct-dim">{cat.name}</p>
               <div className="space-y-0.5">
                 {cat.items.map(([key, label]) => {
                   const soon = !ADDABLE.has(key);
                   return (
-                    <button key={key} onClick={() => addPaletteItem(key, label)} disabled={soon} title={soon ? "Em breve — ativa sob demanda" : undefined}
-                      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs ${soon ? "cursor-not-allowed text-neutral-300" : "text-neutral-700 hover:bg-white hover:shadow-sm"}`}>
-                      <span className={`shrink-0 ${soon ? "opacity-40" : ""}`}>{PALETTE_ICON[key] || "▫️"}</span><span className="min-w-0 flex-1 leading-tight">{label}</span>
-                      {soon ? <span className="ml-auto rounded bg-neutral-200/70 px-1 text-[8px] font-bold uppercase text-neutral-500">breve</span> : null}
+                    <button key={key} onClick={() => addPaletteItem(key)} disabled={soon}
+                      draggable={!soon} onDragStart={(event) => {
+                        event.dataTransfer.setData("application/x-ctfunil-block", key);
+                        event.dataTransfer.effectAllowed = "copy";
+                        setDraggingBlock(true);
+                      }} onDragEnd={() => setDraggingBlock(false)} title={soon ? "Em breve — ativa sob demanda" : undefined}
+                      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs ${soon ? "cursor-not-allowed text-ct-dim" : "text-ct-ink hover:bg-ct-selected hover:shadow-sm"}`}>
+                      <span className={`shrink-0 ${soon ? "opacity-40" : ""}`}><BlockIcon type={key}/></span><span className="min-w-0 flex-1 leading-tight">{label}</span>
+                      {soon ? <span className="ml-auto rounded bg-ct-raised px-1 text-[10px] font-medium text-ct-dim">breve</span> : null}
                     </button>
                   );
                 })}
@@ -1679,15 +1859,33 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
         </aside>
 
         {/* 3 · CANVAS (celular, edição inline) — dimensões CSS reais do aparelho */}
-        <div className="pointer-events-none absolute left-1/2 top-2 z-30 flex -translate-x-1/2 gap-1 rounded-full bg-white/95 p-1 shadow ring-1 ring-neutral-200">
-          {([[false, "✏️ Editar"], [true, "👁 Ver resultado"]] as const).map(([v, label]) => (
-            <button
-              key={String(v)} onClick={() => { setVerResultado(v); setSelLayer(null); }}
-              className={`pointer-events-auto rounded-full px-3 py-1 text-xs font-semibold transition ${
-                verResultado === v ? "bg-neutral-900 text-white" : "text-neutral-500 hover:text-neutral-900"}`}
-            >{label}</button>
+        <section data-panel="canvas" data-visible={compactPanel === "canvas"} className="ct-canvas" aria-label="Prévia da etapa"
+          data-dragging={draggingBlock}
+          onDragOver={(event) => {
+            if (event.dataTransfer.types.includes("application/x-ctfunil-block")) {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "copy";
+            }
+          }}
+          onDrop={(event) => {
+            const key = event.dataTransfer.getData("application/x-ctfunil-block");
+            if (!ADDABLE.has(key)) return;
+            event.preventDefault();
+            const beforeId = (event.target as Element).closest<HTMLElement>("[data-editor-block]")?.dataset.editorBlock;
+            addPaletteItem(key, beforeId);
+            setDraggingBlock(false);
+          }}>
+        <div className="ct-preview-actions" role="group" aria-label="Modo da prévia">
+          {([[false, "Editar", Pencil], [true, "Ver resultado", Eye]] as const).map(([value, label, Icon]) => (
+            <button type="button" key={String(value)} aria-label={label} aria-pressed={verResultado === value}
+              onClick={() => { setVerResultado(value); setSelLayer(null); }}>
+              <Icon size={15} aria-hidden="true" /><span>{label}</span>
+            </button>
           ))}
         </div>
+        <StagePreviewRail stages={steps} selected={selStep} onSelect={index => {
+          setSelStep(index); setSelLayer(null); setNonce(n => n + 1);
+        }} />
         <DevicePreview
           deviceId={device}
           onDeviceChange={setDevice}
@@ -1712,7 +1910,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
               só no console. Antes, qualquer erro de render derrubava a página
               inteira e não sobrava pista do que quebrou. */}
           <CanvasErrorBoundary resetKey={`${selStep}-${nonce}`}>
-            <LayersRunner
+            <LayersRunner previewWidth={getDevice(device).w}
               key={`${selStep}-${nonce}-${device}-${verResultado ? "ver" : "edit"}`}
               funnel={funnel} startIndex={selStep} preview
               editor={verResultado ? undefined : { selectedId: selLayer || undefined, onSelect, onAction, onReorder }}
@@ -1720,21 +1918,10 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
           </CanvasErrorBoundary>
         </DevicePreview>
 
+        </section>
+
         {/* 4 · PAINEL direito (Componente/Aparência/Exibição OU Etapa) */}
-        <aside className="overflow-y-auto border-l border-neutral-200 bg-white">
-          {sel ? (
-            <>
-              {/* Volta para a lista de blocos. Nas lâminas com tela própria o
-                  celular desenha a tela pronta e não há bloco solto para clicar
-                  — sem este caminho de volta, selecionar um bloco era um beco
-                  sem saída: o painel trocava para o Componente e a lista sumia. */}
-              <button
-                onClick={() => setSelLayer(null)}
-                className="flex w-full items-center gap-1.5 border-b border-neutral-200 px-4 py-2 text-left text-xs font-semibold text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
-              >← Todos os blocos da lâmina</button>
-              <RightPanel key={sel.id} layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} />
-            </>
-          ) : (
+        <aside data-panel="properties" data-visible={compactPanel === "properties"} className="ct-controls overflow-y-auto border-l border-neutral-200 bg-white">
             <div className="space-y-3 p-4">
               <p className="text-sm font-bold text-neutral-700">Etapa</p>
               {/* LISTA DE BLOCOS — o caminho de edição quando a lâmina tem tela
@@ -1762,11 +1949,15 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                       <SortableContext items={(step?.layers || []).map((l) => l.id)} strategy={verticalListSortingStrategy}>
                         {(step?.layers || []).map((l) => {
                           const resumo = String(l.content?.label || l.content?.text || l.content?.title || "")
-                            .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+                            .replace(/<(style|script)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
                           const ativo = selLayer === l.id;
                           const oculto = !!l.design?.hidden;
                           return (
-                            <SortableItem key={l.id} id={l.id}>
+                            <SortableItem key={l.id} id={l.id} onMove={delta => {
+                              const index = layers.findIndex(layer => layer.id === l.id);
+                              const target = layers[index + delta];
+                              if (target) onReorder(l.id, target.id);
+                            }}>
                               {(handle) => (
                                 <div
                                   className={`flex items-center gap-1 rounded-lg px-1.5 py-1 transition ${
@@ -1776,7 +1967,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                                   <button onClick={() => setSelLayer(l.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left text-xs">
                                     <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
                                       ativo ? "bg-white/20" : "bg-neutral-200 text-neutral-500"}`}>
-                                      {rotuloDoTipo(l.type)}
+                                      {l.title || rotuloDoTipo(l.type)}
                                     </span>
                                     <span className={`truncate ${oculto ? "line-through opacity-50" : ""}`}>{resumo || l.id}</span>
                                   </button>
@@ -1787,7 +1978,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                                       ["✕", "Excluir", () => onAction(l.id, "delete")],
                                     ] as [string, string, () => void][]).map(([icone, titulo, acao]) => (
                                       <button
-                                        key={titulo} title={titulo}
+                                        key={titulo} title={titulo} aria-label={`${titulo} ${l.title || rotuloDoTipo(l.type)}`}
                                         onClick={(e) => { e.stopPropagation(); acao(); }}
                                         className={`grid h-5 w-5 place-items-center rounded text-[11px] leading-none transition ${
                                           ativo ? "hover:bg-white/20" : "hover:bg-neutral-200 hover:text-neutral-900"}`}
@@ -1809,7 +2000,8 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                 <input type="checkbox" checked={!step?.disabled} onChange={(e) => patchStep(selStep, { disabled: !e.target.checked })} className="h-4 w-4 accent-green-600" />
               </label>
               {step?.disabled ? <p className="-mt-1 text-[11px] text-amber-600">Esta lâmina é PULADA no funil publicado (continua aqui pra reativar).</p> : null}
-              <div><Lbl>Título</Lbl><input value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className={inp} /></div>
+              {sel ? <RightPanel key={sel.id} layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} conteudo={HERO_EDITAVEL.has(sel.type) ? <StepEditor step={{...sel.content,type:sel.type} as unknown as import('@/lib/quiz/types').Step} onChange={patch => updateLayer(sel.id,{...sel,content:{...sel.content,...(patch as Record<string, unknown>)}})} /> : undefined} /> : <>
+              <div><Lbl>Título</Lbl><input aria-label="Nome da etapa" value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className={inp} /></div>
 
               {/* `key` obrigatório: este painel NÃO remonta ao trocar de lâmina
                   (diferente do RightPanel, que tem key={sel.id}), então sem ele
@@ -1819,9 +2011,10 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                 valor={step?.webhookKey}
                 aoSalvar={(v) => patchStep(selStep, { webhookKey: v })}
                 automatico={step?.id || ""}
-                ajuda="Nomeia a coluna desta lâmina quando ela não tem pergunta — slider, raspadinha, medidor, roleta, texto. Vale também como nome padrão dos blocos dela."
+                ajuda="Identifica esta etapa nos dados do funil."
               />
 
+              {step && <StageAppearance step={step} onChange={design => patchStep(selStep, { design })} />}
               {/* Imagem de fundo da lâmina (estilo inlead: ajuste + posição + opacidade) */}
               {(() => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1837,28 +2030,15 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                         <div className="mt-2 grid grid-cols-3 gap-2">
                           <div>
                             <Lbl>Ajuste</Lbl>
-                            <select value={sd.backgroundSize || "cover"} onChange={(e) => patchDesign({ backgroundSize: e.target.value })} className={inp}>
-                              <option value="cover">Tela inteira</option>
-                              <option value="auto">Original</option>
-                              <option value="contain">Adequar</option>
-                              <option value="fill">Esticar</option>
-                            </select>
+                            <WorkspaceSelect label="Ajuste da imagem" value={sd.backgroundSize||'cover'} onChange={value=>patchDesign({backgroundSize:value})} options={[["cover","Tela inteira"],["auto","Original"],["contain","Adequar"],["fill","Esticar"]].map(([value,label])=>({value,label}))}/>
                           </div>
                           <div>
                             <Lbl>Posição</Lbl>
-                            <select value={sd.backgroundPosition || "center"} onChange={(e) => patchDesign({ backgroundPosition: e.target.value })} className={inp}>
-                              <option value="center">Centro</option>
-                              <option value="top">Topo</option>
-                              <option value="bottom">Base</option>
-                              <option value="left">Esquerda</option>
-                              <option value="right">Direita</option>
-                            </select>
+                            <WorkspaceSelect label="Posição da imagem" value={sd.backgroundPosition||'center'} onChange={value=>patchDesign({backgroundPosition:value})} options={[["center","Centro"],["top","Topo"],["bottom","Base"],["left","Esquerda"],["right","Direita"]].map(([value,label])=>({value,label}))}/>
                           </div>
                           <div>
                             <Lbl>Opacidade</Lbl>
-                            <select value={String(sd.backgroundOpacity ?? 100)} onChange={(e) => patchDesign({ backgroundOpacity: Number(e.target.value) })} className={inp}>
-                              {[100, 90, 75, 50, 35, 25, 15, 10].map((o) => <option key={o} value={o}>{o}%</option>)}
-                            </select>
+                            <WorkspaceSelect label="Opacidade da imagem" value={String(sd.backgroundOpacity??100)} onChange={value=>patchDesign({backgroundOpacity:Number(value)})} options={[100,90,75,50,35,25,15,10].map(value=>({value:String(value),label:`${value}%`}))}/>
                           </div>
                         </div>
                         <button onClick={() => patchDesign({ backgroundImage: undefined })} className="mt-2 text-xs font-semibold text-red-500 hover:text-red-700">Remover fundo</button>
@@ -1888,9 +2068,9 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   const trocaLayer = (l: Layer) =>
                     patchStep(selStep, { layers: (step!.layers || []).map((x) => (x.id === special.id ? l : x)) });
                   return (
-                    <div className="rounded-xl border border-orange-200 bg-orange-50/40">
+                    <div className="rounded-xl border border-ct-line bg-ct-raised">
                       <p className="px-3 pt-3 text-sm font-bold text-neutral-700">
-                        {PALETTE_ICON[special.type]} {ROTULO_HERO[special.type] || special.type} <span className="font-normal text-neutral-400">(ocupa a lâmina inteira)</span>
+                        <BlockIcon type={special.type}/> {ROTULO_HERO[special.type] || special.type} <span className="font-normal text-neutral-400">(ocupa a lâmina inteira)</span>
                       </p>
                       <RightPanel
                         layer={special}
@@ -1941,7 +2121,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                         <input type="checkbox" checked={eff(k)} onChange={(e) => setOv(k, e.target.checked)} className="h-4 w-4 accent-neutral-900" />
                       </label>
                     ))}
-                    <p className="mt-1 text-[11px] text-neutral-400">Herda do <b>🎨 Design global</b> até você mexer; aí sobrescreve só esta lâmina. (Hero/VSL ficam sem header, salvo override.)</p>
+                    <p className="mt-1 text-[11px] text-neutral-400">Personalize esta etapa ou restaure o padrão do funil.</p>
                   </div>
                 );
               })()}
@@ -1967,11 +2147,12 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
                   </p>
                 </div>
               ) : null}
-              <p className="text-xs text-neutral-400">👆 Clique num bloco no celular, ou use a lista acima.</p>
+              <p className="text-xs text-neutral-400">Selecione um bloco para editar.</p>
+              </>}
             </div>
-          )}
         </aside>
       </div>
+      </>
       )}
 
       {showSettings ? (
@@ -1980,7 +2161,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
 
       {/* ── Modal: importar lâmina de outro funil ── */}
       {importOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setImportOpen(false)}>
+        <div className="ct-controls fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setImportOpen(false)}>
           <div className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-3">
               <h2 className="text-sm font-bold text-neutral-800">⬇ Importar lâmina</h2>
@@ -1991,9 +2172,7 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
             ) : (
               <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
                 <label className="text-xs font-semibold text-neutral-500">De qual funil?
-                  <select value={importSel} onChange={(e) => setImportSel(e.target.value)} className="mt-1 w-full rounded-lg border border-neutral-300 px-2 py-2 text-sm">
-                    {importFunnels.map((f) => <option key={f.slug} value={f.slug}>{f.name} (/{f.slug})</option>)}
-                  </select>
+                  <WorkspaceSelect label="Funil de origem" value={importSel} onChange={setImportSel} options={importFunnels.map(f=>({value:f.slug,label:`${f.name} (/${f.slug})`}))}/>
                 </label>
                 <p className="text-xs font-semibold text-neutral-500">Qual lâmina importar?</p>
                 <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-neutral-200">
@@ -2013,5 +2192,6 @@ export default function LayersBuilder({ initial }: { initial: Funnel }) {
       ) : null}
     </div>
     </TemaFunilContext.Provider>
+    </LocalDraftContext.Provider>
   );
 }

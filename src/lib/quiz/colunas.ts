@@ -131,7 +131,7 @@ export function colunasDoFunil(steps: any[]): FunnelCol[] {
         const layerId = String(l?.id ?? "");
         if (l?.type === "options") push("options", keyOf(l, step, idx), layerId);
         else if (l?.type === "button") push("button", keyOf(l, step, idx), layerId);
-        else if (l?.type === "field") {
+        else if (l?.type === "field" || (l?.type === "price" && l?.content?.checkbox)) {
           const nome = String(l?.content?.name || l?.content?.type || layerId);
           push("field", keyOf(l, step, idx), layerId, nome);
         }

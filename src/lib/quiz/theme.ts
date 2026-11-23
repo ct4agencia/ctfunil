@@ -5,6 +5,7 @@ import type { Palette } from "./types";
  * Aplicadas como CSS vars (--q-*) no container do funil — ver applyPalette.
  */
 export const PALETTES: Palette[] = [
+  { id:'ct4',name:'CT4',primary:'#1d4f88',primaryDark:'#153b67',bg:'#ffffff',bgSoft:'#f4f4f3',surface:'#ffffff',text:'#181819',textMuted:'#656568',ring:'#3eafe6' },
   {
     id: "laranja-cdb",
     name: "Laranja CDB (Clube das Bolsas)",

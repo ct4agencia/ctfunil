@@ -210,7 +210,13 @@ export interface RouletteStep extends BaseStep {
   /** índice que SEMPRE vence (modo "sempre vence") */
   winningIndex: number;
   /** "always" = cai no winningIndex | "random" = sorteio (Fase B) */
-  mode?: "always" | "random";
+  mode?: "always" | "random" | "retry";
+  /** Índice exibido no primeiro giro, antes da segunda chance premiada. */
+  retryIndex?: number;
+  /** Texto do botão que libera o segundo giro. */
+  retryCta?: string;
+  /** Link direto do botão exibido no popup de prêmio. */
+  winCtaUrl?: string;
   centerImage?: string;
   cta: string;
   /**
@@ -376,6 +382,8 @@ export interface ConfirmStep extends BaseStep {
   emoji?: string;
   title: string;
   body?: string;
+  /** Campo legado dos rascunhos Layers. */
+  subtitle?: string;
   seal?: string;
   cta: string;
   /**
@@ -662,7 +670,17 @@ export interface FunnelPixels {
   body_script?: string;
   footer_script?: string;
 }
+export type AvailabilityDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+export type WeekAvailability = Record<AvailabilityDay, {
+  enabled: boolean;
+  ranges: { id: string; start: string; end: string }[];
+}>;
+
 export interface FunnelSettings {
+  availability?: WeekAvailability;
+  objective?: string;
+  tone?: string;
+  header?: { show_logo?: boolean; show_progress?: boolean; show_back?: boolean; go_to_top?: boolean; show_scroll_hint?: boolean };
   pixels?: FunnelPixels;
   seo?: {
     title?: string;

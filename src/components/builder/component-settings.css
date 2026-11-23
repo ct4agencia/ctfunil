@@ -1,0 +1,21 @@
+.ct-component-settings { display: grid; gap: 16px; color: var(--ct-ink); font-size: 12px; }
+.ct-component-settings fieldset { min-width: 0; display: grid; gap: 12px; border: 1px solid var(--ct-line); border-radius: 8px; padding: 12px; }
+.ct-component-settings legend { color: var(--ct-ink); font-weight: 600; padding: 0 5px; }
+.ct-component-settings label { display: grid; gap: 6px; color: var(--ct-dim); }
+.ct-component-settings :is(input:not([type=checkbox]),select) { width: 100%; min-width: 0; background: var(--ct-surface); color: var(--ct-ink); border: 1px solid var(--ct-line-strong); border-radius: 5px; min-height: 34px; padding: 6px 8px; }
+.ct-component-settings :is(input,select,button):focus-visible { outline: 2px solid var(--ct-blue); outline-offset: 2px; }
+.ct-component-settings p { font-size: 11px; line-height: 1.5; color: var(--ct-dim); }
+.ct-component-settings button { color: var(--ct-blue); font-size: 11px; text-align: left; }
+.ct-component-settings button:disabled { opacity: .4; cursor: not-allowed; }
+.ct-component-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ct-component-settings .ct-component-toggle { display: flex; align-items: center; gap: 8px; line-height: 1.5; }
+.ct-component-toggle input { accent-color: var(--ct-blue); }
+.ct-component-state { display: grid; gap: 8px; }
+.ct-component-state strong { font-size: 11px; font-weight: 500; color: var(--ct-dim); }
+.ct-component-swatches { display: flex; justify-content: space-between; gap: 8px; }
+.ct-component-swatches > span { display: flex; align-items: center; gap: 5px; font-size: 10px; }
+.ct-component-color { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ct-component-rule { display: grid; gap: 10px; padding-top: 12px; border-top: 1px solid var(--ct-line); }
+
+.ct-component-settings textarea { width:100%; resize:vertical; min-height:80px; color:var(--ct-ink); background:var(--ct-surface); border:1px solid var(--ct-line-strong); padding:8px; border-radius:5px; }
+.ct-component-settings .ct-component-check { display:flex; align-items:center; gap:8px; }

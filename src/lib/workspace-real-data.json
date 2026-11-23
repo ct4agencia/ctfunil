@@ -1,0 +1,1113 @@
+{
+  "funnels": [
+    {
+      "name": "SDB [BOLSAS] - SEM PITCH 6",
+      "slug": "sdbspit6",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-11-20T14:25:27.903374+00:00"
+    },
+    {
+      "name": "VDM [MODAS] - SEM PITCH 6",
+      "slug": "vdmspit6",
+      "niche": "Moda em crochê",
+      "domain": "c.vivendodemoda.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-11-20T14:25:27.903374+00:00"
+    },
+    {
+      "name": "SDB [BOLSAS] - COM PITCH 6",
+      "slug": "sdbcpit6",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-11-20T14:25:27.903374+00:00"
+    },
+    {
+      "name": "VDM [MODAS] - COM PITCH 6",
+      "slug": "vdmcpit6",
+      "niche": "Moda em crochê",
+      "domain": "c.vivendodemoda.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-11-20T14:25:27.903374+00:00"
+    },
+    {
+      "name": "test",
+      "slug": "test",
+      "niche": null,
+      "domain": null,
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "ct4",
+      "updated_at": "2026-11-17T20:39:29.441+00:00"
+    },
+    {
+      "name": "SDB 👛 [BOLSAS] - SEM PITCH 5",
+      "slug": "sdbspit5",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-11-02T16:54:48.914+00:00"
+    },
+    {
+      "name": "SDB 👛 [BOLSAS] - COM PITCH 5",
+      "slug": "sdbcpit5",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-11-02T15:53:41.737+00:00"
+    },
+    {
+      "name": "SDB 👛 [BOLSAS] - CURTA COM PITCH 4",
+      "slug": "sdbcpit4",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-11-01T13:49:45.222+00:00"
+    },
+    {
+      "name": "SDB👛 [BOLSAS] - CURTA SEM PITCH 4",
+      "slug": "sdbspit4",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-11-01T13:45:01.375+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-10-18T13:46:22.645+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - CURTA COM PITCH 3",
+      "slug": "cdbcpit3",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-10-16T01:51:25.499+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - CURTA SEM PITCH 3",
+      "slug": "cdbspit3",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-10-16T01:48:45.833+00:00"
+    },
+    {
+      "name": "Sorteio da Sônia",
+      "slug": "live1",
+      "niche": null,
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "default",
+      "updated_at": "2026-10-15T01:13:03.59+00:00"
+    },
+    {
+      "name": "CDB 👛 [COMERCIAL] - UPSELL ROLETA",
+      "slug": "cdb-comercial",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-10-14T21:57:30.244+00:00"
+    },
+    {
+      "name": "CDB 👛 [Bolsas] — SRC 01",
+      "slug": "clube-das-bolsas",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": null,
+      "engine": "steps",
+      "status": "published",
+      "palette_id": "laranja-cdb",
+      "updated_at": "2026-10-14T20:30:11.041+00:00"
+    },
+    {
+      "name": "Novo funil",
+      "slug": "novo-funil",
+      "niche": "",
+      "domain": null,
+      "engine": "steps",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-10-14T20:25:33.022+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - DEU PLAY - COM PITCH",
+      "slug": "cdbcpit2",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-10-10T16:03:12.41+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - DEU PLAY - SEM PITCH",
+      "slug": "cdbspit2",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-10-10T15:13:40.205+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - BLOCO 2 SEM PITCH",
+      "slug": "cdbspit",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-10-07T20:33:16.754+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - BLOCO 1 VIU PITCH",
+      "slug": "cdbcpit",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-10-07T20:11:00.325+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - APOSTILA MOCKUP",
+      "slug": "cdb-apostilas",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-10-06T18:51:51.583+00:00"
+    },
+    {
+      "name": "Vivendo de Doces — VSL",
+      "slug": "vdc1",
+      "niche": null,
+      "domain": "01.vivendodedoces.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "laranja-cdb",
+      "updated_at": "2026-08-24T20:39:31.099+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "niche": "Bolsas artesanais / apostila gratuita",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-08-20T16:44:39.97+00:00"
+    },
+    {
+      "name": "Roletinha Sonia (comercial)",
+      "slug": "premio-sonia-2",
+      "niche": null,
+      "domain": null,
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "laranja-cdb",
+      "updated_at": "2026-08-13T18:18:46.824+00:00"
+    },
+    {
+      "name": "Raspadinha Sonia",
+      "slug": "premio-sonia",
+      "niche": null,
+      "domain": null,
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "laranja-cdb",
+      "updated_at": "2026-08-04T15:37:40.405+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-24T15:06:46.604+00:00"
+    },
+    {
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-10T18:46:52.557+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-03T19:59:15.938+00:00"
+    },
+    {
+      "name": "CDB [BOLSAS] - TYPE01 (oliv)",
+      "slug": "cdb-type01",
+      "niche": "",
+      "domain": "viverdebolsas.com.br",
+      "engine": "typebot",
+      "status": "published",
+      "palette_id": "laranja-cdb",
+      "updated_at": "2026-07-02T16:53:59.763+00:00"
+    },
+    {
+      "name": "CDB 👛 [Bolsas] - ROLETA 1",
+      "slug": "cdb-rr",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-01T03:47:50.19+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-01T03:47:49.539+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+      "slug": "cdb-estado",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-01T03:47:49.404+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-01T03:47:49.277+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-01T03:47:49.155+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-01T03:47:48.995+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-hero13",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-01T03:47:48.886+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA",
+      "slug": "cdb-hero12",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-01T03:47:48.767+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-01T03:47:48.351+00:00"
+    },
+    {
+      "name": "CDB 👛 [BOLSAS] - HERO 09",
+      "slug": "cdb-hero09",
+      "niche": "Bolsas artesanais / renda extra",
+      "domain": "viverdebolsas.com.br",
+      "engine": "layers",
+      "status": "published",
+      "palette_id": "azul-confianca",
+      "updated_at": "2026-07-01T03:47:46.729+00:00"
+    }
+  ],
+  "analytics": {
+    "overview": {
+      "totalFunis": 39,
+      "totalSessoes": 28536,
+      "totalRespostas": 7314,
+      "totalLeads": 57,
+      "totalConclusoes": 24484,
+      "taxaConclusao": 85.8,
+      "daily": [
+        {
+          "day": "14/11",
+          "sessoes": 1033
+        },
+        {
+          "day": "15/11",
+          "sessoes": 1111
+        },
+        {
+          "day": "16/11",
+          "sessoes": 258
+        },
+        {
+          "day": "17/11",
+          "sessoes": 851
+        },
+        {
+          "day": "18/11",
+          "sessoes": 1289
+        },
+        {
+          "day": "19/11",
+          "sessoes": 1386
+        },
+        {
+          "day": "20/11",
+          "sessoes": 1520
+        }
+      ],
+      "porFunil": [
+        {
+          "slug": "premio-sonia",
+          "name": "Raspadinha Sonia",
+          "sessoes": 5513,
+          "pct": 19.3,
+          "color": "#3b82f6"
+        },
+        {
+          "slug": "sdbcpit5",
+          "name": "SDB 👛 [BOLSAS] - COM PITCH 5",
+          "sessoes": 3498,
+          "pct": 12.3,
+          "color": "#ec4899"
+        },
+        {
+          "slug": "sdbspit5",
+          "name": "SDB 👛 [BOLSAS] - SEM PITCH 5",
+          "sessoes": 2707,
+          "pct": 9.5,
+          "color": "#8b5cf6"
+        },
+        {
+          "slug": "sdbcpit4",
+          "name": "SDB 👛 [BOLSAS] - CURTA COM PITCH 4",
+          "sessoes": 2491,
+          "pct": 8.7,
+          "color": "#06b6d4"
+        },
+        {
+          "slug": "sdbspit4",
+          "name": "SDB👛 [BOLSAS] - CURTA SEM PITCH 4",
+          "sessoes": 2431,
+          "pct": 8.5,
+          "color": "#3b82f6"
+        },
+        {
+          "slug": "live1",
+          "name": "Sorteio da Sônia",
+          "sessoes": 2265,
+          "pct": 7.9,
+          "color": "#3b82f6"
+        },
+        {
+          "slug": "sdbcpit6",
+          "name": "SDB [BOLSAS] - COM PITCH 6",
+          "sessoes": 2186,
+          "pct": 7.7,
+          "color": "#ec4899"
+        },
+        {
+          "slug": "sdbspit6",
+          "name": "SDB [BOLSAS] - SEM PITCH 6",
+          "sessoes": 2007,
+          "pct": 7,
+          "color": "#3b82f6"
+        },
+        {
+          "slug": "cdbspit3",
+          "name": "CDB 👛 [BOLSAS] - CURTA SEM PITCH 3",
+          "sessoes": 1374,
+          "pct": 4.8,
+          "color": "#06b6d4"
+        },
+        {
+          "slug": "cdbcpit3",
+          "name": "CDB 👛 [BOLSAS] - CURTA COM PITCH 3",
+          "sessoes": 1177,
+          "pct": 4.1,
+          "color": "#ec4899"
+        },
+        {
+          "slug": "cdbspit2",
+          "name": "CDB 👛 [BOLSAS] - DEU PLAY - SEM PITCH",
+          "sessoes": 701,
+          "pct": 2.5,
+          "color": "#8b5cf6"
+        },
+        {
+          "slug": "vdc1",
+          "name": "Vivendo de Doces — VSL",
+          "sessoes": 650,
+          "pct": 2.3,
+          "color": "#8b5cf6"
+        },
+        {
+          "slug": "vdmspit6",
+          "name": "VDM [MODAS] - SEM PITCH 6",
+          "sessoes": 433,
+          "pct": 1.5,
+          "color": "#8b5cf6"
+        },
+        {
+          "slug": "vdmcpit6",
+          "name": "VDM [MODAS] - COM PITCH 6",
+          "sessoes": 304,
+          "pct": 1.1,
+          "color": "#06b6d4"
+        },
+        {
+          "slug": "cdb-01",
+          "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+          "sessoes": 129,
+          "pct": 0.5,
+          "color": "#8b5cf6"
+        },
+        {
+          "slug": "cdbspit",
+          "name": "CDB 👛 [BOLSAS] - BLOCO 2 SEM PITCH",
+          "sessoes": 127,
+          "pct": 0.4,
+          "color": "#ec4899"
+        },
+        {
+          "slug": "cdb-estado",
+          "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+          "sessoes": 119,
+          "pct": 0.4,
+          "color": "#06b6d4"
+        },
+        {
+          "slug": "cdbcpit",
+          "name": "CDB 👛 [BOLSAS] - BLOCO 1 VIU PITCH",
+          "sessoes": 118,
+          "pct": 0.4,
+          "color": "#06b6d4"
+        },
+        {
+          "slug": "cdb-type01",
+          "name": "CDB [BOLSAS] - TYPE01 (oliv)",
+          "sessoes": 102,
+          "pct": 0.4,
+          "color": "#3b82f6"
+        },
+        {
+          "slug": "cdbcpit2",
+          "name": "CDB 👛 [BOLSAS] - DEU PLAY - COM PITCH",
+          "sessoes": 96,
+          "pct": 0.3,
+          "color": "#3b82f6"
+        },
+        {
+          "slug": "cdb-hero04-2",
+          "name": "CDB 👛 [SRC 11] - Claude",
+          "sessoes": 56,
+          "pct": 0.2,
+          "color": "#ec4899"
+        },
+        {
+          "slug": "cdb12-apost",
+          "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+          "sessoes": 8,
+          "pct": 0,
+          "color": "#8b5cf6"
+        },
+        {
+          "slug": "cdb-slide",
+          "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+          "sessoes": 6,
+          "pct": 0,
+          "color": "#ec4899"
+        },
+        {
+          "slug": "cdb-hero10",
+          "name": "CDB 👛 [BOLSAS] - HERO 10",
+          "sessoes": 6,
+          "pct": 0,
+          "color": "#8b5cf6"
+        },
+        {
+          "slug": "cdb-insta",
+          "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+          "sessoes": 5,
+          "pct": 0,
+          "color": "#ec4899"
+        },
+        {
+          "slug": "cdb-hero09",
+          "name": "CDB 👛 [BOLSAS] - HERO 09",
+          "sessoes": 5,
+          "pct": 0,
+          "color": "#ec4899"
+        },
+        {
+          "slug": "cdb-apostilas",
+          "name": "CDB 👛 [BOLSAS] - APOSTILA MOCKUP",
+          "sessoes": 4,
+          "pct": 0,
+          "color": "#3b82f6"
+        },
+        {
+          "slug": "cdb-hero11",
+          "name": "CDB 👛 [BOLSAS] - HERO 11",
+          "sessoes": 4,
+          "pct": 0,
+          "color": "#ec4899"
+        },
+        {
+          "slug": "cdb-r",
+          "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+          "sessoes": 3,
+          "pct": 0,
+          "color": "#3b82f6"
+        },
+        {
+          "slug": "cdb-hero08",
+          "name": "CDB 👛 [BOLSAS] - HERO 08",
+          "sessoes": 3,
+          "pct": 0,
+          "color": "#8b5cf6"
+        },
+        {
+          "slug": "cdb-slide-vsl",
+          "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+          "sessoes": 2,
+          "pct": 0,
+          "color": "#06b6d4"
+        },
+        {
+          "slug": "cdb-hero12",
+          "name": "CDB 👛 [BOLSAS] - HERO ROLETA",
+          "sessoes": 2,
+          "pct": 0,
+          "color": "#3b82f6"
+        },
+        {
+          "slug": "cdb-comercial",
+          "name": "CDB 👛 [COMERCIAL] - UPSELL ROLETA",
+          "sessoes": 1,
+          "pct": 0,
+          "color": "#8b5cf6"
+        },
+        {
+          "slug": "clube-das-bolsas",
+          "name": "CDB 👛 [Bolsas] — SRC 01",
+          "sessoes": 1,
+          "pct": 0,
+          "color": "#ec4899"
+        },
+        {
+          "slug": "premio-sonia-2",
+          "name": "Roletinha Sonia (comercial)",
+          "sessoes": 1,
+          "pct": 0,
+          "color": "#06b6d4"
+        },
+        {
+          "slug": "cdb-rr",
+          "name": "CDB 👛 [Bolsas] - ROLETA 1",
+          "sessoes": 1,
+          "pct": 0,
+          "color": "#8b5cf6"
+        },
+        {
+          "slug": "test",
+          "name": "test",
+          "sessoes": 0,
+          "pct": 0,
+          "color": "#3b82f6"
+        },
+        {
+          "slug": "novo-funil",
+          "name": "Novo funil",
+          "sessoes": 0,
+          "pct": 0,
+          "color": "#06b6d4"
+        },
+        {
+          "slug": "cdb-hero13",
+          "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+          "sessoes": 0,
+          "pct": 0,
+          "color": "#06b6d4"
+        }
+      ]
+    },
+    "operacao": [
+      {
+        "slug": "premio-sonia",
+        "name": "Raspadinha Sonia",
+        "visitantes": 5513,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 5513,
+        "taxaConclusao": 100,
+        "score": 60.0
+      },
+      {
+        "slug": "sdbcpit5",
+        "name": "SDB 👛 [BOLSAS] - COM PITCH 5",
+        "visitantes": 3498,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 3498,
+        "taxaConclusao": 100,
+        "score": 60.0
+      },
+      {
+        "slug": "sdbspit5",
+        "name": "SDB 👛 [BOLSAS] - SEM PITCH 5",
+        "visitantes": 2707,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 2707,
+        "taxaConclusao": 100,
+        "score": 60.0
+      },
+      {
+        "slug": "sdbcpit4",
+        "name": "SDB 👛 [BOLSAS] - CURTA COM PITCH 4",
+        "visitantes": 2491,
+        "respostas": 1277,
+        "leads": 0,
+        "conclusoes": 1277,
+        "taxaConclusao": 51.3,
+        "score": 51.3
+      },
+      {
+        "slug": "sdbspit4",
+        "name": "SDB👛 [BOLSAS] - CURTA SEM PITCH 4",
+        "visitantes": 2431,
+        "respostas": 1208,
+        "leads": 0,
+        "conclusoes": 1208,
+        "taxaConclusao": 49.7,
+        "score": 49.7
+      },
+      {
+        "slug": "live1",
+        "name": "Sorteio da Sônia",
+        "visitantes": 2265,
+        "respostas": 1895,
+        "leads": 0,
+        "conclusoes": 1895,
+        "taxaConclusao": 83.7,
+        "score": 83.7
+      },
+      {
+        "slug": "sdbcpit6",
+        "name": "SDB [BOLSAS] - COM PITCH 6",
+        "visitantes": 2186,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 2186,
+        "taxaConclusao": 100,
+        "score": 60.0
+      },
+      {
+        "slug": "sdbspit6",
+        "name": "SDB [BOLSAS] - SEM PITCH 6",
+        "visitantes": 2007,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 2007,
+        "taxaConclusao": 100,
+        "score": 60.0
+      },
+      {
+        "slug": "cdbspit3",
+        "name": "CDB 👛 [BOLSAS] - CURTA SEM PITCH 3",
+        "visitantes": 1374,
+        "respostas": 1013,
+        "leads": 0,
+        "conclusoes": 1013,
+        "taxaConclusao": 73.7,
+        "score": 73.7
+      },
+      {
+        "slug": "cdbcpit3",
+        "name": "CDB 👛 [BOLSAS] - CURTA COM PITCH 3",
+        "visitantes": 1177,
+        "respostas": 818,
+        "leads": 0,
+        "conclusoes": 818,
+        "taxaConclusao": 69.5,
+        "score": 69.5
+      },
+      {
+        "slug": "cdbspit2",
+        "name": "CDB 👛 [BOLSAS] - DEU PLAY - SEM PITCH",
+        "visitantes": 701,
+        "respostas": 642,
+        "leads": 0,
+        "conclusoes": 642,
+        "taxaConclusao": 91.6,
+        "score": 91.6
+      },
+      {
+        "slug": "vdc1",
+        "name": "Vivendo de Doces — VSL",
+        "visitantes": 650,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 650,
+        "taxaConclusao": 100,
+        "score": 60.0
+      },
+      {
+        "slug": "vdmspit6",
+        "name": "VDM [MODAS] - SEM PITCH 6",
+        "visitantes": 433,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 433,
+        "taxaConclusao": 100,
+        "score": 60.0
+      },
+      {
+        "slug": "vdmcpit6",
+        "name": "VDM [MODAS] - COM PITCH 6",
+        "visitantes": 304,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 304,
+        "taxaConclusao": 100,
+        "score": 60.0
+      },
+      {
+        "slug": "cdb-01",
+        "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+        "visitantes": 129,
+        "respostas": 23,
+        "leads": 12,
+        "conclusoes": 12,
+        "taxaConclusao": 9.3,
+        "score": 12.7
+      },
+      {
+        "slug": "cdbspit",
+        "name": "CDB 👛 [BOLSAS] - BLOCO 2 SEM PITCH",
+        "visitantes": 127,
+        "respostas": 106,
+        "leads": 0,
+        "conclusoes": 106,
+        "taxaConclusao": 83.5,
+        "score": 83.5
+      },
+      {
+        "slug": "cdb-estado",
+        "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+        "visitantes": 119,
+        "respostas": 1,
+        "leads": 1,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 0.3
+      },
+      {
+        "slug": "cdbcpit",
+        "name": "CDB 👛 [BOLSAS] - BLOCO 1 VIU PITCH",
+        "visitantes": 118,
+        "respostas": 96,
+        "leads": 0,
+        "conclusoes": 96,
+        "taxaConclusao": 81.4,
+        "score": 81.4
+      },
+      {
+        "slug": "cdb-type01",
+        "name": "CDB [BOLSAS] - TYPE01 (oliv)",
+        "visitantes": 102,
+        "respostas": 102,
+        "leads": 16,
+        "conclusoes": 15,
+        "taxaConclusao": 14.7,
+        "score": 48.8
+      },
+      {
+        "slug": "cdbcpit2",
+        "name": "CDB 👛 [BOLSAS] - DEU PLAY - COM PITCH",
+        "visitantes": 96,
+        "respostas": 81,
+        "leads": 0,
+        "conclusoes": 81,
+        "taxaConclusao": 84.4,
+        "score": 84.4
+      },
+      {
+        "slug": "cdb-hero04-2",
+        "name": "CDB 👛 [SRC 11] - Claude",
+        "visitantes": 56,
+        "respostas": 28,
+        "leads": 12,
+        "conclusoes": 10,
+        "taxaConclusao": 17.9,
+        "score": 30.7
+      },
+      {
+        "slug": "cdb12-apost",
+        "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+        "visitantes": 8,
+        "respostas": 5,
+        "leads": 7,
+        "conclusoes": 4,
+        "taxaConclusao": 50,
+        "score": 55.0
+      },
+      {
+        "slug": "cdb-slide",
+        "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+        "visitantes": 6,
+        "respostas": 3,
+        "leads": 1,
+        "conclusoes": 1,
+        "taxaConclusao": 16.7,
+        "score": 30.0
+      },
+      {
+        "slug": "cdb-hero10",
+        "name": "CDB 👛 [BOLSAS] - HERO 10",
+        "visitantes": 6,
+        "respostas": 2,
+        "leads": 0,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 13.3
+      },
+      {
+        "slug": "cdb-insta",
+        "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+        "visitantes": 5,
+        "respostas": 2,
+        "leads": 1,
+        "conclusoes": 1,
+        "taxaConclusao": 20,
+        "score": 28.0
+      },
+      {
+        "slug": "cdb-hero09",
+        "name": "CDB 👛 [BOLSAS] - HERO 09",
+        "visitantes": 5,
+        "respostas": 1,
+        "leads": 0,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 8.0
+      },
+      {
+        "slug": "cdb-apostilas",
+        "name": "CDB 👛 [BOLSAS] - APOSTILA MOCKUP",
+        "visitantes": 4,
+        "respostas": 3,
+        "leads": 0,
+        "conclusoes": 3,
+        "taxaConclusao": 75,
+        "score": 75.0
+      },
+      {
+        "slug": "cdb-hero11",
+        "name": "CDB 👛 [BOLSAS] - HERO 11",
+        "visitantes": 4,
+        "respostas": 2,
+        "leads": 4,
+        "conclusoes": 2,
+        "taxaConclusao": 50,
+        "score": 50.0
+      },
+      {
+        "slug": "cdb-r",
+        "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+        "visitantes": 3,
+        "respostas": 3,
+        "leads": 1,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 40.0
+      },
+      {
+        "slug": "cdb-hero08",
+        "name": "CDB 👛 [BOLSAS] - HERO 08",
+        "visitantes": 3,
+        "respostas": 1,
+        "leads": 1,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 13.3
+      },
+      {
+        "slug": "cdb-slide-vsl",
+        "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+        "visitantes": 2,
+        "respostas": 2,
+        "leads": 1,
+        "conclusoes": 1,
+        "taxaConclusao": 50,
+        "score": 70.0
+      },
+      {
+        "slug": "cdb-hero12",
+        "name": "CDB 👛 [BOLSAS] - HERO ROLETA",
+        "visitantes": 2,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 0.0
+      },
+      {
+        "slug": "cdb-comercial",
+        "name": "CDB 👛 [COMERCIAL] - UPSELL ROLETA",
+        "visitantes": 1,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 0.0
+      },
+      {
+        "slug": "clube-das-bolsas",
+        "name": "CDB 👛 [Bolsas] — SRC 01",
+        "visitantes": 1,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 0.0
+      },
+      {
+        "slug": "premio-sonia-2",
+        "name": "Roletinha Sonia (comercial)",
+        "visitantes": 1,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 1,
+        "taxaConclusao": 100,
+        "score": 60.0
+      },
+      {
+        "slug": "cdb-rr",
+        "name": "CDB 👛 [Bolsas] - ROLETA 1",
+        "visitantes": 1,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 0.0
+      },
+      {
+        "slug": "test",
+        "name": "test",
+        "visitantes": 0,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 0.0
+      },
+      {
+        "slug": "novo-funil",
+        "name": "Novo funil",
+        "visitantes": 0,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 0.0
+      },
+      {
+        "slug": "cdb-hero13",
+        "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+        "visitantes": 0,
+        "respostas": 0,
+        "leads": 0,
+        "conclusoes": 0,
+        "taxaConclusao": 0,
+        "score": 0.0
+      }
+    ],
+    "quiz": [],
+    "traffic": {
+      "sources": [],
+      "campaigns": [],
+      "total": 0
+    },
+    "creatives": [],
+    "leads": {
+      "total": 57,
+      "recent": []
+    }
+  },
+  "capturedAt": "2026-11-21T02:49:43.286Z"
+}

@@ -1,3 +1,4 @@
+import { workspaceReturnPath } from "@/lib/workspace-return";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -56,25 +57,30 @@ export async function updateSession(request: NextRequest) {
   const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
   const allowed = !!user && !!adminEmail && user.email?.toLowerCase() === adminEmail;
 
-  // 1) Sem login tentando acessar o painel (menos o login) → vai pro login
-  if (isProtected && !isLoginRoute && !allowed) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/admin/login";
-    return NextResponse.redirect(url);
+  function redirectWithCookies(url: URL) {
+    const redirect = NextResponse.redirect(url);
+    redirect.headers.set("Cache-Control", "private, no-store");
+    for (const cookie of response.cookies.getAll()) redirect.cookies.set(cookie);
+    return redirect;
   }
 
-  // 2) Já logado abrindo o login → vai pro dashboard
+  if (isProtected && !isLoginRoute && !allowed) {
+    const url = new URL("/admin/login", request.url);
+    const returnTo = workspaceReturnPath(pathname + request.nextUrl.search);
+    if (returnTo !== "/dashboard") url.searchParams.set("next", returnTo);
+    return redirectWithCookies(url);
+  }
+
   if (isLoginRoute && allowed) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+    const returnTo = workspaceReturnPath(request.nextUrl.searchParams.get("next"));
+    return redirectWithCookies(new URL(returnTo, request.url));
   }
 
   // 3) Aposenta o painel VSL antigo: qualquer /admin (logado) → /dashboard
   if (allowed && (pathname === "/admin" || pathname.startsWith("/admin/")) && !isLoginRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+    return redirectWithCookies(url);
   }
 
   return response;

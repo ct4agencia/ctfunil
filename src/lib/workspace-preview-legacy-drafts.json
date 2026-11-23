@@ -1,0 +1,1174 @@
+[
+  {
+    "slug": "clube-das-bolsas",
+    "steps": [
+      {
+        "id": "roleta",
+        "title": "Gire a roleta e descubra sua condição especial.",
+        "layers": [
+          {
+            "id": "roleta-1",
+            "type": "roulette",
+            "content": {
+              "type": "roulette",
+              "title": "Gire a roleta e descubra sua condição especial.",
+              "subtitle": "Você tem uma chance de liberar um benefício exclusivo agora.",
+              "cta": "Girar",
+              "winCta": "Quero garantir agora →",
+              "winBody": "Sua condição especial foi liberada. Continue para garantir a sua bolsa de estudos.",
+              "winTitle": "🎉 Você ganhou ==ACESSO GRÁTIS==!",
+              "mode": "always",
+              "winningIndex": 0,
+              "segments": [
+                {
+                  "label": "ACESSO GRÁTIS",
+                  "color": "#e7c777",
+                  "win": true
+                },
+                {
+                  "label": "25% OFF",
+                  "color": "#ef8a6a"
+                },
+                {
+                  "label": "Não foi dessa vez",
+                  "color": "#b3a3c6"
+                },
+                {
+                  "label": "15% OFF",
+                  "color": "#f4c69b"
+                },
+                {
+                  "label": "Tente de novo",
+                  "color": "#ece2d2"
+                }
+              ],
+              "id": "roleta-1"
+            }
+          }
+        ]
+      },
+      {
+        "id": "hero",
+        "title": "O melhor treinamento do Brasil para ganhar ==R$5 mil por mês== com bolsas artesanais",
+        "layers": [
+          {
+            "id": "hero-1",
+            "type": "card",
+            "content": {
+              "text": "🎁 BOLSA DE ESTUDOS DE 6 MESES",
+              "id": "hero-1"
+            }
+          },
+          {
+            "id": "hero-2",
+            "type": "text",
+            "content": {
+              "text": "O melhor treinamento do Brasil para ganhar ==R$5 mil por mês== com bolsas artesanais",
+              "id": "hero-2"
+            }
+          },
+          {
+            "id": "hero-3",
+            "type": "text",
+            "content": {
+              "text": "Para receber o acesso gratuito do curso através de uma Bolsa de Estudos de 6 meses, você precisa apenas passar por uma pequena seleção respondendo algumas perguntas rápidas. Elas vão mostrar se o seu perfil se encaixa no ideal pra receber o acesso gratuito no Clube das Bolsas.",
+              "id": "hero-3"
+            }
+          },
+          {
+            "id": "hero-4",
+            "type": "carousel",
+            "content": {
+              "images": [],
+              "id": "hero-4"
+            }
+          },
+          {
+            "id": "hero-5",
+            "type": "button",
+            "content": {
+              "label": "Quero liberar minha Bolsa de Estudos",
+              "destination": "next",
+              "id": "hero-5"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-idade",
+        "title": "Quantos anos você tem?",
+        "layers": [
+          {
+            "id": "q-idade-1",
+            "type": "text",
+            "content": {
+              "text": "Quantos anos você tem?",
+              "id": "q-idade-1"
+            }
+          },
+          {
+            "id": "q-idade-2",
+            "type": "text",
+            "content": {
+              "text": "Essa pergunta é pra gente te colocar no grupo certo de mulheres da sua faixa etária.",
+              "id": "q-idade-2"
+            }
+          },
+          {
+            "id": "q-idade-3",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-idade-resposta-1",
+                  "label": "18 a 34 anos",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-idade-resposta-2",
+                  "label": "34 a 54 anos",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-idade-resposta-3",
+                  "label": "54 a 64 anos",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-idade-resposta-4",
+                  "label": "+65 anos",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-idade-3"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-filhos",
+        "title": "Você tem filhos?",
+        "layers": [
+          {
+            "id": "q-filhos-1",
+            "type": "text",
+            "content": {
+              "text": "Você tem filhos?",
+              "id": "q-filhos-1"
+            }
+          },
+          {
+            "id": "q-filhos-2",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-filhos-resposta-1",
+                  "label": "Sim",
+                  "emoji": "👍",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-filhos-resposta-2",
+                  "label": "Não",
+                  "emoji": "👎",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-filhos-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-regiao",
+        "title": "Em qual região do Brasil você mora atualmente?",
+        "layers": [
+          {
+            "id": "q-regiao-1",
+            "type": "text",
+            "content": {
+              "text": "Em qual região do Brasil você mora atualmente?",
+              "id": "q-regiao-1"
+            }
+          },
+          {
+            "id": "q-regiao-2",
+            "type": "text",
+            "content": {
+              "text": "Para te encaixar no grupo da sua região, se ainda tiver acessos gratuitos disponíveis para ela.",
+              "id": "q-regiao-2"
+            }
+          },
+          {
+            "id": "q-regiao-3",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-regiao-resposta-1",
+                  "label": "Norte",
+                  "emoji": "🌴",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-regiao-resposta-2",
+                  "label": "Nordeste",
+                  "emoji": "🌞",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-regiao-resposta-3",
+                  "label": "Centro-Oeste",
+                  "emoji": "🌾",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-regiao-resposta-4",
+                  "label": "Sudeste",
+                  "emoji": "🏙️",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-regiao-resposta-5",
+                  "label": "Sul",
+                  "emoji": "❄️",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-regiao-3"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-ocupacao",
+        "title": "Qual sua ocupação hoje?",
+        "layers": [
+          {
+            "id": "q-ocupacao-1",
+            "type": "text",
+            "content": {
+              "text": "Qual sua ocupação hoje?",
+              "id": "q-ocupacao-1"
+            }
+          },
+          {
+            "id": "q-ocupacao-2",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-ocupacao-resposta-1",
+                  "label": "Apenas trabalho",
+                  "emoji": "💼",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-ocupacao-resposta-2",
+                  "label": "Apenas estudo",
+                  "emoji": "📚",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-ocupacao-resposta-3",
+                  "label": "Sou aposentada",
+                  "emoji": "🙏",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-ocupacao-resposta-4",
+                  "label": "Sou dona de casa",
+                  "emoji": "🏠",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-ocupacao-resposta-5",
+                  "label": "Trabalho e estudo",
+                  "emoji": "⚡️",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-ocupacao-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-situacao",
+        "title": "Em qual dessas situações você se vê hoje?",
+        "layers": [
+          {
+            "id": "q-situacao-1",
+            "type": "text",
+            "content": {
+              "text": "Em qual dessas situações você se vê hoje?",
+              "id": "q-situacao-1"
+            }
+          },
+          {
+            "id": "q-situacao-2",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-situacao-resposta-1",
+                  "label": "Trabalhando muito e ganhando pouco",
+                  "emoji": "😪",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-situacao-resposta-2",
+                  "label": "Sem uma profissão definida",
+                  "emoji": "😖",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-situacao-resposta-3",
+                  "label": "Buscando algo que me dê liberdade e renda extra",
+                  "emoji": "🤑",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-situacao-resposta-4",
+                  "label": "Insatisfeita e querendo mudança de vida",
+                  "emoji": "😔",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-situacao-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-experiencia",
+        "title": "Qual o seu nível de experiência com bolsas artesanais?",
+        "layers": [
+          {
+            "id": "q-experiencia-1",
+            "type": "text",
+            "content": {
+              "text": "Qual o seu nível de experiência com bolsas artesanais?",
+              "id": "q-experiencia-1"
+            }
+          },
+          {
+            "id": "q-experiencia-2",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-experiencia-resposta-1",
+                  "label": "Nunca fiz",
+                  "emoji": "🌸",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-experiencia-resposta-2",
+                  "label": "Sou iniciante",
+                  "emoji": "💫",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-experiencia-resposta-3",
+                  "label": "Já tenho experiência",
+                  "emoji": "🌹",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-experiencia-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-motivacao",
+        "title": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+        "layers": [
+          {
+            "id": "q-motivacao-1",
+            "type": "text",
+            "content": {
+              "text": "Se você ganhasse R$5.000 por mês com seu negócio de bolsas… qual seria a primeira coisa que você faria com esse dinheiro?",
+              "id": "q-motivacao-1"
+            }
+          },
+          {
+            "id": "q-motivacao-2",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-motivacao-resposta-1",
+                  "label": "Sair do meu emprego atual",
+                  "emoji": "🏃",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-motivacao-resposta-2",
+                  "label": "Abrir meu próprio ateliê",
+                  "emoji": "🏠",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-motivacao-resposta-3",
+                  "label": "Ajudar minha família",
+                  "emoji": "❤️",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-motivacao-resposta-4",
+                  "label": "Realizar um sonho antigo",
+                  "emoji": "🌟",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-motivacao-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-fase",
+        "title": "Em que fase da sua vida você sente que está agora?",
+        "layers": [
+          {
+            "id": "q-fase-1",
+            "type": "text",
+            "content": {
+              "text": "Em que fase da sua vida você sente que está agora?",
+              "id": "q-fase-1"
+            }
+          },
+          {
+            "id": "q-fase-2",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-fase-resposta-1",
+                  "label": "Buscando independência financeira",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-fase-resposta-2",
+                  "label": "Quero ter uma renda própria",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-fase-resposta-3",
+                  "label": "Quero recomeçar minha vida",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-fase-resposta-4",
+                  "label": "Quero mais liberdade financeira",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-fase-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-acompanha",
+        "title": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+        "layers": [
+          {
+            "id": "q-acompanha-1",
+            "type": "text",
+            "content": {
+              "text": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok etc)",
+              "id": "q-acompanha-1"
+            }
+          },
+          {
+            "id": "q-acompanha-2",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-acompanha-resposta-1",
+                  "label": "Sim, acompanho muito",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-acompanha-resposta-2",
+                  "label": "Vejo às vezes",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-acompanha-resposta-3",
+                  "label": "Não acompanho",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-acompanha-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-curso",
+        "title": "Você já fez algum curso online antes?",
+        "layers": [
+          {
+            "id": "q-curso-1",
+            "type": "text",
+            "content": {
+              "text": "Você já fez algum curso online antes?",
+              "id": "q-curso-1"
+            }
+          },
+          {
+            "id": "q-curso-2",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-curso-resposta-1",
+                  "label": "Sim, já fiz e concluí",
+                  "emoji": "💪",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-curso-resposta-2",
+                  "label": "Já comecei, mas não terminei",
+                  "emoji": "😟",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-curso-resposta-3",
+                  "label": "Nunca fiz",
+                  "emoji": "❌",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-curso-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q-apoio",
+        "title": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+        "layers": [
+          {
+            "id": "q-apoio-1",
+            "type": "text",
+            "content": {
+              "text": "Durante o curso, você teria alguém que pudesse te apoiar, seja emocionalmente ou financeiramente?",
+              "id": "q-apoio-1"
+            }
+          },
+          {
+            "id": "q-apoio-2",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q-apoio-resposta-1",
+                  "label": "Sim, com certeza",
+                  "emoji": "😍",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-apoio-resposta-2",
+                  "label": "Talvez",
+                  "emoji": "🧐",
+                  "destination": "next"
+                },
+                {
+                  "id": "q-apoio-resposta-3",
+                  "label": "Não",
+                  "emoji": "😕",
+                  "destination": "next"
+                }
+              ],
+              "id": "q-apoio-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "loading",
+        "title": "Carregando suas respostas…",
+        "layers": [
+          {
+            "id": "loading-1",
+            "type": "loading",
+            "content": {
+              "title": "Carregando suas respostas…",
+              "bars": [
+                "Conferindo suas respostas",
+                "Cruzando seu perfil com as vagas",
+                "Preparando seu resultado"
+              ],
+              "checkpoints": [
+                {
+                  "at": 60,
+                  "question": "Você quer começar ainda este mês?",
+                  "options": [
+                    "Sim, com tudo! 🔥",
+                    "Quero entender melhor"
+                  ]
+                }
+              ],
+              "seconds": 4.5,
+              "type": "advance",
+              "destination": "next",
+              "id": "loading-1"
+            }
+          }
+        ]
+      },
+      {
+        "id": "result",
+        "title": "Uau! 😱",
+        "layers": [
+          {
+            "id": "result-1",
+            "type": "text",
+            "content": {
+              "text": "Uau! 😱",
+              "id": "result-1"
+            }
+          },
+          {
+            "id": "result-2",
+            "type": "text",
+            "content": {
+              "text": "Você tem ==tudo que a gente procura==!",
+              "id": "result-2"
+            }
+          },
+          {
+            "id": "result-3",
+            "type": "card",
+            "content": {
+              "text": "Que orgulho dizer isso: você atingiu a compatibilidade com o perfil ideal para receber a ==Bolsa de Estudos de 6 meses== no Clube das Bolsas! 🎉",
+              "id": "result-3"
+            }
+          },
+          {
+            "id": "result-4",
+            "type": "card",
+            "content": {
+              "text": "Você foi aprovada!",
+              "id": "result-4"
+            }
+          },
+          {
+            "id": "result-5",
+            "type": "text",
+            "content": {
+              "text": "Você tem tudo que a gente procura. Estamos muito felizes por ver você chegar até aqui. 🎉",
+              "id": "result-5"
+            }
+          },
+          {
+            "id": "result-6",
+            "type": "text",
+            "content": {
+              "text": "Compatível · faixa de 94% a 94%",
+              "id": "result-6"
+            }
+          },
+          {
+            "id": "result-7",
+            "type": "text",
+            "content": {
+              "text": "Mínimo necessário · 87%",
+              "id": "result-7"
+            }
+          },
+          {
+            "id": "result-8",
+            "type": "button",
+            "content": {
+              "label": "Quero ativar minha Bolsa de Estudos",
+              "destination": "next",
+              "id": "result-8"
+            }
+          }
+        ]
+      },
+      {
+        "id": "offer",
+        "title": "Prazer, eu me chamo ==Sônia== 🧡",
+        "layers": [
+          {
+            "id": "offer-1",
+            "type": "card",
+            "content": {
+              "text": "Bolsa garantida",
+              "id": "offer-1"
+            }
+          },
+          {
+            "id": "offer-2",
+            "type": "image",
+            "content": {
+              "image": {
+                "type": "image",
+                "src": ""
+              },
+              "id": "offer-2"
+            }
+          },
+          {
+            "id": "offer-3",
+            "type": "text",
+            "content": {
+              "text": "Prazer, eu me chamo ==Sônia== 🧡",
+              "id": "offer-3"
+            }
+          },
+          {
+            "id": "offer-4",
+            "type": "text",
+            "content": {
+              "text": "A sua Bolsa de Estudos de 6 meses está garantida! E agora que você é oficialmente minha aluna, deixa eu me apresentar:<br><br>Sou professora de Bolsas na tela há mais de **5 anos**. Já formei **+800 alunas** e hoje compartilho minha rotina e trabalho para **+100 mil seguidoras** no meu Instagram.",
+              "id": "offer-4"
+            }
+          },
+          {
+            "id": "offer-5",
+            "type": "card",
+            "content": {
+              "text": "5+ anos",
+              "id": "offer-5"
+            }
+          },
+          {
+            "id": "offer-6",
+            "type": "card",
+            "content": {
+              "text": "+800 alunas",
+              "id": "offer-6"
+            }
+          },
+          {
+            "id": "offer-7",
+            "type": "card",
+            "content": {
+              "text": "+100 mil seguidoras",
+              "id": "offer-7"
+            }
+          },
+          {
+            "id": "offer-8",
+            "type": "card",
+            "content": {
+              "text": "🎁 Presente de boas-vindas",
+              "id": "offer-8"
+            }
+          },
+          {
+            "id": "offer-9",
+            "type": "text",
+            "content": {
+              "text": "E pra gente começar nossa relação de aluna e professora do jeito certo, eu resolvi te dar um ==presente de boas-vindas== que você vai AMAR!",
+              "id": "offer-9"
+            }
+          },
+          {
+            "id": "offer-10",
+            "type": "button",
+            "content": {
+              "label": "QUERO O PRESENTE",
+              "destination": "next",
+              "id": "offer-10"
+            }
+          }
+        ]
+      },
+      {
+        "id": "captura",
+        "title": "Como forma de ==reconhecimento== por ter chegado até aqui…",
+        "layers": [
+          {
+            "id": "captura-1",
+            "type": "text",
+            "content": {
+              "text": "Como forma de ==reconhecimento== por ter chegado até aqui…",
+              "id": "captura-1"
+            }
+          },
+          {
+            "id": "captura-2",
+            "type": "text",
+            "content": {
+              "text": "Eu vou te mandar no seu **Whatsapp** uma **Apostila SUPER COMPLETA** de como fazer Bolsas de celular em Crochê.",
+              "id": "captura-2"
+            }
+          },
+          {
+            "id": "captura-3",
+            "type": "image",
+            "content": {
+              "image": {
+                "type": "image",
+                "src": ""
+              },
+              "id": "captura-3"
+            }
+          },
+          {
+            "id": "captura-4",
+            "type": "card",
+            "content": {
+              "text": "GRÁTIS",
+              "id": "captura-4"
+            }
+          },
+          {
+            "id": "captura-5",
+            "type": "alert",
+            "content": {
+              "text": "Essa apostila eu vou te mandar **direto no seu Whatsapp**, por isso preciso que você me diga qual seu número com DDD. Confere certinho o número pra não ficar errado, tá bom?",
+              "id": "captura-5"
+            }
+          },
+          {
+            "id": "captura-6",
+            "type": "field",
+            "content": {
+              "name": "nome",
+              "type": "text",
+              "label": "Como você gostaria que eu te chamasse?",
+              "placeholder": "Digite seu nome...",
+              "required": true,
+              "id": "captura-6"
+            }
+          },
+          {
+            "id": "captura-7",
+            "type": "field",
+            "content": {
+              "name": "telefone",
+              "type": "phone",
+              "label": "Seu Whatsapp (com DDD)",
+              "placeholder": "(00) 00000-0000",
+              "required": true,
+              "id": "captura-7"
+            }
+          },
+          {
+            "id": "captura-8",
+            "type": "button",
+            "content": {
+              "label": "Quero receber o presente no meu Whatsapp",
+              "destination": "next",
+              "id": "captura-8"
+            }
+          },
+          {
+            "id": "captura-9",
+            "type": "text",
+            "content": {
+              "text": "🔒 Seus dados estão protegidos e nunca serão compartilhados",
+              "id": "captura-9"
+            }
+          }
+        ]
+      },
+      {
+        "id": "pos-captura",
+        "title": "Pronto, {nome}!",
+        "layers": [
+          {
+            "id": "pos-captura-1",
+            "type": "text",
+            "content": {
+              "text": "Pronto, {nome}!",
+              "id": "pos-captura-1"
+            }
+          },
+          {
+            "id": "pos-captura-2",
+            "type": "text",
+            "content": {
+              "text": "Já vou anotar seu contato aqui no meu celular e daqui a alguns minutos vou te mandar uma mensagem no Whatsapp, combinado?",
+              "id": "pos-captura-2"
+            }
+          },
+          {
+            "id": "pos-captura-3",
+            "type": "alert",
+            "content": {
+              "text": "Lembrando: eu só consigo te mandar a apostila se você **responder a mensagem**.",
+              "id": "pos-captura-3"
+            }
+          },
+          {
+            "id": "pos-captura-4",
+            "type": "card",
+            "content": {
+              "text": "Ahhh, quase ia esquecendo… Além de te mandar a apostila, se você quiser, vou adorar conversar com você, tirar suas dúvidas e te ajudar no que precisar. ❤️ Fica atenta às notificações pra não deixar sua professora sem resposta, viu?",
+              "id": "pos-captura-4"
+            }
+          },
+          {
+            "id": "pos-captura-5",
+            "type": "button",
+            "content": {
+              "label": "Quero ativar a Bolsa de Estudos",
+              "destination": "next",
+              "id": "pos-captura-5"
+            }
+          }
+        ]
+      },
+      {
+        "id": "bridge",
+        "title": "Agora, assista o vídeo que explica tudo que você vai aprender no Clube das Bolsas",
+        "layers": [
+          {
+            "id": "bridge-1",
+            "type": "text",
+            "content": {
+              "text": "Agora, assista o vídeo que explica tudo que você vai aprender no Clube das Bolsas",
+              "id": "bridge-1"
+            }
+          },
+          {
+            "id": "bridge-2",
+            "type": "text",
+            "content": {
+              "text": "Ele também mostra, passo a passo, como ativar a bolsa de estudos de 6 meses que você acabou de conquistar.",
+              "id": "bridge-2"
+            }
+          },
+          {
+            "id": "bridge-3",
+            "type": "alert",
+            "content": {
+              "text": "Para não perder a sua bolsa de estudos de 6 meses, é obrigatório que você veja ATÉ O FINAL o vídeo da próxima página.",
+              "id": "bridge-3"
+            }
+          },
+          {
+            "id": "bridge-4",
+            "type": "button",
+            "content": {
+              "label": "Quero ativar minha Bolsa de Estudos",
+              "destination": "next",
+              "id": "bridge-4"
+            }
+          }
+        ]
+      },
+      {
+        "id": "vsl",
+        "title": "Veja como ativar sua Bolsa de Estudos 👇",
+        "layers": [
+          {
+            "id": "vsl-1",
+            "type": "text",
+            "content": {
+              "text": "Veja como ativar sua Bolsa de Estudos 👇",
+              "id": "vsl-1"
+            }
+          },
+          {
+            "id": "vsl-2",
+            "type": "embed",
+            "content": {
+              "id": "vsl-2"
+            }
+          },
+          {
+            "id": "vsl-3",
+            "type": "button",
+            "content": {
+              "label": "QUERO ATIVAR MINHA BOLSA AGORA",
+              "destination": "next",
+              "revealAt": 8,
+              "revealClock": "video",
+              "id": "vsl-3"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "novo-funil",
+    "steps": [
+      {
+        "id": "hero",
+        "title": "Seu título aqui",
+        "layers": [
+          {
+            "id": "hero-1",
+            "type": "text",
+            "content": {
+              "text": "Seu título aqui",
+              "id": "hero-1"
+            }
+          },
+          {
+            "id": "hero-2",
+            "type": "button",
+            "content": {
+              "label": "Começar",
+              "destination": "next",
+              "id": "hero-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "q1",
+        "title": "Sua pergunta aqui?",
+        "layers": [
+          {
+            "id": "q1-1",
+            "type": "text",
+            "content": {
+              "text": "Sua pergunta aqui?",
+              "id": "q1-1"
+            }
+          },
+          {
+            "id": "q1-2",
+            "type": "options",
+            "content": {
+              "multiple": false,
+              "awaitSubmit": false,
+              "required": true,
+              "options": [
+                {
+                  "id": "q1-resposta-1",
+                  "label": "Opção 1",
+                  "destination": "next"
+                },
+                {
+                  "id": "q1-resposta-2",
+                  "label": "Opção 2",
+                  "destination": "next"
+                }
+              ],
+              "id": "q1-2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "captura",
+        "title": "Deixe seu contato 👇",
+        "layers": [
+          {
+            "id": "captura-1",
+            "type": "text",
+            "content": {
+              "text": "Deixe seu contato 👇",
+              "id": "captura-1"
+            }
+          },
+          {
+            "id": "captura-2",
+            "type": "field",
+            "content": {
+              "name": "nome",
+              "type": "text",
+              "label": "Seu nome",
+              "placeholder": "Digite seu nome...",
+              "required": true,
+              "id": "captura-2"
+            }
+          },
+          {
+            "id": "captura-3",
+            "type": "field",
+            "content": {
+              "name": "telefone",
+              "type": "phone",
+              "label": "Seu WhatsApp",
+              "placeholder": "(00) 00000-0000",
+              "required": true,
+              "id": "captura-3"
+            }
+          },
+          {
+            "id": "captura-4",
+            "type": "button",
+            "content": {
+              "label": "Quero receber",
+              "destination": "next",
+              "id": "captura-4"
+            }
+          }
+        ]
+      },
+      {
+        "id": "vsl",
+        "title": "Assista até o final 👇",
+        "layers": [
+          {
+            "id": "vsl-1",
+            "type": "text",
+            "content": {
+              "text": "Assista até o final 👇",
+              "id": "vsl-1"
+            }
+          },
+          {
+            "id": "vsl-2",
+            "type": "embed",
+            "content": {
+              "id": "vsl-2"
+            }
+          },
+          {
+            "id": "vsl-3",
+            "type": "button",
+            "content": {
+              "label": "QUERO GARANTIR",
+              "destination": "next",
+              "revealAt": 8,
+              "revealClock": "video",
+              "id": "vsl-3"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

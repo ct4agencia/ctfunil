@@ -1,0 +1,73 @@
+.ct-availability {
+  max-width: 34rem;
+  margin-inline: auto;
+  display: grid;
+  gap: .75rem;
+}
+.ct-availability-day {
+  border: 1px solid var(--ct-line);
+  border-radius: .75rem;
+  background: var(--ct-raised);
+  padding: .5rem .625rem;
+  min-width: 0;
+}
+.ct-availability-day-head,
+.ct-availability-switch,
+.ct-availability-add {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.ct-availability-day-head { justify-content: space-between; min-height: 2.75rem; }
+.ct-availability-switch,
+.ct-availability-add {
+  min-height: 2.75rem;
+  text-align: start;
+  font-size: .875rem;
+  font-weight: 600;
+}
+.ct-availability-switch > span {
+  display: flex;
+  align-items: center;
+  background: var(--ct-line);
+  border-radius: 100px;
+  width: 2rem;
+  height: 1.125rem;
+  padding: .1875rem;
+  flex-shrink: 0;
+}
+.ct-availability-switch > span::before {
+  content: "";
+  width: .75rem;
+  height: .75rem;
+  border-radius: 50%;
+  background: var(--ct-dim);
+}
+.ct-availability-switch[aria-checked="true"] > span { background: var(--ct-blue); }
+.ct-availability-switch[aria-checked="true"] > span::before { transform: translateX(.875rem); background: white; }
+@media (prefers-reduced-motion: no-preference) {
+  .ct-availability-switch > span::before { transition: transform 220ms cubic-bezier(.2,.9,.28,1.35); }
+}
+.ct-availability-range {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto;
+  align-items: center;
+  gap: .25rem;
+  padding-block: .25rem;
+}
+.ct-availability-range .ct-select-trigger { min-width: 0; min-height: 2.75rem; }
+.ct-availability-add { color: var(--ct-blue); }
+.ct-availability-add:disabled { opacity: .5; }
+.ct-availability-copy {
+  z-index: 5;
+  border: 1px solid var(--ct-line);
+  border-radius: .75rem;
+  background: var(--ct-raised);
+  box-shadow: 0 8px 24px #0003;
+  padding: .75rem;
+  max-height: var(--radix-popover-content-available-height);
+  overflow-y: auto;
+}
+.ct-availability-copy label { display: flex; align-items: center; gap: .5rem; min-height: 2rem; font-size: .875rem; }
+.ct-availability-copy legend { margin-bottom: .25rem; }
+.ct-availability-copy > button { margin-top: .5rem; }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 // Mesmo dnd-kit do painel de blocos — nenhuma dependência nova para reordenar
 // as duas peças do popup.
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
@@ -45,7 +46,7 @@ function BgField({ value, onChange, onImagem }: { value?: string; onChange: (v: 
         <ColorField value={c1} onChange={setC1} className="h-9 w-10" label="Cor do topo" />
         <ColorField value={c2} onChange={setC2} className="h-9 w-10" label="Cor da base" />
         <button type="button" onClick={() => onChange(`linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`)} className="rounded-md bg-neutral-900 px-2.5 py-1.5 text-xs font-semibold text-white">Aplicar gradiente</button>
-        {value ? <button type="button" onClick={() => onChange(undefined)} className="text-xs font-semibold text-red-500">limpar (usa o padrão do estilo)</button> : null}
+        {value ? <button type="button" onClick={() => onChange(undefined)} className="text-xs font-semibold text-neutral-500 hover:text-neutral-900">Restaurar padrão</button> : null}
       </div>
       <div className="flex flex-wrap gap-1.5">
         {PRESETS.map((p) => (
@@ -54,7 +55,7 @@ function BgField({ value, onChange, onImagem }: { value?: string; onChange: (v: 
       </div>
       {/* IMAGEM de fundo: sobe pro storage e vira url(...) no mesmo campo CSS */}
       <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-2.5 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">
-        🖼️ Anexar imagem de fundo
+        Anexar imagem de fundo
         <input
           type="file"
           accept="image/*"
@@ -163,21 +164,40 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
       const patchSeg = (i: number, patch: Partial<RouletteSegment>) =>
         p({ segments: s.segments.map((x, k) => (k === i ? { ...x, ...patch } : x)) } as Partial<Step>);
       const setWinner = (i: number) =>
-        p({ winningIndex: i, segments: s.segments.map((x, k) => ({ ...x, win: k === i })) } as Partial<Step>);
+        p({
+          winningIndex: i,
+          ...(s.mode === "retry" && s.retryIndex === i
+            ? { retryIndex: s.segments.findIndex((_, k) => k !== i) }
+            : {}),
+          segments: s.segments.map((x, k) => ({ ...x, win: k === i })),
+        } as Partial<Step>);
       const sound = s.sound ?? { enabled: false };
       return (
         <div className="space-y-4">
           <Grid>
-            <Field label="Título"><HtmlField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-            <Field label="Subtítulo"><HtmlField value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
+            <Field label="Título" full><HtmlField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
+            <Field label="Subtítulo" full><HtmlField value={s.subtitle} onChange={(v) => p({ subtitle: v } as Partial<Step>)} /></Field>
             <Field label="Imagem do miolo"><ImageField value={s.centerImage} onChange={(v) => p({ centerImage: v } as Partial<Step>)} /></Field>
             <Field label="Modo">
-              <Select value={s.mode ?? "always"} onChange={(v) => p({ mode: v } as Partial<Step>)}
-                options={[{ value: "always", label: "Sempre vence" }, { value: "random", label: "Sorteio real" }]} />
+              <Select value={s.mode ?? "always"} onChange={(v) => {
+                if (v === "retry") {
+                  const first = s.retryIndex != null && s.retryIndex !== s.winningIndex
+                    ? s.retryIndex
+                    : Math.max(0, s.segments.findIndex((seg, i) => i !== s.winningIndex && /tente|novamente|outra vez/i.test(seg.label)) >= 0
+                      ? s.segments.findIndex((seg, i) => i !== s.winningIndex && /tente|novamente|outra vez/i.test(seg.label))
+                      : s.segments.findIndex((_, i) => i !== s.winningIndex));
+                  p({ mode: v, retryIndex: first } as Partial<Step>);
+                } else {
+                  p({ mode: v } as Partial<Step>);
+                }
+              }} options={[
+                { value: "always", label: "Sempre vence" },
+                { value: "random", label: "Sorteio real" },
+                { value: "retry", label: "Tente novamente" },
+              ]} />
             </Field>
             <Field label="Estilo (modelo da roleta)">
-              <Select value={s.style ?? "soft"} onChange={(v) => p({ style: v } as Partial<Step>)}
-                options={ROULETTE_STYLES.map((st) => ({ value: st.id, label: st.name }))} />
+              <WorkspaceSelect label="Estilo da roleta" value={s.style ?? "soft"} onChange={(v) => p({ style: v } as Partial<Step>)} options={ROULETTE_STYLES.map((st) => ({ value: st.id, label: st.name }))} />
             </Field>
             {/* Texto DENTRO das fatias. Era fixo em 11 nos dois motores, então
                 prêmio de nome longo cabia mal e não havia como ajustar. */}
@@ -185,16 +205,23 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               <Num value={s.labelSize ?? 11} onChange={(v) => p({ labelSize: Math.min(20, Math.max(7, v)) } as Partial<Step>)} />
             </Field>
             <Field label="Tipo de roleta">
-              <Select value={s.engine ?? "classica"} onChange={(v) => p({ engine: v } as Partial<Step>)}
-                options={ROULETTE_ENGINES.map((e) => ({ value: e.id, label: e.name }))} />
+              <WorkspaceSelect label="Tipo de roleta" value={s.engine ?? "classica"} onChange={(v) => p({ engine: v } as Partial<Step>)} options={ROULETTE_ENGINES.map((e) => ({ value: e.id, label: e.name }))} />
             </Field>
           </Grid>
 
+          {s.mode === "retry" ? (
+            <Field label="Fatia do primeiro giro">
+              <Select
+                value={String(s.retryIndex ?? "")}
+                onChange={(v) => p({ retryIndex: Number(v) } as Partial<Step>)}
+                options={s.segments.flatMap((seg, i) => i === s.winningIndex ? [] : [{ value: String(i), label: seg.label || `Fatia ${i + 1}` }])}
+              />
+              <p className="mt-1 text-[11px] text-neutral-500">No segundo giro, a roleta cai no segmento marcado como prêmio.</p>
+            </Field>
+          ) : null}
+
           {/* O tipo muda só a ANIMAÇÃO: sorteio, trava de 24 h e prêmios são os
               mesmos nos dois motores. */}
-          <p className="-mt-2 text-[11px] leading-snug text-neutral-500">
-            {ROULETTE_ENGINES.find((e) => e.id === (s.engine ?? "classica"))?.hint}
-          </p>
 
           {/* MESMOS CARDS DO /lab/roleta. Um <select> escondia o que cada estilo
               faz — aqui a descrição, o eixo e a régua ficam à vista, e a escolha
@@ -444,7 +471,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               </p>
             </div>
           ) : null}
-          <Field label="Fundo da lâmina (full-screen)"><BgField value={s.background} onChange={(v) => p({ background: v } as Partial<Step>)} /></Field>
+          <Field label="Fundo da etapa"><BgField value={s.background} onChange={(v) => p({ background: v } as Partial<Step>)} /></Field>
           <div>
             <span className="mb-1 block text-xs font-semibold text-neutral-500">Segmentos (marque o vencedor)</span>
             <div className="space-y-2">
@@ -456,7 +483,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                       sem saber qual entregar. A linha marcada ganha fundo verde
                       porque antes era um ponto cinza sem rótulo. */}
                   <label className="flex shrink-0 cursor-pointer flex-col items-center gap-0.5" title="Esta fatia é o prêmio">
-                    <input type="radio" name="winner" checked={s.winningIndex === i} onChange={() => setWinner(i)} className="h-4 w-4 accent-emerald-600" />
+                    <input type="radio" name="winner" checked={s.winningIndex === i} onChange={() => setWinner(i)} className="ct-editor-radio" aria-label={`Marcar ${seg.label || `fatia ${i + 1}`} como prêmio`} />
                     <span className={`text-[9px] font-bold uppercase leading-none ${s.winningIndex === i ? "text-emerald-700" : "text-neutral-400"}`}>prêmio</span>
                   </label>
                   <ColorField value={seg.color} onChange={(v) => patchSeg(i, { color: v })} className="h-8 w-9" label="Cor da fatia" />
@@ -563,20 +590,20 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               </div>
             </Field>
             <Field label="Botão pós-vitória"><Text value={s.winCta} onChange={(v) => p({ winCta: v } as Partial<Step>)} /></Field>
-            <Field label="Título da vitória"><HtmlField value={s.winTitle} onChange={(v) => p({ winTitle: v } as Partial<Step>)} /></Field>
-            <Field label="Texto da vitória"><HtmlField value={s.winBody} onChange={(v) => p({ winBody: v } as Partial<Step>)} /></Field>
+            <Field label="Título da vitória" full><HtmlField value={s.winTitle} onChange={(v) => p({ winTitle: v } as Partial<Step>)} /></Field>
+            <Field label="Texto da vitória" full><HtmlField value={s.winBody} onChange={(v) => p({ winBody: v } as Partial<Step>)} /></Field>
           </Grid>
           <div className="rounded-xl bg-neutral-50 p-3">
-            <Toggle label="🔊 Efeito sonoro" value={sound.enabled} onChange={(v) => p({ sound: { ...sound, enabled: v } } as Partial<Step>)} />
+            <Toggle label="Efeito sonoro" value={sound.enabled} onChange={(v) => p({ sound: { ...sound, enabled: v } } as Partial<Step>)} />
             {sound.enabled ? (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <p className="col-span-full text-[11px] text-neutral-500">Vazio = som sintetizado (padrão). Cole a URL de um <b>.mp3</b> próprio, ou busque um royalty-free.</p>
+                <p className="col-span-full text-[11px] text-neutral-500">Deixe vazio para usar os sons padrão.</p>
                 <Field label="Som do giro (.mp3, opcional)"><Text value={sound.tickUrl} onChange={(v) => p({ sound: { ...sound, tickUrl: v } } as Partial<Step>)} placeholder="https://...mp3" /></Field>
                 <Field label="Som da vitória (.mp3, opcional)"><Text value={sound.winUrl} onChange={(v) => p({ sound: { ...sound, winUrl: v } } as Partial<Step>)} placeholder="https://...mp3" /></Field>
                 <div className="col-span-full flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => { playSpinTicks(1400, 12); setTimeout(() => playWin(), 1500); }} className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold">▶ Testar som</button>
-                  <a href="https://pixabay.com/sound-effects/search/roulette/" target="_blank" rel="noreferrer" className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold">🔎 Royalty-free (giro) ↗</a>
-                  <a href="https://pixabay.com/sound-effects/search/win/" target="_blank" rel="noreferrer" className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold">🔎 Royalty-free (vitória) ↗</a>
+                  <button type="button" onClick={() => { playSpinTicks(1400, 12); setTimeout(() => playWin(), 1500); }} className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold">Testar som</button>
+                  <a href="https://pixabay.com/sound-effects/search/roulette/" target="_blank" rel="noreferrer" className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold">Buscar som de giro ↗</a>
+                  <a href="https://pixabay.com/sound-effects/search/win/" target="_blank" rel="noreferrer" className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold">Buscar som de vitória ↗</a>
                 </div>
               </div>
             ) : null}
@@ -586,14 +613,11 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               padrão: as roletas publicadas não podem ganhar uma tela nova por
               conta de um campo que ninguém marcou. */}
           <div className="rounded-xl bg-neutral-50 p-3">
-            <Toggle label="🎉 Popup de prêmio" value={s.popupEnabled ?? false} onChange={(v) => p({ popupEnabled: v } as Partial<Step>)} />
+            <Toggle label="Popup de prêmio" value={s.popupEnabled ?? false} onChange={(v) => p({ popupEnabled: v } as Partial<Step>)} />
             {s.popupEnabled ? (
               <div className="mt-3 space-y-3">
                 <p className="text-[11px] text-neutral-500">
-                  Aparece no <b>centro da tela</b> quando a roleta para, usando o <b>título</b> e o{" "}
-                  <b>texto da vitória</b> acima. O botão é o <b>botão pós-vitória</b>. Com ele ligado, o
-                  card de vitória embaixo da roda não aparece (seria a mesma copy duas vezes) e o
-                  avanço automático fica desativado.
+                  Exibido ao final do giro, com o conteúdo da vitória.
                 </p>
                 <Grid>
                   <Field label="Fundo do popup"><ColorField value={s.popupBg ?? "#16a34a"} onChange={(v) => p({ popupBg: v } as Partial<Step>)} label="Fundo do popup" /></Field>
@@ -701,7 +725,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                   <div className="flex items-center gap-2">
                     <input type="radio" name="scratch-winner" title="Sempre cair neste (peso 100)"
                       checked={Number(c.weight ?? 0) >= 100} onChange={() => viciar(i)}
-                      className="h-4 w-4 shrink-0 accent-neutral-900" />
+                      className="ct-editor-radio" aria-label={`Fixar ${c.label || `prêmio ${i + 1}`}`} />
                     <input className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
                       value={c.label} onChange={(e) => patchCard(i, { label: e.target.value })} placeholder="Copy do prêmio" />
                     <ColorField value={c.color ?? "#a855f7"} onChange={(v) => patchCard(i, { color: v })}
@@ -975,7 +999,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             <Field label="Emoji"><Text value={s.emoji} onChange={(v) => p({ emoji: v } as Partial<Step>)} /></Field>
             <Field label="Selo"><Text value={s.seal} onChange={(v) => p({ seal: v } as Partial<Step>)} /></Field>
             <Field label="Título" full><HtmlField value={s.title} onChange={(v) => p({ title: v } as Partial<Step>)} /></Field>
-            <Field label="Corpo (use {nome})" full><HtmlField value={s.body} onChange={(v) => p({ body: v } as Partial<Step>)} rows={3} /></Field>
+            <Field label="Corpo (use {nome})" full><HtmlField value={s.body ?? s.subtitle} onChange={(v) => p({ body: v } as Partial<Step>)} rows={3} /></Field>
             <Field label="Botão"><Text value={s.cta} onChange={(v) => p({ cta: v } as Partial<Step>)} /></Field>
           </Grid>
 
@@ -1383,13 +1407,7 @@ function AppearanceFields({ step, onChange }: { step: Step; onChange: (patch: Pa
         </label>
         <label className="block">
           <span className="mb-1 block text-xs font-semibold text-neutral-500">Peso do título</span>
-          <select className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm" value={String(a.titleWeight ?? 700)} onChange={(e) => set({ titleWeight: Number(e.target.value) })}>
-            <option value="400">Normal</option>
-            <option value="600">Semi-bold</option>
-            <option value="700">Bold</option>
-            <option value="800">Extra-bold</option>
-            <option value="900">Black</option>
-          </select>
+          <WorkspaceSelect label="Peso do título" value={String(a.titleWeight ?? 700)} onChange={value=>set({titleWeight:Number(value)})} options={[400,500,600,700,800,900].map(value=>({value:String(value),label:String(value)}))}/>
         </label>
       </div>
     </div>

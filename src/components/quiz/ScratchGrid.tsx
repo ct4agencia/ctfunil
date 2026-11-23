@@ -7,6 +7,7 @@ import { StepShell, RichText, useEdit } from "./ui";
 import { interp, type StepCtx } from "./steps";
 import { playWin, playUrl } from "@/lib/quiz/sound";
 import { comRastreio } from "@/lib/quiz/rastreio";
+import { useReducedMotion } from "@/components/referencias/beui/lib/reduced-motion-seguro";
 
 /**
  * Raspadinha em GRADE (N cards) — espelha o painel de prêmios da roleta.
@@ -68,16 +69,18 @@ function WhatsIcon({ size = 22 }: { size?: number }) {
 }
 
 /** Botão de resgate: verde WhatsApp, com a logo e pulsando pra puxar o clique. */
-function BotaoWhats({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+function BotaoWhats({ onClick, children, buttonRef }: { onClick: () => void; children: React.ReactNode; buttonRef: React.Ref<HTMLButtonElement> }) {
+  const reducedMotion = useReducedMotion();
   return (
     <motion.button
       type="button"
+      ref={buttonRef}
       onClick={onClick}
       className="flex w-full items-center justify-center gap-2.5 rounded-full px-6 py-4 text-base font-extrabold text-white shadow-lg"
       style={{ background: "#25D366", boxShadow: "0 10px 30px rgba(37,211,102,.45)" }}
-      animate={{ scale: [1, 1.035, 1] }}
-      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-      whileTap={{ scale: 0.97 }}
+      animate={{ scale: reducedMotion ? 1 : [1, 1.035, 1] }}
+      transition={reducedMotion ? { duration: 0 } : { duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+      whileTap={reducedMotion ? undefined : { scale: 0.97 }}
     >
       <WhatsIcon />
       <span>{children}</span>
@@ -87,7 +90,7 @@ function BotaoWhats({ onClick, children }: { onClick: () => void; children: Reac
 
 /** Um card raspável. Avisa o pai quando passa do limiar. */
 function Card({
-  card, cover, cover2, coverGradiente, coverText, coverTextColor, coverTextSize,
+  card, position, cover, cover2, coverGradiente, coverText, coverTextColor, coverTextSize,
   revealPct, revealed, disabled, destaque, destaqueBg, destaqueText, opacidadePerdedor, pulsarAntes,
   onFirstTouch, onReveal,
 }: {
@@ -113,8 +116,11 @@ function Card({
   pulsarAntes: boolean;
   /** 1º toque neste card: trava a escolha ANTES de revelar qualquer coisa */
   onFirstTouch: () => void;
-  onReveal: () => void;
+  onReveal: (fromKeyboard?: boolean) => void;
+  position: number;
 }) {
+  const reducedMotion = useReducedMotion();
+  const pulse = !reducedMotion && (destaque || pulsarAntes);
   /**
    * Cor do card revelado. O fallback é SEMÂNTICO, não o tema: prêmio ganho é
    * verde e prêmio perdido é cinza — é o que o `premio-sonia` faz gravando
@@ -225,10 +231,11 @@ function Card({
       style={{ aspectRatio: `${CW} / ${CH}`, zIndex: destaque ? 50 : 1 }}
       // ANTES de raspar: todos pulsam (convida ao toque).
       // DEPOIS: só o premiado continua pulsando; os outros param e recuam.
-      animate={destaque || pulsarAntes ? { scale: [1, 1.06, 1] } : { scale: 1 }}
-      transition={destaque || pulsarAntes ? { duration: 1.3, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
+      animate={{ scale: pulse ? [1, 1.06, 1] : 1 }}
+      transition={pulse ? { duration: 1.3, repeat: Infinity, ease: "easeInOut" } : { duration: reducedMotion ? 0 : 0.3 }}
     >
       <div
+        aria-hidden={!revealed}
         className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-xl px-2 text-center"
         style={
           destaque
@@ -266,10 +273,22 @@ function Card({
       {!revealed ? (
         <canvas
           ref={ref}
+          role="button"
+          aria-label={`Revelar prêmio do cartão ${position}`}
+          aria-disabled={disabled}
+          tabIndex={disabled ? -1 : 0}
           width={CW}
           height={CH}
-          className="absolute inset-0 h-full w-full touch-none rounded-xl"
+          className="absolute inset-0 h-full w-full touch-none rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q-primary)]"
           style={{ cursor: disabled ? "not-allowed" : "grab" }}
+          onKeyDown={(event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            if (disabled || fired.current) return;
+            fired.current = true;
+            onFirstTouch();
+            onReveal(true);
+          }}
           onMouseDown={down} onMouseMove={move} onMouseUp={up} onMouseLeave={up}
           onTouchStart={down} onTouchMove={move} onTouchEnd={up}
         />
@@ -308,6 +327,9 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
    *  todos    = os demais cards também aparecem (por baixo do popup) */
   type Estado = { prize: number; pos: number; fase: "raspando" | "popup" | "todos" };
   const [estado, setEstado] = useState<Estado | null>(null);
+  const continueButton = useRef<HTMLButtonElement>(null);
+  const focusContinue = useRef(false);
+  const reducedMotion = useReducedMotion();
   /** espelho síncrono do estado: o updater do setEstado roda depois, e o
    *  onReveal precisa saber o prêmio NA HORA pra disparar som/confete/trava. */
   const estadoRef = useRef<Estado | null>(null);
@@ -321,6 +343,12 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
    *  passou a ser definido já no 1º toque, usar `pos === openedPos` aqui fazia
    *  o card limpar inteiro no clique, sem sensação de raspagem.) */
   const revelado = estado !== null && estado.fase !== "raspando";
+  useEffect(() => {
+    if (revelado && focusContinue.current) {
+      focusContinue.current = false;
+      continueButton.current?.focus();
+    }
+  }, [revelado]);
 
   // 1 raspagem por dispositivo: restaura o estado já revelado (nunca no preview).
   // Precisa ser em effect (ler localStorage no render divergiria do SSR e
@@ -349,12 +377,13 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
     setEstado(novo);
   }, [cards]);
 
-  const onReveal = useCallback((pos: number) => {
+  const onReveal = useCallback((pos: number, fromKeyboard = false) => {
     // `ref` em vez do updater do setEstado: o callback do setEstado roda DEPOIS
     // (é assíncrono), então ler `idx` na linha seguinte devolvia -1 e o guard
     // abortava som, confete e trava. O ref é lido na hora.
     const jaRevelou = estadoRef.current && estadoRef.current.fase !== "raspando";
     if (jaRevelou) return;
+    focusContinue.current = fromKeyboard;
     const idx = estadoRef.current?.prize ?? pickByWeight(cards);
     const novo = { prize: idx, pos, fase: "popup" as const };
     estadoRef.current = novo;
@@ -427,7 +456,7 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
             className="pointer-events-none fixed inset-0 z-40"
             style={{ background: `rgba(0,0,0,${Math.min(1, Math.max(0, Number(step.escurecimento ?? 68) / 100))})` }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
+            transition={{ duration: reducedMotion ? 0 : 0.35 }}
           />
         ) : null}
       </AnimatePresence>
@@ -479,6 +508,7 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
             <Card
               key={pos}
               card={cardAt(pos)}
+              position={pos + 1}
               cover={step.coverColor ?? PADRAO.coverColor}
               cover2={step.coverColor2 ?? PADRAO.coverColor2}
               // sem `coverStyle` gravado, o padrão é o degradê dourado da referência
@@ -499,7 +529,7 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               destaqueBg={step.destaqueBg}
               destaqueText={step.destaqueText}
               onFirstTouch={() => onFirstTouch(pos)}
-              onReveal={() => onReveal(pos)}
+              onReveal={(fromKeyboard) => onReveal(pos, fromKeyboard)}
             />
           ))}
         </div>
@@ -509,7 +539,7 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
             depois que o prêmio é revelado, e precisa ficar por cima do fundo. */}
         <div className="relative z-50 mx-auto mt-5 w-full" style={{ maxWidth: 460 }}>
           {revelado ? (
-            <BotaoWhats onClick={seguir}>{step.winCta}</BotaoWhats>
+            <BotaoWhats onClick={seguir} buttonRef={continueButton}>{step.winCta}</BotaoWhats>
           ) : (
             <p className="text-center text-sm font-medium text-[var(--q-text-muted)]">
               👆 Raspe um card para revelar seu prêmio
@@ -533,8 +563,8 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
             <motion.div
               className="w-full max-w-[300px] rounded-2xl px-4 py-3 text-center shadow-xl"
               style={{ background: step.popupBg || "#16a34a", color: step.popupText || "#ffffff" }}
-              initial={{ scale: 0.85, y: -24 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 22 }}
+              initial={reducedMotion ? false : { scale: 0.85, y: -24 }} animate={{ scale: 1, y: 0 }} exit={reducedMotion ? { opacity: 0 } : { scale: 0.9, opacity: 0 }}
+              transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 320, damping: 22 }}
             >
               <div className="flex items-center justify-center gap-1.5">
                 <span className="text-xl leading-none">{premio.emoji || "🎉"}</span>
@@ -550,8 +580,8 @@ export default function ScratchGrid({ step, ctx }: { step: ScratchStep; ctx: Ste
               <motion.div
                 className="mt-2 rounded-xl px-3 py-2 text-base font-black leading-tight shadow-md"
                 style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "#16a34a" }}
-                animate={{ scale: [1, 1.04, 1] }}
-                transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
+                animate={{ scale: reducedMotion ? 1 : [1, 1.04, 1] }}
+                transition={reducedMotion ? { duration: 0 } : { duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
               >
                 {premio.label}
               </motion.div>

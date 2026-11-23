@@ -1,0 +1,1830 @@
+{
+  "capturedAt": "2026-11-21 13:47:35.602705+00",
+  "timeZone": "America/Sao_Paulo",
+  "codes": [
+    {
+      "code": "bolsa04",
+      "configuredFunnels": 1
+    },
+    {
+      "code": "bolsa05-roleta",
+      "configuredFunnels": 5
+    },
+    {
+      "code": "bolsa09vsldireto",
+      "configuredFunnels": 7
+    },
+    {
+      "code": "bolsa11",
+      "configuredFunnels": 2
+    },
+    {
+      "code": "bolsa11-type",
+      "configuredFunnels": 1
+    },
+    {
+      "code": "bolsa12",
+      "configuredFunnels": 4
+    },
+    {
+      "code": "cdb4",
+      "configuredFunnels": 1
+    },
+    {
+      "code": "cdbcp",
+      "configuredFunnels": 1
+    },
+    {
+      "code": "cdbsp",
+      "configuredFunnels": 1
+    },
+    {
+      "code": "vdc01",
+      "configuredFunnels": 1
+    }
+  ],
+  "daily": [
+    {
+      "day": "2026-06-21",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 2,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-06-29",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 1,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-07-09",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 29400
+    },
+    {
+      "day": "2026-07-10",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 16490
+    },
+    {
+      "day": "2026-07-11",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 2,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-07-12",
+      "code": "bolsa11",
+      "orders": 3,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 31190
+    },
+    {
+      "day": "2026-07-13",
+      "code": "bolsa11",
+      "orders": 12,
+      "priced": 12,
+      "approved": 12,
+      "reversals": 0,
+      "gross_cents": 150577
+    },
+    {
+      "day": "2026-07-14",
+      "code": "bolsa11",
+      "orders": 4,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 14701
+    },
+    {
+      "day": "2026-07-15",
+      "code": "bolsa11",
+      "orders": 30,
+      "priced": 14,
+      "approved": 14,
+      "reversals": 0,
+      "gross_cents": 167068
+    },
+    {
+      "day": "2026-07-16",
+      "code": "bolsa11",
+      "orders": 13,
+      "priced": 10,
+      "approved": 10,
+      "reversals": 0,
+      "gross_cents": 134088
+    },
+    {
+      "day": "2026-07-17",
+      "code": "bolsa11",
+      "orders": 14,
+      "priced": 9,
+      "approved": 9,
+      "reversals": 0,
+      "gross_cents": 106475
+    },
+    {
+      "day": "2026-07-18",
+      "code": "bolsa11",
+      "orders": 15,
+      "priced": 8,
+      "approved": 8,
+      "reversals": 2,
+      "gross_cents": 91768
+    },
+    {
+      "day": "2026-07-19",
+      "code": "bolsa11",
+      "orders": 18,
+      "priced": 9,
+      "approved": 9,
+      "reversals": 4,
+      "gross_cents": 106472
+    },
+    {
+      "day": "2026-07-20",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-07-20",
+      "code": "cdb4",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-07-21",
+      "code": "bolsa11",
+      "orders": 7,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-07-21",
+      "code": "cdb4",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-07-22",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-07-23",
+      "code": "bolsa11",
+      "orders": 3,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 1,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-07-24",
+      "code": "bolsa04",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-07-24",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-07-25",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-07-26",
+      "code": "bolsa11",
+      "orders": 10,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 5370
+    },
+    {
+      "day": "2026-07-27",
+      "code": "bolsa11",
+      "orders": 7,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 5370
+    },
+    {
+      "day": "2026-07-28",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 3580
+    },
+    {
+      "day": "2026-07-29",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-07-30",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-08-01",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-08-02",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 3580
+    },
+    {
+      "day": "2026-08-03",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-04",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-08-10",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-12",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-13",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-08-15",
+      "code": "bolsa11",
+      "orders": 3,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-08-18",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-08-19",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-20",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-21",
+      "code": "bolsa11",
+      "orders": 6,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-08-22",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-22",
+      "code": "vdc01",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 19700
+    },
+    {
+      "day": "2026-08-23",
+      "code": "vdc01",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-24",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-24",
+      "code": "vdc01",
+      "orders": 6,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-25",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-08-25",
+      "code": "vdc01",
+      "orders": 3,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 1,
+      "gross_cents": 39401
+    },
+    {
+      "day": "2026-08-26",
+      "code": "bolsa11",
+      "orders": 9,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 5370
+    },
+    {
+      "day": "2026-08-26",
+      "code": "vdc01",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 39396
+    },
+    {
+      "day": "2026-08-27",
+      "code": "bolsa11",
+      "orders": 7,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 5370
+    },
+    {
+      "day": "2026-08-27",
+      "code": "bolsa12",
+      "orders": 75,
+      "priced": 45,
+      "approved": 45,
+      "reversals": 0,
+      "gross_cents": 505789
+    },
+    {
+      "day": "2026-08-27",
+      "code": "vdc01",
+      "orders": 5,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 59099
+    },
+    {
+      "day": "2026-08-28",
+      "code": "bolsa11",
+      "orders": 4,
+      "priced": 4,
+      "approved": 4,
+      "reversals": 0,
+      "gross_cents": 7160
+    },
+    {
+      "day": "2026-08-28",
+      "code": "bolsa12",
+      "orders": 62,
+      "priced": 36,
+      "approved": 36,
+      "reversals": 1,
+      "gross_cents": 458284
+    },
+    {
+      "day": "2026-08-28",
+      "code": "vdc01",
+      "orders": 3,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 59096
+    },
+    {
+      "day": "2026-08-29",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-29",
+      "code": "bolsa12",
+      "orders": 53,
+      "priced": 34,
+      "approved": 34,
+      "reversals": 0,
+      "gross_cents": 415470
+    },
+    {
+      "day": "2026-08-29",
+      "code": "vdc01",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-08-30",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-08-30",
+      "code": "bolsa12",
+      "orders": 128,
+      "priced": 73,
+      "approved": 73,
+      "reversals": 7,
+      "gross_cents": 920460
+    },
+    {
+      "day": "2026-08-31",
+      "code": "bolsa12",
+      "orders": 127,
+      "priced": 74,
+      "approved": 74,
+      "reversals": 5,
+      "gross_cents": 860744
+    },
+    {
+      "day": "2026-08-31",
+      "code": "vdc01",
+      "orders": 3,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 59103
+    },
+    {
+      "day": "2026-09-01",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-01",
+      "code": "bolsa12",
+      "orders": 94,
+      "priced": 58,
+      "approved": 58,
+      "reversals": 1,
+      "gross_cents": 662247
+    },
+    {
+      "day": "2026-09-02",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 1,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-02",
+      "code": "bolsa12",
+      "orders": 116,
+      "priced": 52,
+      "approved": 52,
+      "reversals": 4,
+      "gross_cents": 575669
+    },
+    {
+      "day": "2026-09-03",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-09-03",
+      "code": "bolsa12",
+      "orders": 127,
+      "priced": 56,
+      "approved": 56,
+      "reversals": 2,
+      "gross_cents": 718872
+    },
+    {
+      "day": "2026-09-04",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-04",
+      "code": "bolsa12",
+      "orders": 88,
+      "priced": 39,
+      "approved": 39,
+      "reversals": 1,
+      "gross_cents": 478967
+    },
+    {
+      "day": "2026-09-05",
+      "code": "bolsa12",
+      "orders": 138,
+      "priced": 51,
+      "approved": 51,
+      "reversals": 4,
+      "gross_cents": 616185
+    },
+    {
+      "day": "2026-09-06",
+      "code": "bolsa12",
+      "orders": 186,
+      "priced": 102,
+      "approved": 102,
+      "reversals": 3,
+      "gross_cents": 1147227
+    },
+    {
+      "day": "2026-09-07",
+      "code": "bolsa12",
+      "orders": 103,
+      "priced": 44,
+      "approved": 44,
+      "reversals": 2,
+      "gross_cents": 438609
+    },
+    {
+      "day": "2026-09-08",
+      "code": "bolsa12",
+      "orders": 142,
+      "priced": 70,
+      "approved": 70,
+      "reversals": 1,
+      "gross_cents": 830253
+    },
+    {
+      "day": "2026-09-09",
+      "code": "bolsa12",
+      "orders": 100,
+      "priced": 54,
+      "approved": 54,
+      "reversals": 4,
+      "gross_cents": 646050
+    },
+    {
+      "day": "2026-09-10",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-09-10",
+      "code": "bolsa12",
+      "orders": 121,
+      "priced": 47,
+      "approved": 47,
+      "reversals": 1,
+      "gross_cents": 598266
+    },
+    {
+      "day": "2026-09-11",
+      "code": "bolsa12",
+      "orders": 58,
+      "priced": 30,
+      "approved": 30,
+      "reversals": 1,
+      "gross_cents": 378386
+    },
+    {
+      "day": "2026-09-12",
+      "code": "bolsa12",
+      "orders": 123,
+      "priced": 75,
+      "approved": 75,
+      "reversals": 2,
+      "gross_cents": 920747
+    },
+    {
+      "day": "2026-09-13",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-09-13",
+      "code": "bolsa12",
+      "orders": 122,
+      "priced": 63,
+      "approved": 63,
+      "reversals": 3,
+      "gross_cents": 783472
+    },
+    {
+      "day": "2026-09-14",
+      "code": "bolsa12",
+      "orders": 72,
+      "priced": 38,
+      "approved": 38,
+      "reversals": 1,
+      "gross_cents": 476872
+    },
+    {
+      "day": "2026-09-15",
+      "code": "bolsa11",
+      "orders": 3,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-15",
+      "code": "bolsa12",
+      "orders": 44,
+      "priced": 20,
+      "approved": 20,
+      "reversals": 3,
+      "gross_cents": 253999
+    },
+    {
+      "day": "2026-09-16",
+      "code": "bolsa12",
+      "orders": 78,
+      "priced": 43,
+      "approved": 43,
+      "reversals": 2,
+      "gross_cents": 542091
+    },
+    {
+      "day": "2026-09-17",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-17",
+      "code": "bolsa12",
+      "orders": 109,
+      "priced": 57,
+      "approved": 57,
+      "reversals": 7,
+      "gross_cents": 666063
+    },
+    {
+      "day": "2026-09-18",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-18",
+      "code": "bolsa12",
+      "orders": 85,
+      "priced": 39,
+      "approved": 39,
+      "reversals": 6,
+      "gross_cents": 451570
+    },
+    {
+      "day": "2026-09-19",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-19",
+      "code": "bolsa12",
+      "orders": 91,
+      "priced": 50,
+      "approved": 50,
+      "reversals": 3,
+      "gross_cents": 620662
+    },
+    {
+      "day": "2026-09-20",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-09-20",
+      "code": "bolsa12",
+      "orders": 92,
+      "priced": 34,
+      "approved": 34,
+      "reversals": 2,
+      "gross_cents": 404648
+    },
+    {
+      "day": "2026-09-21",
+      "code": "bolsa11",
+      "orders": 6,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-21",
+      "code": "bolsa12",
+      "orders": 83,
+      "priced": 34,
+      "approved": 34,
+      "reversals": 2,
+      "gross_cents": 397990
+    },
+    {
+      "day": "2026-09-22",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-09-22",
+      "code": "bolsa12",
+      "orders": 112,
+      "priced": 55,
+      "approved": 55,
+      "reversals": 2,
+      "gross_cents": 676700
+    },
+    {
+      "day": "2026-09-23",
+      "code": "bolsa12",
+      "orders": 147,
+      "priced": 62,
+      "approved": 62,
+      "reversals": 3,
+      "gross_cents": 746990
+    },
+    {
+      "day": "2026-09-24",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-24",
+      "code": "bolsa12",
+      "orders": 141,
+      "priced": 42,
+      "approved": 42,
+      "reversals": 6,
+      "gross_cents": 504790
+    },
+    {
+      "day": "2026-09-25",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-25",
+      "code": "bolsa12",
+      "orders": 84,
+      "priced": 35,
+      "approved": 35,
+      "reversals": 5,
+      "gross_cents": 409281
+    },
+    {
+      "day": "2026-09-26",
+      "code": "bolsa11",
+      "orders": 8,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 3580
+    },
+    {
+      "day": "2026-09-26",
+      "code": "bolsa12",
+      "orders": 136,
+      "priced": 79,
+      "approved": 79,
+      "reversals": 5,
+      "gross_cents": 929960
+    },
+    {
+      "day": "2026-09-27",
+      "code": "bolsa11",
+      "orders": 6,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 3580
+    },
+    {
+      "day": "2026-09-27",
+      "code": "bolsa12",
+      "orders": 92,
+      "priced": 44,
+      "approved": 44,
+      "reversals": 4,
+      "gross_cents": 530770
+    },
+    {
+      "day": "2026-09-28",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 3580
+    },
+    {
+      "day": "2026-09-28",
+      "code": "bolsa12",
+      "orders": 88,
+      "priced": 57,
+      "approved": 57,
+      "reversals": 4,
+      "gross_cents": 609170
+    },
+    {
+      "day": "2026-09-29",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-09-29",
+      "code": "bolsa12",
+      "orders": 84,
+      "priced": 47,
+      "approved": 47,
+      "reversals": 8,
+      "gross_cents": 608290
+    },
+    {
+      "day": "2026-09-30",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-09-30",
+      "code": "bolsa12",
+      "orders": 83,
+      "priced": 43,
+      "approved": 43,
+      "reversals": 4,
+      "gross_cents": 529490
+    },
+    {
+      "day": "2026-10-01",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-10-01",
+      "code": "bolsa12",
+      "orders": 90,
+      "priced": 49,
+      "approved": 49,
+      "reversals": 4,
+      "gross_cents": 619400
+    },
+    {
+      "day": "2026-10-02",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 1,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-10-02",
+      "code": "bolsa12",
+      "orders": 69,
+      "priced": 41,
+      "approved": 41,
+      "reversals": 0,
+      "gross_cents": 500090
+    },
+    {
+      "day": "2026-10-03",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-03",
+      "code": "bolsa12",
+      "orders": 131,
+      "priced": 82,
+      "approved": 82,
+      "reversals": 2,
+      "gross_cents": 910820
+    },
+    {
+      "day": "2026-10-04",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-04",
+      "code": "bolsa12",
+      "orders": 66,
+      "priced": 48,
+      "approved": 48,
+      "reversals": 2,
+      "gross_cents": 527770
+    },
+    {
+      "day": "2026-10-05",
+      "code": "bolsa12",
+      "orders": 56,
+      "priced": 33,
+      "approved": 33,
+      "reversals": 6,
+      "gross_cents": 359070
+    },
+    {
+      "day": "2026-10-06",
+      "code": "bolsa12",
+      "orders": 33,
+      "priced": 22,
+      "approved": 22,
+      "reversals": 1,
+      "gross_cents": 276437
+    },
+    {
+      "day": "2026-10-07",
+      "code": "bolsa12",
+      "orders": 37,
+      "priced": 26,
+      "approved": 26,
+      "reversals": 1,
+      "gross_cents": 276170
+    },
+    {
+      "day": "2026-10-07",
+      "code": "cdbsp",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 22690
+    },
+    {
+      "day": "2026-10-08",
+      "code": "bolsa12",
+      "orders": 25,
+      "priced": 15,
+      "approved": 15,
+      "reversals": 2,
+      "gross_cents": 187890
+    },
+    {
+      "day": "2026-10-08",
+      "code": "cdbcp",
+      "orders": 3,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 14700
+    },
+    {
+      "day": "2026-10-08",
+      "code": "cdbsp",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 24400
+    },
+    {
+      "day": "2026-10-09",
+      "code": "bolsa12",
+      "orders": 50,
+      "priced": 30,
+      "approved": 30,
+      "reversals": 3,
+      "gross_cents": 371460
+    },
+    {
+      "day": "2026-10-10",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-10",
+      "code": "bolsa12",
+      "orders": 81,
+      "priced": 47,
+      "approved": 47,
+      "reversals": 3,
+      "gross_cents": 696580
+    },
+    {
+      "day": "2026-10-11",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-11",
+      "code": "bolsa12",
+      "orders": 81,
+      "priced": 55,
+      "approved": 55,
+      "reversals": 7,
+      "gross_cents": 827600
+    },
+    {
+      "day": "2026-10-11",
+      "code": "cdbcp",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 29400
+    },
+    {
+      "day": "2026-10-11",
+      "code": "cdbsp",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 14700
+    },
+    {
+      "day": "2026-10-12",
+      "code": "bolsa12",
+      "orders": 123,
+      "priced": 88,
+      "approved": 88,
+      "reversals": 2,
+      "gross_cents": 1228160
+    },
+    {
+      "day": "2026-10-12",
+      "code": "cdbsp",
+      "orders": 3,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 29400
+    },
+    {
+      "day": "2026-10-13",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-13",
+      "code": "bolsa12",
+      "orders": 72,
+      "priced": 47,
+      "approved": 47,
+      "reversals": 2,
+      "gross_cents": 669190
+    },
+    {
+      "day": "2026-10-13",
+      "code": "cdbcp",
+      "orders": 3,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 44100
+    },
+    {
+      "day": "2026-10-14",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-14",
+      "code": "bolsa12",
+      "orders": 37,
+      "priced": 25,
+      "approved": 25,
+      "reversals": 5,
+      "gross_cents": 371600
+    },
+    {
+      "day": "2026-10-15",
+      "code": "bolsa11",
+      "orders": 3,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-10-15",
+      "code": "bolsa12",
+      "orders": 68,
+      "priced": 41,
+      "approved": 41,
+      "reversals": 8,
+      "gross_cents": 562480
+    },
+    {
+      "day": "2026-10-16",
+      "code": "bolsa12",
+      "orders": 49,
+      "priced": 26,
+      "approved": 26,
+      "reversals": 2,
+      "gross_cents": 340270
+    },
+    {
+      "day": "2026-10-17",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-10-17",
+      "code": "bolsa12",
+      "orders": 52,
+      "priced": 27,
+      "approved": 27,
+      "reversals": 0,
+      "gross_cents": 360870
+    },
+    {
+      "day": "2026-10-18",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-10-18",
+      "code": "bolsa12",
+      "orders": 55,
+      "priced": 32,
+      "approved": 32,
+      "reversals": 6,
+      "gross_cents": 448600
+    },
+    {
+      "day": "2026-10-18",
+      "code": "cdbcp",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 14700
+    },
+    {
+      "day": "2026-10-18",
+      "code": "cdbsp",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 19700
+    },
+    {
+      "day": "2026-10-19",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-19",
+      "code": "bolsa12",
+      "orders": 44,
+      "priced": 34,
+      "approved": 34,
+      "reversals": 0,
+      "gross_cents": 454580
+    },
+    {
+      "day": "2026-10-19",
+      "code": "cdbsp",
+      "orders": 3,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 26390
+    },
+    {
+      "day": "2026-10-20",
+      "code": "bolsa11",
+      "orders": 3,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-20",
+      "code": "bolsa12",
+      "orders": 14,
+      "priced": 10,
+      "approved": 10,
+      "reversals": 0,
+      "gross_cents": 152000
+    },
+    {
+      "day": "2026-10-21",
+      "code": "bolsa11",
+      "orders": 7,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-10-21",
+      "code": "bolsa12",
+      "orders": 41,
+      "priced": 29,
+      "approved": 29,
+      "reversals": 1,
+      "gross_cents": 433600
+    },
+    {
+      "day": "2026-10-22",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-22",
+      "code": "bolsa12",
+      "orders": 33,
+      "priced": 23,
+      "approved": 23,
+      "reversals": 1,
+      "gross_cents": 332200
+    },
+    {
+      "day": "2026-10-22",
+      "code": "cdbcp",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 14700
+    },
+    {
+      "day": "2026-10-23",
+      "code": "bolsa12",
+      "orders": 28,
+      "priced": 19,
+      "approved": 19,
+      "reversals": 1,
+      "gross_cents": 268400
+    },
+    {
+      "day": "2026-10-23",
+      "code": "cdbcp",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-23",
+      "code": "cdbsp",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 19700
+    },
+    {
+      "day": "2026-10-24",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-10-24",
+      "code": "bolsa12",
+      "orders": 16,
+      "priced": 14,
+      "approved": 14,
+      "reversals": 0,
+      "gross_cents": 245800
+    },
+    {
+      "day": "2026-10-25",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-10-25",
+      "code": "bolsa12",
+      "orders": 28,
+      "priced": 18,
+      "approved": 18,
+      "reversals": 0,
+      "gross_cents": 246900
+    },
+    {
+      "day": "2026-10-25",
+      "code": "cdbcp",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-26",
+      "code": "bolsa11",
+      "orders": 12,
+      "priced": 5,
+      "approved": 5,
+      "reversals": 0,
+      "gross_cents": 8950
+    },
+    {
+      "day": "2026-10-26",
+      "code": "bolsa12",
+      "orders": 28,
+      "priced": 14,
+      "approved": 14,
+      "reversals": 0,
+      "gross_cents": 199900
+    },
+    {
+      "day": "2026-10-27",
+      "code": "bolsa11",
+      "orders": 7,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 3580
+    },
+    {
+      "day": "2026-10-27",
+      "code": "bolsa12",
+      "orders": 18,
+      "priced": 13,
+      "approved": 13,
+      "reversals": 1,
+      "gross_cents": 256100
+    },
+    {
+      "day": "2026-10-27",
+      "code": "cdbcp",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 1,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-27",
+      "code": "cdbsp",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 19700
+    },
+    {
+      "day": "2026-10-28",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-10-28",
+      "code": "bolsa12",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-28",
+      "code": "cdbsp",
+      "orders": 9,
+      "priced": 5,
+      "approved": 5,
+      "reversals": 0,
+      "gross_cents": 68500
+    },
+    {
+      "day": "2026-10-29",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-29",
+      "code": "cdbsp",
+      "orders": 7,
+      "priced": 5,
+      "approved": 5,
+      "reversals": 1,
+      "gross_cents": 65890
+    },
+    {
+      "day": "2026-10-30",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-10-30",
+      "code": "cdbcp",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 1,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-10-31",
+      "code": "cdbcp",
+      "orders": 8,
+      "priced": 6,
+      "approved": 6,
+      "reversals": 0,
+      "gross_cents": 88200
+    },
+    {
+      "day": "2026-10-31",
+      "code": "cdbsp",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 39400
+    },
+    {
+      "day": "2026-11-01",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-11-01",
+      "code": "cdbcp",
+      "orders": 4,
+      "priced": 3,
+      "approved": 3,
+      "reversals": 0,
+      "gross_cents": 44100
+    },
+    {
+      "day": "2026-11-02",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-11-03",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-11-03",
+      "code": "cdbsp",
+      "orders": 2,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 22690
+    },
+    {
+      "day": "2026-11-04",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-11-10",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-11-13",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-11-14",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-11-15",
+      "code": "bolsa11",
+      "orders": 3,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-11-17",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-11-18",
+      "code": "bolsa11",
+      "orders": 4,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    },
+    {
+      "day": "2026-11-18",
+      "code": "cdbsp",
+      "orders": 4,
+      "priced": 2,
+      "approved": 2,
+      "reversals": 0,
+      "gross_cents": 24400
+    },
+    {
+      "day": "2026-11-19",
+      "code": "bolsa11",
+      "orders": 2,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-11-20",
+      "code": "bolsa11",
+      "orders": 1,
+      "priced": 0,
+      "approved": 0,
+      "reversals": 0,
+      "gross_cents": 0
+    },
+    {
+      "day": "2026-11-21",
+      "code": "bolsa11",
+      "orders": 5,
+      "priced": 1,
+      "approved": 1,
+      "reversals": 0,
+      "gross_cents": 1790
+    }
+  ]
+}

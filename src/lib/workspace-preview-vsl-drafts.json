@@ -1,0 +1,1023 @@
+[
+  {
+    "slug": "cdbcpit",
+    "steps": [
+      {
+        "id": "c02-prep",
+        "title": "Apresentação",
+        "layers": [
+          {
+            "id": "c02-tit",
+            "text": "Apostila Gratuita",
+            "type": "text"
+          },
+          {
+            "id": "gap-mockup",
+            "type": "clear"
+          },
+          {
+            "id": "97ca1aeb",
+            "type": "image"
+          },
+          {
+            "id": "gap-heart",
+            "type": "clear"
+          },
+          {
+            "id": "heart-prep",
+            "text": "",
+            "type": "text"
+          },
+          {
+            "id": "c02-btn",
+            "type": "button",
+            "label": "Baixar apostila",
+            "revealAt": 0,
+            "waitText": "",
+            "countdown": false,
+            "destination": "next",
+            "revealClock": "video"
+          }
+        ]
+      },
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-tit",
+            "text": "Sua apostila será enviada em alguns minutos...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-copy",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-copy",
+            "text": "Agora se você assistir os primeiros 30 segundosdesse vídeo abaixo: Você vai ganhar algomuito melhor que a apostila...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-player",
+            "type": "clear"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration",
+            "text": "Duração do vídeo: 48 segundos",
+            "type": "text"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration-gap",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-gap-bottom",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-gap-cta",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "CONTINUAR",
+            "revealAt": 50,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "cdbcpit2",
+    "steps": [
+      {
+        "id": "c02-prep",
+        "title": "Apresentação",
+        "layers": [
+          {
+            "id": "c02-tit",
+            "text": "Apostila Gratuita",
+            "type": "text"
+          },
+          {
+            "id": "gap-mockup",
+            "type": "clear"
+          },
+          {
+            "id": "97ca1aeb",
+            "type": "image"
+          },
+          {
+            "id": "gap-heart",
+            "type": "clear"
+          },
+          {
+            "id": "heart-prep",
+            "text": "",
+            "type": "text"
+          },
+          {
+            "id": "c02-btn",
+            "type": "button",
+            "label": "Baixar apostila",
+            "revealAt": 0,
+            "waitText": "",
+            "countdown": false,
+            "destination": "next",
+            "revealClock": "video"
+          }
+        ]
+      },
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-tit",
+            "text": "Sua apostila será enviada em alguns minutos...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-copy",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-copy",
+            "text": "Agora se você assistir os primeiros 30 segundosdesse vídeo abaixo: Você vai ganhar algomuito melhor que a apostila...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-player",
+            "type": "clear"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration",
+            "text": "Duração do vídeo: 48 segundos",
+            "type": "text"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration-gap",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-gap-bottom",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-gap-cta",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "CONTINUAR",
+            "revealAt": 55,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "cdbcpit3",
+    "steps": [
+      {
+        "id": "c02-prep",
+        "title": "Apresentação",
+        "layers": [
+          {
+            "id": "c02-tit",
+            "text": "Apostila Gratuita",
+            "type": "text"
+          },
+          {
+            "id": "gap-mockup",
+            "type": "clear"
+          },
+          {
+            "id": "97ca1aeb",
+            "type": "image"
+          },
+          {
+            "id": "gap-heart",
+            "type": "clear"
+          },
+          {
+            "id": "heart-prep",
+            "text": "",
+            "type": "text"
+          },
+          {
+            "id": "c02-btn",
+            "type": "button",
+            "label": "Baixar apostila",
+            "revealAt": 0,
+            "waitText": "",
+            "countdown": false,
+            "destination": "next",
+            "revealClock": "video"
+          }
+        ]
+      },
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-gap-copy",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-tit",
+            "text": "Se você assistir aos primeiros 30 segundos desse vídeo,",
+            "type": "text"
+          },
+          {
+            "id": "vsl-copy",
+            "text": "vai ganhar algo muitomelhor que a apostila...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-player",
+            "type": "clear"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration",
+            "text": "Duração do vídeo: 48 segundos",
+            "type": "text"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration-gap",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-gap-bottom",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-gap-cta",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "ENVIAR PALAVRA BOLSAS NO WHATSAPP",
+            "revealAt": 120,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "cdbspit",
+    "steps": [
+      {
+        "id": "c02-prep",
+        "title": "Apresentação",
+        "layers": [
+          {
+            "id": "c02-tit",
+            "text": "Apostila Gratuita",
+            "type": "text"
+          },
+          {
+            "id": "gap-mockup",
+            "type": "clear"
+          },
+          {
+            "id": "97ca1aeb",
+            "type": "image"
+          },
+          {
+            "id": "gap-heart",
+            "type": "clear"
+          },
+          {
+            "id": "heart-prep",
+            "text": "",
+            "type": "text"
+          },
+          {
+            "id": "c02-btn",
+            "type": "button",
+            "label": "Baixar apostila",
+            "revealAt": 0,
+            "waitText": "",
+            "countdown": false,
+            "destination": "next",
+            "revealClock": "video"
+          }
+        ]
+      },
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-tit",
+            "text": "Sua apostila será enviada em alguns minutos...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-copy",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-copy",
+            "text": "Agora se você assistir os primeiros 30 segundosdesse vídeo abaixo: Você vai ganhar algomuito melhor que a apostila...",
+            "type": "text"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration-gap",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-gap-bottom",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-gap-cta",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "CONTINUAR",
+            "revealAt": 1125,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "cdbspit2",
+    "steps": [
+      {
+        "id": "c02-prep",
+        "title": "Apresentação",
+        "layers": [
+          {
+            "id": "c02-tit",
+            "text": "Apostila Gratuita",
+            "type": "text"
+          },
+          {
+            "id": "gap-mockup",
+            "type": "clear"
+          },
+          {
+            "id": "97ca1aeb",
+            "type": "image"
+          },
+          {
+            "id": "gap-heart",
+            "type": "clear"
+          },
+          {
+            "id": "heart-prep",
+            "text": "",
+            "type": "text"
+          },
+          {
+            "id": "c02-btn",
+            "type": "button",
+            "label": "Baixar apostila",
+            "revealAt": 0,
+            "waitText": "",
+            "countdown": false,
+            "destination": "next",
+            "revealClock": "video"
+          }
+        ]
+      },
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-tit",
+            "text": "Sua apostila será enviada em alguns minutos...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-copy",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-copy",
+            "text": "Agora se você assistir os primeiros 30 segundosdesse vídeo abaixo: Você vai ganhar algomuito melhor que a apostila...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-player",
+            "type": "clear"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration",
+            "text": "Duração do vídeo: 48 segundos",
+            "type": "text"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration-gap",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-gap-bottom",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-gap-cta",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "CONTINUAR",
+            "revealAt": 96,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "cdbspit3",
+    "steps": [
+      {
+        "id": "c02-prep",
+        "title": "Apresentação",
+        "layers": [
+          {
+            "id": "c02-tit",
+            "text": "Apostila Gratuita",
+            "type": "text"
+          },
+          {
+            "id": "gap-mockup",
+            "type": "clear"
+          },
+          {
+            "id": "97ca1aeb",
+            "type": "image"
+          },
+          {
+            "id": "gap-heart",
+            "type": "clear"
+          },
+          {
+            "id": "heart-prep",
+            "text": "",
+            "type": "text"
+          },
+          {
+            "id": "c02-btn",
+            "type": "button",
+            "label": "Baixar apostila",
+            "revealAt": 0,
+            "waitText": "",
+            "countdown": false,
+            "destination": "next",
+            "revealClock": "video"
+          }
+        ]
+      },
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-gap-copy",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-tit",
+            "text": "Se você assistir aos primeiros 30 segundos desse vídeo,",
+            "type": "text"
+          },
+          {
+            "id": "vsl-copy",
+            "text": "vai ganhar algo muitomelhor que a apostila...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-player",
+            "type": "clear"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration",
+            "text": "Duração do vídeo: 48 segundos",
+            "type": "text"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration-gap",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-gap-bottom",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-gap-cta",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "ENVIAR PALAVRA BOLSAS NO WHATSAPP",
+            "revealAt": 120,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "sdbcpit4",
+    "steps": [
+      {
+        "id": "c02-prep",
+        "title": "Apresentação",
+        "layers": [
+          {
+            "id": "c02-tit",
+            "text": "Apostila Gratuita",
+            "type": "text"
+          },
+          {
+            "id": "gap-mockup",
+            "type": "clear"
+          },
+          {
+            "id": "97ca1aeb",
+            "type": "image"
+          },
+          {
+            "id": "gap-heart",
+            "type": "clear"
+          },
+          {
+            "id": "heart-prep",
+            "text": "",
+            "type": "text"
+          },
+          {
+            "id": "c02-btn",
+            "type": "button",
+            "label": "Baixar apostila",
+            "revealAt": 0,
+            "waitText": "",
+            "countdown": false,
+            "destination": "next",
+            "revealClock": "video"
+          }
+        ]
+      },
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-gap-copy",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-tit",
+            "text": "Se você assistir aos primeiros 30 segundos desse vídeo,",
+            "type": "text"
+          },
+          {
+            "id": "vsl-copy",
+            "text": "vai ganhar algo muitomelhor que a apostila...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-player",
+            "type": "clear"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration",
+            "text": "Duração do vídeo: 48 segundos",
+            "type": "text"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration-gap",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-gap-bottom",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-gap-cta",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "ENVIAR PALAVRA BOLSAS NO WHATSAPP",
+            "revealAt": 120,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "sdbcpit5",
+    "steps": [
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-gap-copy",
+            "type": "clear"
+          },
+          {
+            "id": "7db0fbd1",
+            "type": "image"
+          },
+          {
+            "id": "vsl-gap-player",
+            "type": "clear"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration-gap",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-gap-bottom",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "ENVIAR BOLSAS NO WHATSAPP",
+            "revealAt": 333,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          },
+          {
+            "id": "ccd13aeb",
+            "type": "clear"
+          },
+          {
+            "id": "5f6d9419",
+            "type": "image",
+            "revealAt": 333,
+            "revealClock": "video"
+          },
+          {
+            "id": "e3ac6474",
+            "type": "image",
+            "revealAt": 333,
+            "revealClock": "video"
+          },
+          {
+            "id": "3f602e0e",
+            "type": "button",
+            "label": "ENVIAR BOLSAS NO WHATSAPP",
+            "revealAt": 333,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "sdbcpit6",
+    "steps": [
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "ENVIAR BOLSAS NO WHATSAPP",
+            "revealAt": 261,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          },
+          {
+            "id": "whatsapp-return-note",
+            "text": "Caso o botão não funcione, volte no WhatsApp e fale BOLSAS na nossa conversa.",
+            "type": "text",
+            "revealAt": 261,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "sdbspit4",
+    "steps": [
+      {
+        "id": "c02-prep",
+        "title": "Apresentação",
+        "layers": [
+          {
+            "id": "c02-tit",
+            "text": "Apostila Gratuita",
+            "type": "text"
+          },
+          {
+            "id": "gap-mockup",
+            "type": "clear"
+          },
+          {
+            "id": "97ca1aeb",
+            "type": "image"
+          },
+          {
+            "id": "gap-heart",
+            "type": "clear"
+          },
+          {
+            "id": "heart-prep",
+            "text": "",
+            "type": "text"
+          },
+          {
+            "id": "c02-btn",
+            "type": "button",
+            "label": "Baixar apostila",
+            "revealAt": 0,
+            "waitText": "",
+            "countdown": false,
+            "destination": "next",
+            "revealClock": "video"
+          }
+        ]
+      },
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-gap-copy",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-tit",
+            "text": "Se você assistir aos primeiros 30 segundos desse vídeo,",
+            "type": "text"
+          },
+          {
+            "id": "vsl-copy",
+            "text": "vai ganhar algo muitomelhor que a apostila...",
+            "type": "text"
+          },
+          {
+            "id": "vsl-gap-player",
+            "type": "clear"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration",
+            "text": "Duração do vídeo: 48 segundos",
+            "type": "text"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration-gap",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-gap-bottom",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-gap-cta",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "ENVIAR PALAVRA BOLSAS NO WHATSAPP",
+            "revealAt": 120,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "sdbspit5",
+    "steps": [
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-gap-copy",
+            "type": "clear"
+          },
+          {
+            "id": "804a6ba1",
+            "type": "image"
+          },
+          {
+            "id": "cdbcpit-bluegreen-duration-gap",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-gap-bottom",
+            "type": "clear"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "ENVIAR BOLSAS NO WHATSAPP",
+            "revealAt": 312,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          },
+          {
+            "id": "531e504e",
+            "type": "clear"
+          },
+          {
+            "id": "7710caab",
+            "type": "image",
+            "revealAt": 312,
+            "revealClock": "video"
+          },
+          {
+            "id": "73a7ae94",
+            "type": "image",
+            "revealAt": 312,
+            "revealClock": "video"
+          },
+          {
+            "id": "15a95fa7",
+            "type": "button",
+            "label": "ENVIAR BOLSAS NO WHATSAPP",
+            "revealAt": 312,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "sdbspit6",
+    "steps": [
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "ENVIAR BOLSAS NO WHATSAPP",
+            "revealAt": 243,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          },
+          {
+            "id": "whatsapp-return-note",
+            "text": "Caso o botão não funcione, volte no WhatsApp e fale BOLSAS na nossa conversa.",
+            "type": "text",
+            "revealAt": 243,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "vdmcpit6",
+    "steps": [
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "ENVIAR MODA NO WHATSAPP",
+            "revealAt": 319,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          },
+          {
+            "id": "whatsapp-return-note",
+            "text": "Caso o botão não funcione, volte no WhatsApp e fale MODA na nossa conversa.",
+            "type": "text",
+            "revealAt": 319,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "vdmspit6",
+    "steps": [
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "ENVIAR MODA NO WHATSAPP",
+            "revealAt": 268,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          },
+          {
+            "id": "whatsapp-return-note",
+            "text": "Caso o botão não funcione, volte no WhatsApp e fale MODA na nossa conversa.",
+            "type": "text",
+            "revealAt": 268,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
+  }
+]

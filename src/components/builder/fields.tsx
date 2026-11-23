@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import type { QuizOption } from "@/lib/quiz/types";
 
 // ── Editor de texto VISUAL (WYSIWYG fase 3b) ──────────────────────
@@ -22,6 +23,8 @@ function escHtml(s: string) {
  * saía laranja em funil de qualquer paleta.
  */
 export const TemaFunilContext = createContext<string | null>(null);
+/** Local previews must never upload assets to the server. Other builders keep their existing behavior. */
+export const LocalDraftContext = createContext(false);
 
 /**
  * Clareia um hex em direção ao branco. Deriva o segundo tom do degradê da pílula
@@ -177,17 +180,36 @@ async function paraWebp(file: File): Promise<File> {
 }
 
 export function ImageField({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+  const localDraft = useContext(LocalDraftContext);
   const [busy, setBusy] = useState(false);
-  /* A falha do upload PRECISA aparecer. Antes o `catch` era vazio e um `j.url`
-     ausente não dizia nada: sessão expirada (401) ou arquivo grande demais
-     (413, teto de 4,5 MB por requisição na Vercel) devolviam a mesma coisa que
-     um clique sem efeito — o botão voltava ao normal, a imagem não trocava, e
-     nenhuma linha na tela explicava o porquê. */
   const [erro, setErro] = useState<string | null>(null);
+  const embedded = localDraft && value?.startsWith("data:image/");
+  const accept = localDraft ? "image/png,image/jpeg,image/webp,image/gif" : "image/*";
   const up = async (file: File) => {
     setBusy(true);
     setErro(null);
     try {
+      if (localDraft) {
+        if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)) {
+          setErro("Escolha uma imagem PNG, JPEG, WebP ou GIF.");
+          return;
+        }
+        const image = await paraWebp(file);
+        if (image.size > 1024 * 1024) {
+          setErro("A imagem do rascunho precisa ter até 1 MB após a otimização.");
+          return;
+        }
+        const bitmap = await createImageBitmap(image);
+        bitmap.close();
+        const src = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject();
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(image);
+        });
+        onChange(src);
+        return;
+      }
       const fd = new FormData(); fd.append("file", await paraWebp(file));
       const r = await fetch("/api/upload", { method: "POST", body: fd });
       const j = await r.json().catch(() => ({} as { url?: string; error?: string }));
@@ -195,17 +217,29 @@ export function ImageField({ value, onChange }: { value?: string; onChange: (v: 
       else if (r.status === 401) setErro("Sessão expirada — recarregue a página e entre de novo.");
       else if (r.status === 413) setErro(`Arquivo grande demais (${(file.size / 1024 / 1024).toFixed(1)} MB). O limite é 4,5 MB.`);
       else setErro(j.error || `Falha no upload (HTTP ${r.status}).`);
-    } catch { setErro("Sem resposta do servidor. Verifique a conexão e tente de novo."); }
-    setBusy(false);
+    } catch {
+      setErro(localDraft ? "Não foi possível ler esta imagem." : "Sem resposta do servidor. Verifique a conexão e tente de novo.");
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <div className="space-y-1.5">
-      <input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder="https://…/imagem.jpg" className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs" />
-      <label className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">
-        {busy ? "Enviando…" : "⬆ Upload"}
-        <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && up(e.target.files[0])} />
-      </label>
-      {erro ? <p className="rounded-md bg-red-50 px-2 py-1 text-[11px] leading-snug text-red-700">{erro}</p> : null}
+      <input aria-label="URL da imagem" disabled={busy} value={embedded ? "" : value || ""} onChange={(e) => onChange(e.target.value)}
+        placeholder={embedded ? "Imagem local selecionada" : "https://…/imagem.jpg"} className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs" />
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ct-blue">
+          {busy ? (localDraft ? "Lendo imagem…" : "Enviando…") : localDraft ? "Escolher imagem local" : "⬆ Upload"}
+          <input type="file" accept={accept} disabled={busy} className="sr-only" onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (file) void up(file);
+          }} />
+        </label>
+        {embedded && <button type="button" disabled={busy} onClick={() => { setErro(null); onChange(""); }}
+          className="text-xs text-ct-blue underline">Remover imagem local</button>}
+      </div>
+      {erro ? <p role="alert" className="rounded-md bg-red-50 px-2 py-1 text-[11px] leading-snug text-red-700">{erro}</p> : null}
       {value ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={value} alt="" className="mt-1 max-h-24 rounded-md border border-neutral-200 object-contain" />
@@ -271,16 +305,11 @@ export function HtmlField({ value, onChange, theme: themeProp, rows = 2 }: { val
     push();
   };
   const b = "grid h-7 min-w-[28px] place-items-center rounded border border-neutral-300 px-1.5 text-xs hover:bg-neutral-50";
-  const sel = "rounded border border-neutral-300 px-1 py-0.5 text-xs";
   return (
-    <div>
-      <div className="mb-1 flex flex-wrap items-center gap-1">
-        <select title="Fonte" value="" onMouseDown={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.value) cmd("fontName", e.target.value); }} className={`${sel} max-w-[80px]`}>
-          <option value="">Fonte</option>{EDITOR_FONTS.map((f) => <option key={f} value={f}>{f}</option>)}
-        </select>
-        <select title="Tamanho do trecho" value="" onMouseDown={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.value) setSize(e.target.value); }} className={sel}>
-          <option value="">Tam ↕</option>{EDITOR_SIZES.map((s) => <option key={s} value={s}>{s}px</option>)}
-        </select>
+    <div className="ct-rich-editor">
+      <div className="ct-rich-toolbar mb-1 flex flex-wrap items-center gap-1">
+        <span onPointerDownCapture={saveSel} onKeyDownCapture={saveSel}><WorkspaceSelect label="Fonte" value="" preserveFocus onChange={value=>{if(value)withSel(()=>cmd('fontName',value));}} options={[{value:'',label:'Fonte'},...EDITOR_FONTS.map(value=>({value,label:value}))]} /></span>
+        <span onPointerDownCapture={saveSel} onKeyDownCapture={saveSel}><WorkspaceSelect label="Tamanho do trecho" value="" preserveFocus onChange={value=>{if(value)withSel(()=>setSize(value));}} options={[{value:'',label:'Tamanho'},...EDITOR_SIZES.map(size=>({value:String(size),label:`${size}px`}))]} /></span>
         <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("bold"); }} className={`${b} font-bold`}>B</button>
         <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("italic"); }} className={`${b} italic`}>I</button>
         <button type="button" onMouseDown={(e) => { e.preventDefault(); cmd("underline"); }} className={`${b} underline`}>U</button>
@@ -401,11 +430,7 @@ export function Toggle({ label, value, onChange }: { label: string; value?: bool
 }
 
 export function Select<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[] }) {
-  return (
-    <select className={base} value={value} onChange={(e) => onChange(e.target.value as T)}>
-      {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
-  );
+  return <WorkspaceSelect label="Selecionar" value={value} onChange={value=>onChange(value as T)} options={options}/>;
 }
 
 /** Lista editável de strings (galeria de imagens, slides de loading, etc.). */

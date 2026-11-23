@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
+import { useReducedMotion } from "@/components/referencias/beui/lib/reduced-motion-seguro";
 
 /**
  * Contexto de edição (WYSIWYG fase 3a): no preview do construtor, blocos de
@@ -21,6 +22,7 @@ export function useEdit() { return useContext(EditContext); }
  * Estava duplicado literal na régua e no slider; agora é um lugar só.
  */
 export function DedoArrasta({ visivel }: { visivel: boolean }) {
+  const reducedMotion = useReducedMotion();
   if (!visivel) return null;
   return (
     <motion.div
@@ -28,8 +30,8 @@ export function DedoArrasta({ visivel }: { visivel: boolean }) {
       className="pointer-events-none absolute left-1/2 z-[4] text-[30px] will-change-transform"
       style={{ filter: "drop-shadow(0 6px 8px rgba(0,0,0,.25))" }}
       initial={{ x: "-50%" }}
-      animate={{ x: ["-140%", "40%", "-140%"], rotate: [-4, 8, -4], scale: [1, 0.9, 1] }}
-      transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+      animate={reducedMotion ? { x: "-50%", rotate: 0, scale: 1 } : { x: ["-140%", "40%", "-140%"], rotate: [-4, 8, -4], scale: [1, 0.9, 1] }}
+      transition={reducedMotion ? { duration: 0 } : { duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
     >
       👆
     </motion.div>

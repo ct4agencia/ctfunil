@@ -2,11 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_VSL, type VslInput, type WebhookInput } from "@/lib/types";
 
 /** Garante sessão antes de qualquer escrita. */
 async function requireAuth() {
+  if (isReadOnlyWorkspace()) throw new Error("O preview está em modo de consulta.");
   const supabase = await createClient();
   const {
     data: { user },

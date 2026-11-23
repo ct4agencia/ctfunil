@@ -1,7 +1,13 @@
 "use client";
+import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 
-import { useState } from "react";
-import type { Funnel, FunnelPixels, FunnelSettings, FunnelWebhook } from "@/lib/quiz/types";
+import { useEffect, useId, useRef, useState } from "react";
+import AvailabilityScheduler from "@/components/ui/AvailabilityScheduler";
+import ActiveTab from "@/components/ui/ActiveTab";
+import { Button } from "@/components/referencias/beui/motion/button/base";
+import DeleteConfirmationIcon from "@/components/ui/DeleteConfirmationIcon";
+import { Eye, EyeOff, X } from "lucide-react";
+import type { Funnel, FunnelPixels, FunnelSettings, FunnelWebhook, WeekAvailability } from "@/lib/quiz/types";
 
 /* ── Smart Install: detecta scripts colados e mapeia pros campos ── */
 type DetTarget = "utmify_fb" | "utmify_google" | "hotmart" | "ga" | "gtm" | "fb_pixel" | "site_verify" | "head_raw" | "info";
@@ -29,12 +35,31 @@ const inputCls = "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2
 const labelCls = "mb-1 block text-xs font-semibold text-neutral-600";
 const taCls = inputCls + " font-mono text-xs";
 
-type Tab = "geral" | "pixels" | "seo" | "webhooks";
+type Tab = "geral" | "pixels" | "seo" | "webhooks" | "horarios";
+
+const emptyDay = { enabled: false, ranges: [] };
+const emptySchedule: WeekAvailability = {
+  mon: emptyDay, tue: emptyDay, wed: emptyDay, thu: emptyDay,
+  fri: emptyDay, sat: emptyDay, sun: emptyDay,
+};
 
 export default function FunnelSettingsPanel({
   funnel, onPatch, onClose,
 }: { funnel: Funnel; onPatch: (patch: Partial<Funnel>) => void; onClose: () => void }) {
   const [tab, setTab] = useState<Tab>("geral");
+  const [visibleTokens, setVisibleTokens] = useState<Record<string, boolean>>({});
+  const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  useEffect(() => {
+    const panel = dialog.current;
+    panel?.showModal();
+    return () => panel?.close();
+  }, []);
+  function closeSettings() {
+    dialog.current?.close();
+    onClose();
+  }
+
   const pixels = funnel.settings?.pixels ?? {};
   const setPixel = (k: keyof FunnelPixels, v: string) =>
     onPatch({ settings: { ...funnel.settings, pixels: { ...pixels, [k]: v || undefined } } });
@@ -103,32 +128,45 @@ export default function FunnelSettingsPanel({
 
   // Webhooks
   const webhooks = funnel.webhooks ?? [];
+  const [pendingWebhookDelete, setPendingWebhookDelete] = useState<string | null>(null);
+  const webhookDeleteTrigger = useRef<HTMLButtonElement>(null);
+  const webhookDeleteCancel = useRef<HTMLButtonElement>(null);
+  const addWebhookButton = useRef<HTMLButtonElement>(null);
+  const webhookConfirmationId = useId();
   const patchWh = (i: number, patch: Partial<FunnelWebhook>) => onPatch({ webhooks: webhooks.map((w, k) => (k === i ? { ...w, ...patch } : w)) });
   const addWh = () => onPatch({ webhooks: [...webhooks, { id: `wh-${Math.random().toString(36).slice(2, 8)}`, name: "", api_url: "", method: "POST", content_type: "formData", trigger_event: "lead_capture", enabled: true }] });
-  const delWh = (i: number) => onPatch({ webhooks: webhooks.filter((_, k) => k !== i) });
+  function resolveWebhookDelete(id: string, removed: boolean) {
+    setPendingWebhookDelete(null);
+    if (removed) onPatch({ webhooks: webhooks.filter(webhook => webhook.id !== id) });
+    requestAnimationFrame(() => (removed ? addWebhookButton.current : webhookDeleteTrigger.current)?.focus());
+  }
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "geral", label: "Geral" },
-    { key: "pixels", label: "⚡ Pixel / Scripts" },
-    { key: "seo", label: "SEO & Favicon" },
+    { key: "pixels", label: "Pixel e scripts" },
+    { key: "seo", label: "SEO e favicon" },
     { key: "webhooks", label: "Webhooks" },
+    { key: "horarios", label: "Horários" },
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="my-6 w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
-        <header className="flex items-center justify-between border-b border-neutral-200 px-5 py-3">
-          <h2 className="text-base font-bold">⚙ Configurações · {funnel.name}</h2>
-          <button onClick={onClose} className="rounded-md px-2 py-1 text-sm font-semibold text-neutral-500 hover:bg-neutral-100">Fechar ✕</button>
+    <dialog ref={dialog} aria-labelledby={titleId} className="ct-settings-modal ct-controls"
+      onCancel={event => { event.preventDefault(); closeSettings(); }}
+      onClick={event => { if (event.target === dialog.current) closeSettings(); }}>
+      <div className="ct-settings-surface">
+        <header className="ct-settings-header">
+          <h2 id={titleId} className="text-base font-bold">Configurações de {funnel.name}</h2>
+          <Button type="button" variant="ghost" size="icon" onClick={closeSettings} className="ct-icon-button" aria-label="Fechar configurações"><X size={18} aria-hidden="true" /></Button>
         </header>
-        <div className="flex gap-1 border-b border-neutral-200 px-4">
-          {tabs.map((t) => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className={`-mb-px border-b-2 px-3 py-2.5 text-sm font-semibold transition ${tab === t.key ? "border-blue-600 text-blue-700" : "border-transparent text-neutral-500 hover:text-neutral-800"}`}>{t.label}</button>
-          ))}
-        </div>
+        <nav className="ct-segments ct-settings-tabs" aria-label="Seções das configurações">
+          {tabs.map(t => <button type="button" key={t.key} onClick={() => { setPendingWebhookDelete(null); setTab(t.key); }} aria-pressed={tab === t.key}>
+            {tab === t.key && <ActiveTab group="settings-tabs" />}<span>{t.label}</span>
+          </button>)}
+        </nav>
 
         <div className="max-h-[70vh] overflow-y-auto p-5">
+          {tab === "horarios" && <AvailabilityScheduler value={funnel.settings?.availability ?? emptySchedule}
+            onChange={availability => onPatch({ settings: { ...funnel.settings, availability } })} />}
           {tab === "geral" && (
             <div className="max-w-lg space-y-4">
               <label className="block">
@@ -163,6 +201,10 @@ export default function FunnelSettingsPanel({
                 <input className={inputCls} value={funnel.hotmartProductId ?? ""} onChange={(e) => onPatch({ hotmartProductId: e.target.value || undefined })} />
                 <span className="mt-1 block text-[11px] text-neutral-400">Vazio = extraído do link de checkout. Vai no payload do webhook (campo <b>produto</b>).</span>
               </label>
+              <label className="block">
+                <span className={labelCls}>Objetivo do funil</span><input className={inputCls} value={funnel.settings?.objective || ''} onChange={e=>onPatch({settings:{...funnel.settings,objective:e.target.value}})}/>
+              </label>
+              <label className="block"><span className={labelCls}>Tom de comunicação</span><input className={inputCls} value={funnel.settings?.tone || ''} onChange={e=>onPatch({settings:{...funnel.settings,tone:e.target.value}})}/></label>
               <label className="block">
                 <span className={labelCls}>Rodapé / Copyright (aparece na lâmina final)</span>
                 <input className={inputCls} placeholder="Copyright Clube das Bolsas® — Todos os direitos reservados."
@@ -258,32 +300,61 @@ export default function FunnelSettingsPanel({
             <div className="space-y-3">
               <p className="text-xs text-neutral-500">Dispara no formato inlead (campos <b>nome</b>, <b>telefone</b>, <b>{"{componente}"}: clicked</b>) — casa com os mapeamentos do Datacrazy.</p>
               {webhooks.map((w, i) => (
-                <div key={w.id} className="space-y-2 rounded-xl border border-neutral-200 p-3">
+                <div key={w.id} className="space-y-2 rounded-xl border border-neutral-200 p-3" onKeyDown={event => {
+                  if (pendingWebhookDelete !== w.id || event.key !== "Escape") return;
+                  event.preventDefault();
+                  resolveWebhookDelete(w.id, false);
+                }}>
                   <div className="flex items-center gap-2">
-                    <input className={inputCls + " flex-1"} placeholder="Nome (ex: Datacrazy - Captura)" value={w.name ?? ""} onChange={(e) => patchWh(i, { name: e.target.value })} />
+                    <input className={inputCls + " min-w-0 flex-1"} placeholder="Nome (ex: Datacrazy - Captura)" value={w.name ?? ""} onChange={(e) => patchWh(i, { name: e.target.value })} />
                     <label className="flex items-center gap-1 text-xs font-semibold text-neutral-600"><input type="checkbox" checked={w.enabled} onChange={(e) => patchWh(i, { enabled: e.target.checked })} className="accent-blue-600" /> Ativo</label>
-                    <button onClick={() => delWh(i)} className="text-sm text-red-500">✕</button>
+                    <button type="button" aria-label="Remover webhook" aria-expanded={pendingWebhookDelete === w.id}
+                      aria-controls={`${webhookConfirmationId}-${i}`} className="ct-step-control shrink-0 text-red-600"
+                      onClick={event => {
+                        if (pendingWebhookDelete === w.id) {
+                          resolveWebhookDelete(w.id, false);
+                          return;
+                        }
+                        webhookDeleteTrigger.current = event.currentTarget;
+                        setPendingWebhookDelete(w.id);
+                        requestAnimationFrame(() => webhookDeleteCancel.current?.focus());
+                      }}>✕</button>
+                  </div>
+                  <div id={`${webhookConfirmationId}-${i}`}>
+                    {pendingWebhookDelete === w.id && <div role="group" aria-label="Confirmar remoção de webhook" className="ct-group-delete-confirmation space-y-2 rounded-lg border border-ct-line p-2">
+                      <div className="flex items-center gap-2"><DeleteConfirmationIcon /><p className="text-sm">Remover {w.name?.trim() || "este webhook"}?</p></div>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <button ref={webhookDeleteCancel} type="button" className="ct-step-control" onClick={() => resolveWebhookDelete(w.id, false)}>Cancelar</button>
+                        <button type="button" className="ct-step-control text-red-600" onClick={() => resolveWebhookDelete(w.id, true)}>Confirmar remoção</button>
+                      </div>
+                    </div>}
                   </div>
                   <input className={inputCls} placeholder="https://webhook.datacrazy.io/..." value={w.api_url} onChange={(e) => patchWh(i, { api_url: e.target.value })} />
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    <select className={inputCls} value={w.method} onChange={(e) => patchWh(i, { method: e.target.value as FunnelWebhook["method"] })}><option value="POST">POST</option><option value="GET">GET</option></select>
-                    <select className={inputCls} value={w.content_type} onChange={(e) => patchWh(i, { content_type: e.target.value as FunnelWebhook["content_type"] })}><option value="formData">form-urlencoded</option><option value="json">JSON</option></select>
-                    <select className={inputCls} value={w.trigger_event} onChange={(e) => patchWh(i, { trigger_event: e.target.value as FunnelWebhook["trigger_event"] })}><option value="lead_capture">Captura de lead</option><option value="click_component">Click em componente</option></select>
+                    <WorkspaceSelect label="Método" value={w.method} onChange={value=>patchWh(i,{method:value as FunnelWebhook['method']})} options={[{value:'POST',label:'POST'},{value:'GET',label:'GET'}]}/>
+                    <WorkspaceSelect label="Formato" value={w.content_type} onChange={value=>patchWh(i,{content_type:value as FunnelWebhook['content_type']})} options={[{value:'formData',label:'form-urlencoded'},{value:'json',label:'JSON'}]}/>
+                    <WorkspaceSelect label="Quando enviar" value={w.trigger_event} onChange={value=>patchWh(i,{trigger_event:value as FunnelWebhook['trigger_event']})} options={[{value:'lead_capture',label:'Captura de lead'},{value:'click_component',label:'Clique em componente'}]}/>
                     <input className={inputCls} placeholder="component_id" value={w.component_id ?? ""} onChange={(e) => patchWh(i, { component_id: e.target.value || undefined })} />
                   </div>
-                  <input className={inputCls} placeholder="Token (Bearer, opcional)" value={w.token ?? ""} onChange={(e) => patchWh(i, { token: e.target.value || undefined })} />
+                  <label className="ct-settings-token"><span className="sr-only">Token do webhook</span>
+                    <input className={inputCls} type={visibleTokens[w.id] ? "text" : "password"} autoComplete="off" spellCheck={false} placeholder="Token (Bearer, opcional)" value={w.token ?? ""} onChange={e => patchWh(i, { token: e.target.value || undefined })} />
+                    <Button type="button" variant="ghost" size="icon" className="ct-icon-button" aria-pressed={!!visibleTokens[w.id]} aria-label={visibleTokens[w.id] ? "Ocultar token" : "Mostrar token"}
+                      onClick={() => setVisibleTokens(tokens => ({ ...tokens, [w.id]: !tokens[w.id] }))}>
+                      {visibleTokens[w.id] ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </Button>
+                  </label>
                 </div>
               ))}
-              <button onClick={addWh} className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white">+ Webhook</button>
+              <Button ref={addWebhookButton} type="button" variant="secondary" size="sm" onClick={addWh} className="min-h-11 rounded-lg border-ct-line bg-ct-raised text-ct-ink">+ Webhook</Button>
             </div>
           )}
         </div>
 
         <footer className="flex items-center justify-end gap-2 border-t border-neutral-200 px-5 py-3">
           <span className="mr-auto text-xs text-neutral-400">As alterações entram ao clicar em <b>💾 Salvar</b> no construtor.</span>
-          <button onClick={onClose} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Concluir</button>
+          <Button type="button" variant="primary" onClick={closeSettings} className="ct-action-link shrink-0">Concluir</Button>
         </footer>
       </div>
-    </div>
+    </dialog>
   );
 }

@@ -1,0 +1,81 @@
+{
+  "capturedAt": "2026-11-21T02:49:43.286Z",
+  "timeZone": "America/Sao_Paulo",
+  "rows": [
+    {
+      "day": "2026-06-27",
+      "slug": "cdb-estado",
+      "leads": 1
+    },
+    {
+      "day": "2026-06-27",
+      "slug": "cdb-r",
+      "leads": 1
+    },
+    {
+      "day": "2026-06-27",
+      "slug": "cdb-slide",
+      "leads": 1
+    },
+    {
+      "day": "2026-06-28",
+      "slug": "cdb-hero11",
+      "leads": 3
+    },
+    {
+      "day": "2026-06-29",
+      "slug": "cdb-hero08",
+      "leads": 1
+    },
+    {
+      "day": "2026-06-30",
+      "slug": "cdb-hero11",
+      "leads": 1
+    },
+    {
+      "day": "2026-07-02",
+      "slug": "cdb-type01",
+      "leads": 16
+    },
+    {
+      "day": "2026-07-03",
+      "slug": "cdb-slide-vsl",
+      "leads": 1
+    },
+    {
+      "day": "2026-07-09",
+      "slug": "cdb-hero04-2",
+      "leads": 1
+    },
+    {
+      "day": "2026-07-10",
+      "slug": "cdb-hero04-2",
+      "leads": 10
+    },
+    {
+      "day": "2026-07-14",
+      "slug": "cdb-hero04-2",
+      "leads": 1
+    },
+    {
+      "day": "2026-07-24",
+      "slug": "cdb-01",
+      "leads": 12
+    },
+    {
+      "day": "2026-08-21",
+      "slug": "cdb-insta",
+      "leads": 1
+    },
+    {
+      "day": "2026-10-17",
+      "slug": "cdb12-apost",
+      "leads": 3
+    },
+    {
+      "day": "2026-10-18",
+      "slug": "cdb12-apost",
+      "leads": 4
+    }
+  ]
+}

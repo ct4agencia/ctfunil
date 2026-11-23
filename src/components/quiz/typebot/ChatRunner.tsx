@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type CSSProperties } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import type { Funnel } from "@/lib/quiz/types";
 import type { TbConditionItem, TbFunnel, TbInput, TbVsl } from "@/lib/quiz/typebot/types";
 import { isBubble, isInput, TB_DEFAULT_THEME } from "@/lib/quiz/typebot/types";
@@ -19,7 +19,7 @@ type FeedItem =
   | (FeedBase & { side: "host"; kind: "embed"; html: string })
   | (FeedBase & { side: "host"; kind: "voice"; duration: string; url?: string })
   | (FeedBase & { side: "host"; kind: "call"; mode: "voice" | "video"; status?: string; duration?: string })
-  | (FeedBase & { side: "host"; kind: "document"; name: string; size?: string })
+  | (FeedBase & { side: "host"; kind: "document"; name: string; size?: string; url?: string })
   | (FeedBase & { side: "host"; kind: "link"; url: string; title?: string; desc?: string; image?: string })
   | (FeedBase & { side: "host"; kind: "location"; address?: string; image?: string })
   | (FeedBase & { side: "host"; kind: "contact"; name?: string; phone?: string; avatar?: string })
@@ -38,7 +38,9 @@ const fmtSec = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)
 
 /** Runtime do funil typebot: reproduz a conversa (bolhas progressivas + digitação),
  *  coleta inputs, interpola {variavel}, ramifica e captura o lead. */
-export default function ChatRunner({ funnel, preview = false, startGroupId }: { funnel: Funnel; preview?: boolean; startGroupId?: string }) {
+export default function ChatRunner({ funnel, preview = false, localOnly = false, startGroupId }: { funnel: Funnel; preview?: boolean; localOnly?: boolean; startGroupId?: string }) {
+  const prefersReducedMotion = useReducedMotion();
+  const scrollBehavior = preview && prefersReducedMotion ? "instant" : "smooth";
   const tb = funnel.settings?.typebot as TbFunnel | undefined;
   const theme = useMemo(() => ({ ...TB_DEFAULT_THEME, ...(tb?.theme || {}) }), [tb]);
   const groupById = useMemo(() => Object.fromEntries((tb?.groups || []).map((g) => [g.id, g])), [tb]);
@@ -49,6 +51,9 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
   const [typing, setTyping] = useState(false);
   const [recording, setRecording] = useState(false);
   const [textVal, setTextVal] = useState("");
+  const [inputError, setInputError] = useState("");
+  const inputErrorId = useId();
+  const responseInput = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [voiceState, setVoiceState] = useState<Record<string, { prog: number; clock: string }>>({});
   const [multiSel, setMultiSel] = useState<string[]>([]);
@@ -122,7 +127,11 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
         else if (b.type === "voice") push({ side: "host", kind: "voice", duration: b.duration || "0:08", url: b.url });
         else if (b.type === "call") push({ side: "host", kind: "call", mode: b.mode, status: b.status, duration: b.duration });
         else if (b.type === "system") push({ side: "center", kind: "system", variant: b.variant, html: b.variant === "custom" ? (b.text || "") : (SYS_TEXT[b.variant] || "") });
-        else if (b.type === "document") push({ side: "host", kind: "document", name: b.name || "Documento.pdf", size: b.size });
+        else if (b.type === "document") {
+          const url = URL.parse(interp(b.url || ""));
+          const href = url && (url.protocol === "https:" || url.protocol === "http:") ? url.href : undefined;
+          push({ side: "host", kind: "document", name: b.name || "Documento.pdf", size: b.size, url: href });
+        }
         else if (b.type === "link") push({ side: "host", kind: "link", url: interp(b.url), title: b.title, desc: b.desc, image: b.image });
         else if (b.type === "location") push({ side: "host", kind: "location", address: interp(b.address || ""), image: b.image });
         else if (b.type === "contact") push({ side: "host", kind: "contact", name: interp(b.name || ""), phone: b.phone, avatar: b.avatar });
@@ -141,7 +150,10 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
       if (b.type === "condition") { const to = matchCond(b.items) ?? g.to; if (to) { gid = to; bi = 0; continue; } return; }
       if (b.type === "redirect") {
         const url = interp(b.url);
-        if (preview) { push({ side: "host", kind: "text", html: `→ <em>redirect:</em> ${url}` }); return; }
+        if (preview) {
+          push({ side: "host", kind: "text", html: `→ <em>Redirecionamento:</em> ${toHtml(b.url)}` });
+          return;
+        }
         fireMetaEvent("InitiateCheckout");
         // o rastreio da página vai junto — ver `rastreio.ts`
         const destino = comRastreio(url);
@@ -158,12 +170,14 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    runFrom(startGroupId || tb?.startGroup || (tb?.groups?.[0]?.id ?? ""), 0);
+    const firstGroup = [startGroupId, tb?.startGroup, tb?.groups?.[0]?.id]
+      .find(id => id && Object.hasOwn(groupById, id));
+    if (firstGroup) void runFrom(firstGroup, 0);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [feed, typing, pending]);
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: scrollBehavior });
+  }, [feed, typing, pending, scrollBehavior]);
 
   async function capture() {
     const v = varsRef.current;
@@ -186,11 +200,17 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
     if (!pending) return;
     const b = pending.block;
     const val = (raw || "").trim();
-    // obrigatório pra continuar: input vazio avisa em vez de só não avançar
-    if (b.type !== "input-choice" && !item && !val) { alert("Por favor, preencha pra continuar 🙂"); return; }
-    if (b.type === "input-phone" && val.replace(/\D/g, "").length < 10) { alert("Confere seu WhatsApp com DDD 🙂"); return; }
-    if (b.type === "input-number" && val && isNaN(Number(val.replace(",", ".")))) { alert("Digite um número 🙂"); return; }
-    if (b.type === "input-email" && val && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) { alert("E-mail inválido 🙂"); return; }
+    let error = "";
+    if (b.type !== "input-choice" && !item && !val) error = "Preencha a resposta para continuar.";
+    else if (b.type === "input-phone" && val.replace(/\D/g, "").length < 10) error = "Informe seu WhatsApp com DDD.";
+    else if (b.type === "input-number" && Number.isNaN(Number(val.replace(",", ".")))) error = "Informe um número válido.";
+    else if (b.type === "input-email" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) error = "Informe um e-mail válido.";
+    else if (b.type === "input-url" && (!/^https?:\/\//i.test(val) || !URL.canParse(val))) error = "Informe um endereço válido com http:// ou https://.";
+    if (error) {
+      setInputError(error);
+      responseInput.current?.focus();
+      return;
+    }
 
     const display = item?.label ?? val;
     const bVar = (b as { variable?: string }).variable;
@@ -201,7 +221,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
       if (b.type === "input-phone") capture();
     }
     const np = pending;
-    setPending(null); setTextVal(""); setMultiSel([]);
+    setPending(null); setTextVal(""); setInputError(""); setMultiSel([]);
     if (item?.to) runFrom(item.to, 0);
     else runFrom(np.groupId, np.blockIdx + 1);
   }
@@ -218,6 +238,23 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
   const isPicture = pt === "input-picture";
   const isCards = pt === "input-cards";
   const isFile = pt === "input-file";
+  const submitLabel = pending && "button" in pending.block ? pending.block.button?.trim() : undefined;
+  const longText = pending?.block.type === "input-text" && pending.block.long;
+  const responsePlaceholder = pending && "placeholder" in pending.block ? pending.block.placeholder : undefined;
+  const responseField = {
+    ref: (field: HTMLInputElement | HTMLTextAreaElement | null) => { responseInput.current = field; },
+    autoFocus: true,
+    value: textVal,
+    onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setTextVal(event.currentTarget.value);
+      setInputError("");
+    },
+    "aria-label": responsePlaceholder || "Resposta",
+    "aria-invalid": !!inputError,
+    "aria-describedby": inputError ? inputErrorId : undefined,
+    placeholder: responsePlaceholder || "Mensagem",
+    className: `min-w-0 flex-1 border-0 px-4 py-2.5 text-[15px] shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ct-blue ${longText ? "resize-y rounded-xl" : "rounded-full"}`,
+  };
   const isText = !!pending && !isChoice && !isRating && !isPicture && !isCards && !isFile;
   const inputType = pt === "input-number" ? "number" : pt === "input-email" ? "email" : pt === "input-phone" ? "tel"
     : pt === "input-date" ? "date" : pt === "input-time" ? "time" : pt === "input-url" ? "url" : "text";
@@ -399,7 +436,8 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                         <div className="flex items-center gap-2.5 rounded-lg px-2 py-2" style={{ background: dark ? "#ffffff0d" : "#00000008", minWidth: 200 }}>
                           <span className="grid h-10 w-9 shrink-0 place-items-center rounded text-[18px]" style={{ background: dark ? "#ffffff14" : "#ffffff" }}>📄</span>
                           <div className="min-w-0 flex-1"><div className="truncate text-[14px] font-medium">{m.name}</div><div className="text-[11.5px]" style={{ color: C.time }}>{m.size || "PDF"}</div></div>
-                          <span className="text-lg" style={{ color: C.time }}>⤓</span>
+                          {m.url && <a href={m.url} target="_blank" rel="noopener noreferrer" aria-label={`Abrir documento: ${m.name}`}
+                            className="shrink-0 rounded px-2 text-lg focus-visible:outline-2 focus-visible:outline-offset-2" style={{ color: C.time }}>↗</a>}
                         </div>
                       ) : m.kind === "link" ? (
                         <a href={m.url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg" style={{ background: dark ? "#ffffff0d" : "#00000008", maxWidth: 250 }}>
@@ -429,7 +467,14 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                           ) : <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg" style={{ background: dark ? "#ffffff14" : "#00000010" }}>👤</span>}
                           <div className="min-w-0 flex-1"><div className="truncate text-[14px] font-medium">{m.name || "Contato"}</div>{m.phone ? <div className="text-[11.5px]" style={{ color: C.time }}>{m.phone}</div> : null}</div>
                         </div>
-                      ) : <div className="px-0.5"><span dangerouslySetInnerHTML={{ __html: m.html }} /></div>}
+                      ) : (
+                        <iframe
+                          title="Conteúdo incorporado"
+                          sandbox={localOnly ? "" : "allow-scripts"}
+                          srcDoc={`<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1">${localOnly ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'">` : ""}<style>body{margin:0;overflow-wrap:anywhere}iframe,img,video{max-width:100%}</style></head><body>${m.html}</body></html>`}
+                          className="block h-[180px] w-[min(250px,66vw)] rounded-[6px] border-0 bg-white"
+                        />
+                      )}
                 </div>
               </div>
             );
@@ -438,13 +483,13 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
             <div className="flex justify-start">
               <div className="wa-bubble wa-host flex items-center gap-2 px-3 py-2" style={{ background: C.host, boxShadow: "0 1px 0.5px rgba(0,0,0,.13)" }}>
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3" fill="#ef4444" stroke="none" /><path d="M5.5 11.5a6.5 6.5 0 0013 0M12 18v3.2M8.5 21.5h7" /></svg>
-                <span className="animate-pulse text-[12.5px]" style={{ color: C.typing }}>gravando áudio…</span>
+                <span className="text-[12.5px] motion-safe:animate-pulse" style={{ color: C.typing }}>gravando áudio…</span>
               </div>
             </div>
           ) : typing ? (
             <div className="flex justify-start">
               <div className="wa-bubble wa-host flex gap-1 px-3.5 py-3" style={{ background: C.host, boxShadow: "0 1px 0.5px rgba(0,0,0,.13)" }}>
-                {[0, 1, 2].map((i) => <span key={i} className="h-2 w-2 animate-bounce rounded-full" style={{ background: C.typing, animationDelay: `${i * 0.15}s` }} />)}
+                {[0, 1, 2].map((i) => <span key={i} className="h-2 w-2 rounded-full motion-safe:animate-bounce" style={{ background: C.typing, animationDelay: `${i * 0.15}s` }} />)}
               </div>
             </div>
           ) : null}
@@ -453,7 +498,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
 
       {/* input (estilo WhatsApp) — sempre na pergunta; rodapé ocioso some se hideFooter */}
       {pending || !theme.hideFooter ? (
-      <div className="relative z-10 shrink-0" style={{ background: C.inputBar }}>
+      <div className={`relative z-10 shrink-0 ${preview ? "max-h-[60%] overflow-y-auto" : ""}`} style={{ background: C.inputBar }}>
         {isChoice && choiceBlock ? (
           <div className="mx-auto w-full max-w-[680px] px-2.5 pt-2.5">
             <div className="flex flex-col gap-2">
@@ -471,6 +516,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                 }
                 return (
                   <button key={it.id}
+                    aria-pressed={choiceBlock.multiple ? sel : undefined}
                     onClick={() => choiceBlock.multiple ? setMultiSel((s) => sel ? s.filter((x) => x !== it.id) : [...s, it.id]) : submit(it.label, it)}
                     className="rounded-full px-4 py-2.5 text-[14.5px] font-semibold shadow-sm transition active:scale-[0.99]"
                     style={{ background: sel ? theme.buttonBg : C.inputBg, color: sel ? theme.buttonColor : theme.buttonBg, border: `1.5px solid ${theme.buttonBg}` }}>
@@ -479,8 +525,12 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
                 );
               }); })()}
               {choiceBlock.multiple ? (
-                <button onClick={() => { const items = choiceBlock.items.filter((x) => multiSel.includes(x.id)); submit(items.map((x) => x.label).join(", "), items[0]); }}
-                  className="mt-1 rounded-full px-4 py-2.5 font-bold" style={{ background: theme.buttonBg, color: theme.buttonColor }}>Enviar</button>
+                <button disabled={multiSel.length === 0} onClick={() => {
+                  const items = choiceBlock.items.filter(item => multiSel.includes(item.id));
+                  if (!items.length) return;
+                  submit(items.map(item => item.label).join(", "), { to: items[0].to });
+                }}
+                  className="mt-1 rounded-full px-4 py-2.5 font-bold disabled:opacity-60" style={{ background: theme.buttonBg, color: theme.buttonColor }}>Enviar</button>
               ) : null}
             </div>
           </div>
@@ -535,17 +585,24 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
         <div className="mx-auto flex w-full max-w-[680px] items-center gap-2 px-2.5 py-2">
           <span className="text-2xl leading-none" style={{ color: dark ? "#8696a0" : "#54656f" }}>＋</span>
           {isText ? (
-            <form onSubmit={(e) => { e.preventDefault(); submit(textVal); }} className="flex flex-1 items-center gap-2">
-              <input autoFocus value={textVal} onChange={(e) => setTextVal(e.target.value)} type={inputType}
-                inputMode={inputType === "tel" ? "tel" : inputType === "number" ? "numeric" : "text"}
-                placeholder={(pending?.block as { placeholder?: string })?.placeholder || "Mensagem"}
-                className="min-w-0 flex-1 rounded-full border-0 px-4 py-2.5 text-[15px] shadow-sm outline-none" style={{ background: C.inputBg, color: C.inputText }} />
-              <button type="submit" aria-label="Enviar" className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white" style={{ background: theme.buttonBg }}>➤</button>
+            <form noValidate onSubmit={(event) => { event.preventDefault(); submit(textVal); }} className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                {longText ? <textarea {...responseField} rows={3} style={{ background: C.inputBg, color: C.inputText }} />
+                  : <input {...responseField} type={inputType}
+                    inputMode={inputType === "tel" ? "tel" : inputType === "number" ? "numeric" : "text"}
+                    style={{ background: C.inputBg, color: C.inputText }} />}
+                <button type="submit" aria-label={submitLabel || "Enviar"}
+                  className={`grid min-h-10 shrink-0 place-items-center rounded-full text-sm font-semibold ${submitLabel ? "max-w-[45%] break-words px-3 py-1" : "w-10"}`}
+                  style={{ background: theme.buttonBg, color: theme.buttonColor }}>
+                  {submitLabel || "➤"}
+                </button>
+              </div>
+              {inputError && <p role="alert" id={inputErrorId} className="mt-1 px-2 text-xs" style={{ color: dark ? "#fecaca" : "#991b1b" }}>{inputError}</p>}
             </form>
           ) : isFile ? (
-            <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[15px] font-semibold shadow-sm" style={{ background: theme.buttonBg, color: theme.buttonColor }}>
-              📎 {(pending?.block as { button?: string })?.button || "Anexar arquivo"}
-              <input type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) submit(`📎 ${f.name}`); }} />
+            <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[15px] font-semibold shadow-sm focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ct-blue" style={{ background: theme.buttonBg, color: theme.buttonColor }}>
+              <span aria-hidden="true">📎</span> {(pending?.block as { button?: string })?.button || "Anexar arquivo"}
+              <input type="file" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) submit(`📎 ${f.name}`); }} />
             </label>
           ) : (() => {
             const ic = dark ? "#8696a0" : "#54656f";
@@ -565,7 +622,7 @@ export default function ChatRunner({ funnel, preview = false, startGroupId }: { 
       ) : null}
 
       {/* REPAGINAÇÃO: bloco VSL cobre o chat (mesmo domínio) */}
-      {vsl ? <TypebotVsl block={vsl} interp={interp} preview={preview} slug={funnel.slug} /> : null}
+      {vsl ? <TypebotVsl block={vsl} interp={interp} preview={preview} localOnly={localOnly} slug={funnel.slug} /> : null}
     </div>
   );
 }
@@ -600,7 +657,8 @@ function VturbEmbed({ html, slug, preview }: { html: string; slug: string; previ
  * VSL como repaginação: cobre o chat com a página de VSL no MESMO domínio.
  * Reaproveita a estrutura da lâmina VSL do inlead (banner + player + pitch reveal).
  */
-function TypebotVsl({ block, interp, preview, slug }: { block: TbVsl; interp: (s: string) => string; preview: boolean; slug: string }) {
+function TypebotVsl({ block, interp, preview, localOnly, slug }: { block: TbVsl; interp: (s: string) => string; preview: boolean; localOnly: boolean; slug: string }) {
+  const prefersReducedMotion = useReducedMotion();
   const [reveal, setReveal] = useState((block.pitchRevealAt ?? 0) <= 0);
   useEffect(() => {
     if (reveal) return;
@@ -609,6 +667,7 @@ function TypebotVsl({ block, interp, preview, slug }: { block: TbVsl; interp: (s
   }, [reveal, block.pitchRevealAt]);
 
   const openCheckout = () => {
+    if (localOnly) return;
     if (!preview) fireMetaEvent("InitiateCheckout");
     const url = interp(block.checkoutUrl || "");
     if (url) window.open(comRastreio(url), "_blank");
@@ -627,27 +686,30 @@ function TypebotVsl({ block, interp, preview, slug }: { block: TbVsl; interp: (s
           </div>
         ) : null}
         {block.title ? <h2 className="mb-4 text-center text-lg font-extrabold leading-tight text-neutral-900" dangerouslySetInnerHTML={{ __html: titleHtml }} /> : null}
-        {block.embedHtml ? (
+        {block.embedHtml?.trim() && !localOnly ? (
           <VturbEmbed html={block.embedHtml} slug={slug} preview={preview} />
         ) : (
           <div className="grid aspect-[9/16] w-full place-items-center overflow-hidden rounded-2xl bg-neutral-900 text-center text-white/70 shadow-lg">
             <div>
-              <span className="text-4xl">▶</span>
-              <p className="mt-3 px-6 text-sm">Cole o embed do VTurb no campo “Embed do player” (editor do bloco VSL).</p>
+              <span aria-hidden="true" className="text-4xl">▶</span>
+              <p className="mt-3 px-6 text-sm">{localOnly
+                ? (block.embedHtml?.trim() ? "Vídeo incorporado · reprodução desativada na prévia" : "Vídeo incorporado · fonte ausente nesta cópia")
+                : "Cole o embed do VTurb no campo “Embed do player” (editor do bloco VSL)."}</p>
             </div>
           </div>
         )}
         <AnimatePresence mode="wait">
           {reveal ? (
-            <motion.div key="cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
-              <button onClick={openCheckout}
-                className={`tb-cta-pulse w-full rounded-full bg-emerald-500 px-6 py-4 text-[17px] font-extrabold uppercase text-white active:scale-[0.97] ${shineCls}`}
+            <motion.div key="cta" initial={{ opacity: 0, y: preview && prefersReducedMotion ? 0 : 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
+              <button onClick={openCheckout} disabled={localOnly} aria-describedby={localOnly ? "tb-local-checkout-note" : undefined}
+                className={`w-full rounded-full bg-emerald-500 px-6 py-4 text-[17px] font-extrabold uppercase text-white active:scale-[0.97] disabled:opacity-60 ${localOnly ? "" : `tb-cta-pulse ${shineCls}`}`}
                 style={{ ["--tb-cta-glow" as string]: "color-mix(in srgb, #10b981 55%, transparent)" } as CSSProperties}>
                 {block.ctaText || "QUERO GARANTIR MINHA VAGA"}
               </button>
+              {localOnly && <p id="tb-local-checkout-note" className="mt-2 text-center text-sm text-neutral-600">Checkout desativado na cópia local.</p>}
             </motion.div>
           ) : (
-            <motion.p key="wait" exit={{ opacity: 0 }} className="mt-6 text-center text-sm text-neutral-400">⏳ Assista o vídeo para liberar o acesso...</motion.p>
+            <motion.p key="wait" exit={{ opacity: 0 }} className="mt-6 text-center text-sm text-neutral-600">{localOnly ? "⏳ Aguardando o tempo configurado para exibir a oferta…" : "⏳ Assista o vídeo para liberar o acesso..."}</motion.p>
           )}
         </AnimatePresence>
       </div>

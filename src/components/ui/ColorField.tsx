@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { PALETTES } from "@/lib/quiz/theme";
 
 /**
@@ -100,6 +100,8 @@ export default function ColorField({
   /** de que lado o painel abre; decidido no clique, pelo espaço que sobra */
   const [ancora, setAncora] = useState<"esquerda" | "direita">("esquerda");
   const [rascunho, setRascunho] = useState(hex);
+  const painelId = useId();
+  const gatilhoRef = useRef<HTMLButtonElement>(null);
   const caixaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const areaRef = useRef<HTMLDivElement>(null);
@@ -118,12 +120,18 @@ export default function ColorField({
     const fora = (e: MouseEvent) => {
       if (caixaRef.current && !caixaRef.current.contains(e.target as Node)) setAberto(false);
     };
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setAberto(false); };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || !caixaRef.current?.contains(e.target as Node)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setAberto(false);
+      gatilhoRef.current?.focus();
+    };
     document.addEventListener("mousedown", fora);
-    document.addEventListener("keydown", esc);
+    document.addEventListener("keydown", esc, true);
     return () => {
       document.removeEventListener("mousedown", fora);
-      document.removeEventListener("keydown", esc);
+      document.removeEventListener("keydown", esc, true);
     };
   }, [aberto]);
 
@@ -158,6 +166,9 @@ export default function ColorField({
     <div className="relative" ref={caixaRef}>
       <button
         type="button"
+        ref={gatilhoRef}
+        aria-expanded={aberto}
+        aria-controls={aberto ? painelId : undefined}
         onClick={() => {
           /* Antes de abrir, decide de que lado o painel cabe. Ele tem 248px de
              largura fixa e nascia sempre ancorado à esquerda: no painel da
@@ -170,14 +181,18 @@ export default function ColorField({
           setAberto((o) => !o);
         }}
         title={hex || "Sem cor (herda do tema)"}
+        aria-label={`${label || "Cor"}: ${hex || "Herdar do tema"}`}
         className={`block shrink-0 rounded-lg border border-neutral-300 transition hover:border-neutral-400 ${className}`}
         style={hex ? { background: hex } : XADREZ}
       />
 
       {aberto ? (
         <div
+          id={painelId}
+          role="group"
+          aria-label={`Seletor de ${label || "cor"}`}
           onClick={(e) => e.preventDefault()}
-          className={`absolute top-[calc(100%+6px)] z-30 w-[248px] rounded-xl border border-neutral-200 bg-white p-2.5 shadow-lg ${ancora === "direita" ? "right-0" : "left-0"}`}
+          className={`ct-color-panel absolute top-[calc(100%+6px)] z-30 w-[248px] rounded-xl border border-neutral-200 bg-white p-2.5 shadow-lg ${ancora === "direita" ? "right-0" : "left-0"}`}
         >
           <div className="mb-2 flex items-center justify-between gap-2">
             <span className="text-[11px] font-semibold text-neutral-500">{label || "Cor"}</span>
@@ -221,6 +236,7 @@ export default function ColorField({
               style={hex ? { background: hex } : XADREZ} />
             <input
               ref={inputRef}
+              aria-label="Código hexadecimal"
               value={rascunho}
               onChange={(e) => setRascunho(e.target.value)}
               onBlur={commitHex}
@@ -229,19 +245,19 @@ export default function ColorField({
               spellCheck={false}
               className="w-full rounded-md border border-neutral-300 px-2 py-1 font-mono text-xs uppercase text-neutral-800 outline-none focus:border-neutral-900"
             />
-            <button type="button" title="Copiar"
-              onClick={() => { try { navigator.clipboard?.writeText(hex); } catch { /* sem permissão */ } }}
+            <button type="button" title="Copiar cor" aria-label="Copiar cor"
+              onClick={() => { void navigator.clipboard?.writeText(hex).catch(() => {}); }}
               className="shrink-0 rounded-md border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50">⧉</button>
           </div>
 
           <div className="mt-2 flex flex-wrap gap-1">
             {SWATCHES.map((c) => (
-              <button key={c} type="button" onClick={() => onChange(c)} title={c}
+              <button key={c} type="button" onClick={() => onChange(c)} title={c} aria-label={`Selecionar ${c}`} aria-pressed={hex === c}
                 className="h-5 w-5 rounded border border-neutral-300 transition hover:scale-110"
                 style={{ background: c }} />
             ))}
             {allowEmpty ? (
-              <button type="button" onClick={() => onChange("")} title="Sem cor (herda do tema)"
+              <button type="button" onClick={() => onChange("")} title="Sem cor (herda do tema)" aria-label="Herdar cor do tema"
                 className="h-5 w-5 rounded border border-neutral-300 transition hover:scale-110" style={XADREZ} />
             ) : null}
           </div>

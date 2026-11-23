@@ -1,0 +1,14 @@
+.ct-funnel-design { font-weight: var(--funnel-content-weight); }
+.ct-funnel-design .lyr-html { line-height: var(--funnel-content-line,1.45); }
+.ct-funnel-design .lyr-html :is(h1,h2,h3) {
+  font-family: var(--funnel-title-font,inherit);
+  color: var(--funnel-title-color,inherit);
+  font-weight: var(--funnel-title-weight,700);
+  line-height: var(--funnel-title-line,1.15);
+}
+.ct-funnel-design .lyr-html h1 { font-size: var(--funnel-title-size,2em); }
+.ct-funnel-design .lyr-html h2 { font-size: var(--funnel-title-size,1.5em); }
+.ct-funnel-design .lyr-html h3 { font-size: var(--funnel-title-size,1.17em); }
+.ct-funnel-design .lyr-html :is(h1,h2,h3) strong { font-weight: inherit; }
+.ct-funnel-design .lyr-html p { font-weight: var(--funnel-content-weight,inherit); }
+@media (prefers-reduced-motion: reduce) { .ct-funnel-background-video { display: none; } }

@@ -9,9 +9,11 @@
  */
 
 export type LayerType =
+  | "audio" | "arguments" | "testimonials" | "faq" | "price" | "checklist" | "html"
   | "text" | "clear" | "options" | "image" | "button" | "alert"
   | "loading" | "field" | "timer" | "notification" | "graphics"
   | "embed" | "video" | "roulette" | "slider" | "carousel"
+  | "sonia-numbers" // seleção demonstrativa 01..60; sem reserva/estoque
   // ── diagnóstico e prova (13/08/2026) ──────────────────────────────────────
   | "level"        // régua de níveis com "você está aqui"
   | "beforeafter"  // prova social antes→depois, em carrossel
@@ -67,6 +69,29 @@ export interface InleadOption {
   /** id da lâmina destino ou "next" */
   destination?: string;
   value?: string;
+  points?: number;
+}
+
+export interface DisplayRule {
+  source: string;
+  operator: "equals" | "notEquals" | "contains" | "answered" | "empty" | "greater" | "greaterEqual" | "less" | "lessEqual";
+  value?: string;
+}
+export interface LayerDisplay {
+  preserveSpace?: boolean;
+  entrance?: "none" | "fade" | "slide" | "zoom";
+  behavior?: "none" | "pulse" | "float";
+  device?: "all" | "mobile" | "desktop";
+  match?: "all" | "any";
+  rules?: DisplayRule[];
+  groups?: DisplayRule[][];
+}
+export interface LayerAnswer {
+  optionIds: string[];
+  values: string[];
+  labels: string[];
+  points: number;
+  destination?: string;
 }
 
 export interface InleadGraphic {
@@ -96,6 +121,8 @@ export interface Layer {
    */
   webhookKey?: string;
   title?: string;
+  subId?: string;
+  display?: LayerDisplay;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   design?: any;
   content: {
@@ -105,6 +132,9 @@ export interface Layer {
     text?: string;
     // clear
     clear?: string;
+    // Sorteio da Sônia — números válidos e distintos, sem correção silenciosa
+    numeroX?: number;
+    numeroY?: number;
     // button
     label?: string;
     destination?: string;
@@ -201,6 +231,16 @@ export interface InleadStep {
   /** Override do header SÓ desta lâmina. Cada chave undefined = herda do global. */
   headerOverride?: { show_logo?: boolean; show_progress?: boolean; show_back?: boolean; go_to_top?: boolean };
   design?: {
+    featuredFont?: string;
+    contentFont?: string;
+    titleColor?: string;
+    contentColor?: string;
+    titleSize?: number;
+    contentSize?: number;
+    titleWeight?: number;
+    contentWeight?: number;
+    titleLineHeight?: number;
+    contentLineHeight?: number;
     backgroundColor?: string;
     backgroundImage?: InleadMedia;
     backgroundOpacity?: string | number;
@@ -220,6 +260,19 @@ export interface InleadDesign {
   contentFont?: string;
   titleSize?: number | string;
   contentSize?: number | string;
+  titleWeight?: number | string;
+  contentWeight?: number | string;
+  titleLineHeight?: number | string;
+  contentLineHeight?: number | string;
+  backgroundType?: "solid" | "image" | "gradient" | "effect" | "video";
+  backgroundImage?: InleadMedia;
+  backgroundVideo?: string;
+  backgroundSize?: "cover" | "contain";
+  backgroundPosition?: string;
+  backgroundOpacity?: number;
+  gradientColor?: string;
+  gradientAngle?: number;
+  logoAlign?: "center" | "left";
   rounded?: string;
   elementSize?: string;
   verticalAlign?: string;

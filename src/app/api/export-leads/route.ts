@@ -1,3 +1,4 @@
+import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { colunasDoFunil, type FunnelCol } from "@/lib/quiz/colunas";
@@ -37,6 +38,11 @@ export async function GET(request: Request) {
   const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
   if (!user || !adminEmail || user.email?.toLowerCase() !== adminEmail) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  if (isReadOnlyWorkspace()) {
+    return NextResponse.json({ error: "Dados individuais e exportações não estão disponíveis no preview." }, {
+      status: 403, headers: { "Cache-Control": "no-store" },
+    });
   }
 
   const qs = new URL(request.url).searchParams;
@@ -101,12 +107,13 @@ export async function GET(request: Request) {
     const max = Number(s.max_step_reached ?? 0);
 
     const celulas = cols.map((c) => {
-      if (c.kind === "options") return ans?.get(c.stepId) ?? "";
+      if (c.kind === "options") return (c.layerId ? ans?.get(c.layerId) : undefined) ?? ans?.get(c.stepId) ?? "";
       // botão: a lead passou desta lâmina, logo clicou (mesma regra da tela)
       if (c.kind === "button") return max > c.stepIdx ? "clicked" : "";
       // lâmina sem interação: registra só se a lead chegou a vê-la
       if (c.kind === "passou") return max >= c.stepIdx ? "visto" : "";
       // campo: nome/telefone vêm do lead capturado
+      if (c.layerId && ans?.has(c.layerId)) return ans.get(c.layerId) ?? "";
       const n = (c.fieldName || "").toLowerCase();
       if (/tel|phone|whats/.test(n)) return (lead?.phone as string) ?? "";
       if (/nome|name/.test(n)) return (lead?.name as string) ?? "";

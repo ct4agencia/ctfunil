@@ -1,0 +1,19 @@
+.ct-flow { min-height: 0; color: var(--ct-ink); }
+.ct-flow-node { background: var(--ct-surface); border-color: var(--ct-line-strong); }
+.ct-flow-node[data-target=true] { outline: 2px solid var(--ct-blue); outline-offset: 3px; }
+.ct-flow-exit, .ct-flow-default { position: relative; }
+.ct-flow-exit { border-top: 1px solid var(--ct-line); padding-right: 18px; }
+.ct-flow-exit:hover, .ct-flow-exit:focus-within { background: var(--ct-raised); }
+.ct-flow-destination { width: 132px; min-height: 30px; }
+.ct-flow-port { position: absolute; right: -14px; top: 50%; translate: 0 -50%; display: grid; place-items: center; width: 28px; height: 28px; cursor: crosshair; touch-action: none; border-radius: 50%; }
+.ct-flow-port span, .ct-flow-inlet { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--ct-blue); background: var(--ct-surface); }
+.ct-flow-port[data-connected=true] span, .ct-flow-port:hover:enabled span { background: var(--ct-blue); }
+.ct-flow-port:disabled { cursor: default; opacity: .4; }
+.ct-flow-inlet { position: absolute; left: -8px; top: 12px; width: 16px; height: 16px; border: 4px solid var(--ct-surface); outline: 2px solid var(--ct-dim); background: var(--ct-dim); }
+.ct-flow-default { padding-right: 18px; border-color: var(--ct-line); }
+.ct-flow-default-select { min-width: 0; flex: 1; background: var(--ct-surface); color: var(--ct-dim); font-size: 11px; border-radius: 5px; height: 28px; }
+.ct-flow-edit { display: grid; place-items: center; width: 28px; height: 28px; color: var(--ct-dim); border-radius: 6px; }
+.ct-flow-edit:hover { background: var(--ct-raised); color: var(--ct-ink); }
+.ct-flow select:focus-visible, .ct-flow button:focus-visible { outline: 2px solid var(--ct-blue); outline-offset: 2px; }
+.ct-flow svg .lf-edge { stroke-dasharray: none; }
+.ct-flow svg .lf-run { stroke-dasharray: 6 6; }

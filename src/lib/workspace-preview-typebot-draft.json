@@ -1,0 +1,841 @@
+{
+  "startGroup": "b1",
+  "variables": [
+    "nome",
+    "whatsapp",
+    "idade",
+    "filhos",
+    "ocupacao",
+    "situacao",
+    "experiencia",
+    "sonho",
+    "fase",
+    "acompanha",
+    "curso",
+    "apoio"
+  ],
+  "typing": {
+    "enabled": true,
+    "speed": 28,
+    "maxDelay": 1.4
+  },
+  "theme": {
+    "bg": "#efeae2",
+    "hostBubbleBg": "#ffffff",
+    "hostBubbleColor": "#111b21",
+    "guestBubbleBg": "#e6ffda",
+    "guestBubbleColor": "#111b21",
+    "buttonBg": "#008069",
+    "buttonColor": "#ffffff",
+    "inputBg": "#ffffff",
+    "inputColor": "#111b21",
+    "headerColor": "#075e54",
+    "botName": "Sônia 🧡",
+    "online": "online",
+    "statusTime": "10:04",
+    "network": "5G",
+    "encryptionText": "As mensagens e chamadas são protegidas com criptografia de ponta a ponta, através da proteção de dados dos usuários do whatsapp (meta).",
+    "showAvatar": true,
+    "dark": false,
+    "encryptionBanner": true,
+    "charging": false,
+    "battery": 80,
+    "device": "ios"
+  },
+  "groups": [
+    {
+      "id": "b1",
+      "title": "Bloco 1 - Hero",
+      "x": 40,
+      "y": 40,
+      "to": "b2",
+      "blocks": [
+        {
+          "id": "b1qlh2",
+          "type": "text",
+          "richText": "Oii! Tudo bem? 😊"
+        },
+        {
+          "id": "b4wfa9",
+          "type": "wait",
+          "seconds": 1
+        },
+        {
+          "id": "b23esr",
+          "type": "text",
+          "richText": "Vi que você se interessou em aprender a fazer bolsas artesanais na tela em casa…"
+        },
+        {
+          "id": "b5zbfg",
+          "type": "wait",
+          "seconds": 2.8
+        },
+        {
+          "id": "b3ee39",
+          "type": "text",
+          "richText": "Me responde uma coisa rapidinho: você gostaria mesmo de ganhar **R$5.000 por mês** fazendo bolsas aí de casa? 😊"
+        },
+        {
+          "id": "b65cum",
+          "type": "input-choice",
+          "items": [
+            {
+              "id": "b7ak0y",
+              "label": "Sim, quero! 🙌"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b2",
+      "title": "Bloco 2 - Reserva da Vaga",
+      "x": 360,
+      "y": 40,
+      "to": "b3",
+      "blocks": [
+        {
+          "id": "b80zzf",
+          "type": "text",
+          "richText": "Amei! 🥰"
+        },
+        {
+          "id": "b9bog2",
+          "type": "wait",
+          "seconds": 1.2
+        },
+        {
+          "id": "bapco4",
+          "type": "text",
+          "richText": "Deixa eu ver aqui se ainda tem vaga no seu estado…"
+        },
+        {
+          "id": "bbiy95",
+          "type": "wait",
+          "seconds": 3
+        },
+        {
+          "id": "bcbfzg",
+          "type": "text",
+          "richText": "Achei! ✅"
+        },
+        {
+          "id": "bd7h0a",
+          "type": "wait",
+          "seconds": 1.2
+        },
+        {
+          "id": "beo8gn",
+          "type": "text",
+          "richText": "Consegui **reservar uma vaga** pra você no maior treinamento de bolsas do Brasil."
+        },
+        {
+          "id": "bfekf7",
+          "type": "wait",
+          "seconds": 6
+        },
+        {
+          "id": "bg41kx",
+          "type": "voice",
+          "duration": "0:27"
+        },
+        {
+          "id": "bhxzh9",
+          "type": "input-choice",
+          "items": [
+            {
+              "id": "bi18bc",
+              "label": "Pode sim! 👏"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b3",
+      "title": "Bloco 3 - Idade",
+      "x": 680,
+      "y": 40,
+      "to": "b4",
+      "blocks": [
+        {
+          "id": "bjxlia",
+          "type": "text",
+          "richText": "Quantos anos você tem? 🎂"
+        },
+        {
+          "id": "bkxlea",
+          "type": "input-choice",
+          "variable": "idade",
+          "items": [
+            {
+              "id": "blrml9",
+              "label": "18 a 34"
+            },
+            {
+              "id": "bm5xfe",
+              "label": "35 a 54"
+            },
+            {
+              "id": "bnwhtn",
+              "label": "55 a 64"
+            },
+            {
+              "id": "bowyk6",
+              "label": "+65"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b4",
+      "title": "Bloco 4 - Filhos",
+      "x": 1000,
+      "y": 40,
+      "to": "b5",
+      "blocks": [
+        {
+          "id": "bpl1kd",
+          "type": "text",
+          "richText": "Você tem filhos? 👶"
+        },
+        {
+          "id": "bq4jdj",
+          "type": "input-choice",
+          "variable": "filhos",
+          "items": [
+            {
+              "id": "brg288",
+              "label": "Sim"
+            },
+            {
+              "id": "bshgym",
+              "label": "Não"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b5",
+      "title": "Bloco 5 - Ocupação",
+      "x": 1320,
+      "y": 40,
+      "to": "b6",
+      "blocks": [
+        {
+          "id": "btgvrq",
+          "type": "text",
+          "richText": "Hoje em dia, qual é a sua ocupação? 💼"
+        },
+        {
+          "id": "bu8cgk",
+          "type": "input-choice",
+          "variable": "ocupacao",
+          "items": [
+            {
+              "id": "bv1i6g",
+              "label": "Só trabalho"
+            },
+            {
+              "id": "bwggr1",
+              "label": "Só estudo"
+            },
+            {
+              "id": "bx2j9e",
+              "label": "Aposentada"
+            },
+            {
+              "id": "byrh5q",
+              "label": "Dona de casa"
+            },
+            {
+              "id": "bzm72i",
+              "label": "Trabalho e estudo"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b6",
+      "title": "Bloco 6 - Situação atual",
+      "x": 1640,
+      "y": 40,
+      "to": "b7",
+      "blocks": [
+        {
+          "id": "b10m6ml",
+          "type": "text",
+          "richText": "E me conta: com qual dessas situações você mais se identifica hoje?"
+        },
+        {
+          "id": "b11c0l3",
+          "type": "input-choice",
+          "variable": "situacao",
+          "items": [
+            {
+              "id": "b12ig3d",
+              "label": "Trabalho muito e ganho pouco 💪"
+            },
+            {
+              "id": "b134wuo",
+              "label": "Não tenho uma profissão definida"
+            },
+            {
+              "id": "b14pqd0",
+              "label": "Busco algo que me dê liberdade e renda extra 🤍"
+            },
+            {
+              "id": "b15yddv",
+              "label": "Insatisfeita e querendo mudar de vida 😔"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b7",
+      "title": "Bloco 7 - Experiência",
+      "x": 1960,
+      "y": 40,
+      "to": "b8",
+      "blocks": [
+        {
+          "id": "b160f1n",
+          "type": "text",
+          "richText": "Sobre bolsas artesanais… qual seu nível hoje? 🧶"
+        },
+        {
+          "id": "b174kx0",
+          "type": "input-choice",
+          "variable": "experiencia",
+          "items": [
+            {
+              "id": "b185xcj",
+              "label": "Nunca fiz"
+            },
+            {
+              "id": "b19p864",
+              "label": "Sou iniciante"
+            },
+            {
+              "id": "b1a0jx7",
+              "label": "Já tenho experiência 🧵"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b8",
+      "title": "Bloco 8 - Sonho",
+      "x": 2280,
+      "y": 40,
+      "to": "b9",
+      "blocks": [
+        {
+          "id": "b1bl8v2",
+          "type": "text",
+          "richText": "Imagina que você já está ganhando esses **R$5.000 por mês**… 💰"
+        },
+        {
+          "id": "b1damw1",
+          "type": "wait",
+          "seconds": 2.2
+        },
+        {
+          "id": "b1cge8e",
+          "type": "text",
+          "richText": "Qual seria a **primeira coisa** que você faria com esse dinheiro?"
+        },
+        {
+          "id": "b1ejg5s",
+          "type": "input-choice",
+          "variable": "sonho",
+          "items": [
+            {
+              "id": "b1fhs05",
+              "label": "Sair do meu emprego 🚶‍♀️"
+            },
+            {
+              "id": "b1gpl43",
+              "label": "Abrir meu próprio ateliê 🏠"
+            },
+            {
+              "id": "b1hifk7",
+              "label": "Ajudar minha família ❤️"
+            },
+            {
+              "id": "b1iq2p2",
+              "label": "Realizar um sonho antigo 💭"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b9",
+      "title": "Bloco 9 - Fase de vida",
+      "x": 2600,
+      "y": 40,
+      "to": "b10",
+      "blocks": [
+        {
+          "id": "b1jucbz",
+          "type": "text",
+          "richText": "E hoje, em que fase da sua vida você sente que está?"
+        },
+        {
+          "id": "b1kjrae",
+          "type": "input-choice",
+          "variable": "fase",
+          "items": [
+            {
+              "id": "b1lkgno",
+              "label": "Estou recomeçando do zero"
+            },
+            {
+              "id": "b1m1dqb",
+              "label": "Sempre gostei de trabalhos manuais"
+            },
+            {
+              "id": "b1n1gd1",
+              "label": "Cansei de depender dos outros"
+            },
+            {
+              "id": "b1ogoq9",
+              "label": "Quero algo que seja só meu"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b10",
+      "title": "Bloco 10 - Acompanha conteúdo",
+      "x": 2920,
+      "y": 40,
+      "to": "b11",
+      "blocks": [
+        {
+          "id": "b1pgggs",
+          "type": "text",
+          "richText": "Você já acompanha algum conteúdo sobre bolsas artesanais? (YouTube, Instagram, TikTok) 📱"
+        },
+        {
+          "id": "b1qobs3",
+          "type": "input-choice",
+          "variable": "acompanha",
+          "items": [
+            {
+              "id": "b1rz5gk",
+              "label": "Sim, acompanho muito"
+            },
+            {
+              "id": "b1sdbj3",
+              "label": "Vejo às vezes"
+            },
+            {
+              "id": "b1teil6",
+              "label": "Não acompanho"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b11",
+      "title": "Bloco 11 - Curso online",
+      "x": 3240,
+      "y": 40,
+      "to": "b12",
+      "blocks": [
+        {
+          "id": "b1ug76a",
+          "type": "text",
+          "richText": "E curso online, você já fez algum antes? 💻"
+        },
+        {
+          "id": "b1vmbo3",
+          "type": "input-choice",
+          "variable": "curso",
+          "items": [
+            {
+              "id": "b1wfwzi",
+              "label": "Sim, já fiz e concluí 💪"
+            },
+            {
+              "id": "b1xdm3r",
+              "label": "Comecei mas não terminei 😩"
+            },
+            {
+              "id": "b1ykhmg",
+              "label": "Nunca fiz ❌"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b12",
+      "title": "Bloco 12 - Rede de apoio",
+      "x": 3560,
+      "y": 40,
+      "to": "b13",
+      "blocks": [
+        {
+          "id": "b1zem0v",
+          "type": "text",
+          "richText": "Última perguntinha! Durante o curso, você teria alguém pra te apoiar, seja emocional ou financeiramente?"
+        },
+        {
+          "id": "b20oazy",
+          "type": "input-choice",
+          "variable": "apoio",
+          "items": [
+            {
+              "id": "b2193ru",
+              "label": "Sim, com certeza 🙏"
+            },
+            {
+              "id": "b22ggjh",
+              "label": "Talvez 🤔"
+            },
+            {
+              "id": "b23kxf7",
+              "label": "Não 🙁"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b13",
+      "title": "Bloco 13 - Resultado",
+      "x": 3880,
+      "y": 40,
+      "to": "b14",
+      "blocks": [
+        {
+          "id": "b24pi7i",
+          "type": "text",
+          "richText": "Prontinho! Deixa eu analisar suas respostas aqui… 📊"
+        },
+        {
+          "id": "b252flw",
+          "type": "wait",
+          "seconds": 3
+        },
+        {
+          "id": "b26zf2r",
+          "type": "text",
+          "richText": "Uau! 😱 Não acredito…"
+        },
+        {
+          "id": "b2ao4tn",
+          "type": "wait",
+          "seconds": 1.1
+        },
+        {
+          "id": "b27zuxb",
+          "type": "text",
+          "richText": "Você atingiu **94% de compatibilidade** com o perfil ideal pra receber a **bolsa de estudos de 6 meses** do Clube das Bolsas! 🎉"
+        },
+        {
+          "id": "b2bq3bq",
+          "type": "wait",
+          "seconds": 3.9
+        },
+        {
+          "id": "b28bal6",
+          "type": "text",
+          "richText": "O mínimo necessário era 87%, e você foi muito além! 🚀"
+        },
+        {
+          "id": "b2cqeu8",
+          "type": "wait",
+          "seconds": 2
+        },
+        {
+          "id": "b29m83v",
+          "type": "text",
+          "richText": "Você tem tudo que a gente procura numa aluna. Que orgulho! 🥹"
+        },
+        {
+          "id": "b2d0iw1",
+          "type": "input-choice",
+          "items": [
+            {
+              "id": "b2e02af",
+              "label": "Quero ativar minha bolsa! 🎓"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b14",
+      "title": "Bloco 14 - Apresentação Sônia",
+      "x": 4200,
+      "y": 40,
+      "to": "b15",
+      "blocks": [
+        {
+          "id": "b2frdak",
+          "type": "wait",
+          "seconds": 4
+        },
+        {
+          "id": "b2g8v79",
+          "type": "voice",
+          "duration": "0:47"
+        },
+        {
+          "id": "b2h3auu",
+          "type": "wait",
+          "seconds": 35
+        },
+        {
+          "id": "b2i0mwo",
+          "type": "text",
+          "richText": "E pra gente começar com o pé direito, eu preparei um **presente de boas-vindas** que você vai amar 🎁"
+        },
+        {
+          "id": "b2jdh5s",
+          "type": "input-choice",
+          "items": [
+            {
+              "id": "b2k1dlp",
+              "label": "Quero meu presente! 🎁"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b15",
+      "title": "Bloco 15 - Apostila",
+      "x": 4520,
+      "y": 40,
+      "to": "b16",
+      "blocks": [
+        {
+          "id": "b2ldj6w",
+          "type": "text",
+          "richText": "Como forma de reconhecimento por ter chegado até aqui… 🎁"
+        },
+        {
+          "id": "b2mgbmq",
+          "type": "wait",
+          "seconds": 2
+        },
+        {
+          "id": "b2nztmx",
+          "type": "image",
+          "url": ""
+        },
+        {
+          "id": "b2odybc",
+          "type": "wait",
+          "seconds": 1.4
+        },
+        {
+          "id": "b2pfpug",
+          "type": "text",
+          "richText": "Vou te mandar de graça uma **apostila super completa** de como fazer **Bolsas de Celular em Crochê** 📘✨"
+        },
+        {
+          "id": "b2qsosj",
+          "type": "wait",
+          "seconds": 3
+        },
+        {
+          "id": "b2rwgde",
+          "type": "text",
+          "richText": "Ela ensina do zero, mesmo pra quem nunca fez nada de crochê na vida!"
+        },
+        {
+          "id": "b2spg2h",
+          "type": "input-choice",
+          "items": [
+            {
+              "id": "b2tz20d",
+              "label": "Adorei, quero receber! 🥰"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b16",
+      "title": "Bloco 16 - Captura",
+      "x": 4840,
+      "y": 40,
+      "to": "b17",
+      "blocks": [
+        {
+          "id": "b2ubpwp",
+          "type": "text",
+          "richText": "Para eu confirmar sua bolsa e enviar a apostila, preciso que você preencha seus dados:"
+        },
+        {
+          "id": "b2vpwbc",
+          "type": "wait",
+          "seconds": 2
+        },
+        {
+          "id": "b2w20uu",
+          "type": "text",
+          "richText": "Como você gostaria que eu te chamasse?"
+        },
+        {
+          "id": "b2x5t5x",
+          "type": "input-text",
+          "variable": "nome",
+          "placeholder": "Digite seu nome…",
+          "button": "Enviar"
+        },
+        {
+          "id": "b2y9mmk",
+          "type": "text",
+          "richText": "Agora só me confirma o seu WhatsApp com DDD."
+        },
+        {
+          "id": "b2z2qli",
+          "type": "wait",
+          "seconds": 1.5
+        },
+        {
+          "id": "b30ypcu",
+          "type": "text",
+          "richText": "Para que possamos **concluir o cadastro da sua bolsa de estudos!**"
+        },
+        {
+          "id": "b31v4pf",
+          "type": "input-phone",
+          "variable": "whatsapp",
+          "placeholder": "WhatsApp com DDD",
+          "button": "Enviar"
+        }
+      ]
+    },
+    {
+      "id": "b17",
+      "title": "Bloco 17 - Fechamento",
+      "x": 5160,
+      "y": 40,
+      "to": "b18",
+      "blocks": [
+        {
+          "id": "b32f5kq",
+          "type": "text",
+          "richText": "Prontinho, **{nome}**! 🥳"
+        },
+        {
+          "id": "b36zsn2",
+          "type": "wait",
+          "seconds": 1.1
+        },
+        {
+          "id": "b33d7i8",
+          "type": "text",
+          "richText": "Já anotei tudo aqui. Daqui a pouquinho vou te mandar a apostila e umas mensagens especiais, combinado? 😊"
+        },
+        {
+          "id": "b37pl7h",
+          "type": "wait",
+          "seconds": 3.5
+        },
+        {
+          "id": "b340xf7",
+          "type": "text",
+          "richText": "Ah, importante: eu **só consigo te ajudar se você responder minhas mensagens**, então fica de olho nas notificações pra não me deixar no vácuo, viu? 🔔"
+        },
+        {
+          "id": "b38i0za",
+          "type": "wait",
+          "seconds": 4.5
+        },
+        {
+          "id": "b35aiug",
+          "type": "text",
+          "richText": "Agora sim… vamos ativar a sua bolsa de estudos! ⬇️"
+        },
+        {
+          "id": "b399tgu",
+          "type": "input-choice",
+          "items": [
+            {
+              "id": "b3at7mh",
+              "label": "Quero ativar minha Bolsa de Estudos 🎓"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b18",
+      "title": "Bloco 18 - Encaminhamento VSL",
+      "x": 5480,
+      "y": 40,
+      "to": "vsl",
+      "blocks": [
+        {
+          "id": "b3b5hly",
+          "type": "text",
+          "richText": "Agora clique no botão abaixo e veja um **vídeo rapidinho**, onde eu te explico tudo que você vai aprender no Clube das Bolsas 🎥"
+        },
+        {
+          "id": "b3eoauk",
+          "type": "wait",
+          "seconds": 4
+        },
+        {
+          "id": "b3clokl",
+          "type": "text",
+          "richText": "E o mais importante: eu te mostro **o passo a passo pra ativar a sua bolsa de estudos de 6 meses** que você acabou de conquistar 🎓"
+        },
+        {
+          "id": "b3fygz6",
+          "type": "wait",
+          "seconds": 4.1
+        },
+        {
+          "id": "b3dr76t",
+          "type": "text",
+          "richText": "⚠️ **Só um aviso importante:** pra você **não correr o risco de perder a sua bolsa**, é essencial assistir o vídeo **até o final**, tá?"
+        },
+        {
+          "id": "b3glkgi",
+          "type": "input-choice",
+          "items": [
+            {
+              "id": "b3hn894",
+              "label": "QUERO ASSISTIR E ATIVAR MINHA BOLSA"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vsl",
+      "title": "VSL - Ativar Bolsa",
+      "x": 5800,
+      "y": 40,
+      "blocks": [
+        {
+          "id": "b3i9nr8",
+          "type": "vsl",
+          "title": "Assista o vídeo abaixo e veja como ativar sua Bolsa de Estudos 👇",
+          "barText": "⚠️ ATENÇÃO: ESTE VÍDEO SAI DO AR EM BREVE",
+          "ctaText": "QUERO ATIVAR MINHA BOLSA AGORA",
+          "background": "#ffffff",
+          "pitchRevealAt": 1055,
+          "effect": "shine-pulse"
+        }
+      ]
+    }
+  ]
+}

@@ -53,26 +53,33 @@ export default function TypebotFlow({ tb, setGroups, onSelect }: {
   const byId = useMemo(() => Object.fromEntries(groups.map((g) => [g.id, g])), [groups]);
   const hOf = (g?: TbGroup) => HEAD + Math.max(1, g?.blocks.length || 1) * ROW + PAD;
 
-  // saídas (edges) de cada grupo: to padrão + item.to de botões/condição
-  const adj = useMemo(() => {
-    const m: Record<string, string[]> = {};
-    for (const g of groups) {
-      m[g.id] = [];
-      if (g.to) m[g.id].push(g.to);
-      for (const b of g.blocks) if (b.type === "input-choice" || b.type === "condition") for (const it of b.items) if (it.to) m[g.id].push(it.to);
-    }
-    return m;
-  }, [groups]);
+  const start = Object.hasOwn(byId, tb.startGroup) ? tb.startGroup : groups[0]?.id;
+  const connections = useMemo(() => groups.flatMap(group => {
+    const outgoing = group.blocks.flatMap(block => {
+      switch (block.type) {
+        case "input-choice":
+        case "input-picture":
+        case "input-cards":
+        case "condition":
+          return block.items.flatMap(item => item.to && Object.hasOwn(byId, item.to) ? [item.to] : []);
+        default:
+          return [];
+      }
+    });
+    const branches = outgoing.map((to, bi) => ({ from: group.id, to, kind: "branch" as const, bi }));
+    return group.to && Object.hasOwn(byId, group.to)
+      ? [{ from: group.id, to: group.to, kind: "seq" as const, bi: 0 }, ...branches]
+      : branches;
+  }), [groups, byId]);
 
   // layout em camadas: coluna = profundidade a partir do Start; linhas empilham na coluna
   const layout = useMemo(() => {
     const level: Record<string, number> = {};
     groups.forEach((g) => (level[g.id] = 0));
-    const start = (tb.startGroup && byId[tb.startGroup]) ? tb.startGroup : groups[0]?.id;
     if (start) level[start] = 0;
     for (let pass = 0; pass < groups.length; pass++) {
       let changed = false;
-      for (const g of groups) for (const t of adj[g.id] || []) if (byId[t] && level[t] < level[g.id] + 1) { level[t] = level[g.id] + 1; changed = true; }
+      for (const { from, to } of connections) if (level[to] < level[from] + 1) { level[to] = level[from] + 1; changed = true; }
       if (!changed) break;
     }
     const cols: Record<number, TbGroup[]> = {};
@@ -80,7 +87,7 @@ export default function TypebotFlow({ tb, setGroups, onSelect }: {
     const m: Record<string, Pt> = {};
     Object.keys(cols).forEach((cs) => { const c = Number(cs); cols[c].forEach((g, r) => { m[g.id] = { x: 40 + c * (W + COL_GAP), y: 40 + r * ROW_GAP }; }); });
     return m;
-  }, [groups, adj, byId, tb.startGroup]);
+  }, [groups, connections, start]);
 
   const [pos, setPos] = useState<Record<string, Pt>>(layout);
   const [zoom, setZoom] = useState(0.85);
@@ -101,19 +108,10 @@ export default function TypebotFlow({ tb, setGroups, onSelect }: {
     el.addEventListener("pointermove", move); el.addEventListener("pointerup", up);
   };
 
-  // arestas
-  type Edge = { from: string; to: string; kind: "seq" | "branch"; bi: number };
-  const edges: Edge[] = [];
-  for (const g of groups) {
-    if (g.to && byId[g.to]) edges.push({ from: g.id, to: g.to, kind: "seq", bi: 0 });
-    let bi = 0;
-    for (const b of g.blocks) if (b.type === "input-choice" || b.type === "condition") for (const it of b.items) { if (it.to && byId[it.to]) edges.push({ from: g.id, to: it.to, kind: "branch", bi: bi }); if (it.to) bi++; }
-  }
-
   const maxX = Math.max(600, ...groups.map((g) => (pos[g.id]?.x || 0) + W + 120));
   const maxY = Math.max(500, ...groups.map((g) => (pos[g.id]?.y || 0) + hOf(g) + 80));
 
-  const path = (e: Edge) => {
+  const path = (e: (typeof connections)[number]) => {
     const a = pos[e.from], b = pos[e.to]; if (!a || !b) return "";
     // saída pela DIREITA do nó de origem, entrada pela ESQUERDA do destino (horizontal)
     const y1 = e.kind === "branch" ? a.y + HEAD + 14 + e.bi * 16 : a.y + hOf(byId[e.from]) / 2;
@@ -142,19 +140,28 @@ export default function TypebotFlow({ tb, setGroups, onSelect }: {
               <marker id="tbf-s" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9ca3af" /></marker>
               <marker id="tbf-b" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ea580c" /></marker>
             </defs>
-            {edges.map((e, i) => (
+            {connections.map((e, i) => (
               <path key={i} d={path(e)} fill="none" stroke={e.kind === "branch" ? "#ea580c" : "#9ca3af"} strokeWidth={2} markerEnd={`url(#${e.kind === "branch" ? "tbf-b" : "tbf-s"})`} />
             ))}
           </svg>
-          {groups.map((g, gi) => {
+          {groups.map((g) => {
             const p = pos[g.id]; if (!p) return null;
-            const branchCount = g.blocks.reduce((n, b) => n + (b.type === "input-choice" || b.type === "condition" ? b.items.length : 0), 0);
+            const outgoing = connections.filter(edge => edge.from === g.id);
+            const branchCount = outgoing.filter(edge => edge.kind === "branch").length;
             return (
-              <div key={g.id} onPointerDown={startDrag(g.id)} onClick={() => { if (moved.current) { moved.current = false; return; } onSelect(g.id); }}
-                className="absolute cursor-grab overflow-hidden rounded-xl border border-neutral-300 bg-white shadow-md active:cursor-grabbing hover:border-violet-400"
+              <div key={g.id} role="button" tabIndex={0}
+                aria-label={g.id === start ? `Editar grupo inicial: ${g.title}` : `Editar grupo: ${g.title}`}
+                onPointerDown={startDrag(g.id)}
+                onClick={() => { if (moved.current) { moved.current = false; return; } onSelect(g.id); }}
+                onKeyDown={event => {
+                  if (event.key !== "Enter" && event.key !== " ") return;
+                  event.preventDefault();
+                  onSelect(g.id);
+                }}
+                className="absolute cursor-grab overflow-hidden rounded-xl border border-neutral-300 bg-white shadow-md active:cursor-grabbing hover:border-violet-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ct-action"
                 style={{ left: p.x, top: p.y, width: W }}>
                 <div className="flex items-center justify-between border-b border-neutral-100 bg-violet-50 px-2.5 py-1.5">
-                  <span className="truncate text-[12.5px] font-bold text-violet-900">{gi === 0 ? "▶ " : ""}{g.title}</span>
+                  <span className="truncate text-[12.5px] font-bold text-violet-900">{g.id === start ? "▶ " : ""}{g.title}</span>
                   <span className="ml-1 shrink-0 text-[10px] text-violet-400">{g.blocks.length}</span>
                 </div>
                 <div className="px-1.5 py-1">
@@ -165,7 +172,7 @@ export default function TypebotFlow({ tb, setGroups, onSelect }: {
                     </div>
                   )) : <div className="px-1 py-1 text-[11px] italic text-neutral-300">vazio</div>}
                 </div>
-                {g.to ? <span className="absolute h-2.5 w-2.5 rounded-full border-2 border-white" style={{ right: -6, top: hOf(g) / 2 - 5, background: "#9ca3af" }} /> : null}
+                {outgoing.some(edge => edge.kind === "seq") ? <span className="absolute h-2.5 w-2.5 rounded-full border-2 border-white" style={{ right: -6, top: hOf(g) / 2 - 5, background: "#9ca3af" }} /> : null}
                 {Array.from({ length: branchCount }).map((_, k) => (
                   <span key={k} className="absolute h-2.5 w-2.5 rounded-full border-2 border-white" style={{ right: -6, top: HEAD + 9 + k * 16, background: "#ea580c" }} />
                 ))}

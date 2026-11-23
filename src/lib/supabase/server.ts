@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSbClient } from "@supabase/supabase-js";
+import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
 import { cookies } from "next/headers";
 
 /**
@@ -37,6 +38,7 @@ export async function createClient() {
  * ⚠️ NUNCA importar em Client Components. Só em código de servidor.
  */
 export function createAdminClient() {
+  if (isReadOnlyWorkspace()) throw new Error("O preview está em modo de consulta.");
   return createSbClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,

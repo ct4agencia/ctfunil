@@ -1,0 +1,766 @@
+[
+  {
+    "slug": "test",
+    "steps": [
+      {
+        "id": "inicio",
+        "title": "Seus dados",
+        "layers": [
+          {
+            "id": "layer-1",
+            "type": "text",
+            "content": {
+              "id": "layer-1",
+              "text": "testPersonalize esta apresentação para o seu público."
+            },
+            "design": {}
+          },
+          {
+            "id": "layer-3",
+            "type": "field",
+            "content": {
+              "id": "layer-3",
+              "title": "Seu nome",
+              "required": true,
+              "type": "text",
+              "name": "nome"
+            },
+            "design": {}
+          },
+          {
+            "id": "layer-4",
+            "type": "field",
+            "content": {
+              "id": "layer-4",
+              "title": "Seu e-mail",
+              "required": true,
+              "type": "email",
+              "name": "email"
+            },
+            "design": {}
+          },
+          {
+            "id": "layer-5",
+            "type": "button",
+            "content": {
+              "id": "layer-5",
+              "label": "Enviar",
+              "destination": "conclusao"
+            },
+            "design": {}
+          }
+        ]
+      },
+      {
+        "id": "conclusao",
+        "title": "Confirmação",
+        "layers": [
+          {
+            "id": "layer-2",
+            "type": "text",
+            "content": {
+              "id": "layer-2",
+              "text": "Recebemos sua resposta!Obrigado por participar."
+            },
+            "design": {}
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "live1",
+    "steps": [
+      {
+        "id": "sonia-convite",
+        "title": "Convite",
+        "layers": [
+          {
+            "id": "sonia-logo",
+            "type": "image",
+            "content": {
+              "id": "sonia-logo",
+              "image": {
+                "type": "image",
+                "src": ""
+              }
+            },
+            "design": {
+              "basis": 70
+            }
+          },
+          {
+            "id": "e8b4ac86",
+            "type": "clear",
+            "content": {
+              "id": "e8b4ac86",
+              "clear": "h-[0.5rem]"
+            },
+            "design": {}
+          },
+          {
+            "id": "416e3520",
+            "type": "image",
+            "content": {
+              "id": "416e3520",
+              "image": {
+                "type": "image",
+                "src": ""
+              }
+            },
+            "design": {
+              "basis": 100
+            }
+          },
+          {
+            "id": "sonia-confirmar",
+            "type": "button",
+            "content": {
+              "id": "sonia-confirmar",
+              "label": "CONFIRMAR",
+              "destination": "sonia-selecao"
+            },
+            "design": {
+              "backgroundColor": "#D6AC54",
+              "color": "#06152E"
+            }
+          }
+        ]
+      },
+      {
+        "id": "sonia-selecao",
+        "title": "Seleção de números",
+        "layers": [
+          {
+            "id": "sonia-numeros",
+            "type": "sonia-numbers",
+            "content": {
+              "id": "sonia-numeros",
+              "headlineAfterRetry": "Resta apenas 1 número disponivel",
+              "retryBody": "Esse número já foi selecionado. Escolha outro número pra continuar.",
+              "retryButton": "ESCOLHER OUTRO NÚMERO",
+              "numeroX": 42,
+              "numeroY": 16,
+              "retryPulse": true
+            },
+            "design": {}
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "premio-sonia-2",
+    "steps": [
+      {
+        "id": "25d48869",
+        "title": "ROLETA - MMN02",
+        "disabled": false,
+        "layers": [
+          {
+            "id": "62009737",
+            "type": "roulette",
+            "content": {
+              "id": "62009737",
+              "title": "ROLETA DA SÔNIA",
+              "subtitle": "PARABÉNS!!! VOCÊ FOI UMA DAS 10 ALUNAS SORTEADAS DESSE MÊS!",
+              "cta": "GIRAR ROLETA",
+              "winBody": "Você ganhou...\nBÔNUS SECRETO + 50% OFF 🔥",
+              "winCta": "DESBLOQUEAR PRÊMIO 🎁",
+              "winTitle": "PARABÉNS!",
+              "initialIndex": 0,
+              "winningIndex": 0,
+              "intensidade": -10,
+              "popupEnabled": true,
+              "popupBg": "#0cb04a",
+              "type": "roulette",
+              "mode": "always",
+              "segments": [
+                {
+                  "label": "BÔNUS SECRETO + 50% OFF 🔥",
+                  "value": "",
+                  "color": "#171717"
+                },
+                {
+                  "label": "NÃO FOI DESSA VEZ",
+                  "value": "",
+                  "color": "#d60304"
+                },
+                {
+                  "label": "APOSTILA VIP",
+                  "value": "",
+                  "color": "#007afe"
+                },
+                {
+                  "label": "MATERIAL EXCLUSIVO",
+                  "value": "",
+                  "color": "#ea580c"
+                },
+                {
+                  "label": "TENTE NOVAMENTE",
+                  "value": "",
+                  "color": "#d9d905"
+                },
+                {
+                  "label": "20% OFF",
+                  "color": "#10a51a"
+                }
+              ]
+            },
+            "design": {}
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "premio-sonia",
+    "steps": [
+      {
+        "id": "raspadinha",
+        "title": "Raspe e descubra seu prêmio!",
+        "layers": [
+          {
+            "id": "raspadinha-block",
+            "type": "scratch",
+            "content": {
+              "id": "raspadinha-block",
+              "title": "Raspe e descubra seu prêmio!",
+              "subtitle": "Escolha um card e use o dedo para raspar.",
+              "coverText": "RASPE AQUI 🔥",
+              "cta": "DESBLOQUEAR PRÊMIO 🎁",
+              "winCta": "DESBLOQUEAR PRÊMIO 🎁",
+              "columns": 2,
+              "revealPct": 80,
+              "coverTextSize": 50,
+              "escurecimento": 68,
+              "perdedoresOpacidade": 45,
+              "topSpacing": 288,
+              "oncePerDevice": true,
+              "popupEnabled": false,
+              "titleShadow": true,
+              "coverColor": "#f7e08a",
+              "coverColor2": "#c08c1e",
+              "coverTextColor": "#4a1c05",
+              "popupBg": "#16a34a",
+              "popupText": "#ffffff",
+              "popupBtnBg": "#ffffff",
+              "type": "scratch",
+              "coverStyle": "gradient",
+              "cards": [
+                {
+                  "label": "TENTE NOVAMENTE",
+                  "popupTitle": "PARABÉNS!",
+                  "popupBody": "Você ganhou...",
+                  "weight": 0,
+                  "color": "#919191"
+                },
+                {
+                  "label": "50% OFF + BÔNUS SECRETO 🔥",
+                  "popupTitle": "PARABÉNS!",
+                  "popupBody": "Você ganhou...",
+                  "weight": 100,
+                  "color": "#16a34a"
+                },
+                {
+                  "label": "APOSTILA VIP",
+                  "popupTitle": "PARABÉNS!",
+                  "popupBody": "Você ganhou...",
+                  "weight": 0,
+                  "color": "#919191"
+                },
+                {
+                  "label": "MATERIAL EXCLUSIVO",
+                  "popupTitle": "PARABÉNS!",
+                  "popupBody": "Você ganhou...",
+                  "weight": 0,
+                  "color": "#919191"
+                },
+                {
+                  "label": "20% OFF",
+                  "popupTitle": "PARABÉNS!",
+                  "popupBody": "Você ganhou...",
+                  "weight": 0,
+                  "color": "#919191"
+                },
+                {
+                  "label": "10% OFF",
+                  "popupTitle": "PARABÉNS!",
+                  "popupBody": "Você ganhou...",
+                  "weight": 0,
+                  "color": "#919191"
+                }
+              ]
+            },
+            "design": {}
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "vdc1",
+    "steps": [
+      {
+        "id": "vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vd-embed",
+            "type": "embed",
+            "content": {
+              "id": "vd-embed"
+            },
+            "design": {
+              "basis": 100
+            }
+          },
+          {
+            "id": "vd-cta",
+            "type": "button",
+            "content": {
+              "id": "vd-cta",
+              "label": "QUERO COMEÇAR AGORA",
+              "waitText": "",
+              "revealAt": 1305
+            },
+            "design": {
+              "basis": 100,
+              "backgroundColor": "#E8503F",
+              "color": "#FFFFFF"
+            }
+          },
+          {
+            "id": "vd-rank",
+            "type": "ranking",
+            "content": {
+              "id": "vd-rank",
+              "rotulo": "VOCÊ",
+              "selo": "",
+              "fimEm": 1305,
+              "pct": 83,
+              "posAte": 46,
+              "posDe": 27,
+              "revealAt": 0
+            },
+            "design": {
+              "basis": 100,
+              "backgroundColor": "#E8503F",
+              "color": "#FBF3EC",
+              "borderColor": "#C99A5B"
+            }
+          },
+          {
+            "id": "vd-gar-tit",
+            "type": "text",
+            "content": {
+              "id": "vd-gar-tit",
+              "text": "FIQUE 100% SATISFEITA\nOU PEÇA SEU DINHEIRO DE VOLTA"
+            },
+            "design": {
+              "basis": 100
+            }
+          },
+          {
+            "id": "vd-gar-card",
+            "type": "card",
+            "content": {
+              "id": "vd-gar-card",
+              "text": "CONFIO TANTO NA QUALIDADE DO VIVENDO DE DOCES QUE VOU TE DAR 7 DIAS PARA EXPERIMENTAR\nVocê terá 7 dias para assistir todas as aulas e bônus!\nSe por algum motivo você não ficar satisfeita, basta clicar no botão \"Quero pedir reembolso\" dentro da área de alunas que irei devolver 100% do seu dinheiro!"
+            },
+            "design": {
+              "basis": 100
+            }
+          },
+          {
+            "id": "vd-trust",
+            "type": "trust",
+            "content": {
+              "id": "vd-trust",
+              "dias": 7,
+              "seloGarantia": true
+            },
+            "design": {
+              "basis": 100
+            }
+          },
+          {
+            "id": "vd-gar-img",
+            "type": "image",
+            "content": {
+              "id": "vd-gar-img",
+              "image": {
+                "type": "image",
+                "src": ""
+              }
+            },
+            "design": {
+              "basis": 62
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "cdb-comercial",
+    "steps": [
+      {
+        "id": "comercial-roleta",
+        "title": "Roleta promocional",
+        "layers": [
+          {
+            "id": "comercial-roleta-layer",
+            "type": "roulette",
+            "content": {
+              "id": "comercial-roleta-layer",
+              "title": "Gire a roleta e descubra sua condição especial.",
+              "subtitle": "Você tem uma chance de liberar um benefício exclusivo agora.",
+              "cta": "GIRAR",
+              "retryCta": "GIRAR NOVAMENTE",
+              "winBody": "Você ganhou um bônus secreto + R$400 OFF no Clube das Bolsas.",
+              "winCta": "RESGATAR MEU BÔNUS →",
+              "winTitle": "🎉 BÔNUS SECRETO LIBERADO!",
+              "initialIndex": 1,
+              "winningIndex": 0,
+              "retryIndex": 4,
+              "popupEnabled": true,
+              "popupBg": "#7a1733",
+              "popupText": "#ffffff",
+              "popupBtnBg": "#f3c437",
+              "type": "roulette",
+              "mode": "always",
+              "segments": [
+                {
+                  "label": "BÔNUS SECRETO + R$400 OFF",
+                  "popupTitle": "BÔNUS SECRETO LIBERADO!",
+                  "popupBody": "Você ganhou um bônus secreto + R$400 OFF no Clube das Bolsas.",
+                  "color": "#e7c777"
+                },
+                {
+                  "label": "25% OFF",
+                  "color": "#ef8a6a"
+                },
+                {
+                  "label": "Não foi dessa vez",
+                  "color": "#b3a3c6"
+                },
+                {
+                  "label": "15% OFF",
+                  "color": "#f4c69b"
+                },
+                {
+                  "label": "TENTE NOVAMENTE",
+                  "color": "#ece2d2"
+                }
+              ]
+            },
+            "design": {}
+          }
+        ]
+      },
+      {
+        "id": "cea9e562",
+        "title": "Roleta v3",
+        "layers": [
+          {
+            "id": "42cfdce0",
+            "type": "check",
+            "content": {
+              "id": "42cfdce0",
+              "icone": "🎯",
+              "text": ""
+            },
+            "design": {
+              "basis": 64,
+              "hidden": true,
+              "backgroundColor": "#1c7ed6"
+            }
+          },
+          {
+            "id": "6d3f21ed",
+            "type": "roulette",
+            "content": {
+              "id": "6d3f21ed",
+              "title": "SEU GIRO&amp;nbsp;ESTÁ LIBERADO",
+              "subtitle": "Toque no botão abaixo e descubra seu prêmio.",
+              "cta": "GIRAR",
+              "winBody": "VOCÊ LIBEROU: \nACESSO GRATUITO AO MATERIAL COMPLETO DO CLUBE DAS BOLSAS",
+              "winCta": "PEGAR MEU PRÊMIO",
+              "winTitle": "PARABÉNS!",
+              "initialIndex": 1,
+              "winningIndex": 0,
+              "labelSize": 9,
+              "intensidade": -4,
+              "autoAdvance": false,
+              "popupEnabled": true,
+              "lockReplay": true,
+              "quasePassa": true,
+              "popupBg": "#16a34a",
+              "popupText": "#ffffff",
+              "popupBtnBg": "#ffffff",
+              "ctaCor": "#16a34a",
+              "type": "roulette",
+              "mode": "always",
+              "style": "soft",
+              "segments": [
+                {
+                  "label": "BÔNUS SECRETO + R$400 OFF",
+                  "color": "#000000"
+                },
+                {
+                  "label": "Não foi dessa vez",
+                  "color": "#ff0000"
+                },
+                {
+                  "label": "Apostila bônus",
+                  "color": "#e8842a"
+                },
+                {
+                  "label": "Guia de materiais",
+                  "color": "#1c7ed6"
+                },
+                {
+                  "label": "Modelos extras",
+                  "color": "#ffdc38"
+                },
+                {
+                  "label": "Desconto especial",
+                  "color": "#00af21"
+                }
+              ]
+            },
+            "design": {}
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "cdb-apostilas",
+    "steps": [
+      {
+        "id": "c02-prep",
+        "title": "Preparação",
+        "layers": [
+          {
+            "id": "c0419456",
+            "type": "clear",
+            "content": {
+              "id": "c0419456",
+              "clear": "h-[3rem]"
+            },
+            "design": {
+              "hidden": true
+            }
+          },
+          {
+            "id": "c02-tit",
+            "type": "text",
+            "content": {
+              "id": "c02-tit",
+              "text": "Sua apostila está\nquase liberada! 🎁"
+            },
+            "design": {
+              "basis": 100
+            }
+          },
+          {
+            "id": "79f21525",
+            "type": "clear",
+            "content": {
+              "id": "79f21525",
+              "clear": "h-[2.25rem]"
+            },
+            "design": {}
+          },
+          {
+            "id": "97ca1aeb",
+            "type": "image",
+            "content": {
+              "id": "97ca1aeb",
+              "image": {
+                "type": "image",
+                "src": ""
+              }
+            },
+            "design": {
+              "basis": 100
+            }
+          },
+          {
+            "id": "cdb-gap-card",
+            "type": "clear",
+            "content": {
+              "id": "cdb-gap-card",
+              "clear": "h-[1.5rem]"
+            },
+            "design": {}
+          },
+          {
+            "id": "c02-txt",
+            "type": "card",
+            "content": {
+              "id": "c02-txt",
+              "text": "Antes de enviar seu material,Assista esse vídeo rapidinhoe a sua apostila será liberada."
+            },
+            "design": {
+              "basis": 100
+            }
+          },
+          {
+            "id": "cdb-gap-cta",
+            "type": "clear",
+            "content": {
+              "id": "cdb-gap-cta",
+              "clear": "h-[1.75rem]"
+            },
+            "design": {}
+          },
+          {
+            "id": "c02-btn",
+            "type": "button",
+            "content": {
+              "id": "c02-btn",
+              "label": "COMEÇAR",
+              "pulse": false,
+              "destination": "next"
+            },
+            "design": {
+              "basis": 100,
+              "backgroundColor": "#0277B6",
+              "color": "#FFFFFF"
+            }
+          }
+        ]
+      },
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-vagas",
+            "type": "disclaimer",
+            "content": {
+              "id": "vsl-vagas",
+              "text": "[vagas] DAS 50 VAGAS PROMOCIONAIS JÁ FORAM GARANTIDAS...",
+              "revealAt": 973,
+              "vagasAte": 48,
+              "vagasDe": 32
+            },
+            "design": {
+              "basis": 100,
+              "hidden": true,
+              "backgroundColor": "#7d4e00"
+            }
+          },
+          {
+            "id": "vsl-embed",
+            "type": "embed",
+            "content": {
+              "id": "vsl-embed"
+            },
+            "design": {
+              "basis": 100
+            }
+          },
+          {
+            "id": "vsl-cta",
+            "type": "button",
+            "content": {
+              "id": "vsl-cta",
+              "label": "QUERO LIBERAR MEU ACESSO",
+              "waitText": "⏳ Assista o vídeo para liberar o acesso…",
+              "revealAt": 1005
+            },
+            "design": {
+              "basis": 100,
+              "backgroundColor": "#16A34A",
+              "color": "#FFFFFF",
+              "borderColor": "#9a3500"
+            }
+          },
+          {
+            "id": "ef634581",
+            "type": "image",
+            "content": {
+              "id": "ef634581",
+              "image": {
+                "type": "image",
+                "src": ""
+              }
+            },
+            "design": {
+              "basis": 35
+            }
+          },
+          {
+            "id": "vsl-gar-tit",
+            "type": "text",
+            "content": {
+              "id": "vsl-gar-tit",
+              "text": "FIQUE 100% SATISFEITA\nOU PEÇA SEU DINHEIRO\nDE VOLTA!"
+            },
+            "design": {
+              "basis": 100
+            }
+          },
+          {
+            "id": "9b15cfae",
+            "type": "button",
+            "content": {
+              "id": "9b15cfae",
+              "label": "QUERO LIBERAR MEU ACESSO",
+              "waitText": "⏳ Assista o vídeo para liberar o acesso…",
+              "revealAt": 1005
+            },
+            "design": {
+              "basis": 100,
+              "backgroundColor": "#16A34A",
+              "color": "#FFFFFF",
+              "borderColor": "#9a3500"
+            }
+          },
+          {
+            "id": "4f851b57",
+            "type": "image",
+            "content": {
+              "id": "4f851b57",
+              "image": {
+                "type": "image",
+                "src": ""
+              }
+            },
+            "design": {
+              "basis": 67
+            }
+          },
+          {
+            "id": "vsl-gar-card",
+            "type": "card",
+            "content": {
+              "id": "vsl-gar-card",
+              "text": "CONFIO TANTO NA QUALIDADE DO CLUBE DAS BOLSAS QUE VOU TE DAR 7 DIAS PARA EXPERIMENTAR\nVocê terá 7 dias para assistir todas as aulas e bônus!\nSe por algum motivo você não ficar satisfeita, basta clicar no botão \"Quero pedir reembolso\" dentro da área de alunas que irei devolver 100% do seu dinheiro!"
+            },
+            "design": {
+              "basis": 100,
+              "hidden": false
+            }
+          },
+          {
+            "id": "vsl-gar-chip",
+            "type": "alert",
+            "content": {
+              "id": "vsl-gar-chip",
+              "text": "🔒 Garantia de 7 dias — risco zero para você testar"
+            },
+            "design": {
+              "basis": 100,
+              "hidden": false
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

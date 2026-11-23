@@ -1,0 +1,1150 @@
+{
+  "questions": [
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "leads": 12,
+      "options": [
+        {
+          "label": "Sim",
+          "leads": 6,
+          "sessions": 12
+        },
+        {
+          "label": "Não",
+          "leads": 6,
+          "sessions": 8
+        }
+      ],
+      "question": "Filhos",
+      "sessions": 20
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "leads": 12,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 6,
+          "sessions": 8
+        },
+        {
+          "label": "Sim, com certeza",
+          "leads": 2,
+          "sessions": 5
+        },
+        {
+          "label": "Talvez",
+          "leads": 4,
+          "sessions": 5
+        }
+      ],
+      "question": "Apoio",
+      "sessions": 18
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "leads": 12,
+      "options": [
+        {
+          "label": "Sim",
+          "leads": 9,
+          "sessions": 14
+        },
+        {
+          "label": "Não",
+          "leads": 3,
+          "sessions": 3
+        }
+      ],
+      "question": "Filhos",
+      "sessions": 17
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "leads": 9,
+      "options": [
+        {
+          "label": "34 a 54 anos",
+          "leads": 3,
+          "sessions": 7
+        },
+        {
+          "label": "54 a 64 anos",
+          "leads": 5,
+          "sessions": 7
+        },
+        {
+          "label": "18 a 34 anos",
+          "leads": 1,
+          "sessions": 2
+        }
+      ],
+      "question": "Idade",
+      "sessions": 16
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "leads": 12,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 7,
+          "sessions": 8
+        },
+        {
+          "label": "Sim, com certeza",
+          "leads": 3,
+          "sessions": 4
+        },
+        {
+          "label": "Talvez",
+          "leads": 2,
+          "sessions": 2
+        }
+      ],
+      "question": "Apoio",
+      "sessions": 14
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "leads": 11,
+      "options": [
+        {
+          "label": "34 a 54 anos",
+          "leads": 6,
+          "sessions": 7
+        },
+        {
+          "label": "54 a 64 anos",
+          "leads": 3,
+          "sessions": 5
+        },
+        {
+          "label": "18 a 34 anos",
+          "leads": 2,
+          "sessions": 2
+        }
+      ],
+      "question": "Idade",
+      "sessions": 14
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "leads": 7,
+      "options": [
+        {
+          "label": "Sim, já fiz e conclui",
+          "leads": 7,
+          "sessions": 8
+        }
+      ],
+      "question": "Ja fez algum curso?",
+      "sessions": 8
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "leads": 4,
+      "options": [
+        {
+          "label": "Sair do meu emprego atual",
+          "leads": 3,
+          "sessions": 4
+        },
+        {
+          "label": "Abrir meu próprio ateliê",
+          "leads": 1,
+          "sessions": 2
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?",
+      "sessions": 6
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "leads": 4,
+      "options": [
+        {
+          "label": "Abrir meu próprio ateliê",
+          "leads": 3,
+          "sessions": 4
+        },
+        {
+          "label": "Sair do meu emprego atual",
+          "leads": 1,
+          "sessions": 2
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?",
+      "sessions": 6
+    },
+    {
+      "id": "0ofcxO",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "leads": 5,
+      "options": [
+        {
+          "label": "Para uma ocasião especial",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Pra usar no dia a dia",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Ainda quero conhecer os modelos",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Qual dessas bolsas",
+      "sessions": 5
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "leads": 5,
+      "options": [
+        {
+          "label": "Ainda vou organizar minha rotina",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Um pouquinho por dia",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Nos fins de semana",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Quando você poderia",
+      "sessions": 5
+    },
+    {
+      "id": "I300TG",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "leads": 5,
+      "options": [
+        {
+          "label": "Fazer bolsas pra usar",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Ter um passatempo",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Presentear pessoas queridas",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "O que mais faz?",
+      "sessions": 5
+    },
+    {
+      "id": "rKHWwO",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "leads": 5,
+      "options": [
+        {
+          "label": "Assistindo alguém fazer",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Lendo o passo a passo",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Vendo fotos de cada etapa",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Fase da vida",
+      "sessions": 5
+    },
+    {
+      "id": "rNGU6S",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "leads": 5,
+      "options": [
+        {
+          "label": "Ainda não tenho",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Já tenho os materiais",
+          "leads": 1,
+          "sessions": 1
+        },
+        {
+          "label": "Tenho alguns, mas não sei se servem",
+          "leads": 1,
+          "sessions": 1
+        },
+        {
+          "label": "Tenho o básico",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Você já tem",
+      "sessions": 5
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "leads": 5,
+      "options": [
+        {
+          "label": "Ainda não tentei",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Já fiz uma bolsa",
+          "leads": 1,
+          "sessions": 1
+        },
+        {
+          "label": "Já terminei uma bolsa",
+          "leads": 1,
+          "sessions": 1
+        },
+        {
+          "label": "Tentei, mas não terminei",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Já fez bolsa?",
+      "sessions": 5
+    },
+    {
+      "id": "TOAPKV",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "leads": 5,
+      "options": [
+        {
+          "label": "Ainda não conheço",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Conheço, mas nunca tentei",
+          "leads": 1,
+          "sessions": 1
+        },
+        {
+          "label": "Já tentei fazer",
+          "leads": 1,
+          "sessions": 1
+        },
+        {
+          "label": "Já vi fotos ou vídeos",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Você conhece",
+      "sessions": 5
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "leads": 5,
+      "options": [
+        {
+          "label": "Como escolher os materiais",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Como finalizar uma bolsa",
+          "leads": 2,
+          "sessions": 2
+        },
+        {
+          "label": "Como usar a tela",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "O que gostaria de entender",
+      "sessions": 5
+    },
+    {
+      "id": "k04G5v",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "leads": 4,
+      "options": [
+        {
+          "label": "Saber por onde começar",
+          "leads": 3,
+          "sessions": 3
+        },
+        {
+          "label": "Escolher os materiais",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Qual ajuda",
+      "sessions": 4
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "leads": 4,
+      "options": [
+        {
+          "label": "Nunca fiz",
+          "leads": 3,
+          "sessions": 3
+        },
+        {
+          "label": "54 a 64 anos",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Já fez artesanato?",
+      "sessions": 4
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 1,
+          "sessions": 2
+        },
+        {
+          "label": "Sim",
+          "leads": 0,
+          "sessions": 1
+        }
+      ],
+      "question": "Filhos",
+      "sessions": 3
+    },
+    {
+      "id": "TOAPKV",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Norte",
+          "leads": 1,
+          "sessions": 2
+        },
+        {
+          "label": "Nordeste",
+          "leads": 0,
+          "sessions": 1
+        }
+      ],
+      "question": "Região",
+      "sessions": 3
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Sim, já fiz e conclui",
+          "leads": 1,
+          "sessions": 2
+        }
+      ],
+      "question": "Ja fez algum curso?",
+      "sessions": 2
+    },
+    {
+      "id": "c2opt-cdb-hero11",
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "leads": 2,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 2,
+          "sessions": 2
+        }
+      ],
+      "question": "Card 2",
+      "sessions": 2
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "leads": 2,
+      "options": [
+        {
+          "label": "Sair do meu emprego atual",
+          "leads": 2,
+          "sessions": 2
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?",
+      "sessions": 2
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "leads": 2,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 2,
+          "sessions": 2
+        }
+      ],
+      "question": "Filhos",
+      "sessions": 2
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "leads": 2,
+      "options": [
+        {
+          "label": "Sim, com certeza",
+          "leads": 1,
+          "sessions": 1
+        },
+        {
+          "label": "Talvez",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Apoio",
+      "sessions": 2
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Sair do meu emprego atual",
+          "leads": 1,
+          "sessions": 2
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?",
+      "sessions": 2
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Sim, com certeza",
+          "leads": 0,
+          "sessions": 1
+        },
+        {
+          "label": "Talvez",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Apoio",
+      "sessions": 2
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "leads": 1,
+      "options": [
+        {
+          "label": "34 a 54 anos",
+          "leads": 1,
+          "sessions": 2
+        }
+      ],
+      "question": "Idade",
+      "sessions": 2
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Sair do meu emprego atual",
+          "leads": 1,
+          "sessions": 2
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?",
+      "sessions": 2
+    },
+    {
+      "id": "rg-opts",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Nordeste",
+          "leads": 1,
+          "sessions": 1
+        },
+        {
+          "label": "Norte",
+          "leads": 0,
+          "sessions": 1
+        }
+      ],
+      "question": "Região",
+      "sessions": 2
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 0,
+          "sessions": 1
+        },
+        {
+          "label": "Sim",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Filhos",
+      "sessions": 2
+    },
+    {
+      "id": "rg-opts",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Nordeste",
+          "leads": 1,
+          "sessions": 2
+        }
+      ],
+      "question": "Região",
+      "sessions": 2
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "leads": 1,
+      "options": [
+        {
+          "label": "18 a 34 anos",
+          "leads": 0,
+          "sessions": 1
+        },
+        {
+          "label": "54 a 64 anos",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Idade",
+      "sessions": 2
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+      "slug": "cdb-estado",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Abrir meu próprio ateliê",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?",
+      "sessions": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+      "slug": "cdb-estado",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Filhos",
+      "sessions": 1
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+      "slug": "cdb-estado",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Apoio",
+      "sessions": 1
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+      "slug": "cdb-estado",
+      "leads": 1,
+      "options": [
+        {
+          "label": "34 a 54 anos",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Idade",
+      "sessions": 1
+    },
+    {
+      "id": "TOAPKV",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Nordeste",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Região",
+      "sessions": 1
+    },
+    {
+      "id": "c2opt-cdb-hero08",
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Card 2",
+      "sessions": 1
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Sair do meu emprego atual",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?",
+      "sessions": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Filhos",
+      "sessions": 1
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Sim, com certeza",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Apoio",
+      "sessions": 1
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "leads": 1,
+      "options": [
+        {
+          "label": "54 a 64 anos",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Idade",
+      "sessions": 1
+    },
+    {
+      "id": "c2opt-cdb-hero09",
+      "name": "CDB 👛 [BOLSAS] - HERO 09",
+      "slug": "cdb-hero09",
+      "leads": 0,
+      "options": [
+        {
+          "label": "Sim",
+          "leads": 0,
+          "sessions": 1
+        }
+      ],
+      "question": "Card 2",
+      "sessions": 1
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "leads": 0,
+      "options": [
+        {
+          "label": "Sim, já fiz e conclui",
+          "leads": 0,
+          "sessions": 1
+        }
+      ],
+      "question": "Ja fez algum curso?",
+      "sessions": 1
+    },
+    {
+      "id": "c2opt-cdb-hero10",
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "leads": 0,
+      "options": [
+        {
+          "label": "Sim",
+          "leads": 0,
+          "sessions": 1
+        }
+      ],
+      "question": "Card 2",
+      "sessions": 1
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "leads": 0,
+      "options": [
+        {
+          "label": "Sair do meu emprego atual",
+          "leads": 0,
+          "sessions": 1
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?",
+      "sessions": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "leads": 0,
+      "options": [
+        {
+          "label": "Sim",
+          "leads": 0,
+          "sessions": 1
+        }
+      ],
+      "question": "Filhos",
+      "sessions": 1
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "leads": 0,
+      "options": [
+        {
+          "label": "18 a 34 anos",
+          "leads": 0,
+          "sessions": 1
+        }
+      ],
+      "question": "Idade",
+      "sessions": 1
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "leads": 1,
+      "options": [
+        {
+          "label": "54 a 64 anos",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Idade",
+      "sessions": 1
+    },
+    {
+      "id": "c03-opt",
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Já tentei, mas tive dificuldade",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Pergunta 1",
+      "sessions": 1
+    },
+    {
+      "id": "c04-opt",
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Já vi alguns vídeos",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Pergunta 2",
+      "sessions": 1
+    },
+    {
+      "id": "c05-opt",
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Quero produzir para mim",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Pergunta 3",
+      "sessions": 1
+    },
+    {
+      "id": "c06-opt",
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Acho que não tenho habilidade",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Pergunta 4",
+      "sessions": 1
+    },
+    {
+      "id": "c07-opt",
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Com certeza",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Pergunta 5",
+      "sessions": 1
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Sim, já fiz e conclui",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Ja fez algum curso?",
+      "sessions": 1
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "leads": 0,
+      "options": [
+        {
+          "label": "Sim, já fiz e conclui",
+          "leads": 0,
+          "sessions": 1
+        }
+      ],
+      "question": "Ja fez algum curso?",
+      "sessions": 1
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Sim, com certeza",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Apoio",
+      "sessions": 1
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "leads": 1,
+      "options": [
+        {
+          "label": "34 a 54 anos",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Idade",
+      "sessions": 1
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Abrir meu próprio ateliê",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?",
+      "sessions": 1
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Não",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Filhos",
+      "sessions": 1
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "leads": 1,
+      "options": [
+        {
+          "label": "Sim, com certeza",
+          "leads": 1,
+          "sessions": 1
+        }
+      ],
+      "question": "Apoio",
+      "sessions": 1
+    }
+  ],
+  "captured_at": "2026-11-21 03:57:36.559675+00"
+}

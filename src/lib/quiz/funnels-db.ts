@@ -1,9 +1,10 @@
 import "server-only";
 import { cache } from "react";
+import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { Funnel } from "./types";
 import { getFunnel as getSeedFunnel } from "./registry";
-import { funnelFromPreset, getPreset } from "./presets";
+import { createLayersFunnel, creationError, type CreationInput } from "./creation";
 
 export interface FunnelSummary {
   slug: string;
@@ -29,7 +30,7 @@ function slugify(s: string): string {
  */
 
 function configured(): boolean {
-  return !!process.env.SUPABASE_SERVICE_ROLE_KEY && !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+  return !isReadOnlyWorkspace() && !!process.env.SUPABASE_SERVICE_ROLE_KEY && !!process.env.NEXT_PUBLIC_SUPABASE_URL;
 }
 
 interface FunnelRow {
@@ -105,6 +106,17 @@ export const resolveFunnel = cache(async (slug: string): Promise<Funnel | null> 
   return getSeedFunnel(slug) ?? null;
 });
 
+/** Public routes must not expose drafts through the service-role client. */
+export const resolvePublicFunnel = cache(async (slug:string):Promise<Funnel|null> => {
+  if (!configured()) return getSeedFunnel(slug) ?? null;
+  try {
+    const {data,error}=await createAdminClient().from('funnels').select('status').eq('slug',slug).maybeSingle();
+    if(error)return null;
+    if(data && data.status!=='published')return null;
+    return resolveFunnel(slug);
+  } catch { return null; }
+});
+
 /** Carrega o funil cujo DOMÍNIO próprio bate com o host (multi-domínio). */
 export async function resolveFunnelByDomain(host: string): Promise<Funnel | null> {
   if (!configured() || !host) return null;
@@ -115,6 +127,7 @@ export async function resolveFunnelByDomain(host: string): Promise<Funnel | null
       .from("funnels")
       .select(FUNNEL_COLS)
       .eq("domain", clean)
+      .eq("status", "published")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -127,10 +140,12 @@ export async function resolveFunnelByDomain(host: string): Promise<Funnel | null
 }
 
 /** Salva (upsert) o funil no banco. `renameFrom` = slug antigo (apaga ao renomear). */
-export async function saveFunnelDb(funnel: Funnel, renameFrom?: string): Promise<{ ok: boolean; error?: string }> {
+export async function saveFunnelDb(funnel: Funnel, renameFrom?: string, statusOverride?: 'draft'): Promise<{ ok: boolean; error?: string }> {
   if (!configured()) return { ok: false, error: "Supabase não configurado (.env.local)" };
   try {
     const sb = createAdminClient();
+    const {data:existing,error:statusError}=await sb.from('funnels').select('status').eq('slug',renameFrom || funnel.slug).maybeSingle();
+    if(statusError)return {ok:false,error:'Não foi possível verificar o status do funil.'};
     // renomeação: garante que o novo slug não colide com OUTRO funil
     if (renameFrom && renameFrom !== funnel.slug) {
       const { data: clash } = await sb.from("funnels").select("slug").eq("slug", funnel.slug).maybeSingle();
@@ -143,7 +158,7 @@ export async function saveFunnelDb(funnel: Funnel, renameFrom?: string): Promise
       logo: funnel.logo ?? null,
       palette_id: funnel.paletteId,
       steps: funnel.steps,
-      status: "published",
+      status: statusOverride === 'draft' || existing?.status === 'draft' ? 'draft' : 'published',
       updated_at: new Date().toISOString(),
     };
     const full = {
@@ -181,6 +196,25 @@ export async function saveFunnelDb(funnel: Funnel, renameFrom?: string): Promise
   }
 }
 
+/** Create an imported funnel as a draft, never overwriting another slug. */
+export async function createImportedFunnelDb(funnel:Funnel):Promise<{ok:boolean;slug?:string;error?:string}> {
+  if(!configured())return {ok:false,error:'Supabase não configurado.'};
+  try {
+    const slug=`importado-${crypto.randomUUID()}`;
+    const {error}=await createAdminClient().from('funnels').insert({slug,name:funnel.name,niche:null,logo:null,palette_id:funnel.paletteId,steps:funnel.steps,status:'draft',settings:funnel.settings || {},updated_at:new Date().toISOString()});
+    return error?{ok:false,error:error.message}:{ok:true,slug};
+  }catch{return {ok:false,error:'Não foi possível criar o rascunho.'};}
+}
+
+export async function funnelIsDraft(slug:string):Promise<boolean> {
+  if(!configured())return false;
+  try {const {data,error}=await createAdminClient().from('funnels').select('status').eq('slug',slug).maybeSingle();return !error && data?.status==='draft';}catch{return false;}
+}
+export async function publishFunnelDb(slug:string):Promise<{ok:boolean;error?:string}> {
+  if(!configured())return {ok:false,error:'Supabase não configurado.'};
+  try {const {data,error}=await createAdminClient().from('funnels').update({status:'published',updated_at:new Date().toISOString()}).eq('slug',slug).eq('status','draft').select('slug').maybeSingle();return error||!data?{ok:false,error:'Não foi possível publicar este rascunho.'}:{ok:true};}catch{return {ok:false,error:'Não foi possível publicar este rascunho.'};}
+}
+
 /** Lista todos os funis (para a aba Dashboard). */
 export async function listFunnelsDb(): Promise<FunnelSummary[]> {
   if (!configured()) return [];
@@ -209,13 +243,13 @@ async function uniqueSlug(base: string): Promise<string> {
 }
 
 /** Cria um funil novo a partir de um preset. */
-export async function createFunnelDb(name: string, presetId: string): Promise<{ ok: boolean; slug?: string; error?: string }> {
+export async function createFunnelDb(input: CreationInput): Promise<{ ok: boolean; slug?: string; error?: string }> {
   if (!configured()) return { ok: false, error: "Supabase não configurado" };
-  const preset = getPreset(presetId);
-  if (!preset) return { ok: false, error: "Modelo inválido" };
+  const invalid = creationError(input);
+  if (invalid) return { ok: false, error: invalid };
   try {
-    const slug = await uniqueSlug(name || preset.name);
-    const funnel = funnelFromPreset(preset, name || preset.name, slug);
+    const slug = await uniqueSlug(input.name);
+    const funnel = createLayersFunnel(input, slug);
     const r = await saveFunnelDb(funnel);
     return r.ok ? { ok: true, slug } : { ok: false, error: r.error };
   } catch (e) {
@@ -229,7 +263,7 @@ export async function duplicateFunnelDb(slug: string): Promise<{ ok: boolean; sl
   if (!src) return { ok: false, error: "Funil não encontrado" };
   try {
     const newSlug = await uniqueSlug(`${src.slug}-copia`);
-    const r = await saveFunnelDb({ ...src, slug: newSlug, name: `${src.name} (cópia)` });
+    const r = await saveFunnelDb({ ...src, slug: newSlug, name: `${src.name} (cópia)` },undefined,'draft');
     return r.ok ? { ok: true, slug: newSlug } : { ok: false, error: r.error };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };

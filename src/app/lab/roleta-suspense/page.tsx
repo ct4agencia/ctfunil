@@ -28,12 +28,11 @@
  * que exercita o motor físico simulado que roda hoje.
  */
 
-import { Poppins } from "next/font/google";
+import { poppins } from "@/app/fonts/funnel-fonts";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // o desenho foi medido em Poppins 900; com fallback de sistema os rótulos
 // mudam de largura e passam a encostar no aro
-const poppins = Poppins({ subsets: ["latin"], weight: ["600", "800", "900"] });
 
 /* ── copy e paleta, iguais às do cdb-insta ──────────────────────────────── */
 const SEGMENTOS: { label: string; cor: string; emoji?: string }[] = [

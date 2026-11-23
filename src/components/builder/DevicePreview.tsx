@@ -1,6 +1,8 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
+import { MonitorSmartphone, RotateCcw } from "lucide-react";
+import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 
 /**
  * Moldura de celular do construtor — a MESMA para os 3 motores.
@@ -37,6 +39,7 @@ export const DEVICES: readonly Device[] = [
   { id: "pixel-7", nome: "Pixel 7 / Galaxy S20 Ultra", w: 412, h: 915 },
   { id: "iphone-xr", nome: "iPhone XR / 11", w: 414, h: 896 },
   { id: "iphone-pro-max", nome: "iPhone 14 / 15 Pro Max", w: 430, h: 932 },
+  { id: "desktop", nome: "Desktop", w: 1280, h: 800 },
   { id: "ipad-mini", nome: "iPad Mini", w: 768, h: 1024 },
 ] as const;
 
@@ -82,17 +85,22 @@ export default function DevicePreview({
   const dev = getDevice(deviceId);
   const areaRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [alturaArea, setAlturaArea] = useState(0);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [area, setArea] = useState({ width: 0, height: 0 });
 
   // Altura disponível: define o zoom no modo "Ajustar", pra moldura sempre caber
   // e a coluna de fora nunca ganhar uma SEGUNDA barra de rolagem.
   useLayoutEffect(() => {
     const el = areaRef.current;
     if (!el) return;
-    const medir = () => setAlturaArea(el.clientHeight);
+    const medir = () => {
+      const toolbarHeight = toolbarRef.current ? toolbarRef.current.offsetHeight + 12 : 0;
+      setArea({ width: el.clientWidth - 32, height: el.clientHeight - 32 - toolbarHeight });
+    };
     medir();
     const ro = new ResizeObserver(medir);
     ro.observe(el);
+    if (toolbarRef.current) ro.observe(toolbarRef.current);
     return () => ro.disconnect();
   }, []);
 
@@ -100,10 +108,8 @@ export default function DevicePreview({
     ? fitWidth / dev.w
     : zoom !== "fit"
       ? zoom
-      // Antes do 1º ResizeObserver, `alturaArea` é 0 — sem este guard a escala
-      // cairia no clamp mínimo e o celular apareceria minúsculo por um frame.
-      : alturaArea > 0
-        ? Math.min(1, Math.max(0.3, (alturaArea - (toolbar ? 46 : 0) - FOLGA - BORDER * 2) / dev.h))
+      : area.width > 0 && area.height > 0
+        ? Math.max(0.05, Math.min(1, (area.width - BORDER * 2) / dev.w, (area.height - BORDER * 2 - FOLGA) / dev.h))
         : 0.8;
 
   // A barra nativa some: ela rouba ~15px de LARGURA e o preview deixaria de ser
@@ -129,35 +135,14 @@ export default function DevicePreview({
       `}</style>
 
       {toolbar ? (
-        <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs shadow-sm">
-          <span className="text-neutral-400">📱</span>
-          <select
-            value={dev.id}
-            onChange={(e) => onDeviceChange(e.target.value)}
-            className="rounded border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-700"
-          >
-            {DEVICES.map((d) => <option key={d.id} value={d.id}>{d.nome}</option>)}
-          </select>
+        <div ref={toolbarRef} className="ct-controls ct-preview-toolbar mb-3 flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs shadow-sm">
+          <MonitorSmartphone size={15} aria-hidden="true" className="text-neutral-400" />
+          <WorkspaceSelect label="Aparelho da prévia" value={dev.id} onChange={onDeviceChange} options={DEVICES.map(d=>({value:d.id,label:d.nome}))}/>
           <span className="font-mono text-neutral-400">{dev.w} × {dev.h}</span>
-          {onZoomChange && !fitWidth ? (
-            <>
-              <span className="text-neutral-200">|</span>
-              <select
-                value={zoom === "fit" ? "fit" : String(Math.round(zoom * 100))}
-                onChange={(e) => onZoomChange(e.target.value === "fit" ? "fit" : Number(e.target.value) / 100)}
-                className="rounded border border-neutral-300 px-2 py-1 text-xs text-neutral-600"
-                title="Ajustar = a moldura sempre cabe na tela"
-              >
-                <option value="fit">Ajustar ({pct}%)</option>
-                {[50, 60, 70, 80, 90, 100].map((v) => <option key={v} value={v}>{v}%</option>)}
-              </select>
-            </>
-          ) : (
-            <span className="font-mono text-neutral-300">{pct}%</span>
-          )}
+          {onZoomChange && !fitWidth ? <WorkspaceSelect label="Zoom da prévia" value={zoom === 'fit' ? 'fit' : String(Math.round(zoom * 100))} onChange={value=>onZoomChange(value === 'fit' ? 'fit' : Number(value)/100)} options={[{value:'fit',label:`Ajustar (${pct}%)`},...[50,60,70,80,90,100].map(value=>({value:String(value),label:`${value}%`}))]}/> : <span className="font-mono text-neutral-300">{pct}%</span>}
           {onRestart ? (
-            <button onClick={onRestart} className="rounded-md border border-neutral-300 px-2 py-1 text-xs font-semibold" title="Voltar a lâmina ao estado inicial">
-              ↻ Reiniciar
+            <button onClick={onRestart} className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-2 py-1 text-xs font-semibold" title="Voltar a lâmina ao estado inicial">
+              <RotateCcw size={13} aria-hidden="true"/> Reiniciar
             </button>
           ) : null}
         </div>
@@ -172,7 +157,7 @@ export default function DevicePreview({
         style={{ width: Math.round(dev.w * escala) + BORDER * 2, height: Math.round(dev.h * escala) + BORDER * 2 }}
       >
         <div
-          className="overflow-hidden rounded-[2rem] bg-white shadow-xl"
+          className={`overflow-hidden bg-white shadow-xl ${dev.id === "desktop" ? "rounded-lg" : "rounded-[2rem]"}`}
           style={{ border: `${BORDER}px solid #171717`, width: "100%", height: "100%" }}
         >
           <div

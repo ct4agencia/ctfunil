@@ -96,3 +96,10 @@ export function useRevelado(revelarEm: number, preview?: boolean): boolean {
   if (fonte === "esperando") return false;
   return segundos >= revelarEm;
 }
+
+
+export function rankingVideoRange(revealAt: unknown, finishAt: unknown) {
+  const start = Number(revealAt) || 0;
+  const end = Math.max(start + 1, Number(finishAt) || start + 60);
+  return { start, end };
+}

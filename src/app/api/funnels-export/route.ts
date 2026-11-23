@@ -1,3 +1,4 @@
+import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 
@@ -11,6 +12,11 @@ export async function GET() {
   const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
   if (!user || (!adminEmail || user.email?.toLowerCase() !== adminEmail)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  if (isReadOnlyWorkspace()) {
+    return NextResponse.json({ error: "Dados individuais e exportações não estão disponíveis no preview." }, {
+      status: 403, headers: { "Cache-Control": "no-store" },
+    });
   }
   const sb = createAdminClient();
   const { data, error } = await sb.from("funnels").select("slug,name,steps").order("updated_at", { ascending: false });

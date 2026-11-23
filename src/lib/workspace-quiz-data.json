@@ -1,0 +1,1127 @@
+{
+  "quiz": [
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "total": 21,
+      "options": [
+        {
+          "pct": 61.9,
+          "label": "Sim",
+          "value": 13
+        },
+        {
+          "pct": 38.1,
+          "label": "Não",
+          "value": 8
+        }
+      ],
+      "question": "Filhos"
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "total": 18,
+      "options": [
+        {
+          "pct": 44.4,
+          "label": "Não",
+          "value": 8
+        },
+        {
+          "pct": 27.8,
+          "label": "Sim, com certeza",
+          "value": 5
+        },
+        {
+          "pct": 27.8,
+          "label": "Talvez",
+          "value": 5
+        }
+      ],
+      "question": "Apoio"
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "total": 17,
+      "options": [
+        {
+          "pct": 82.4,
+          "label": "Sim",
+          "value": 14
+        },
+        {
+          "pct": 17.6,
+          "label": "Não",
+          "value": 3
+        }
+      ],
+      "question": "Filhos"
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "total": 16,
+      "options": [
+        {
+          "pct": 43.8,
+          "label": "34 a 54 anos",
+          "value": 7
+        },
+        {
+          "pct": 43.8,
+          "label": "54 a 64 anos",
+          "value": 7
+        },
+        {
+          "pct": 12.5,
+          "label": "18 a 34 anos",
+          "value": 2
+        }
+      ],
+      "question": "Idade"
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "total": 14,
+      "options": [
+        {
+          "pct": 57.1,
+          "label": "Não",
+          "value": 8
+        },
+        {
+          "pct": 28.6,
+          "label": "Sim, com certeza",
+          "value": 4
+        },
+        {
+          "pct": 14.3,
+          "label": "Talvez",
+          "value": 2
+        }
+      ],
+      "question": "Apoio"
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "total": 14,
+      "options": [
+        {
+          "pct": 50,
+          "label": "34 a 54 anos",
+          "value": 7
+        },
+        {
+          "pct": 35.7,
+          "label": "54 a 64 anos",
+          "value": 5
+        },
+        {
+          "pct": 14.3,
+          "label": "18 a 34 anos",
+          "value": 2
+        }
+      ],
+      "question": "Idade"
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "total": 9,
+      "options": [
+        {
+          "pct": 33.3,
+          "label": "Tentei, mas não terminei",
+          "value": 3
+        },
+        {
+          "pct": 22.2,
+          "label": "Ainda não tentei",
+          "value": 2
+        },
+        {
+          "pct": 22.2,
+          "label": "Já fiz uma bolsa",
+          "value": 2
+        },
+        {
+          "pct": 22.2,
+          "label": "Já terminei uma bolsa",
+          "value": 2
+        }
+      ],
+      "question": "Já fez bolsa?"
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "total": 8,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim, já fiz e conclui",
+          "value": 8
+        }
+      ],
+      "question": "Ja fez algum curso?"
+    },
+    {
+      "id": "0ofcxO",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "total": 8,
+      "options": [
+        {
+          "pct": 37.5,
+          "label": "Para uma ocasião especial",
+          "value": 3
+        },
+        {
+          "pct": 25,
+          "label": "Ainda quero conhecer os modelos",
+          "value": 2
+        },
+        {
+          "pct": 25,
+          "label": "Pra usar no dia a dia",
+          "value": 2
+        },
+        {
+          "pct": 12.5,
+          "label": "Para presentear",
+          "value": 1
+        }
+      ],
+      "question": "Qual dessas bolsas"
+    },
+    {
+      "id": "I300TG",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "total": 8,
+      "options": [
+        {
+          "pct": 37.5,
+          "label": "Fazer bolsas pra usar",
+          "value": 3
+        },
+        {
+          "pct": 37.5,
+          "label": "Presentear pessoas queridas",
+          "value": 3
+        },
+        {
+          "pct": 25,
+          "label": "Ter um passatempo",
+          "value": 2
+        }
+      ],
+      "question": "O que mais faz?"
+    },
+    {
+      "id": "rKHWwO",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "total": 8,
+      "options": [
+        {
+          "pct": 37.5,
+          "label": "Assistindo alguém fazer",
+          "value": 3
+        },
+        {
+          "pct": 25,
+          "label": "Lendo o passo a passo",
+          "value": 2
+        },
+        {
+          "pct": 25,
+          "label": "Vendo fotos de cada etapa",
+          "value": 2
+        },
+        {
+          "pct": 12.5,
+          "label": "Com imagens e explicações juntas",
+          "value": 1
+        }
+      ],
+      "question": "Fase da vida"
+    },
+    {
+      "id": "rNGU6S",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "total": 8,
+      "options": [
+        {
+          "pct": 37.5,
+          "label": "Tenho o básico",
+          "value": 3
+        },
+        {
+          "pct": 25,
+          "label": "Ainda não tenho",
+          "value": 2
+        },
+        {
+          "pct": 25,
+          "label": "Já tenho os materiais",
+          "value": 2
+        },
+        {
+          "pct": 12.5,
+          "label": "Tenho alguns, mas não sei se servem",
+          "value": 1
+        }
+      ],
+      "question": "Você já tem"
+    },
+    {
+      "id": "TOAPKV",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "total": 8,
+      "options": [
+        {
+          "pct": 25,
+          "label": "Ainda não conheço",
+          "value": 2
+        },
+        {
+          "pct": 25,
+          "label": "Conheço, mas nunca tentei",
+          "value": 2
+        },
+        {
+          "pct": 25,
+          "label": "Já tentei fazer",
+          "value": 2
+        },
+        {
+          "pct": 25,
+          "label": "Já vi fotos ou vídeos",
+          "value": 2
+        }
+      ],
+      "question": "Você conhece"
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "total": 7,
+      "options": [
+        {
+          "pct": 42.9,
+          "label": "Um pouquinho por dia",
+          "value": 3
+        },
+        {
+          "pct": 28.6,
+          "label": "Ainda vou organizar minha rotina",
+          "value": 2
+        },
+        {
+          "pct": 14.3,
+          "label": "Algumas vezes na semana",
+          "value": 1
+        },
+        {
+          "pct": 14.3,
+          "label": "Nos fins de semana",
+          "value": 1
+        }
+      ],
+      "question": "Quando você poderia"
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "total": 7,
+      "options": [
+        {
+          "pct": 42.9,
+          "label": "Como finalizar uma bolsa",
+          "value": 3
+        },
+        {
+          "pct": 28.6,
+          "label": "Como escolher os materiais",
+          "value": 2
+        },
+        {
+          "pct": 28.6,
+          "label": "Como usar a tela",
+          "value": 2
+        }
+      ],
+      "question": "O que gostaria de entender"
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - BASE (cdb01)",
+      "slug": "cdb-01",
+      "total": 6,
+      "options": [
+        {
+          "pct": 66.7,
+          "label": "Sair do meu emprego atual",
+          "value": 4
+        },
+        {
+          "pct": 33.3,
+          "label": "Abrir meu próprio ateliê",
+          "value": 2
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?"
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "total": 6,
+      "options": [
+        {
+          "pct": 66.7,
+          "label": "Abrir meu próprio ateliê",
+          "value": 4
+        },
+        {
+          "pct": 33.3,
+          "label": "Sair do meu emprego atual",
+          "value": 2
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?"
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "total": 6,
+      "options": [
+        {
+          "pct": 66.7,
+          "label": "Sim, com certeza",
+          "value": 4
+        },
+        {
+          "pct": 33.3,
+          "label": "Talvez",
+          "value": 2
+        }
+      ],
+      "question": "Apoio"
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "total": 6,
+      "options": [
+        {
+          "pct": 50,
+          "label": "Nunca fiz",
+          "value": 3
+        },
+        {
+          "pct": 33.3,
+          "label": "54 a 64 anos",
+          "value": 2
+        },
+        {
+          "pct": 16.7,
+          "label": "Já tentei algumas vezes",
+          "value": 1
+        }
+      ],
+      "question": "Já fez artesanato?"
+    },
+    {
+      "id": "c2opt-cdb-hero11",
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "total": 5,
+      "options": [
+        {
+          "pct": 60,
+          "label": "Sim",
+          "value": 3
+        },
+        {
+          "pct": 40,
+          "label": "Não",
+          "value": 2
+        }
+      ],
+      "question": "Card 2"
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "total": 5,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Não",
+          "value": 5
+        }
+      ],
+      "question": "Filhos"
+    },
+    {
+      "id": "rg-opts",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "total": 5,
+      "options": [
+        {
+          "pct": 80,
+          "label": "Norte",
+          "value": 4
+        },
+        {
+          "pct": 20,
+          "label": "Nordeste",
+          "value": 1
+        }
+      ],
+      "question": "Região"
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "total": 4,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sair do meu emprego atual",
+          "value": 4
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?"
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "total": 4,
+      "options": [
+        {
+          "pct": 50,
+          "label": "Não",
+          "value": 2
+        },
+        {
+          "pct": 50,
+          "label": "Sim",
+          "value": 2
+        }
+      ],
+      "question": "Filhos"
+    },
+    {
+      "id": "TOAPKV",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "total": 4,
+      "options": [
+        {
+          "pct": 75,
+          "label": "Norte",
+          "value": 3
+        },
+        {
+          "pct": 25,
+          "label": "Nordeste",
+          "value": 1
+        }
+      ],
+      "question": "Região"
+    },
+    {
+      "id": "k04G5v",
+      "name": "CDB 👛 [BOLSAS] - SRC 12 APOSTILA",
+      "slug": "cdb12-apost",
+      "total": 4,
+      "options": [
+        {
+          "pct": 75,
+          "label": "Saber por onde começar",
+          "value": 3
+        },
+        {
+          "pct": 25,
+          "label": "Escolher os materiais",
+          "value": 1
+        }
+      ],
+      "question": "Qual ajuda"
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "total": 3,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sair do meu emprego atual",
+          "value": 3
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?"
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "total": 3,
+      "options": [
+        {
+          "pct": 66.7,
+          "label": "Sim, com certeza",
+          "value": 2
+        },
+        {
+          "pct": 33.3,
+          "label": "Talvez",
+          "value": 1
+        }
+      ],
+      "question": "Apoio"
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "total": 3,
+      "options": [
+        {
+          "pct": 66.7,
+          "label": "34 a 54 anos",
+          "value": 2
+        },
+        {
+          "pct": 33.3,
+          "label": "18 a 34 anos",
+          "value": 1
+        }
+      ],
+      "question": "Idade"
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+      "slug": "cdb-estado",
+      "total": 2,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Não",
+          "value": 2
+        }
+      ],
+      "question": "Filhos"
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+      "slug": "cdb-estado",
+      "total": 2,
+      "options": [
+        {
+          "pct": 100,
+          "label": "34 a 54 anos",
+          "value": 2
+        }
+      ],
+      "question": "Idade"
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "total": 2,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim, já fiz e conclui",
+          "value": 2
+        }
+      ],
+      "question": "Ja fez algum curso?"
+    },
+    {
+      "id": "TOAPKV",
+      "name": "CDB 👛 [SRC 11] - Claude",
+      "slug": "cdb-hero04-2",
+      "total": 2,
+      "options": [
+        {
+          "pct": 50,
+          "label": "Nordeste",
+          "value": 1
+        },
+        {
+          "pct": 50,
+          "label": "Norte",
+          "value": 1
+        }
+      ],
+      "question": "Região"
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "total": 2,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sair do meu emprego atual",
+          "value": 2
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?"
+    },
+    {
+      "id": "c03-opt",
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "total": 2,
+      "options": [
+        {
+          "pct": 50,
+          "label": "Já tentei, mas tive dificuldade",
+          "value": 1
+        },
+        {
+          "pct": 50,
+          "label": "Nunca produzi",
+          "value": 1
+        }
+      ],
+      "question": "Pergunta 1"
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "total": 2,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sair do meu emprego atual",
+          "value": 2
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?"
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "total": 2,
+      "options": [
+        {
+          "pct": 50,
+          "label": "Não",
+          "value": 1
+        },
+        {
+          "pct": 50,
+          "label": "Sim",
+          "value": 1
+        }
+      ],
+      "question": "Filhos"
+    },
+    {
+      "id": "rg-opts",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "total": 2,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Nordeste",
+          "value": 2
+        }
+      ],
+      "question": "Região"
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "total": 2,
+      "options": [
+        {
+          "pct": 50,
+          "label": "18 a 34 anos",
+          "value": 1
+        },
+        {
+          "pct": 50,
+          "label": "54 a 64 anos",
+          "value": 1
+        }
+      ],
+      "question": "Idade"
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+      "slug": "cdb-estado",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Abrir meu próprio ateliê",
+          "value": 1
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?"
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO ESTADO",
+      "slug": "cdb-estado",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Não",
+          "value": 1
+        }
+      ],
+      "question": "Apoio"
+    },
+    {
+      "id": "c2opt-cdb-hero08",
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Não",
+          "value": 1
+        }
+      ],
+      "question": "Card 2"
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Não",
+          "value": 1
+        }
+      ],
+      "question": "Filhos"
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim, com certeza",
+          "value": 1
+        }
+      ],
+      "question": "Apoio"
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO 08",
+      "slug": "cdb-hero08",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "54 a 64 anos",
+          "value": 1
+        }
+      ],
+      "question": "Idade"
+    },
+    {
+      "id": "c2opt-cdb-hero09",
+      "name": "CDB 👛 [BOLSAS] - HERO 09",
+      "slug": "cdb-hero09",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim",
+          "value": 1
+        }
+      ],
+      "question": "Card 2"
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim, já fiz e conclui",
+          "value": 1
+        }
+      ],
+      "question": "Ja fez algum curso?"
+    },
+    {
+      "id": "c2opt-cdb-hero10",
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim",
+          "value": 1
+        }
+      ],
+      "question": "Card 2"
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sair do meu emprego atual",
+          "value": 1
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?"
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim",
+          "value": 1
+        }
+      ],
+      "question": "Filhos"
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO 10",
+      "slug": "cdb-hero10",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "18 a 34 anos",
+          "value": 1
+        }
+      ],
+      "question": "Idade"
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO 11",
+      "slug": "cdb-hero11",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "54 a 64 anos",
+          "value": 1
+        }
+      ],
+      "question": "Idade"
+    },
+    {
+      "id": "c04-opt",
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Já vi alguns vídeos",
+          "value": 1
+        }
+      ],
+      "question": "Pergunta 2"
+    },
+    {
+      "id": "c05-opt",
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Quero produzir para mim",
+          "value": 1
+        }
+      ],
+      "question": "Pergunta 3"
+    },
+    {
+      "id": "c06-opt",
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Acho que não tenho habilidade",
+          "value": 1
+        }
+      ],
+      "question": "Pergunta 4"
+    },
+    {
+      "id": "c07-opt",
+      "name": "CDB 👛 [BOLSAS] - INSTA ROLETA",
+      "slug": "cdb-insta",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Com certeza",
+          "value": 1
+        }
+      ],
+      "question": "Pergunta 5"
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [BOLSAS] - HERO ROLETA (antigo)",
+      "slug": "cdb-r",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim, já fiz e conclui",
+          "value": 1
+        }
+      ],
+      "question": "Ja fez algum curso?"
+    },
+    {
+      "id": "3j9c6x",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim, já fiz e conclui",
+          "value": 1
+        }
+      ],
+      "question": "Ja fez algum curso?"
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim, com certeza",
+          "value": 1
+        }
+      ],
+      "question": "Apoio"
+    },
+    {
+      "id": "XMMdV8",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE",
+      "slug": "cdb-slide",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "34 a 54 anos",
+          "value": 1
+        }
+      ],
+      "question": "Idade"
+    },
+    {
+      "id": "IyfszP",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Abrir meu próprio ateliê",
+          "value": 1
+        }
+      ],
+      "question": "Se&nbsp;você&nbsp;ganhasse&nbsp;R$5.000&nbsp;por&nbsp;mês&nbsp;com&nbsp;seu&nbsp;negócio&nbsp;de&nbsp;bolsas…&nbsp;qual&nbsp;seria&nbsp;a&nbsp;primeira&nbsp;coisa&nbsp;que&nbsp;você&nbsp;faria&nbsp;com&nbsp;esse&nbsp;dinheiro?"
+    },
+    {
+      "id": "S2bNJ1",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Não",
+          "value": 1
+        }
+      ],
+      "question": "Filhos"
+    },
+    {
+      "id": "wljlUP",
+      "name": "CDB 👛 [BOLSAS] - HERO SLIDE (teste %vsl)",
+      "slug": "cdb-slide-vsl",
+      "total": 1,
+      "options": [
+        {
+          "pct": 100,
+          "label": "Sim, com certeza",
+          "value": 1
+        }
+      ],
+      "question": "Apoio"
+    }
+  ],
+  "captured_at": "2026-11-21 03:55:27.146514+00"
+}

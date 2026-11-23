@@ -1,6 +1,9 @@
 "use client";
+import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, GitBranch, Layers, ListChecks, Pin, Pencil } from "lucide-react";
+import "./flow.css";
 import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import {
   FLOW, buildNodes, buildEdges, layout, edgePath, nodeH, EDGE_COLOR,
@@ -10,10 +13,8 @@ import {
 /**
  * Aba FLUXO — quadro infinito, estilo Miro.
  *
- * O mapa antigo era uma espinha VERTICAL e desenhava uma seta por saída: seis
- * opções com destino "próxima" viravam seis curvas idênticas empilhadas. Aqui
- * cada nó tem UMA bolinha de saída padrão no rodapé (a que vale "independente
- * do botão clicado") e só as saídas com destino EXPLÍCITO ganham linha própria.
+ * Cada resposta tem uma saída própria. O rodapé configura o destino herdado
+ * pelos blocos que seguem a próxima etapa.
  *
  * Três coisas mudaram nesta versão:
  *  - **uma faixa só**: o layout não serpenteia mais (era o "quebrando na
@@ -22,8 +23,7 @@ import {
  *  - **arrastar a bolinha** para conectar numa lâmina existente, ou soltar no
  *    vazio para criar uma lâmina nova já conectada.
  *
- * As posições NÃO são persistidas: o layout é recalculado do grafo a cada
- * abertura, então editar o funil nunca deixa o mapa desatualizado.
+ * Posições ajustadas e destinos são salvos junto com as etapas.
  */
 
 const Z_MIN = 0.2, Z_MAX = 2;
@@ -32,17 +32,17 @@ const trava = (z: number) => Math.max(Z_MIN, Math.min(Z_MAX, z));
 /** Tipos oferecidos ao soltar a linha no vazio. Os mais usados, não todos —
  *  a paleta completa continua na aba Construtor. */
 const TIPOS_RAPIDOS: [LayerType | "vazia", string][] = [
-  ["options", "🗳️ Opções"],
-  ["text", "📝 Texto"],
-  ["image", "🖼️ Imagem"],
-  ["field", "✏️ Campo"],
-  ["button", "🔘 Botão"],
-  ["video", "🎬 Vídeo"],
-  ["loading", "⏳ Loading"],
-  ["confirm", "🎉 Parabéns"],
-  ["scratch", "🎟️ Raspadinha"],
-  ["vsl", "🎥 VSL"],
-  ["vazia", "⬜ Lâmina vazia"],
+  ["options", "Opções"],
+  ["text", "Texto"],
+  ["image", "Imagem"],
+  ["field", "Campo"],
+  ["button", "Botão"],
+  ["video", "Vídeo"],
+  ["loading", "Loading"],
+  ["confirm", "Parabéns"],
+  ["scratch", "Raspadinha"],
+  ["vsl", "VSL"],
+  ["vazia", "Etapa vazia"],
 ];
 
 const novoId = () => Math.random().toString(36).slice(2, 10);
@@ -88,6 +88,7 @@ export default function LayersFlow({
   const [alvo, setAlvo] = useState<string | null>(null);   // nó sob o cabo
   const [menu, setMenu] = useState<Ligacao | null>(null);  // popup "criar lâmina"
   const [pegando, setPegando] = useState(false);           // só para o cursor
+  const [focusedExit, setFocusedExit] = useState<string | null>(null);
 
   const { nodes, edges, pos, canvasW, canvasH } = useMemo(() => {
     const ns = buildNodes(steps);
@@ -146,7 +147,7 @@ export default function LayersFlow({
     const bloco = tipo !== "vazia" && criarLayer ? criarLayer(tipo) : null;
     const nova: InleadStep = {
       id,
-      title: (TIPOS_RAPIDOS.find(([t]) => t === tipo)?.[1] ?? "· Nova lâmina").replace(/^\S+\s/, ""),
+      title: TIPOS_RAPIDOS.find(([t]) => t === tipo)?.[1] ?? "Nova etapa",
       layers: bloco ? [bloco] : [],
       options: { show_logo: false, show_progress: false },
       // nasce ONDE o cabo foi solto — sem isso ela entra no layout automático e
@@ -177,10 +178,10 @@ export default function LayersFlow({
   const correndo = animar && edges.length <= 60;
 
   const coordenadas = (e: FlowEdge) => {
-    const a = ponto(e.from);
+    const a = posTemp?.id === e.from ? posTemp : ponto(e.from);
     const x1 = a.x + FLOW.W, y1 = a.y + e.fromY;
     if (!e.to) return { x1, y1, x2: x1 + 56, y2: y1 };     // link externo: toco curto
-    const b = ponto(e.to);
+    const b = posTemp?.id === e.to ? posTemp : ponto(e.to);
     return { x1, y1, x2: b.x, y2: b.y + FLOW.HEAD / 2 };
   };
 
@@ -262,6 +263,7 @@ export default function LayersFlow({
 
   const arrasto = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
   const aoPegarFundo = (ev: React.PointerEvent) => {
+    if (ev.button !== 0 || lig) return;
     // só o fundo arrasta o quadro; clique dentro de um nó é do nó
     if ((ev.target as HTMLElement).closest("[data-node]")) return;
     arrasto.current = { x: ev.clientX, y: ev.clientY, vx: view.x, vy: view.y };
@@ -323,24 +325,35 @@ export default function LayersFlow({
     if (!lig) return;
     const el = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null;
     const destino = el?.closest("[data-node]")?.getAttribute("data-node");
-    if (destino) setDest(lig.si, lig.layerId, lig.optId, destino);
-    else setMenu(lig);       // soltou no vazio → oferece criar lâmina
+    const pointer = paraCanvas(ev.clientX, ev.clientY);
+    const moved = Math.hypot(pointer.x - lig.x0, pointer.y - lig.y0) * view.z > 8;
+    if (moved && destino && steps.some(s => s.id === destino && !s.disabled)) setDest(lig.si, lig.layerId, lig.optId, destino);
+    else if (moved && !destino) setMenu({ ...lig, ...pointer });
     setLig(null); setAlvo(null);
+  };
+
+  const cancelarArrasto = () => {
+    arrasto.current = null; noArrasto.current = null;
+    setPegando(false); setPosTemp(null); setLig(null); setAlvo(null);
   };
 
   /** começa a puxar um cabo a partir de uma bolinha */
   const pegarBolinha = (ev: React.PointerEvent, si: number, layerId: string, optId: string | null, nodeId: string, dy: number) => {
+    if (ev.button !== 0 || steps[si].disabled) return;
     ev.stopPropagation();
     ev.preventDefault();
     const p = ponto(nodeId);
     const m = paraCanvas(ev.clientX, ev.clientY);
     setLig({ si, layerId, optId, x0: p.x + FLOW.W, y0: p.y + dy, x: m.x, y: m.y });
+    vpRef.current?.setPointerCapture(ev.pointerId);
   };
 
   const botao = "grid h-6 w-6 place-items-center rounded-lg border border-neutral-300 bg-white text-sm font-bold text-neutral-600 hover:bg-neutral-50";
 
   return (
-    <div ref={areaRef} className="flex h-full flex-col">
+    <div ref={areaRef} className="ct-flow flex h-full flex-col" onKeyDown={event => {
+      if (event.key === "Escape") { cancelarArrasto(); setMenu(null); }
+    }}>
       <style>{`
         @keyframes lf-dash { to { stroke-dashoffset: -24 } }
         .lf-edge { fill: none; stroke-width: 2; stroke-dasharray: 6 6 }
@@ -349,7 +362,7 @@ export default function LayersFlow({
       `}</style>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">Fluxo</span>
+        <span className="flex items-center gap-2 text-sm font-semibold"><GitBranch size={16}/>Fluxo</span>
         <span className="text-[11px] text-neutral-400">
           {nodes.length} lâminas · {edges.length} conexões
         </span>
@@ -358,7 +371,7 @@ export default function LayersFlow({
           <span className="flex items-center gap-1"><i className="inline-block h-0.5 w-4" style={{ background: EDGE_COLOR.jump }} />pula</span>
           <span className="flex items-center gap-1"><i className="inline-block h-0.5 w-4" style={{ background: EDGE_COLOR.back }} />volta</span>
           <button onClick={alternarAnim} className="rounded-lg border border-neutral-300 bg-white px-2.5 py-1 font-semibold text-neutral-600 hover:bg-neutral-50">
-            {animar ? "✨ animação ligada" : "animação desligada"}
+            {animar ? "Pausar animação" : "Animar conexões"}
           </button>
           <div className="flex items-center gap-1">
             <button onClick={() => zoomNoCentro(1 / 1.2)} className={botao} title="Diminuir zoom">−</button>
@@ -374,11 +387,12 @@ export default function LayersFlow({
         onPointerDown={aoPegarFundo}
         onPointerMove={aoMover}
         onPointerUp={aoSoltar}
-        onPointerCancel={aoSoltar}
+        onPointerCancel={cancelarArrasto}
+        aria-label="Mapa de conexões"
         className={`relative flex-1 overflow-hidden rounded-xl border border-neutral-200 ${pegando ? "cursor-grabbing" : "cursor-grab"}`}
         style={{
-          backgroundColor: "#fafafa",
-          backgroundImage: "radial-gradient(#d4d4d4 1px, transparent 1px)",
+          backgroundColor: "var(--ct-raised, #fafafa)",
+          backgroundImage: "radial-gradient(var(--ct-line, #d4d4d4) 1px, transparent 1px)",
           backgroundSize: `${22 * view.z}px ${22 * view.z}px`,
           backgroundPosition: `${view.x}px ${view.y}px`,
           touchAction: "none",
@@ -400,10 +414,12 @@ export default function LayersFlow({
               const { x1, y1, x2, y2 } = coordenadas(e);
               const d = edgePath(x1, y1, x2, y2, e.kind);
               return (
-                <g key={e.id}>
+                <g key={e.id} data-connection={e.id} aria-label={`${e.label || "Próxima etapa"} → ${nodes.find(n => n.id === e.to)?.title || "Link externo"}`}
+                  style={{ opacity: focusedExit && focusedExit !== e.id ? .2 : 1 }}>
+                  <title>{e.label || "Próxima etapa"} → {nodes.find(n => n.id === e.to)?.title || "Link externo"}</title>
                   <path d={d} className={`lf-edge ${correndo ? "lf-run" : ""}`} stroke={EDGE_COLOR[e.kind]} markerEnd={`url(#lf-${e.kind})`} />
                   {e.kind === "extern" ? (
-                    <text x={x2 + 4} y={y2 + 3} fontSize="10" fill="#a3a3a3">🔗 sai do funil</text>
+                    <text x={x2 + 4} y={y2 + 3} fontSize="10" fill="var(--ct-faint)">Link externo</text>
                   ) : null}
                 </g>
               );
@@ -417,15 +433,17 @@ export default function LayersFlow({
 
           {nodes.map((n) => {
             const p = posTemp?.id === n.id ? posTemp : ponto(n.id);
-            const mirando = alvo === n.id && lig?.si !== n.idx;
+            const mirando = alvo === n.id && !n.disabled;
             const arrastandoEste = posTemp?.id === n.id;
             return (
               <div
                 key={n.id}
                 data-node={n.id}
-                className={`absolute rounded-xl border bg-white ${arrastandoEste ? "shadow-xl" : "shadow-sm"} ${n.disabled ? "border-dashed border-neutral-300 opacity-60" : "border-neutral-200"} ${mirando ? "ring-2 ring-orange-400" : ""}`}
+                className={`ct-flow-node absolute rounded-xl border bg-white ${n.disabled ? "border-dashed border-neutral-300 opacity-60" : "border-neutral-200"}`}
+                data-target={mirando}
                 style={{ left: p.x, top: p.y, width: FLOW.W, height: nodeH(n.exits.length), zIndex: arrastandoEste ? 5 : undefined }}
               >
+                <span className="ct-flow-inlet" aria-hidden="true" />
                 <div
                   onPointerDown={(ev) => pegarNo(ev, n.id)}
                   onDoubleClick={() => onOpenStep?.(n.idx)}
@@ -435,13 +453,15 @@ export default function LayersFlow({
                 >
                   <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-neutral-900 text-[10px] font-bold text-white">{n.idx + 1}</span>
                   <span className="min-w-0 flex-1 truncate text-xs font-semibold text-neutral-700">{n.title}</span>
+                  <button type="button" aria-label={`Editar etapa ${n.idx + 1}: ${n.title}`} onPointerDown={event => event.stopPropagation()}
+                    onClick={() => onOpenStep?.(n.idx)} className="ct-flow-edit"><Pencil size={13}/></button>
                   {n.fixado ? (
                     <span role="button" tabIndex={0}
                       onPointerDown={(ev) => ev.stopPropagation()}
                       onClick={(ev) => { ev.stopPropagation(); soltarPos(n.id); }}
                       onKeyDown={(ev) => { if (ev.key === "Enter") soltarPos(n.id); }}
                       className="shrink-0 cursor-pointer text-[9px] opacity-60 hover:opacity-100"
-                      title="Posição fixada à mão — clique para voltar ao layout automático">📌</span>
+                      title="Voltar ao layout automático"><Pin size={12}/></span>
                   ) : null}
                   {n.disabled ? <span className="shrink-0 rounded bg-neutral-200 px-1 text-[9px] font-bold uppercase text-neutral-500">off</span> : null}
                 </div>
@@ -450,35 +470,28 @@ export default function LayersFlow({
                 {n.exits.map((x, k) => {
                   const explicito = !!x.dest && x.dest !== "next";
                   return (
-                    <div key={x.key} className="flex items-center gap-1.5 px-3" style={{ height: FLOW.ROW }}>
-                      <span className="shrink-0 text-[10px]">{x.icon}</span>
+                    <div key={x.key} className="ct-flow-exit flex items-center gap-1.5 px-3" style={{ height: FLOW.ROW }}
+                      onMouseEnter={() => setFocusedExit(`${n.id}:${x.key}`)} onMouseLeave={() => setFocusedExit(null)}
+                      onFocus={() => setFocusedExit(`${n.id}:${x.key}`)} onBlur={() => setFocusedExit(null)}>
+                      <ListChecks size={13} className="shrink-0 text-ct-dim" aria-hidden="true"/>
                       <span className="min-w-0 flex-1 truncate text-[11px] text-neutral-600" title={x.label}>{x.label}</span>
                       {x.editable ? (
-                        <select
-                          value={/^https?:/.test(x.dest || "") ? "__url" : (x.dest || "next")}
-                          onChange={(ev) => setDest(n.idx, x.layerId, x.optId, ev.target.value)}
-                          className="max-w-[86px] shrink-0 truncate rounded border border-neutral-200 bg-white px-1 py-0.5 text-[10px] text-neutral-600"
-                        >
-                          <option value="next">→ próxima</option>
-                          {steps.map((t, ti) => <option key={t.id} value={t.id}>↪ {ti + 1}. {String(t.title || t.id).replace(/<[^>]+>/g, "").slice(0, 22)}</option>)}
-                          {/^https?:/.test(x.dest || "") ? <option value="__url">🔗 link</option> : null}
-                        </select>
+                        <WorkspaceSelect className="ct-flow-destination" label={`Destino de ${x.label} na etapa ${n.idx+1}`} disabled={n.disabled} value={/^https?:/.test(x.dest||'')?'__url':(x.dest||'next')} onChange={value=>setDest(n.idx,x.layerId,x.optId,value)} options={[{value:'next',label:'Padrão da etapa'},...steps.map((step,index)=>({value:step.id,label:`${index+1}. ${String(step.title||step.id).replace(/<[^>]+>/g,'')}${step.disabled?' (desativada)':''}`,disabled:step.disabled})),...(x.dest&&x.dest!=='next'&&!/^https?:/i.test(x.dest)&&!steps.some(step=>step.id===x.dest)?[{value:x.dest,label:'Destino removido'}]:[]),...(/^https?:/.test(x.dest||'')?[{value:'__url',label:'Link externo'}]:[])]}/>
                       ) : (
                         // o runtime ignora o destino aqui — oferecer um seletor
                         // gravaria dado morto e o mapa mentiria
-                        <span className="shrink-0 text-[9px] text-neutral-300" title="este bloco sempre vai para a próxima lâmina">fixo</span>
+                        <span className="shrink-0 text-[10px] text-neutral-500" title="Segue o destino padrão configurado no rodapé da etapa">Padrão da etapa</span>
                       )}
                       {x.editable ? (
-                        <span
+                        <button type="button"
+                          disabled={n.disabled}
+                          aria-label={`Conectar resposta ${x.label} da etapa ${n.idx + 1}`}
+                          onClick={event => event.currentTarget.parentElement?.querySelector<HTMLButtonElement>("[role=combobox]")?.focus()}
                           onPointerDown={(ev) => pegarBolinha(ev, n.idx, x.layerId, x.optId, n.id, rowY(k))}
                           title="Arraste para uma lâmina — ou solte no vazio para criar uma"
-                          className="shrink-0 cursor-crosshair rounded-full transition hover:scale-125"
-                          style={{
-                            width: 10, height: 10,
-                            background: explicito ? EDGE_COLOR.jump : "transparent",
-                            border: `2px solid ${explicito ? EDGE_COLOR.jump : "#cbd5e1"}`,
-                          }}
-                        />
+                          className="ct-flow-port"
+                          data-connected={explicito}
+                        ><span /></button>
                       ) : (
                         <span className="shrink-0 rounded-full" style={{ width: 8, height: 8, border: "2px solid #e5e5e5" }} />
                       )}
@@ -488,24 +501,20 @@ export default function LayersFlow({
 
                 {/* BOLINHA PADRÃO — a saída que vale "independente do botão
                     clicado". Sempre presente enquanto houver próxima lâmina. */}
-                <div className="flex items-center gap-1.5 border-t border-neutral-100 px-3" style={{ height: FLOW.PADB }}>
-                  <span className="flex-1 truncate text-[10px] text-neutral-400">
-                    {steps[n.idx]?.nextStep ? "↪ segue para (fixado)" : n.proxima ? "→ próxima lâmina" : "🏁 fim do funil"}
-                  </span>
+                <div className="ct-flow-default flex items-center gap-1.5 border-t border-neutral-100 px-3" style={{ height: FLOW.PADB }}>
+                  <ArrowRight size={13} aria-hidden="true"/>
+                  <label className="text-[10px] text-ct-dim" htmlFor={`flow-default-${n.id}`}>Padrão</label>
+                  <WorkspaceSelect id={`flow-default-${n.id}`} className="ct-flow-default-select" label={`Destino padrão da etapa ${n.idx+1}`} disabled={n.disabled} value={steps[n.idx].nextStep || ''} onChange={value=>setDest(n.idx,SAIDA_PADRAO,null,value)} options={[{value:'',label:'Seguir a ordem'},...steps.map((step,index)=>({value:step.id,label:`${index+1}. ${step.title}${step.disabled?' (desativada)':''}`,disabled:step.disabled}))]}/>
                   {steps[n.idx]?.nextStep ? (
                     <button type="button" onClick={() => setSteps(steps.map((s, i) => i === n.idx ? { ...s, nextStep: undefined } : s))}
                       className="shrink-0 text-[9px] text-neutral-300 hover:text-red-500" title="Voltar a seguir a ordem das lâminas">✕</button>
                   ) : null}
-                  <span
+                  <button type="button" disabled={n.disabled} className="ct-flow-port"
+                    aria-label={`Conectar destino padrão da etapa ${n.idx + 1}`}
+                    onClick={event => event.currentTarget.parentElement?.querySelector<HTMLButtonElement>("[role=combobox]")?.focus()}
                     onPointerDown={(ev) => pegarBolinha(ev, n.idx, SAIDA_PADRAO, null, n.id, defaultDotY(n.exits.length))}
                     title="Arraste para escolher a lâmina que vem depois desta"
-                    className="shrink-0 cursor-crosshair rounded-full transition hover:scale-125"
-                    style={{
-                      width: 10, height: 10, touchAction: "none",
-                      background: steps[n.idx]?.nextStep ? EDGE_COLOR.jump : n.proxima ? EDGE_COLOR.seq : "transparent",
-                      border: `2px solid ${steps[n.idx]?.nextStep ? EDGE_COLOR.jump : n.proxima ? EDGE_COLOR.seq : "#cbd5e1"}`,
-                    }}
-                  />
+                  ><span /></button>
                 </div>
               </div>
             );
@@ -516,13 +525,13 @@ export default function LayersFlow({
         {menu ? (
           <div className="absolute inset-0 z-10 grid place-items-center bg-neutral-900/20 p-4" onPointerDown={(e) => e.stopPropagation()}>
             <div className="w-full max-w-sm rounded-xl border border-neutral-200 bg-white p-4 shadow-xl">
-              <p className="text-sm font-bold text-neutral-800">Criar lâmina e conectar</p>
-              <p className="mt-0.5 text-[11px] text-neutral-500">A nova lâmina entra no fim do funil, já ligada a esta saída.</p>
+              <p className="text-sm font-bold text-neutral-800">Criar etapa e conectar</p>
+              <p className="mt-0.5 text-[11px] text-neutral-500">Escolha o conteúdo da nova etapa.</p>
               <div className="mt-3 grid grid-cols-2 gap-1.5">
                 {TIPOS_RAPIDOS.map(([t, rotulo]) => (
                   <button key={t} onClick={() => criarEConectar(menu, t)}
-                    className="rounded-lg border border-neutral-200 px-2 py-1.5 text-left text-xs text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50">
-                    {rotulo}
+                    className="flex items-center gap-2 rounded-lg border border-neutral-200 px-2 py-2 text-left text-xs text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50">
+                    <Layers size={14} aria-hidden="true"/>{rotulo}
                   </button>
                 ))}
               </div>

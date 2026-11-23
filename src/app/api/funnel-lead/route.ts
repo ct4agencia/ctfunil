@@ -15,6 +15,8 @@ type Body = {
   funnelSlug: string;
   name: string;
   phone: string;
+  email?: string;
+  answers?: { id: string; name: string; question: string; value: string }[];
   componentId?: string;
   viewport?: string;
   screen?: string;
@@ -33,10 +35,13 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
-  if (!body.funnelSlug || !body.phone) {
+  if (!body || typeof body !== "object" || typeof body.funnelSlug !== "string" || !body.funnelSlug || (!body.phone && !body.email && !body.name && !(Array.isArray(body.answers) && body.answers.some(a => typeof a?.value === "string" && a.value)))) {
     return NextResponse.json({ error: "missing fields" }, { status: 400 });
   }
 
+  if (body.answers && (!Array.isArray(body.answers) || body.answers.length > 100 || body.answers.some(a => !a || typeof a.id !== 'string' || typeof a.value !== 'string' || typeof a.question !== 'string' || typeof a.name !== 'string' || a.value.length > 20000))) {
+    return NextResponse.json({ error: "invalid answers" }, { status: 400 });
+  }
   const t = body.tracking ?? {};
   const sb = db();
 
@@ -44,7 +49,7 @@ export async function POST(request: Request) {
     funnel_slug: body.funnelSlug,
     session_id: body.session_id ?? null,
     name: body.name ?? null,
-    phone: body.phone,
+    phone: body.phone || "",
     component_id: body.componentId ?? null,
     utm_source: t.utm_source ?? null,
     utm_medium: t.utm_medium ?? null,
@@ -64,6 +69,10 @@ export async function POST(request: Request) {
     user_agent: body.user_agent ?? null,
   };
 
+  if (body.session_id && body.answers?.length) {
+    const { error: answersError } = await sb.from('quiz_answers').insert(body.answers.map(answer => ({ session_id: body.session_id, funnel_slug: body.funnelSlug, step_id: answer.id, question: answer.question, answer: answer.value })));
+    if (answersError) return NextResponse.json({ error: answersError.message }, { status: 500 });
+  }
   const { error } = await sb.from("funnel_leads").insert(leadRow);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -109,13 +118,13 @@ export async function POST(request: Request) {
 
     // Telefone p/ webhook (Datacrazy): +55 + número limpo (E.164). No banco fica
     // só dígitos; aqui formatamos só na hora de enviar pro webhook, quando ativado.
-    const phoneIntl = phoneToIntl(body.phone);
+    const phoneIntl = body.phone ? phoneToIntl(body.phone) : "";
 
     // Respostas do quiz (pra Datacrazy): busca quiz_answers desta sessão e monta
     // pergunta_N / resposta_N (1 por pergunta, última prevalece) + um campo único
     // "respostas" legível. Best-effort: se a tabela/sessão não tiver, segue vazio.
     const respFields: Record<string, string> = {};
-    const namedFields: Record<string, string> = {}; // campos NOMEADOS (Faixa_Etaria, Filhos…) p/ Datacrazy
+    const namedFields: Record<string, string> = Object.fromEntries((body.answers || []).map(a => [a.name, a.value])); // campos NOMEADOS (Faixa_Etaria, Filhos…) p/ Datacrazy
     let respostasStr = "";
     if (body.session_id) {
       const { data: qa } = await sb
@@ -141,8 +150,9 @@ export async function POST(request: Request) {
       // Campos NOMEADOS por pergunta (igual inlead): cada lâmina de pergunta tem
       // uma `webhookKey` (ex.: Idade→"Faixa_Etaria"); casa por step_id, última prevalece.
       const stepKey = new Map<string, string>();
-      for (const st of (funnel?.steps as { id?: string; webhookKey?: string }[] | null) ?? []) {
+      for (const st of (funnel?.steps as { id?: string; webhookKey?: string; layers?: {id:string;webhookKey?:string;content?:{name?:string}}[] }[] | null) ?? []) {
         if (st?.id && st?.webhookKey) stepKey.set(st.id, st.webhookKey);
+        for (const layer of st.layers || []) { const key=layer.webhookKey || layer.content?.name || st.webhookKey; if(key)stepKey.set(layer.id,key); }
       }
       for (const row of qa ?? []) {
         const key = stepKey.get(String((row as { step_id?: string }).step_id ?? ""));
@@ -167,6 +177,7 @@ export async function POST(request: Request) {
       code: body.session_id ?? "",
       nome: body.name ?? "",
       telefone: phoneIntl,
+      email: body.email || "",
       estado: body.estado ?? "",
       cidade: body.cidade ?? "",
       pagina: funnel?.name ?? "",
