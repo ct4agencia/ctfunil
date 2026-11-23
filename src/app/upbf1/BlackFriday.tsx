@@ -15,7 +15,7 @@ const segments = [
   { label: "APOSTILA VIP" },
   { label: "10% OFF" },
   { label: "LISTA DE MATERIAIS" },
-  { label: "TENTE NOVAMENTE", labelSize: 10 },
+  { label: "TENTE NOVAMENTE", labelLines: ["TENTE", "NOVAMENTE"], labelSize: 8 },
 ].map((segment, index) => ({ ...segment, color: index % 2 === 0 ? "#1c1915" : "#e3c48d" }));
 const chrome = { rim: "#e3c48d", rimInner: "#8c6a33", pegColor: "#fff1d4", pointer: "#e3c48d", dark: true };
 
