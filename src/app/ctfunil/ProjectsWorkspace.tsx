@@ -1030,7 +1030,7 @@ export function HeroPrompt({ avatarUrl, accountId }: { avatarUrl?: string; accou
   </section></div>;
 }
 
-export default function ProjectsWorkspace({ snapshot, avatarUrl, accountEmail, accountId }: { snapshot?: Project[]; avatarUrl?: string; accountEmail?: string; accountId?: string }) {
+export default function ProjectsWorkspace({ snapshot, avatarUrl, accountEmail, accountId, official = false }: { snapshot?: Project[]; avatarUrl?: string; accountEmail?: string; accountId?: string; official?: boolean }) {
   const projects = snapshot ?? exampleProjects;
   const demo = !snapshot;
   const filters = demo ? productFilters : [...new Set(projects.map(project => project.product))]
@@ -1053,7 +1053,7 @@ export default function ProjectsWorkspace({ snapshot, avatarUrl, accountEmail, a
     { label: demo ? "Outros módulos" : "Demais funis", count: projects.filter(p => p.type === "plus").length, icon: Layers },
   ];
   return <WorkspaceFrame title="Projetos" demo={demo} accountEmail={accountEmail}>
-    <header className="ct-page-heading"><div><h1>Projetos</h1><p>{demo ? "Quizzes, páginas e referências da CT4 Educação." : "Funis da CT4 Educação em modo de consulta."}</p></div>
+    <header className="ct-page-heading"><div><h1>Projetos</h1><p>{demo ? "Quizzes, páginas e referências da CT4 Educação." : official ? "Funis da CT4 Educação, com dados ao vivo." : "Funis da CT4 Educação em modo de consulta."}</p></div>
       <Link className="ct-action-link" href="/dashboard">Abrir meus funis</Link></header>
     <div className="ct-metrics">{stats.map(({ label, count, icon: Icon }) => <div className="ct-metric" key={label}>
       <div><span>{label}</span><Icon size={17} /></div><strong>{count}</strong>

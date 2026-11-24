@@ -38,5 +38,5 @@ export default async function ProjectsPage() {
     };
   });
 
-  return <ProjectsWorkspace key={snapshot.accountId} accountId={snapshot.accountId} snapshot={projects} avatarUrl={snapshot.avatarUrl} accountEmail={snapshot.accountEmail} />;
+  return <ProjectsWorkspace key={snapshot.accountId} accountId={snapshot.accountId} snapshot={projects} avatarUrl={snapshot.avatarUrl} accountEmail={snapshot.accountEmail} official={official} />;
 }

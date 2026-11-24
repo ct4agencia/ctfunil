@@ -17,7 +17,21 @@ function isVercelPreviewDeployment() {
  * funis (outro deploy do mesmo projeto) exibem o que foi salvo.
  */
 function isOfficialWorkspace() {
-  return process.env.VERCEL_ENV === "production" && process.env.CTFUNIL_REAL_DATA_PREVIEW !== "1";
+  return (process.env.VERCEL_ENV === "production" || process.env.CTFUNIL_OFFICIAL_PREVIEW === "1") &&
+    process.env.CTFUNIL_REAL_DATA_PREVIEW !== "1";
+}
+
+/**
+ * Preview privado da VPS em modo oficial: só com `CTFUNIL_OFFICIAL_PREVIEW=1`, a
+ * chave administrativa no `.env.local` e o host do Tailscale. Sem isso, o preview
+ * continua em consulta. Ligar é decisão do Luca, porque o preview passa a gravar
+ * no mesmo banco dos funis publicados.
+ */
+function isOfficialPreviewHost(host: string | null) {
+  return process.env.CTFUNIL_OFFICIAL_PREVIEW === "1" &&
+    Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) &&
+    Boolean(process.env.CTFUNIL_PREVIEW_HOST) &&
+    host === process.env.CTFUNIL_PREVIEW_HOST;
 }
 
 export function isReadOnlyWorkspace() {
@@ -31,7 +45,7 @@ export function isProductionWorkspaceHost(host: string | null) {
 
 /** Host do painel em modo oficial: telas do redesign com dados ao vivo e gravação no banco. */
 export function isOfficialWorkspaceHost(host: string | null) {
-  return isOfficialWorkspace() && isProductionWorkspaceHost(host);
+  return isOfficialWorkspace() && (isProductionWorkspaceHost(host) || isOfficialPreviewHost(host));
 }
 
 /**

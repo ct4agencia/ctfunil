@@ -42,7 +42,12 @@ export async function proxy(request: NextRequest) {
   if ((pathname === "/dashboard" || pathname === "/analytics") && isWorkspacePreview(request.headers.get("host"))) {
     return NextResponse.next();
   }
-  const response = await updateSession(request, isProductionWorkspaceHost(request.headers.get("host")));
+  // Produção protege o workspace inteiro; o preview privado protege as subpáginas
+  // de Projetos, o laboratório e a importação (a raiz de Projetos mostra a demonstração).
+  const protectWorkspace = isProductionWorkspaceHost(request.headers.get("host")) || official || (previewHost !== null && (
+    pathname.startsWith("/ctfunil/") || pathname.startsWith("/lab/") || pathname.startsWith("/importar/")
+  ));
+  const response = await updateSession(request, protectWorkspace);
   if (previewHost) {
     const location = response.headers.get("location");
     if (location) {
