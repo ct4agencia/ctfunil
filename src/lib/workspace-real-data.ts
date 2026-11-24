@@ -1,7 +1,10 @@
 import "server-only";
 import { profileAvatar } from "@/lib/assistant/profile-avatar";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { listFunnelsDb } from "@/lib/quiz/funnels-db";
+import { isOfficialWorkspaceHost } from "@/lib/workspace-preview";
 import attributionDaily from "./workspace-attribution-daily-data.json";
 import attribution from "./workspace-attribution-data.json";
 import adAccountSnapshot from "./workspace-ad-account-data.json";
@@ -40,7 +43,26 @@ export async function getWorkspaceSnapshotIfAuthorized() {
   return { ...workspaceSnapshot(await workspaceCatalog(supabase)), avatarUrl, accountEmail: user.email, accountId: user.id };
 }
 
+/** Painel oficial: a biblioteca vem inteira do banco, com rascunhos, sem a captura. */
+async function officialCatalog() {
+  if (!isOfficialWorkspaceHost((await headers()).get("host"))) return null;
+  const live = await listFunnelsDb();
+  if (!live.length) return null;
+  return live.map(funnel => ({
+    name: funnel.name,
+    slug: funnel.slug,
+    niche: funnel.niche ?? null,
+    domain: funnel.domain ?? null,
+    engine: funnel.engine ?? "layers",
+    status: funnel.status,
+    palette_id: funnel.palette_id,
+    updated_at: funnel.updated_at,
+  }));
+}
+
 async function workspaceCatalog(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const official = await officialCatalog();
+  if (official) return official;
   const { data, error } = await supabase.from("funnels")
     .select("slug,name,niche,domain,engine:settings->>engine,status,palette_id,updated_at")
     .eq("status", "published")

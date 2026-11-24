@@ -67,6 +67,13 @@ const BLOCK_META: Record<string, { icon: string; label: string }> = {
   carousel: { icon: "🎠", label: "Carrossel" },
   "sonia-numbers": { icon: "🔢", label: "Sorteio da Sônia" },
 };
+/**
+ * Blocos novos do redesign que os domínios dos funis (deploy de 17/11) ainda
+ * não exibem. Ao editar um funil do banco, eles saem da paleta para que nada
+ * publicado fique em branco. Nos rascunhos locais continuam disponíveis.
+ */
+const PENDING_ON_PUBLISHED_DOMAINS = new Set<string>(NEW_COMPONENTS);
+
 /** Paleta categorizada (ordem/categorias dos prints do inlead). */
 const CATS: { name: string; items: [string, string][] }[] = [
   // (a lista de blocos da lâmina usa `rotuloDoTipo`, logo abaixo, para nomear
@@ -1675,7 +1682,8 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
   const query = normalize(blockSearch.trim());
   const categories = CATS.map((category) => ({
     ...category,
-    items: category.items.filter(([, label]) => normalize(label).includes(query) || normalize(category.name).includes(query)),
+    items: category.items.filter(([key, label]) => (localDraft || !PENDING_ON_PUBLISHED_DOMAINS.has(key)) &&
+      (normalize(label).includes(query) || normalize(category.name).includes(query))),
   })).filter((category) => category.items.length > 0);
   const [verResultado, setVerResultado] = useState(false);
   const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">(openLeads ? "leads" : "construtor");

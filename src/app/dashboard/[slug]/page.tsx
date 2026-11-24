@@ -4,7 +4,7 @@ import { preserveReportOrigin, reportOrigin } from "@/lib/quiz/report-origin";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { isRealDataPreview } from "@/lib/workspace-preview";
+import { isOfficialWorkspaceHost, isRealDataPreview } from "@/lib/workspace-preview";
 import { getWorkspaceSnapshot } from "@/lib/workspace-real-data";
 import { WorkspaceFrame } from "@/components/workspace/WorkspaceFrame";
 import { notFound } from "next/navigation";
@@ -24,26 +24,34 @@ import { PERIODOS, civilRangeFromPeriod, janelaDeChave, parseCivilRange, rotuloD
 export const metadata: Metadata = { title: "Performance do funil · CTFUNNEL" };
 export const dynamic = "force-dynamic";
 
-async function SnapshotFunnelReport({ slug, range, comparison, origin, responseFunnel, library }: {
-  slug: string; range: DateRange; comparison: string[]; origin: ReturnType<typeof reportOrigin>; responseFunnel?: string; library: URLSearchParams;
+async function SnapshotFunnelReport({ slug, range, comparison, origin, responseFunnel, library, official = false }: {
+  slug: string; range: DateRange; comparison: string[]; origin: ReturnType<typeof reportOrigin>; responseFunnel?: string; library: URLSearchParams; official?: boolean;
 }) {
   const snapshot = await getWorkspaceSnapshot();
   const funnel = snapshot.funnels.find(item => item.slug === slug);
-  const metrics = snapshot.analytics.operacao.find(item => item.slug === slug);
+  // Painel oficial: todo funil usa os indicadores ao vivo, não a captura.
+  const metrics = official ? undefined : snapshot.analytics.operacao.find(item => item.slug === slug);
   const video = snapshot.vsl.rows.find(item => item.slug === slug);
   const quiz = snapshot.quiz.quiz.filter(item => item.slug === slug);
   const diagnosis = snapshot.diagnosis.questions.filter(item => item.slug === slug);
   if (!funnel) notFound();
   if (!metrics) {
+    const periodWindow = {
+      from: range.from ? janelaDeChave("dia", range.from).janela.from : undefined,
+      to: range.to ? janelaDeChave("dia", range.to).janela.to : undefined,
+    };
     const admin = await requireAdmin();
-    const published = admin.ok && await admin.supabase.from("funnels").select("name,steps,settings")
-      .eq("slug", slug).eq("status", "published").maybeSingle();
-    const live = admin.ok && published && !published.error && published.data
-      ? await funnelMetrics(slug, {
-        from: range.from ? janelaDeChave("dia", range.from).janela.from : undefined,
-        to: range.to ? janelaDeChave("dia", range.to).janela.to : undefined,
-      }, { client: admin.supabase, funnel: published.data })
-      : null;
+    let live: Awaited<ReturnType<typeof funnelMetrics>> | null = null;
+    if (official && admin.ok) {
+      const result = await funnelMetrics(slug, periodWindow);
+      live = result.found ? result : null;
+    } else {
+      const published = admin.ok && await admin.supabase.from("funnels").select("name,steps,settings")
+        .eq("slug", slug).eq("status", "published").maybeSingle();
+      live = admin.ok && published && !published.error && published.data
+        ? await funnelMetrics(slug, periodWindow, { client: admin.supabase, funnel: published.data })
+        : null;
+    }
     const editorParams = new URLSearchParams({ editar: "1", ...Object.fromEntries(library) });
     const liveDays = [...new Set([range.from, range.to, spYmd()].filter(Boolean))].sort();
 
@@ -194,13 +202,14 @@ export default async function FunnelMetricsPage({
 }) {
   const { slug } = await params;
   const sp = await searchParams;
-  if (isRealDataPreview((await headers()).get("host"))) {
+  const host = (await headers()).get("host");
+  if (isRealDataPreview(host)) {
     const selectedRange = sp.from === undefined && sp.to === undefined
       ? civilRangeFromPeriod(sp.p, sp.d)
       : parseCivilRange(sp.from, sp.to);
     const range = selectedRange ?? { from: "", to: "" };
     const comparison = typeof sp.comparar === "string" ? [sp.comparar] : sp.comparar ?? [];
-    return <SnapshotFunnelReport slug={slug} range={range} comparison={comparison} origin={reportOrigin(sp.origem)} responseFunnel={sp.respFunil} library={libraryContext(sp)} />;
+    return <SnapshotFunnelReport slug={slug} range={range} comparison={comparison} origin={reportOrigin(sp.origem)} responseFunnel={sp.respFunil} library={libraryContext(sp)} official={isOfficialWorkspaceHost(host)} />;
   }
   // O filtro é feito por LINK, não por estado no cliente: esta página é server
   // component e já é `force-dynamic`. Assim o período entra na URL (dá pra

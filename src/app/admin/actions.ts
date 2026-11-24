@@ -6,7 +6,7 @@ import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_VSL, type VslInput, type WebhookInput } from "@/lib/types";
 
-/** Garante sessão antes de qualquer escrita. */
+/** Garante a sessão do dono (ADMIN_EMAIL) antes de qualquer escrita. */
 async function requireAuth() {
   if (isReadOnlyWorkspace()) throw new Error("O preview está em modo de consulta.");
   const supabase = await createClient();
@@ -14,6 +14,10 @@ async function requireAuth() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/admin/login");
+  // Fail-closed como o admin-guard: o cadastro do Supabase é aberto, então
+  // estar logado não basta para gravar.
+  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
+  if (!adminEmail || user.email?.toLowerCase() !== adminEmail) redirect("/admin/login");
   return supabase;
 }
 

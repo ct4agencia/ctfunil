@@ -1,6 +1,6 @@
 import { getWorkspaceSnapshot } from "@/lib/workspace-real-data";
 import { headers } from "next/headers";
-import { isRealDataPreview, isWorkspacePreview } from "@/lib/workspace-preview";
+import { isOfficialWorkspaceHost, isRealDataPreview, isWorkspacePreview } from "@/lib/workspace-preview";
 import { previewAnalytics } from "@/lib/workspace-preview-data";
 import type { Metadata } from "next";
 import GlobalAnalyticsView from "@/components/dashboard/GlobalAnalyticsView";
@@ -14,6 +14,12 @@ export const dynamic = "force-dynamic";
 // duplicava o download/preload da fonte.
 export default async function AnalyticsPage() {
   const host = (await headers()).get("host");
+  if (isOfficialWorkspaceHost(host)) {
+    // Painel oficial: operação, tráfego, criativos e leads ao vivo. VSL, vendas,
+    // quiz e diagnóstico ainda não têm fonte ao vivo e mostram a captura, com a data.
+    const [snapshot, data] = await Promise.all([getWorkspaceSnapshot(), globalAnalytics()]);
+    return <GlobalAnalyticsView accountEmail={snapshot.accountEmail} data={data} vslSnapshot={snapshot.vsl} salesSnapshot={snapshot.sales} quizSnapshot={snapshot.quiz} diagnosisSnapshot={snapshot.diagnosis} />;
+  }
   if (isRealDataPreview(host)) {
     const snapshot = await getWorkspaceSnapshot();
     return <GlobalAnalyticsView accountEmail={snapshot.accountEmail} data={snapshot.analytics} preview snapshotAt={snapshot.capturedAt} attributionCapturedAt={snapshot.attributionCapturedAt} attributionDaily={snapshot.attributionDaily} adAccounts={snapshot.adAccounts} vslSnapshot={snapshot.vsl} salesSnapshot={snapshot.sales} quizSnapshot={snapshot.quiz} diagnosisSnapshot={snapshot.diagnosis} leadsDaily={snapshot.leadsDaily} editableSlugs={snapshot.funnels.map(funnel => funnel.slug).filter(hasPreviewFunnelDraft)} />;

@@ -6,13 +6,22 @@ export function isWorkspacePreview(host: string | null) {
     && !process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
-function isVercelWorkspace() {
-  return process.env.VERCEL_ENV === "production" ||
-    (process.env.VERCEL_ENV === "preview" && Boolean(process.env.VERCEL_URL));
+/** Deploys de preview da Vercel rodam com as variáveis de Preview: continuam em consulta. */
+function isVercelPreviewDeployment() {
+  return process.env.VERCEL_ENV === "preview" && Boolean(process.env.VERCEL_URL);
+}
+
+/**
+ * Modo oficial (desde 24/11/2026, pedido do Luca): na produção da Vercel o painel
+ * lê e grava no banco. O construtor salva os funis de verdade, e os domínios dos
+ * funis (outro deploy do mesmo projeto) exibem o que foi salvo.
+ */
+function isOfficialWorkspace() {
+  return process.env.VERCEL_ENV === "production" && process.env.CTFUNIL_REAL_DATA_PREVIEW !== "1";
 }
 
 export function isReadOnlyWorkspace() {
-  return process.env.CTFUNIL_REAL_DATA_PREVIEW === "1" || isVercelWorkspace();
+  return process.env.CTFUNIL_REAL_DATA_PREVIEW === "1" || isVercelPreviewDeployment();
 }
 
 export function isProductionWorkspaceHost(host: string | null) {
@@ -20,8 +29,19 @@ export function isProductionWorkspaceHost(host: string | null) {
     (host === "ctfunil.vercel.app" || (Boolean(host) && host === process.env.VERCEL_URL));
 }
 
+/** Host do painel em modo oficial: telas do redesign com dados ao vivo e gravação no banco. */
+export function isOfficialWorkspaceHost(host: string | null) {
+  return isOfficialWorkspace() && isProductionWorkspaceHost(host);
+}
+
+/**
+ * Host que usa as telas do redesign com dados reais: o preview em consulta e,
+ * desde 24/11, o painel oficial em produção. As telas conferem
+ * `isOfficialWorkspaceHost` para trocar a captura pelos dados ao vivo.
+ */
 export function realDataPreviewHost(host: string | null) {
-  if (isVercelWorkspace() && (host === process.env.VERCEL_URL || isProductionWorkspaceHost(host))) return host;
+  if (isVercelPreviewDeployment() && host === process.env.VERCEL_URL) return host;
+  if (isOfficialWorkspaceHost(host)) return host;
   if (
     process.env.CTFUNIL_REAL_DATA_PREVIEW === "1" &&
     host &&

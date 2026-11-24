@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { WorkspaceFrame } from "@/components/workspace/WorkspaceFrame";
-import { isRealDataPreview } from "@/lib/workspace-preview";
+import { isOfficialWorkspaceHost, isRealDataPreview } from "@/lib/workspace-preview";
 import { getWorkspaceSnapshot } from "@/lib/workspace-real-data";
 import { getPreviewFunnelDraft, hasPreviewVslDraft } from "@/lib/workspace-preview-vsl-drafts";
 import { parseCivilRange } from "@/lib/quiz/periodo";
@@ -23,7 +23,17 @@ export default async function BuilderPage({
   searchParams: Promise<LibraryContextQuery & { editar?: string; tab?: string; from?: string; to?: string; comparar?: string | string[]; origem?: string; respFunil?: string }>;
 }) {
   const { slug } = await params;
-  if (isRealDataPreview((await headers()).get("host"))) {
+  const host = (await headers()).get("host");
+  if (isOfficialWorkspaceHost(host)) {
+    // Painel oficial: o construtor abre o funil do banco e salva nele.
+    const [snapshot, funnel, draft] = await Promise.all([getWorkspaceSnapshot(), resolveFunnel(slug), funnelIsDraft(slug)]);
+    if (!funnel) notFound();
+    const query = await searchParams;
+    const openLeads = query.tab === "leads";
+    return <BuilderRenderer funnel={funnel} draft={draft} accountEmail={snapshot.accountEmail}
+      openLeads={openLeads} initialRange={openLeads ? parseCivilRange(query.from, query.to) : undefined} />;
+  }
+  if (isRealDataPreview(host)) {
     const snapshot = await getWorkspaceSnapshot();
     const funnel = snapshot.funnels.find(item => item.slug === slug);
     if (!funnel) notFound();

@@ -1,16 +1,27 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isProductionWorkspaceHost, isReadOnlyWorkspace, realDataPreviewHost, isWorkspacePreview } from "@/lib/workspace-preview";
+import { isOfficialWorkspaceHost, isProductionWorkspaceHost, isReadOnlyWorkspace, realDataPreviewHost, isWorkspacePreview } from "@/lib/workspace-preview";
 import { updateSession } from "@/lib/supabase/proxy";
 
 /**
  * Next 16: o antigo `middleware.ts` agora se chama `proxy.ts`.
  * Refresca a sessão Supabase e protege as rotas /admin.
  */
+/** Rotas de escrita do próprio painel (todas exigem o login do dono). */
+const OFFICIAL_WRITE_APIS = new Set(["/api/assistant", "/api/upload", "/api/reset-funnel-data"]);
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (isReadOnlyWorkspace() && pathname.startsWith("/api/") && pathname !== "/api/assistant" &&
-      !["GET", "HEAD", "OPTIONS"].includes(request.method)) {
+  const official = isOfficialWorkspaceHost(request.headers.get("host"));
+  const mutating = !["GET", "HEAD", "OPTIONS"].includes(request.method);
+  if (isReadOnlyWorkspace() && pathname.startsWith("/api/") && pathname !== "/api/assistant" && mutating) {
     return NextResponse.json({ error: "O preview está em modo de consulta." }, {
+      status: 403, headers: { "Cache-Control": "no-store" },
+    });
+  }
+  // Painel oficial: grava funis, mas não registra visitas, etapas nem leads.
+  // Os funis públicos rodam nos domínios próprios (outro deploy do projeto).
+  if (official && pathname.startsWith("/api/") && mutating && !OFFICIAL_WRITE_APIS.has(pathname)) {
+    return NextResponse.json({ error: "O painel não registra eventos de funil." }, {
       status: 403, headers: { "Cache-Control": "no-store" },
     });
   }
@@ -19,7 +30,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", `https://${previewHost}`));
   }
   // Keep unknown single-segment requests away from the production funnel resolver.
-  if (isReadOnlyWorkspace() && /^\/[^/]+$/.test(pathname) &&
+  if ((isReadOnlyWorkspace() || official) && /^\/[^/]+$/.test(pathname) &&
       !["/dashboard", "/analytics", "/ctfunil", "/upbf1", "/manifest.webmanifest", "/calculadora-lucrativa", "/nao-encontrado"].includes(pathname)) {
     if (pathname.includes(".")) return new NextResponse(null, { status: 404 });
     const missing = request.nextUrl.clone();

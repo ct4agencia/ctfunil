@@ -1,7 +1,7 @@
 import { hasPreviewVslDraft } from "@/lib/workspace-preview-vsl-drafts";
 import { getWorkspaceSnapshot } from "@/lib/workspace-real-data";
 import { headers } from "next/headers";
-import { isRealDataPreview, isWorkspacePreview } from "@/lib/workspace-preview";
+import { isOfficialWorkspaceHost, isRealDataPreview, isWorkspacePreview } from "@/lib/workspace-preview";
 import { previewFunnels, previewAnalytics } from "@/lib/workspace-preview-data";
 import type { Metadata } from "next";
 import Dashboard from "@/components/dashboard/Dashboard";
@@ -15,6 +15,12 @@ export const dynamic = "force-dynamic";
 // duplicava o download/preload da fonte.
 export default async function DashboardPage() {
   const host = (await headers()).get("host");
+  if (isOfficialWorkspaceHost(host)) {
+    // Painel oficial: funis e indicadores ao vivo; as páginas VSL seguem da captura.
+    const [snapshot, metrics] = await Promise.all([getWorkspaceSnapshot(), dashboardMetrics()]);
+    const pages = snapshot.vsl.rows.map(({ name, slug, tracked }) => ({ name, slug, tracked }));
+    return <Dashboard accountEmail={snapshot.accountEmail} funnels={snapshot.funnels} metrics={metrics} pagesCapturedAt={snapshot.vsl.captured_at} pages={pages} />;
+  }
   if (isRealDataPreview(host)) {
     const snapshot = await getWorkspaceSnapshot();
     const capturedPages = snapshot.vsl.rows.map(({ name, slug, tracked }) => ({ name, slug, tracked }));
