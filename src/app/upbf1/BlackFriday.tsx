@@ -120,14 +120,14 @@ export default function BlackFriday({ roulette = false, redirectUrl }: { roulett
             <img src="/upbf1/bolsa.jpg" alt="Bolsa de crochê" />
             <img src="/upbf1/resina.jpg" alt="Porta-copos de resina com flores" />
           </div>
-          <h1>Seu benefício especial de <em>Black Friday</em> está esperando por você!</h1>
-          <a className={styles.cta} href={next} onClick={() => track("presell_cta_click")}>RECEBER MEU BENEFÍCIO <ArrowRight aria-hidden="true" /></a>
+          <h1>Seu presente especial de <em>Black Friday</em> está esperando por você!</h1>
+          <a className={styles.cta} href={next} onClick={() => track("presell_cta_click")}>RECEBER MEU PRESENTE <ArrowRight aria-hidden="true" /></a>
           <p className={styles.note}>É só tocar uma vez no botão acima.</p>
         </>
       ) : (
         <div className={styles.roulette}>
-          <h1>Chegou a hora de receber o seu <em>benefício especial!</em></h1>
-          {phase !== "done" && <p>Gire a roleta para revelar o benefício desta Black Friday.</p>}
+          <h1>Chegou a hora de descobrir o seu <em>presente especial!</em></h1>
+          {phase !== "done" && <p>Gire a roleta para revelar o presente desta Black Friday.</p>}
           <div className={styles.wheelFrame} aria-hidden="true">
             <RoletaInterativa key={String(skipAnimation)} segments={segments} vencedor={0}
               girando={phase === "spinning"} onFim={finish} chrome={chrome}
@@ -135,17 +135,17 @@ export default function BlackFriday({ roulette = false, redirectUrl }: { roulett
             <span className={styles.hubIcon}><Gift size={30} /></span>
           </div>
           {phase === "idle" && <span className={styles.hint} aria-hidden="true">TOQUE AQUI <ArrowDown size={20} /></span>}
-          {phase === "done" ? <button ref={benefitButton} className={styles.green} type="button" onClick={openBenefit}>VER MEU BENEFÍCIO</button> :
+          {phase === "done" ? <button ref={benefitButton} className={styles.green} type="button" onClick={openBenefit}>VER MEU PRESENTE</button> :
             <button className={styles.green} type="button" disabled={phase === "spinning"} onClick={spin}>{phase === "spinning" ? "GIRANDO…" : "GIRAR AGORA"}</button>}
           <dialog ref={dialog} className={styles.result} aria-labelledby="upbf1-result" onClose={() => benefitButton.current?.focus()}>
             <canvas ref={effects} className={styles.confetti} aria-hidden="true" />
             <RouletteCelebration />
             <h2 ref={benefitTitle} id="upbf1-result" tabIndex={-1}>PARABÉNS!!!</h2>
-            <p>Seu benefício está liberado.</p>
+            <p>Você tirou:</p>
             <strong>{benefit}</strong>
             {redirectUrl ? (
               <>
-                <a className={styles.green} href={redirectUrl} onClick={() => track("whatsapp_cta_click")}><Lock aria-hidden="true" /> DESBLOQUEAR BENEFÍCIO</a>
+                <a className={styles.green} href={redirectUrl} onClick={() => track("whatsapp_cta_click")}><Lock aria-hidden="true" /> DESBLOQUEAR PRESENTE</a>
                 <p>Você vai para o WhatsApp da Sônia.</p>
               </>
             ) : <p>O atendimento por WhatsApp está indisponível no momento.</p>}

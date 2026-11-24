@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import BlackFriday from "../BlackFriday";
 
-export const metadata: Metadata = { title: "Roleta de benefício — Black Friday da Sônia" };
+export const metadata: Metadata = { title: "Roleta do presente — Black Friday da Sônia" };
 
-const message = "Sônia, tirei o GUIA COMPLETO + 80% OFF 🔥 e quero desbloquear o meu benefício!!!";
+const message = "Sônia, tirei o GUIA COMPLETO + 80% OFF 🔥 e quero desbloquear o meu presente!!!";
 
 function getRedirectUrl() {
   const input = process.env.UPBF1_REDIRECT_URL || "https://app.goredirect.com.br/fd61/bf-01";
