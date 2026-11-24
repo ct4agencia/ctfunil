@@ -1,4 +1,4 @@
-import { libraryContext, type LibraryContextQuery } from "@/lib/quiz/library-context";
+import { libraryContext, libraryHref, type LibraryContextQuery } from "@/lib/quiz/library-context";
 import { preserveReportOrigin } from "@/lib/quiz/report-origin";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -30,8 +30,18 @@ export default async function BuilderPage({
     if (!funnel) notFound();
     const query = await searchParams;
     const openLeads = query.tab === "leads";
+    // Volta à biblioteca com os filtros e ao relatório com a origem e a
+    // comparação. O período, a aba Leads acrescenta ao abrir o relatório.
+    const library = libraryContext(query);
+    const reportParams = new URLSearchParams();
+    preserveReportOrigin(reportParams, query.origem, query.respFunil, slug);
+    const compared = typeof query.comparar === "string" ? [query.comparar] : query.comparar ?? [];
+    for (const item of compared) reportParams.append("comparar", item);
+    for (const [key, value] of library) reportParams.set(key, value);
+    const reportHref = `/dashboard/${encodeURIComponent(slug)}${reportParams.size ? `?${reportParams}` : ""}`;
     return <BuilderRenderer funnel={funnel} draft={draft} accountEmail={snapshot.accountEmail}
-      openLeads={openLeads} initialRange={openLeads ? parseCivilRange(query.from, query.to) : undefined} />;
+      openLeads={openLeads} initialRange={openLeads ? parseCivilRange(query.from, query.to) : undefined}
+      reportHref={reportHref} dashboardHref={libraryHref(library)} />;
   }
   if (isRealDataPreview(host)) {
     const snapshot = await getWorkspaceSnapshot();

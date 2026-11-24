@@ -240,7 +240,7 @@ export default function Dashboard({ funnels, metrics, preview = false, accountEm
                     return (
                       <article key={f.slug} className={`ct-dashboard-card relative min-w-0 overflow-visible rounded-xl bg-ct-raised p-4 ${menu === f.slug ? "z-30" : ""}`}>
                         <div className="flex items-start justify-between gap-3">
-                          <button type="button" onClick={() => router.push(snapshotAt ? `/builder/${encodeURIComponent(f.slug)}?${editorParams}` : preview ? "/lab/sonia?view=builder" : `/builder/${f.slug}`)} className="min-w-0 flex-1 text-left">
+                          <button type="button" onClick={() => router.push(snapshotAt || !preview ? `/builder/${encodeURIComponent(f.slug)}?${editorParams}` : "/lab/sonia?view=builder")} className="min-w-0 flex-1 text-left">
                             <span className="mb-3 block h-1.5 w-16 rounded-full" style={{ background: pal.primary }} />
                             <h3 className="truncate text-lg font-black">{f.name}</h3>
                             <p className="mt-1 text-xs text-ct-dim [overflow-wrap:anywhere]">/{f.slug} · {fmtDate(f.updated_at)}{f.niche ? ` · ${f.niche}` : ""}</p>
@@ -249,8 +249,8 @@ export default function Dashboard({ funnels, metrics, preview = false, accountEm
                             <button type="button" aria-label={`Ações de ${f.name}`} aria-expanded={menu === f.slug} onClick={(e) => { e.stopPropagation(); menuTrigger.current = e.currentTarget; setMenu(menu === f.slug ? null : f.slug); }} className="rounded-xl px-2 py-1 text-xl text-ct-dim hover:bg-ct-raised">⋮</button>
                             {menu === f.slug ? (
                               <div onClick={(e) => e.stopPropagation()} className="absolute right-0 z-40 mt-1 w-44 overflow-hidden rounded-2xl border border-ct-line bg-ct-surface py-1 text-sm shadow-2xl">
-                                <button onClick={() => router.push(`/builder/${f.slug}`)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Editar</button>
-                                <button onClick={() => router.push(`/dashboard/${f.slug}`)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Performance</button>
+                                <button onClick={() => router.push(`/builder/${encodeURIComponent(f.slug)}?${editorParams}`)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Editar</button>
+                                <button onClick={() => router.push(`/dashboard/${encodeURIComponent(f.slug)}?${libraryParams}`)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Performance</button>
                                 <a href={`/api/export-leads?slug=${encodeURIComponent(f.slug)}`} className="block px-3 py-2 hover:bg-ct-raised">Exportar leads</a>
                                 <a href={f.domain ? `https://${f.domain}/${f.slug}` : `/${f.slug}`} target="_blank" rel="noreferrer" className="block px-3 py-2 hover:bg-ct-raised">Visualizar</a>
                                 <button disabled={busy} onClick={() => doDuplicate(f.slug)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Duplicar</button>
@@ -262,7 +262,7 @@ export default function Dashboard({ funnels, metrics, preview = false, accountEm
                         <div className="mt-4 flex flex-wrap items-center gap-2">
                           <WorkspaceStatus status={f.status} />
                           <span className="rounded-full bg-ct-raised px-2.5 py-1 text-[11px] font-bold uppercase text-ct-dim">{f.engine}</span>
-                          {snapshotAt && <>
+                          {(snapshotAt || !preview) && <>
                             <Link href={`/builder/${encodeURIComponent(f.slug)}?${editorParams}`} className="text-sm font-semibold text-ct-blue underline">Abrir editor</Link>
                             <Link href={`/dashboard/${encodeURIComponent(f.slug)}?${libraryParams}`} className="text-sm text-ct-blue underline">Ver relatório</Link>
                           </>}
