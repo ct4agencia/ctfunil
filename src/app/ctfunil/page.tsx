@@ -1,3 +1,4 @@
+import { hasPreviewVslDraft } from "@/lib/workspace-preview-vsl-drafts";
 import { headers } from "next/headers";
 import { getWorkspaceSnapshotIfAuthorized } from "@/lib/workspace-real-data";
 import { isRealDataPreview } from "@/lib/workspace-preview";
@@ -15,7 +16,7 @@ export default async function ProjectsPage() {
   const quizSlugs = new Set(snapshot.quiz.quiz.map(row => row.slug));
   const totals = new Map(snapshot.analytics.operacao.map(row => [row.slug, row]));
   const projects = snapshot.funnels.map((funnel): Project => {
-    const type = videoSlugs.has(funnel.slug) ? "pages" : quizSlugs.has(funnel.slug) ? "quiz" : "plus";
+    const type = (videoSlugs.has(funnel.slug) || hasPreviewVslDraft(funnel.slug)) ? "pages" : quizSlugs.has(funnel.slug) ? "quiz" : "plus";
     const sessions = totals.get(funnel.slug)?.visitantes;
     const updated = new Date(funnel.updated_at);
     return {
@@ -29,9 +30,9 @@ export default async function ProjectsPage() {
       preview: `/${funnel.slug}`,
       metric: sessions === undefined ? "Sem total de sessões" : `${number.format(sessions)} sessões`,
       editorHref: `/builder/${encodeURIComponent(funnel.slug)}?editar=1`,
-      reportHref: sessions === undefined ? undefined : `/dashboard/${encodeURIComponent(funnel.slug)}`,
+      reportHref: `/dashboard/${encodeURIComponent(funnel.slug)}`,
     };
   });
 
-  return <ProjectsWorkspace snapshot={projects} avatarUrl={snapshot.avatarUrl} />;
+  return <ProjectsWorkspace key={snapshot.accountId} accountId={snapshot.accountId} snapshot={projects} avatarUrl={snapshot.avatarUrl} accountEmail={snapshot.accountEmail} />;
 }

@@ -1,10 +1,12 @@
 "use client";
 
+import SnapshotRangeCoverage from "./SnapshotRangeCoverage";
+import { useSnapshotDateRange } from "./useSnapshotDateRange";
 import SnapshotTimestamp from "./SnapshotTimestamp";
 
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
-import WorkspaceDateRange, { calendarSeriesDays, type DateRange } from "@/components/ui/WorkspaceDateRange";
+import WorkspaceDateRange, { calendarSeriesDays } from "@/components/ui/WorkspaceDateRange";
 
 type OrderCounts = { orders: number; approved: number; reversals: number; gross_cents: number; priced: number };
 
@@ -49,10 +51,10 @@ const emptyCounts: OrderCounts = { orders: 0, approved: 0, reversals: 0, gross_c
 const keys = Object.keys(emptyCounts) as (keyof OrderCounts)[];
 
 export default function SnapshotSalesView({ data }: { data: SalesSnapshot }) {
-  const [range, setRange] = useState<DateRange>({ from: "", to: "" });
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{ key: Column; descending: boolean }>({ key: "orders", descending: true });
   const days = calendarSeriesDays(data.daily, data.capturedAt, data.timeZone);
+  const { range, changeRange, outsideCapture, partialCapture } = useSnapshotDateRange(days, "pedidos");
   const tallies = new Map(data.codes.map(code => [code.code, {
     ...code, ...emptyCounts,
   }]));
@@ -84,13 +86,16 @@ export default function SnapshotSalesView({ data }: { data: SalesSnapshot }) {
         <h2 id="snapshot-sales">Pedidos Hotmart por código de checkout</h2>
         <p>Captura do CTAnalytics em <SnapshotTimestamp capturedAt={data.capturedAt} timeZone={data.timeZone} />. O mesmo código pode aparecer em mais de um funil.</p>
       </div>
-      {days.length > 0 && <WorkspaceDateRange days={days} value={range} onChange={setRange} label="Data dos pedidos" />}
+      {days.length > 0 && <WorkspaceDateRange allowEarlierDates days={days} value={range} onChange={changeRange} label="Data dos pedidos" />}
       <label className="ct-search">
         <input type="search" aria-label="Buscar código de checkout" placeholder="Buscar código"
           value={query} onChange={event => setQuery(event.target.value)} />
       </label>
     </header>
-    <dl className="grid gap-3 px-4 pb-4 sm:grid-cols-3 xl:grid-cols-5">
+    <SnapshotRangeCoverage outsideCapture={outsideCapture} partialCapture={partialCapture}
+        onReset={() => changeRange({ from: "", to: "" })} />
+    {!outsideCapture && <>
+    <dl aria-label={range.from ? "Totais dos pedidos no período escolhido" : "Totais dos pedidos na captura"} className="grid gap-3 px-4 pb-4 sm:grid-cols-3 xl:grid-cols-5">
       {salesValues(totals).map((value, index) => <div key={labels[index]} className="rounded-xl border border-ct-line bg-ct-raised p-3">
         <dt className="text-xs text-ct-dim">{labels[index]}</dt>
         <dd className="mt-1 text-xl font-semibold tabular-nums">{value}</dd>
@@ -121,5 +126,6 @@ export default function SnapshotSalesView({ data }: { data: SalesSnapshot }) {
         </tr>)}</tbody>
       </table>
     </div> : <p className="px-4 pb-4 text-sm text-ct-dim">Nenhum código encontrado.</p>}
+    </>}
   </section>;
 }

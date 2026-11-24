@@ -7,6 +7,8 @@ import type { Funnel } from '@/lib/quiz/types';
 import type { Layer, InleadStep } from '@/lib/quiz/layers/types';
 import type { ProjectPage } from './project-attachment';
 
+import { importControlLabel, isHiddenImportElement } from './import-markup';
+
 type Value = string | number | boolean | null | Value[] | { [key:string]:Value };
 type Ast = {type:string; [key:string]:unknown};
 const node=(value:unknown):Ast|undefined=>value && typeof value==='object' && 'type' in value ? value as Ast : undefined;
@@ -46,7 +48,7 @@ function isElement(n:AnyNode):n is Element { return n.type==='tag'; }
 const allowedInline=new Set(['strong','b','em','i','u','br','span']);
 function inline(n:AnyNode,vars:Record<string,Value>):string {
   if(n.type==='text')return escape(substitute(n.data,vars));
-  if(!isElement(n))return '';
+  if(!isElement(n) || isHiddenImportElement(n))return '';
   const tag=n.name.toLowerCase();if(['script','style','iframe','svg'].includes(tag))return '';
   if(tag==='br')return '<br>';
   const inner=n.children.map(child=>inline(child,vars)).join('');
@@ -73,7 +75,7 @@ function staticJsx(source:string):string {
     if(!/^[a-z][a-z0-9-]*$/.test(tag))return children;
     if(['script','iframe','object','embed','style'].includes(tag))return '';
     const attrs:string[]=[];
-    if(Array.isArray(opening?.attributes))for(const attribute of opening.attributes){const a=node(attribute),key=node(a?.name),val=node(a?.value);if(a?.type!=='JSXAttribute'||typeof key?.name!=='string'||!['href','src','alt','type','name','placeholder','required'].includes(key.name))continue;if(!val&&key.name==='required'){attrs.push('required');continue;}if(val?.type==='StringLiteral')attrs.push(`${key.name}="${escape(String(val.value))}"`);}
+    if(Array.isArray(opening?.attributes))for(const attribute of opening.attributes){const a=node(attribute),key=node(a?.name),val=node(a?.value);if(a?.type!=='JSXAttribute'||typeof key?.name!=='string'||!['href','src','alt','type','name','placeholder','required','aria-label','title','hidden'].includes(key.name))continue;if(!val&&(key.name==='required'||key.name==='hidden')){attrs.push(key.name);continue;}if(val?.type==='StringLiteral')attrs.push(`${key.name}="${escape(String(val.value))}"`);}
     return `<${tag}${attrs.length?' '+attrs.join(' '):''}>${children}</${tag}>`;
   };
   return `<body>${render(jsx)}</body>`;
@@ -88,7 +90,7 @@ export function convertProjectPage(page:ProjectPage, options?:{prefix?:string; d
   const visit=(n:AnyNode,scope:Record<string,Value>,depth=0):void=>{
     if(depth>80 || !isElement(n))return;
     const tag=n.name.toLowerCase(),a=n.attribs||{};
-    if(['script','style','iframe','svg','noscript','helmet','head','template'].includes(tag))return;
+    if(['script','style','iframe','svg','noscript','helmet','head','template'].includes(tag) || isHiddenImportElement(n))return;
     if(tag==='sc-for'){
       const key=(a.list||'').match(/^\s*\{\{\s*([\w.]+)\s*\}\}\s*$/)?.[1];const items=key?scope[key]:undefined;
       if(Array.isArray(items)&&/^[\w]+$/.test(a.as||''))for(const item of items.slice(0,100))n.children.forEach(child=>visit(child,{...scope,[a.as]:item},depth+1));else unresolved=true;
@@ -96,10 +98,11 @@ export function convertProjectPage(page:ProjectPage, options?:{prefix?:string; d
     }
     if(tag==='img') {let src=a.src||'';if(src&&!/^https?:\/\//i.test(src))try{const resolved=new URL(src,`https://ct-import.invalid/${page.path}`);src=resolved.origin==='https://ct-import.invalid'?options?.assets?.[decodeURIComponent(resolved.pathname.slice(1))]||'':'';}catch{src='';}if(src)add('image',{image:{src}});else if(a.src)unresolved=true;return;}
     if(tag==='a' || tag==='button') {
-      const label=DomUtils.textContent(n).replace(/\s+/g,' ').trim();const href=a.href||'';
+      const label=importControlLabel(n,value=>substitute(value,scope));
+      const href=substitute(a.href||'',scope).trim();
       let destination=/^https?:\/\//i.test(href)?href:'';
-      if(!destination && href && !href.startsWith('#'))try{const resolved=new URL(href,`https://ct-import.invalid/${page.path}`);if(resolved.origin==='https://ct-import.invalid')destination=options?.destinations?.[decodeURIComponent(resolved.pathname.slice(1))]||'';}catch{unresolved=true;}
-      if(label && destination) {add('button',{label:substitute(label,scope),destination,type:/^https?:/.test(destination)?'url':'step'});return;}
+      if(!destination && href && !href.startsWith('#'))try{const resolved=new URL(href,`https://ct-import.invalid/${page.path}`);if(resolved.origin==='https://ct-import.invalid'){const path=decodeURIComponent(resolved.pathname.slice(1));if(options?.destinations&&Object.hasOwn(options.destinations,path))destination=options.destinations[path];}}catch{unresolved=true;}
+      if(label && destination) {add('button',{label,destination,type:/^https?:/.test(destination)?'url':'step'});return;}
       if(tag==='button')unresolved=true;
     }
     if(['input','textarea','select'].includes(tag)) {const type=a.type||'text';if(['text','email','tel','number','textarea','date'].includes(type)||tag==='textarea')add('field',{name:a.name||`campo_${seq+1}`,type:tag==='textarea'?'textarea':type==='tel'?'phone':type,title:a.placeholder||a.name||'Campo',required:'required' in a});else unresolved=true;return;}
@@ -109,7 +112,7 @@ export function convertProjectPage(page:ProjectPage, options?:{prefix?:string; d
     }
     n.children.forEach(child=>visit(child,scope,depth+1));
   };
-  root.children.forEach(child=>visit(child,vars));
+  if(!isElement(root) || !isHiddenImportElement(root))root.children.forEach(child=>visit(child,vars));
   if(!layers.length)throw new Error('Não encontramos conteúdo compatível para criar blocos editáveis nesta página.');
   if(page.dynamic)warnings.push('Recursos dinâmicos e responsivos precisam de revisão. Dados literais foram convertidos sem executar scripts.');
   if(isJsx)warnings.push('A importação JSX inclui apenas marcação e textos estáticos. Componentes, lógica, estilos e dados dinâmicos precisam ser refeitos.');

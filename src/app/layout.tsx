@@ -33,7 +33,28 @@ export default function RootLayout({
     >
       <head>
         {/* aplica a aparência (claro/escuro/sistema) antes do paint — evita flash e texto cinza no dark */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var saved=localStorage.getItem('ctf-theme');var t=saved||'light';var d=document.documentElement;d.dataset.ctMode=localStorage.getItem('ct-workspace-theme')||saved||'dark';if(t==='system'){d.removeAttribute('data-theme');}else{d.setAttribute('data-theme',t);}}catch(e){}})();` }} />
+        <script dangerouslySetInnerHTML={{ __html: `
+          (() => {
+            const root = document.documentElement;
+            const workspaceKey = "ct-workspace-theme";
+            function applyWorkspaceTheme() {
+              const saved = localStorage.getItem(workspaceKey) || localStorage.getItem("ctf-theme");
+              root.dataset.ctMode = saved === "light" || saved === "system" ? saved : "dark";
+            }
+            try {
+              const publicTheme = localStorage.getItem("ctf-theme") || "light";
+              applyWorkspaceTheme();
+              if (publicTheme === "system") root.removeAttribute("data-theme");
+              else root.setAttribute("data-theme", publicTheme);
+            } catch {}
+            window.addEventListener("storage", event => {
+              if (event.key !== workspaceKey && event.key !== "ctf-theme" && event.key !== null) return;
+              try {
+                if (event.storageArea === localStorage) applyWorkspaceTheme();
+              } catch {}
+            });
+          })();
+        ` }} />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}

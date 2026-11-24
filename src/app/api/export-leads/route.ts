@@ -1,7 +1,7 @@
 import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { colunasDoFunil, type FunnelCol } from "@/lib/quiz/colunas";
+import { colunasDoFunil, incluirColunasHistoricas, incluirSessoesComRespostas, type FunnelCol } from "@/lib/quiz/colunas";
 
 /**
  * Export CSV das respostas — PADRÃO INLEAD.
@@ -56,9 +56,11 @@ export async function GET(request: Request) {
 
   // 1) estrutura do funil -> ordem e nome das colunas
   let cols: Col[] = [];
+  let typebot = false;
   if (slug) {
-    const { data: f } = await sb.from("funnels").select("steps").eq("slug", slug).maybeSingle();
-    cols = colunasDoFunil((f?.steps as Step[]) ?? []);
+    const { data: f } = await sb.from("funnels").select("steps,settings").eq("slug", slug).maybeSingle();
+    cols = colunasDoFunil((f?.steps as Step[]) ?? [], f?.settings);
+    typebot = f?.settings?.engine === "typebot";
   }
 
   // 2) sessões (a linha do CSV é a SESSÃO, não o lead)
@@ -73,9 +75,15 @@ export async function GET(request: Request) {
 
   // 3) respostas por sessão+lâmina
   const ansBy = new Map<string, Map<string, string>>();
-  let aq = sb.from("quiz_answers").select("session_id,step_id,answer").limit(100000);
+  let aq = sb.from("quiz_answers").select("session_id,step_id,question,answer,created_at").limit(100000);
   if (slug) aq = aq.eq("funnel_slug", slug);
+  if (typebot) {
+    if (from) aq = aq.gte("created_at", from);
+    if (to) aq = aq.lte("created_at", to);
+    aq = aq.order("id");
+  }
   const { data: answers } = await aq;
+  if (typebot) cols = incluirColunasHistoricas(cols, answers ?? []);
   for (const a of answers ?? []) {
     const sid = String(a.session_id ?? "");
     if (!sid) continue;
@@ -100,7 +108,8 @@ export async function GET(request: Request) {
   const header = ["code", "created_at", ...cols.map((c) => c.header), "tracking"];
   const lines = [header.map(esc).join(",")];
 
-  for (const s of sessions ?? []) {
+  const responseSessions = typebot ? incluirSessoesComRespostas(sessions ?? [], answers ?? []) : sessions ?? [];
+  for (const s of responseSessions) {
     const sid = String(s.session_id ?? "");
     const ans = ansBy.get(sid);
     const lead = leadBy.get(sid);
@@ -125,6 +134,7 @@ export async function GET(request: Request) {
       .map((k) => [k, (s as Record<string, unknown>)[k]] as const)
       .filter(([, v]) => v)
       .map(([k, v]) => `${k}: ${v}`);
+    if ("fromAnswer" in s && s.fromAnswer) track.push("origem_data: resposta");
     if (lead?.fbclid) track.push(`fbclid: ${lead.fbclid}`);
 
     lines.push([

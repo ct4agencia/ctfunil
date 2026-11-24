@@ -373,20 +373,22 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 
   // revealAt: botão de checkout só aparece após N segundos (pitch da VSL)
   const revealAt = Number(c.revealAt) || 0;
-  const simulatedSeconds = ctx.preview && c.revealClock === "video" ? ctx.previewVideoSeconds : undefined;
+  const usesVideoClock = c.revealClock === "video" && revealAt > 0;
+  const liveClock = useTempoVsl(!ctx.preview && usesVideoClock);
+  const videoSeconds = usesVideoClock ? (ctx.preview ? ctx.previewVideoSeconds : liveClock.segundos) : undefined;
   const showCountdown = !!c.countdown;
   const [reveal, setReveal] = useState(revealAt <= 0);
   const [remaining, setRemaining] = useState(revealAt);
   useEffect(() => {
-    if (reveal || simulatedSeconds !== undefined) return;
+    if (reveal || videoSeconds !== undefined) return;
     const t = setTimeout(() => setReveal(true), revealAt * 1000);
     return () => clearTimeout(t);
-  }, [reveal, revealAt, simulatedSeconds]);
+  }, [reveal, revealAt, videoSeconds]);
   useEffect(() => {
-    if (reveal || !showCountdown || simulatedSeconds !== undefined) return;
+    if (reveal || !showCountdown || videoSeconds !== undefined) return;
     const iv = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
     return () => clearInterval(iv);
-  }, [reveal, showCountdown, simulatedSeconds]);
+  }, [reveal, showCountdown, videoSeconds]);
 
   const onClick = () => {
     if (ctx.continueFrom) { ctx.continueFrom(layer, dest); return; }
@@ -396,9 +398,9 @@ function ButtonBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     ctx.navigate(dest);
   };
 
-  const visible = simulatedSeconds === undefined ? reveal : simulatedSeconds >= revealAt;
+  const visible = videoSeconds === undefined ? reveal : videoSeconds >= revealAt;
   if (!visible) {
-    const secondsLeft = simulatedSeconds === undefined ? remaining : Math.ceil(revealAt - simulatedSeconds);
+    const secondsLeft = videoSeconds === undefined ? remaining : Math.ceil(revealAt - videoSeconds);
     const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
     const ss = String(secondsLeft % 60).padStart(2, "0");
     const wait = c.waitText || "⏳ Assista o vídeo para liberar o acesso…";
@@ -637,12 +639,12 @@ function RankingBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
      Antes era `Date.now()` desde a montagem, e quem pausasse para atender o
      telefone via a posição despencar sozinha enquanto o vídeo estava parado. */
   const { segundos, fonte } = useTempoVsl();
-  const simulatedSeconds = ctx.previewVideoSeconds;
-  const elapsed = simulatedSeconds ?? segundos;
+  const videoSeconds = ctx.previewVideoSeconds;
+  const elapsed = videoSeconds ?? segundos;
 
   /* No construtor já nasce visível: o canvas existe para conferir layout, e
      obedecer o relógio o esconderia atrás de minutos de espera. */
-  const visivel = simulatedSeconds !== undefined ? elapsed >= revelarEm
+  const visivel = videoSeconds !== undefined ? elapsed >= revelarEm
     : !!ctx.preview || revelarEm <= 0 || (fonte !== "esperando" && elapsed >= revelarEm);
 
   /* A posição sai do tempo, não de um contador próprio: assim ela é sempre
@@ -968,6 +970,13 @@ function EmbedBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
   const html = layer.content.embedHtml || layer.content.html || layer.content.text || "";
   const ref = useRef<HTMLDivElement>(null);
   const [loadedPlayer, setLoadedPlayer] = useState<string>();
+  const playerFrame = useRef<HTMLIFrameElement>(null);
+  const focusPlayer = useRef(false);
+  useEffect(() => {
+    if (!focusPlayer.current || !playerFrame.current) return;
+    focusPlayer.current = false;
+    playerFrame.current.focus({ preventScroll: true });
+  }, [loadedPlayer]);
   const player = ctx.preview ? getVslIframeUrl(html) : undefined;
   useEffect(() => {
     const el = ref.current;
@@ -984,11 +993,14 @@ function EmbedBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
     const detach = attachVslWatch({ funnelSlug: ctx.funnelSlug, html, disabled: ctx.preview });
     return () => { el.innerHTML = ""; detach(); };
   }, [html, ctx.funnelSlug, ctx.preview]);
-  if (player && loadedPlayer === player) return <iframe title="Vídeo da campanha" src={player}
+  if (player && loadedPlayer === player) return <iframe ref={playerFrame} title="Vídeo da campanha" src={player}
     className="mx-auto aspect-video w-full rounded-2xl bg-black" sandbox="allow-scripts allow-same-origin"
     referrerPolicy="origin" allow="fullscreen; encrypted-media; autoplay" allowFullScreen />;
   if (player) return <div className="mx-auto grid aspect-video w-full place-items-center rounded-2xl bg-neutral-900 p-4 text-white">
-    <button type="button" onClick={() => setLoadedPlayer(player)} className="rounded-lg border border-white/40 px-4 py-2 text-sm font-semibold">
+    <button type="button" onClick={event => {
+      focusPlayer.current = document.activeElement === event.currentTarget;
+      setLoadedPlayer(player);
+    }} className="rounded-lg border border-white/40 px-4 py-2 text-sm font-semibold">
       <span aria-hidden="true">▶ </span>Carregar vídeo
     </button>
   </div>;
@@ -1727,9 +1739,12 @@ export function SliderHero({
 // ─────────────────────────── DISPATCHER ─────────────────────────────
 export function Block({ layer, ctx, question, indice = 0 }: { layer: Layer; ctx: LayersCtx; question: string; indice?: number }) {
   const edit = useContext(LayersEditContext);
-  if (!edit && ctx.preview && ctx.previewVideoSeconds !== undefined &&
-      (layer.type === "text" || layer.type === "image") && layer.content.revealClock === "video" &&
-      ctx.previewVideoSeconds < Number(layer.content.revealAt)) {
+  const revealAt = Number(layer.content.revealAt);
+  const usesVideoClock = !edit && (layer.type === "text" || layer.type === "image") &&
+    layer.content.revealClock === "video" && revealAt > 0;
+  const liveClock = useTempoVsl(!ctx.preview && usesVideoClock);
+  const videoSeconds = ctx.preview ? ctx.previewVideoSeconds : liveClock.segundos;
+  if (usesVideoClock && videoSeconds !== undefined && videoSeconds < revealAt) {
     return null;
   }
   const inner = ((): React.ReactNode => {

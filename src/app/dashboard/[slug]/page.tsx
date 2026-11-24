@@ -1,3 +1,6 @@
+import { libraryContext, libraryHref, type LibraryContextQuery } from "@/lib/quiz/library-context";
+import type { ReactNode } from "react";
+import { preserveReportOrigin, reportOrigin } from "@/lib/quiz/report-origin";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
@@ -6,26 +9,56 @@ import { getWorkspaceSnapshot } from "@/lib/workspace-real-data";
 import { WorkspaceFrame } from "@/components/workspace/WorkspaceFrame";
 import { notFound } from "next/navigation";
 import { hasPreviewFunnelDraft } from "@/lib/workspace-preview-vsl-drafts";
+import ReportDateRange from "@/components/dashboard/ReportDateRange";
+import type { DateRange } from "@/components/ui/WorkspaceDateRange";
 import SnapshotTimestamp from "@/components/dashboard/SnapshotTimestamp";
 import SnapshotQuizView from "@/components/dashboard/SnapshotQuizView";
 import SnapshotDiagnosisView from "@/components/dashboard/SnapshotDiagnosisView";
 import SnapshotVslView from "@/components/dashboard/SnapshotVslView";
 import PerformanceView from "@/components/dashboard/PerformanceView";
+import { requireAdmin } from "@/lib/quiz/admin-guard";
 import { funnelMetrics } from "@/lib/quiz/metrics";
 import { resolveFunnel } from "@/lib/quiz/funnels-db";
-import { PERIODOS, janelaDeChave, rotuloDoPeriodo, spYmd } from "@/lib/quiz/periodo";
+import { PERIODOS, civilRangeFromPeriod, janelaDeChave, parseCivilRange, rotuloDoPeriodo, spDateYmd, spYmd } from "@/lib/quiz/periodo";
 
 export const metadata: Metadata = { title: "Performance do funil · CTFUNNEL" };
 export const dynamic = "force-dynamic";
 
-async function SnapshotFunnelReport({ slug }: { slug: string }) {
+async function SnapshotFunnelReport({ slug, range, comparison, origin, responseFunnel, library }: {
+  slug: string; range: DateRange; comparison: string[]; origin: ReturnType<typeof reportOrigin>; responseFunnel?: string; library: URLSearchParams;
+}) {
   const snapshot = await getWorkspaceSnapshot();
   const funnel = snapshot.funnels.find(item => item.slug === slug);
   const metrics = snapshot.analytics.operacao.find(item => item.slug === slug);
   const video = snapshot.vsl.rows.find(item => item.slug === slug);
   const quiz = snapshot.quiz.quiz.filter(item => item.slug === slug);
   const diagnosis = snapshot.diagnosis.questions.filter(item => item.slug === slug);
-  if (!funnel || !metrics) notFound();
+  if (!funnel) notFound();
+  if (!metrics) {
+    const admin = await requireAdmin();
+    const published = admin.ok && await admin.supabase.from("funnels").select("name,steps,settings")
+      .eq("slug", slug).eq("status", "published").maybeSingle();
+    const live = admin.ok && published && !published.error && published.data
+      ? await funnelMetrics(slug, {
+        from: range.from ? janelaDeChave("dia", range.from).janela.from : undefined,
+        to: range.to ? janelaDeChave("dia", range.to).janela.to : undefined,
+      }, { client: admin.supabase, funnel: published.data })
+      : null;
+    const editorParams = new URLSearchParams({ editar: "1", ...Object.fromEntries(library) });
+    const liveDays = [...new Set([range.from, range.to, spYmd()].filter(Boolean))].sort();
+
+    return <WorkspaceFrame title="Desempenho" accountEmail={snapshot.accountEmail}>
+      <header className="ct-page-heading"><h1>{funnel.name}</h1><p>/{funnel.slug}</p></header>
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <Link className="ct-action-link" href={`/builder/${encodeURIComponent(slug)}?${editorParams}`}>Abrir construtor</Link>
+        <ReportDateRange days={liveDays} range={range} />
+      </div>
+      {live ? <PerformanceView m={live} /> : <section className="ct-panel space-y-3 p-5" aria-labelledby="report-pending-title">
+        <h2 id="report-pending-title" className="font-semibold">Indicadores indisponíveis</h2>
+        <p className="text-sm text-ct-dim">Não foi possível consultar os indicadores publicados deste funil.</p>
+      </section>}
+    </WorkspaceFrame>;
+  }
   const number = new Intl.NumberFormat("pt-BR");
   const summary = [
     ["Sessões", number.format(metrics.visitantes)],
@@ -35,17 +68,81 @@ async function SnapshotFunnelReport({ slug }: { slug: string }) {
     ["Taxa de conclusão", `${number.format(metrics.taxaConclusao)}%`],
     ["Score", number.format(metrics.score)],
   ];
+  const videoDays = snapshot.vsl.daily.filter(row => row.slug === slug);
+  const quizDays = snapshot.quiz.daily?.filter(row => row.slug === slug);
+  const diagnosisDays = snapshot.diagnosis.daily?.filter(row => row.slug === slug);
+  const leadDays = snapshot.leadsDaily?.rows.filter(row => row.slug === slug) ?? [];
+  const leadsCaptureDay = snapshot.leadsDaily ? spDateYmd(new Date(snapshot.leadsDaily.capturedAt)) : "";
+  const showLeadsPeriod = Boolean(leadsCaptureDay && range.from && range.to && leadDays.length);
+  const filteredLeads = showLeadsPeriod && range.from <= leadsCaptureDay
+    ? leadDays.reduce((total, row) => row.day >= range.from && row.day <= range.to ? total + row.leads : total, 0)
+    : undefined;
+  const series = [...videoDays, ...(quizDays ?? []), ...(diagnosisDays ?? []), ...leadDays];
+  const today = spYmd();
+  const days = Array.from(new Set([today, ...series.map(row => row.day).filter(day => day <= today)])).sort();
+  const availableFunnelSlugs = new Set(snapshot.analytics.operacao.map(row => row.slug));
+  const compared = [...new Set(comparison)].filter(item => availableFunnelSlugs.has(item));
+  const editorParams = new URLSearchParams(range.from ? { editar: "1", tab: "leads", ...range }
+    : (compared.length || origin) ? { editar: "1", tab: "leads" } : undefined);
+  for (const item of compared) editorParams.append("comparar", item);
+  preserveReportOrigin(editorParams, origin, responseFunnel, slug);
+  if (library.size) {
+    editorParams.set("editar", "1");
+    for (const [key, value] of library) editorParams.set(key, value);
+  }
+  const editorQuery = editorParams.size ? `?${editorParams}` : "";
+  const comparisonQuery = new URLSearchParams({ tab: "comparar" });
+  for (const item of compared) comparisonQuery.append("comparar", item);
+  const operationQuery = new URLSearchParams(comparisonQuery);
+  operationQuery.set("tab", "operacao");
+  const originQuery = new URLSearchParams();
+  if (origin) {
+    originQuery.set("tab", origin);
+    if ((origin === "quiz" || origin === "diagnostico") && responseFunnel === slug) originQuery.set("respFunil", slug);
+    if (range.from && range.to) {
+      const prefix = origin === "vsl" ? "vsl" : origin === "leads" ? "lead" : "resp";
+      originQuery.set(`${prefix}De`, range.from);
+      originQuery.set(`${prefix}Ate`, range.to);
+    }
+  }
+  const originLabels = {
+    vsl: "Voltar às VSLs",
+    quiz: "Voltar ao Quiz",
+    diagnostico: "Voltar ao Diagnóstico",
+    leads: "Voltar aos Leads no Analytics",
+  };
   const liveHref = funnel.status === "published" && funnel.domain ? `https://${funnel.domain}/${encodeURIComponent(slug)}` : null;
 
-  return <WorkspaceFrame title="Desempenho do funil">
+  function renderCapturedPanel(label: string, capturedAt: string, hasDaily: boolean, render: (period?: DateRange) => ReactNode) {
+    const captureDay = spDateYmd(new Date(capturedAt));
+    const activeRange = Boolean(range.from && range.to);
+    if (activeRange && hasDaily && range.from > captureDay) {
+      return <section className="ct-panel mt-4 p-4" aria-label={label}>
+        <h2 className="font-semibold">{label}</h2>
+        <p className="mt-1 text-sm text-ct-dim">O intervalo começa após a captura de <SnapshotTimestamp capturedAt={capturedAt} />.</p>
+      </section>;
+    }
+    const partial = activeRange && hasDaily && range.to > captureDay;
+    const period = hasDaily ? { from: range.from, to: partial ? captureDay : range.to } : undefined;
+    return <div className="mt-4" aria-label={label} role="group">
+      {partial && <p className="mb-2 text-xs text-ct-dim">Subtotal até a captura de <SnapshotTimestamp capturedAt={capturedAt} />.</p>}
+      {activeRange && !hasDaily && <p className="mb-2 text-xs text-ct-dim">Dados acumulados. Este painel não tem série diária para o funil.</p>}
+      {render(period)}
+    </div>;
+  }
+
+  return <WorkspaceFrame title="Desempenho do funil" accountEmail={snapshot.accountEmail}>
     <header className="ct-page-heading">
       <div><h1>{funnel.name}</h1><p>/{slug}</p></div>
       {liveHref && <a href={liveHref} target="_blank" rel="noreferrer" className="ct-action-link">Ver página publicada</a>}
     </header>
     <nav aria-label="Navegação do relatório" className="mb-4 flex flex-wrap gap-4 text-sm">
-      <Link className="text-ct-blue" href="/dashboard">Meus funis</Link>
-      <Link className="text-ct-blue" href="/analytics?tab=operacao">Operação no Analytics</Link>
-      {hasPreviewFunnelDraft(slug) && <Link className="text-ct-blue" href={`/builder/${encodeURIComponent(slug)}`}>Abrir cópia editável</Link>}
+      <Link className="text-ct-blue" href={libraryHref(library)}>Meus funis</Link>
+      <Link className="text-ct-blue" href={`/analytics?${operationQuery}`}>Operação no Analytics</Link>
+      {origin && <Link className="text-ct-blue" href={`/analytics?${originQuery}`}>{originLabels[origin]}</Link>}
+      {compared.length >= 2 && compared.includes(slug) && <Link className="text-ct-blue"
+        href={`/analytics?${comparisonQuery}`}>Voltar à comparação</Link>}
+      {hasPreviewFunnelDraft(slug) && <Link className="text-ct-blue" href={`/builder/${encodeURIComponent(slug)}${editorQuery}`}>Abrir cópia editável</Link>}
     </nav>
     <section className="ct-panel" aria-labelledby="funnel-summary">
       <header className="ct-section-heading"><div><h2 id="funnel-summary">Resumo acumulado</h2><p>Dados reais em modo de consulta · Captura de <SnapshotTimestamp capturedAt={snapshot.capturedAt} />.</p></div></header>
@@ -56,9 +153,30 @@ async function SnapshotFunnelReport({ slug }: { slug: string }) {
         </div>)}
       </dl>
     </section>
-    {video && <div className="mt-4"><SnapshotVslView data={{ ...snapshot.vsl, rows: [video], daily: snapshot.vsl.daily.filter(row => row.slug === slug) }} individual /></div>}
-    {quiz.length > 0 && <div className="mt-4"><SnapshotQuizView data={{ ...snapshot.quiz, quiz, daily: snapshot.quiz.daily?.filter(row => row.slug === slug) }} individual /></div>}
-    {diagnosis.length > 0 && <div className="mt-4"><SnapshotDiagnosisView data={{ ...snapshot.diagnosis, questions: diagnosis, daily: snapshot.diagnosis.daily?.filter(row => row.slug === slug) }} individual /></div>}
+    {series.length > 0 && <section className="ct-panel mt-4 flex flex-wrap items-center justify-between gap-3 p-4" aria-labelledby="report-period">
+      <div><h2 id="report-period" className="font-semibold">Período do relatório</h2>
+        <p className="text-sm text-ct-dim">Aplica-se aos painéis com série diária abaixo.</p></div>
+      <ReportDateRange days={days} range={range} />
+    </section>}
+    {snapshot.leadsDaily && showLeadsPeriod && <section aria-labelledby="leads-in-range" className="ct-panel mt-4 p-4">
+      <h2 id="leads-in-range" className="text-sm text-ct-dim">Leads no período</h2>
+      {filteredLeads === undefined
+        ? <p className="mt-1 text-sm">O intervalo começa após a captura diária.</p>
+        : <dl className="mt-1">
+          <dt className="sr-only">Total registrado na captura</dt>
+          <dd className="text-2xl font-semibold">{number.format(filteredLeads)}</dd>
+        </dl>}
+      <p className="mt-1 text-xs text-ct-dim">
+        {filteredLeads !== undefined && range.to > leadsCaptureDay ? "Subtotal até a captura diária de " : "Captura diária de "}
+        <SnapshotTimestamp capturedAt={snapshot.leadsDaily.capturedAt} />.
+      </p>
+    </section>}
+    {video && renderCapturedPanel("Progresso de vídeo", snapshot.vsl.captured_at, videoDays.length > 0, period =>
+      <SnapshotVslView data={{ ...snapshot.vsl, rows: [video], daily: videoDays }} individual reportRange={period} />)}
+    {quiz.length > 0 && renderCapturedPanel("Respostas do Quiz", snapshot.quiz.captured_at, Boolean(quizDays?.length), period =>
+      <SnapshotQuizView data={{ ...snapshot.quiz, quiz, daily: quizDays }} individual reportRange={period} />)}
+    {diagnosis.length > 0 && renderCapturedPanel("Capturas do Diagnóstico", snapshot.diagnosis.captured_at, Boolean(diagnosisDays?.length), period =>
+      <SnapshotDiagnosisView data={{ ...snapshot.diagnosis, questions: diagnosis, daily: diagnosisDays }} individual reportRange={period} />)}
   </WorkspaceFrame>;
 }
 
@@ -72,11 +190,18 @@ export default async function FunnelMetricsPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ p?: string; d?: string }>;
+  searchParams: Promise<LibraryContextQuery & { p?: string; d?: string; from?: string; to?: string; comparar?: string | string[]; origem?: string; respFunil?: string }>;
 }) {
   const { slug } = await params;
-  if (isRealDataPreview((await headers()).get("host"))) return <SnapshotFunnelReport slug={slug} />;
   const sp = await searchParams;
+  if (isRealDataPreview((await headers()).get("host"))) {
+    const selectedRange = sp.from === undefined && sp.to === undefined
+      ? civilRangeFromPeriod(sp.p, sp.d)
+      : parseCivilRange(sp.from, sp.to);
+    const range = selectedRange ?? { from: "", to: "" };
+    const comparison = typeof sp.comparar === "string" ? [sp.comparar] : sp.comparar ?? [];
+    return <SnapshotFunnelReport slug={slug} range={range} comparison={comparison} origin={reportOrigin(sp.origem)} responseFunnel={sp.respFunil} library={libraryContext(sp)} />;
+  }
   // O filtro é feito por LINK, não por estado no cliente: esta página é server
   // component e já é `force-dynamic`. Assim o período entra na URL (dá pra
   // salvar e compartilhar) e a tela não carrega JS nenhum pra isso.

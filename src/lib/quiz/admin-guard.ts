@@ -1,3 +1,4 @@
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -7,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
  * o proxy já bloqueia a rota, mas server actions com service_role não podem
  * depender só do matcher.
  */
-export async function requireAdmin(): Promise<{ ok: true } | { ok: false; error: string }> {
+export async function requireAdmin(): Promise<{ ok: true; user: User; supabase: Awaited<ReturnType<typeof createClient>> } | { ok: false; error: string }> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -23,7 +24,7 @@ export async function requireAdmin(): Promise<{ ok: true } | { ok: false; error:
       return { ok: false, error: "admin nao configurado" };
     }
     if (user.email?.toLowerCase() !== adminEmail) return { ok: false, error: "unauthorized" };
-    return { ok: true };
+    return { ok: true, user, supabase };
   } catch {
     return { ok: false, error: "unauthorized" };
   }

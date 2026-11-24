@@ -1,5 +1,6 @@
 "use client";
 
+import { normalizeSearchText } from "@/lib/text";
 import { ASSISTANT_STREAM_TYPE, readAssistantReply } from '@/lib/assistant/stream';
 import { StatefulButton } from "@/components/referencias/beui/motion/button/stateful";
 import { Button } from "@/components/referencias/beui/motion/button/base";
@@ -11,14 +12,15 @@ import WorkspaceMultiSelect from "@/components/ui/WorkspaceMultiSelect";
 import WorkspaceStatus from "@/components/ui/WorkspaceStatus";
 import ActiveTab from "@/components/ui/ActiveTab";
 import DeleteConfirmationIcon from "@/components/ui/DeleteConfirmationIcon";
-import { ChevronDown, FolderKanban, Layers, PanelsTopLeft, GitBranch, History, Plus, Paperclip, RefreshCw, Search, Send, Settings2, X } from "lucide-react";
-import { ActivityPill, WorkspaceFrame } from "@/components/workspace/WorkspaceFrame";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowDown, ArrowUp, ChevronDown, FolderKanban, Layers, PanelsTopLeft, GitBranch, PanelLeft, Pencil, KeyRound, MessageSquarePlus, Plus, Paperclip, RefreshCw, Search, Send, Settings2, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
+import { AccessOrb, ActivityPill, WorkspaceFrame } from "@/components/workspace/WorkspaceFrame";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import { buildAssistantRequest, MESSAGE_LIMIT, type AssistantMessage } from "@/lib/assistant/messages";
-import { ASSISTANT_SETTINGS_PATH, geminiKeyPattern, geminiModelPattern, readWorkspaceSettings, type ImportMode } from "@/lib/assistant/workspace-settings";
+import { assistantAttachments, assistantConversationStorageKey, ASSISTANT_SETTINGS_PATH, geminiKeyPattern, geminiModelPattern, readWorkspaceSettings, type ImportMode } from "@/lib/assistant/workspace-settings";
 import { attachmentContext, readProjectAttachment, type ProjectAttachment } from "@/lib/assistant/project-attachment";
 
 type ProjectType = "all" | "quiz" | "pages" | "plus";
@@ -123,7 +125,7 @@ function preferredPage(project:ProjectAttachment):string {
   return project.pages.find(page=>terms.length>0&&terms.every(term=>normalize(page.path).includes(term)))?.path || project.pages[0].path;
 }
 
-type ConversationMessage = AssistantMessage & { streamed?: boolean };
+type ConversationMessage = AssistantMessage & { streamed?: boolean; model?: string; feedback?: "up" | "down" };
 
 type AssistantConversation = {
   id: number;
@@ -132,26 +134,77 @@ type AssistantConversation = {
   apiMessages: AssistantMessage[];
   attachment: ProjectAttachment | null;
   selectedPage: string;
+  title?: string;
 };
 
-function conversationTitle(conversation: AssistantConversation) {
-  const title = conversation.messages[0]?.text || conversation.prompt || conversation.attachment?.name;
-  return title?.trim().split('\n')[0].slice(0, 80) || 'Nova conversa';
+function orderConversations<T extends { id: number }>(items: T[], order: number[]) {
+  const positions = new Map(order.map((id, index) => [id, index]));
+  return items.sort((left, right) =>
+    (positions.get(left.id) ?? -1) - (positions.get(right.id) ?? -1) || right.id - left.id
+  );
 }
 
-function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
+const CONVERSATION_TITLE_LIMIT = 60;
+
+function conversationTitle(conversation: AssistantConversation) {
+  if (conversation.title) return conversation.title;
+  const text = conversation.messages[0]?.text || conversation.prompt || conversation.attachment?.name || "";
+  const title = text.split("\n").map(line => line.replace(/\s+/g, " ").trim()).find(Boolean);
+  if (!title) return "Nova conversa";
+  return title.length > CONVERSATION_TITLE_LIMIT ? `${title.slice(0, CONVERSATION_TITLE_LIMIT - 1).trimEnd()}…` : title;
+}
+
+function newArchiveConversationId() {
+  const [upper, lower] = crypto.getRandomValues(new Uint32Array(2));
+  return ((upper & 0xfffff) * 0x100000000) + lower + 1;
+}
+
+async function updateConversationArchive(key: string, update: () => void) {
+  if (navigator.locks) await navigator.locks.request(key, update);
+  else update();
+}
+
+export function HeroPrompt({ avatarUrl, accountId }: { avatarUrl?: string; accountId?: string }) {
+  const router = useRouter();
+  const [openingReview, startReviewNavigation] = useTransition();
   const [prompt,setPrompt]=useState('');
   const [pendingMessage, setPendingMessage] = useState("");
+  const [regenerating, setRegenerating] = useState(false);
   const [sendCanceled, setSendCanceled] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
   const [checkingConfig, setCheckingConfig] = useState(true);
   const [configAttempt, setConfigAttempt] = useState(0);
+  const [configCheckFailed, setConfigCheckFailed] = useState(false);
+  const sessionRetryButton = useRef<HTMLButtonElement>(null);
   const activeRequest = useRef<AbortController | null>(null);
   const conversationsDialog = useRef<HTMLDialogElement>(null);
+  const conversationToggle = useRef<HTMLButtonElement>(null);
+  const [conversationRailOpen, setConversationRailOpen] = useState(true);
   const nextConversationId = useRef(1);
+  const archiveKey = accountId ? `ctfunil-assistant-history:${accountId}` : undefined;
+  const deletedArchiveKey = archiveKey ? `${archiveKey}:deleted` : undefined;
+  const [archiveReady, setArchiveReady] = useState(false);
+  const lastArchived = useRef(new Map<number, string>());
+
+  function allocateConversationId() {
+    if (!archiveKey) return nextConversationId.current++;
+    return newArchiveConversationId();
+  }
   const [conversationId, setConversationId] = useState(0);
+  const [conversationOrder, setConversationOrder] = useState<number[]>([]);
+  const draggedConversation = useRef<number | null>(null);
+  const [conversationDropTarget, setConversationDropTarget] = useState<number | null>(null);
   const [otherConversations, setOtherConversations] = useState<AssistantConversation[]>([]);
+  const [conversationTitleOverride, setConversationTitleOverride] = useState("");
+  const renameDialog = useRef<HTMLDialogElement>(null);
+  const renameInput = useRef<HTMLInputElement>(null);
+  const renameTarget = useRef<number>(0);
+  const [historyReady, setHistoryReady] = useState(false);
+  const privateHistoryInDemo = useRef(false);
+  const [historySaveFailed, setHistorySaveFailed] = useState(false);
   const clearDialog = useRef<HTMLDialogElement>(null);
+  const deleteTrigger = useRef<HTMLButtonElement>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; title: string } | null>(null);
   const composer = useRef<HTMLTextAreaElement>(null);
   const attachmentInput = useRef<HTMLInputElement>(null);
   const settingsHeading = useRef<HTMLHeadingElement>(null);
@@ -167,18 +220,75 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
   const [selectedPage,setSelectedPage]=useState('');
   const [reading,setReading]=useState(false);
   const [importMode, setImportMode] = useState<ImportMode>("design");
-  useEffect(() => { setImportMode(readWorkspaceSettings().importMode); }, []);
-  const [status,setStatus]=useState<{configured:boolean;model:string;modelValid:boolean}|null>(null);
+  const [preferences, setPreferences] = useState({ model: "", key: "", models: [] as string[] });
+  const [chatModel, setChatModel] = useState("");
+  useEffect(() => {
+    function refreshPreferences() {
+      const saved = readWorkspaceSettings();
+      setPreferences(current => current.model === saved.model && current.key === saved.key && current.models.join(",") === saved.models.join(",")
+        ? current : { model: saved.model, key: saved.key, models: saved.models });
+    }
+    setImportMode(readWorkspaceSettings().importMode);
+    refreshPreferences();
+    window.addEventListener("storage", refreshPreferences);
+    window.addEventListener("focus", refreshPreferences);
+    return () => {
+      window.removeEventListener("storage", refreshPreferences);
+      window.removeEventListener("focus", refreshPreferences);
+    };
+  }, []);
+  const [serverStatus, setServerStatus] = useState<{ model: string; modelValid: boolean; hasKey: boolean } | null>(null);
+  const defaultModel = geminiModelPattern.test(preferences.model) ? preferences.model : undefined;
+  const defaultId = defaultModel ?? (serverStatus?.modelValid ? serverStatus.model : "");
+  const modelChoices = [...new Set([defaultId, ...preferences.models].filter(Boolean))];
+  const picked = modelChoices.includes(chatModel) ? chatModel : "";
+  const customModel = picked && picked !== defaultId ? picked : defaultModel;
+  const customKey = geminiKeyPattern.test(preferences.key) ? preferences.key : undefined;
+  const requestModel = customModel ?? (!defaultId ? modelChoices[0] : undefined);
+  const modelValid = Boolean(requestModel || serverStatus?.modelValid);
+  const status = serverStatus && {
+    model: customModel ?? (defaultId || modelChoices[0] || serverStatus.model),
+    modelValid,
+    configured: modelValid && Boolean(customKey || serverStatus.hasKey),
+  };
+  const canChooseModel = !authRequired && Boolean(status) && modelChoices.length > 1;
   const [partialReply, setPartialReply] = useState('');
-  const [settings,setSettings]=useState(false),[busy,setBusy]=useState(false);
+  const [settings,setSettings]=useState(false),[working,setBusy]=useState(false);
+  const busy = working || openingReview;
   const [error, setError] = useState<{ message: string; send?: true } | null>(null);
-  const importing = busy && !pendingMessage;
-  const sending = busy && Boolean(pendingMessage);
+  const sending = busy && (Boolean(pendingMessage) || regenerating);
+  const importing = busy && !sending;
+  const [dictating, setDictating] = useState(false);
   const attachmentLocked = busy || reading;
-  const activityLabel = busy ? (partialReply ? "Recebendo resposta" : pendingMessage ? "Preparando resposta" : "Preparando importação") : "";
-  const currentConversation = { id: conversationId, prompt, messages, apiMessages, attachment, selectedPage };
-  const hasCurrentConversation = !!(messages.length || prompt.trim() || attachment);
-  const conversations = [currentConversation, ...otherConversations];
+
+  useEffect(() => {
+    if (authRequired) return;
+    function toggleConversations(event: KeyboardEvent) {
+      if (window.location.pathname !== "/ctfunil/assistente" || event.defaultPrevented || event.repeat ||
+          event.isComposing || event.altKey || event.shiftKey || !(event.ctrlKey || event.metaKey) ||
+          event.key.toLowerCase() !== "b" || clearDialog.current?.open || renameDialog.current?.open) return;
+      const dialog = conversationsDialog.current;
+      const toggle = conversationToggle.current;
+      if (dialog?.open) {
+        event.preventDefault();
+        dialog.close();
+      } else if (toggle?.getClientRects().length) {
+        event.preventDefault();
+        toggle.focus({ preventScroll: true });
+        setConversationRailOpen(open => !open);
+      } else if (dialog && !attachmentLocked) {
+        event.preventDefault();
+        dialog.showModal();
+      }
+    }
+    window.addEventListener("keydown", toggleConversations);
+    return () => window.removeEventListener("keydown", toggleConversations);
+  }, [attachmentLocked, authRequired]);
+
+  const activityLabel = busy ? (partialReply ? "Recebendo resposta" : regenerating ? "Refazendo resposta" : sending ? "Preparando resposta" : "Preparando importação") : "";
+  const currentConversation = { id: conversationId, prompt, messages, apiMessages, attachment, selectedPage, title: conversationTitleOverride };
+  const hasCurrentConversation = !!(messages.length || prompt.trim() || attachment || conversationTitleOverride);
+  const conversations = orderConversations([currentConversation, ...otherConversations], conversationOrder);
   const limit = attachment ? 1800 : MESSAGE_LIMIT;
   const configLabel = checkingConfig ? "Verificando…" : authRequired ? "Login necessário"
     : status?.configured ? "Configurado" : status?.modelValid === false ? "Modelo inválido"
@@ -217,7 +327,8 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
   }
 
   function retryConfig() {
-    setError(null);
+    if (checkingConfig) return;
+    setConfigCheckFailed(false);
     setCheckingConfig(true);
     setConfigAttempt(attempt => attempt + 1);
   }
@@ -225,15 +336,23 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
   const requireAssistantSession = useCallback(() => {
     activeRequest.current?.abort();
     setAuthRequired(true);
-    setStatus(null);
+    setArchiveReady(false);
+    if (archiveKey) {
+      setConversationId(newArchiveConversationId());
+      setConversationTitleOverride("");
+    }
+    setConfigCheckFailed(false);
+    assistantAttachments.clear();
+    setServerStatus(null);
     setOtherConversations([]);
+    setConversationOrder([]);
     setMessages([]);
     setApiMessages([]);
     setCopyState(null);
     setSendCanceled(false);
     setShowLatest(false);
     followThread.current = true;
-  }, []);
+  }, [archiveKey]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -246,27 +365,41 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
         }
         if (!response.ok) throw new Error();
         const configuration = await response.json();
+        if (typeof configuration?.model !== "string" || typeof configuration.modelValid !== "boolean" ||
+            typeof configuration.hasKey !== "boolean") throw new Error();
         if (!controller.signal.aborted) {
+          if (accountId && typeof configuration.accountId === "string" && configuration.accountId !== accountId) {
+            activeRequest.current?.abort();
+            window.location.reload();
+            return;
+          }
+          if (document.activeElement === sessionRetryButton.current) {
+            composer.current?.focus({ preventScroll: true });
+          }
           setAuthRequired(false);
-          const saved = readWorkspaceSettings();
-          const customModel = geminiModelPattern.test(saved.model);
-          const customKey = geminiKeyPattern.test(saved.key);
-          const modelValid = customModel || configuration.modelValid;
-          setStatus({
-            model: customModel ? saved.model : configuration.model,
-            modelValid,
-            configured: modelValid && (customKey || configuration.hasKey || configuration.configured),
-          });
+          setConfigCheckFailed(false);
+          setServerStatus({ model: configuration.model, modelValid: configuration.modelValid, hasKey: configuration.hasKey });
         }
       } catch {
-        if (!controller.signal.aborted) { setStatus(null); setError({ message: 'Não foi possível verificar a configuração.' }); }
+        if (!controller.signal.aborted) {
+          setConfigCheckFailed(true);
+          setServerStatus(null);
+        }
       } finally {
         if (!controller.signal.aborted) setCheckingConfig(false);
       }
     }
     void check();
     return () => controller.abort();
-  }, [configAttempt, requireAssistantSession]);
+  }, [accountId, configAttempt, requireAssistantSession]);
+
+  useEffect(() => {
+    function refreshSessionOnReturn() {
+      if (document.visibilityState === "visible") setConfigAttempt(attempt => attempt + 1);
+    }
+    document.addEventListener("visibilitychange", refreshSessionOnReturn);
+    return () => document.removeEventListener("visibilitychange", refreshSessionOnReturn);
+  }, []);
 
   useEffect(() => () => activeRequest.current?.abort(), []);
   useEffect(() => {
@@ -295,6 +428,94 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
     setShowLatest(false);
   }
 
+  useLayoutEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(assistantConversationStorageKey) || "null");
+      const sameOwner = saved?.owner === undefined || saved.owner === accountId;
+      privateHistoryInDemo.current = !accountId && !sameOwner;
+      const deleted = new Set<number>(deletedArchiveKey ? JSON.parse(localStorage.getItem(deletedArchiveKey) ?? "[]") : []);
+      if (sameOwner && Array.isArray(saved?.conversations)) {
+        const history = (saved.conversations as AssistantConversation[]).filter(item =>
+          Number.isSafeInteger(item?.id) && !deleted.has(item.id) && typeof item.prompt === "string" &&
+          Array.isArray(item.messages) && Array.isArray(item.apiMessages)
+        ).slice(0, 20).map(item => ({ ...item, attachment: null, selectedPage: "", ...assistantAttachments.get(item.id) }));
+        const active = history.find(item => item.id === saved.active);
+        if (active) {
+          setConversationId(active.id);
+          loadConversation(active);
+        }
+        setConversationOrder(history.map(item => item.id));
+        setOtherConversations(history.filter(item => item.id !== active?.id));
+        nextConversationId.current = Math.max(0, ...history.map(item => item.id)) + 1;
+        if (!active) setConversationId(allocateConversationId());
+      }
+    } catch {}
+    if (archiveKey) setConversationId(id => id || allocateConversationId());
+    setHistoryReady(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!historyReady || privateHistoryInDemo.current) return;
+    if (!authRequired) {
+      assistantAttachments.clear();
+      for (const item of [currentConversation, ...otherConversations]) {
+        if (item.attachment) assistantAttachments.set(item.id, { attachment: item.attachment, selectedPage: item.selectedPage });
+      }
+    }
+    const active = { id: conversationId, title: conversationTitleOverride, prompt, messages, apiMessages };
+    const items = [
+      ...(hasCurrentConversation ? [active] : []),
+      ...otherConversations.map(({ id, title, prompt, messages, apiMessages }) => ({ id, title, prompt, messages, apiMessages })),
+    ];
+    orderConversations(items, conversationOrder);
+    try {
+      sessionStorage.setItem(assistantConversationStorageKey, JSON.stringify({ owner: accountId, active: conversationId, conversations: items }));
+      setHistorySaveFailed(false);
+    } catch {
+      setHistorySaveFailed(true);
+    }
+  }, [historyReady, accountId, conversationId, conversationTitleOverride, prompt, messages, apiMessages, otherConversations, hasCurrentConversation, conversationOrder, attachment, selectedPage, authRequired]);
+
+  useEffect(() => {
+    if (!archiveKey || !deletedArchiveKey || !historyReady || !serverStatus || archiveReady || authRequired) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem(archiveKey) ?? "[]") as AssistantConversation[];
+      const deleted = new Set<number>(JSON.parse(localStorage.getItem(deletedArchiveKey) ?? "[]"));
+      const archived = saved.filter(item => Number.isSafeInteger(item?.id) && !deleted.has(item.id) && Array.isArray(item.messages) && item.messages.at(-1)?.role === "model")
+        .map(({ id, title, messages }) => ({ id, title, messages, prompt: "", attachment: null, selectedPage: "",
+          apiMessages: messages.map(({ role, text }) => ({ role, text })) }));
+      lastArchived.current = new Map(archived.map(({ id, title, messages }) => [id, JSON.stringify({ id, title, messages })]));
+      setOtherConversations(items => [...items, ...archived.filter(item => item.id !== conversationId && !items.some(existing => existing.id === item.id))].slice(0, 20));
+    } catch {}
+    setArchiveReady(true);
+  }, [archiveKey, deletedArchiveKey, archiveReady, authRequired, conversationId, historyReady, serverStatus]);
+
+  useEffect(() => {
+    if (!archiveKey || !deletedArchiveKey || !archiveReady || !serverStatus || authRequired) return;
+    const completed = [{ id: conversationId, title: conversationTitleOverride, messages },
+      ...otherConversations.map(({ id, title, messages }) => ({ id, title, messages }))]
+      .filter(item => item.messages.at(-1)?.role === "model");
+    const changed = completed.filter(item => lastArchived.current.get(item.id) !== JSON.stringify(item));
+    if (!changed.length) return;
+    let canceled = false;
+    void updateConversationArchive(archiveKey, () => {
+      if (canceled) return;
+      const saved = JSON.parse(localStorage.getItem(archiveKey) ?? "[]") as typeof completed;
+      // A tab that had already archived a conversation cannot recreate it after another tab removes it.
+      const deleted = new Set<number>(JSON.parse(localStorage.getItem(deletedArchiveKey) ?? "[]"));
+      const updates = changed.filter(item => !deleted.has(item.id) &&
+        (!lastArchived.current.has(item.id) || saved.some(existing => existing.id === item.id)));
+      if (updates.length) {
+        const next = [...updates, ...saved.filter(item => !deleted.has(item.id) && !updates.some(update => update.id === item.id))].slice(0, 20);
+        localStorage.setItem(archiveKey, JSON.stringify(next));
+      }
+      for (const item of changed) lastArchived.current.set(item.id, JSON.stringify(item));
+    }).catch(() => {
+      if (!canceled) setHistorySaveFailed(true);
+    });
+    return () => { canceled = true; };
+  }, [archiveKey, deletedArchiveKey, archiveReady, authRequired, conversationId, conversationTitleOverride, messages, otherConversations, serverStatus]);
+
   function loadConversation(conversation?: AssistantConversation) {
     followThread.current = true;
     setShowLatest(false);
@@ -302,16 +523,64 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
     setApiMessages(conversation?.apiMessages ?? []);
     setCopyState(null);
     setSendCanceled(false);
+    setConversationTitleOverride(conversation?.title ?? "");
     setPrompt(conversation?.prompt ?? '');
     setAttachment(conversation?.attachment ?? null);
     setSelectedPage(conversation?.selectedPage ?? '');
     setError(null);
   }
 
-  function clearConversation() {
-    loadConversation();
+  function openConversationRename(target: AssistantConversation) {
+    if (!renameInput.current || !renameDialog.current) return;
+    renameTarget.current = target.id;
+    renameInput.current.value = conversationTitle(target);
+    renameDialog.current.showModal();
+    renameInput.current.select();
+  }
+
+  function requestConversationRemoval(trigger: HTMLButtonElement, target?: AssistantConversation) {
+    deleteTrigger.current = trigger;
+    setDeleteTarget(target ? { id: target.id, title: conversationTitle(target) } : null);
+    clearDialog.current?.showModal();
+  }
+
+  async function confirmConversationRemoval() {
+    const id = deleteTarget?.id ?? conversationId;
+    if (archiveKey && deletedArchiveKey && lastArchived.current.has(id)) {
+      try {
+        await updateConversationArchive(archiveKey, () => {
+          const saved = JSON.parse(localStorage.getItem(archiveKey) ?? "[]") as { id: number }[];
+          const deleted = new Set<number>(JSON.parse(localStorage.getItem(deletedArchiveKey) ?? "[]"));
+          deleted.add(id);
+          localStorage.setItem(deletedArchiveKey, JSON.stringify([...deleted]));
+          localStorage.setItem(archiveKey, JSON.stringify(saved.filter(item => item.id !== id)));
+          lastArchived.current.delete(id);
+        });
+      } catch {
+        setHistorySaveFailed(true);
+        clearDialog.current?.close();
+        return;
+      }
+    }
+    setConversationOrder(order => order.filter(item => item !== id));
+    deleteTrigger.current = null;
+    if (deleteTarget) {
+      setOtherConversations(items => items.filter(item => item.id !== id));
+    } else {
+      setConversationId(allocateConversationId());
+      loadConversation();
+    }
     clearDialog.current?.close();
-    composer.current?.focus();
+  }
+
+  function restoreRemovalFocus() {
+    if (clearDialog.current?.open) return;
+    const trigger = deleteTrigger.current;
+    deleteTrigger.current = null;
+    setDeleteTarget(null);
+    if (trigger?.isConnected && !trigger.disabled) trigger.focus();
+    else if (conversationsDialog.current?.open) conversationsDialog.current.querySelector<HTMLButtonElement>('[aria-label="Fechar conversas"]')?.focus();
+    else composer.current?.focus();
   }
 
   function switchConversation(target?: AssistantConversation) {
@@ -319,31 +588,114 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
     const remaining = otherConversations.filter(item => item.id !== target?.id);
     if (hasCurrentConversation) remaining.unshift(currentConversation);
     setOtherConversations(remaining);
-    setConversationId(target?.id ?? nextConversationId.current++);
+    setConversationId(target?.id ?? allocateConversationId());
     loadConversation(target);
     conversationsDialog.current?.close();
     composer.current?.focus();
   }
 
+  function moveConversation(items: AssistantConversation[], from: number, to: number) {
+    if (from < 0 || to < 0 || to >= items.length || from === to) return;
+    const ids = items.map(item => item.id);
+    const [id] = ids.splice(from, 1);
+    ids.splice(to, 0, id);
+    setConversationOrder(ids);
+  }
+
+  function finishConversationDrag() {
+    draggedConversation.current = null;
+    setConversationDropTarget(null);
+  }
+
+  function renderConversationList(inDialog = false) {
+    const saved = conversations.filter(item => hasCurrentConversation || item.id !== conversationId);
+    if (!saved.length) return <p className="ct-chat-history-note">Nenhuma conversa salva neste navegador.</p>;
+    return <ul aria-label="Conversas salvas neste navegador" className={inDialog ? "ct-chat-conversation-list min-h-0 overscroll-contain" : "ct-chat-conversation-list"}>
+      {saved.map((conversation, index) => {
+        const title = conversationTitle(conversation);
+        const active = conversation.id === conversationId;
+        return <li key={conversation.id} data-drop-target={!inDialog && conversationDropTarget === conversation.id}
+          className="flex items-center gap-1 rounded-lg data-[drop-target=true]:outline data-[drop-target=true]:outline-ct-action"
+          onDragOver={event => {
+            if (inDialog || draggedConversation.current === null || draggedConversation.current === conversation.id) return;
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+            setConversationDropTarget(conversation.id);
+          }}
+          onDragLeave={event => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setConversationDropTarget(null);
+          }}
+          onDrop={event => {
+            if (inDialog || draggedConversation.current === null) return;
+            event.preventDefault();
+            moveConversation(saved, saved.findIndex(item => item.id === draggedConversation.current), index);
+            finishConversationDrag();
+          }}>
+          <button type="button" className="ct-chat-conversation min-w-0" aria-current={active ? "true" : undefined}
+            draggable={!inDialog && saved.length > 1 && !attachmentLocked}
+            onDragStart={event => {
+              draggedConversation.current = conversation.id;
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("application/x-ctfunil-conversation", String(conversation.id));
+            }}
+            onDragEnd={finishConversationDrag}
+            disabled={attachmentLocked} onClick={() => active && inDialog ? conversationsDialog.current?.close() : switchConversation(conversation)}>
+            <span>{title}</span>
+          </button>
+          {saved.length > 1 && <div role="group" aria-label={`Ordem de ${title}`} className="flex shrink-0">
+            {([[-1, "Mover para cima", ArrowUp], [1, "Mover para baixo", ArrowDown]] as const).map(([offset, label, Icon]) => {
+              const target = index + offset;
+              return <button type="button" key={offset} className="ct-icon-button aria-disabled:opacity-30"
+                aria-label={`${label} — ${title}`} aria-disabled={target < 0 || target >= saved.length}
+                onClick={() => moveConversation(saved, index, target)}><Icon size={14} aria-hidden="true" /></button>;
+            })}
+          </div>}
+          <button type="button" className="ct-icon-button" aria-haspopup="dialog"
+            aria-label={`Renomear conversa — ${title}`} title="Renomear conversa" disabled={attachmentLocked}
+            onClick={() => openConversationRename(conversation)}>
+            <Pencil size={15} aria-hidden="true" />
+          </button>
+          {!active && <button type="button" className="ct-icon-button" aria-haspopup="dialog"
+            aria-label={`Excluir conversa — ${title}`} title="Excluir conversa" disabled={attachmentLocked}
+            onClick={event => requestConversationRemoval(event.currentTarget, conversation)}>
+            <Trash2 size={15} aria-hidden="true" />
+          </button>}
+        </li>;
+      })}
+    </ul>;
+  }
+
   const submit = async () => {
     const text = prompt.trim();
-    if (!text || attachmentLocked || activeRequest.current || authRequired || !status?.configured || messages.length >= 18) return;
+    if (!text || dictating || attachmentLocked || activeRequest.current || authRequired || !status?.configured || messages.length >= 18) return;
     const selected = attachment?.pages.find(page => page.path === selectedPage)
       || (selectedPage === ALL_PAGES ? attachment?.pages.find(page => /\.html?$/i.test(page.path)) : undefined);
     const sentText = selected && attachment ? `${text.slice(0, 1800)}\n\n${attachmentContext(attachment, selected)}` : text;
     const userMessage = { role: 'user' as const, text: selected ? `${text}\nArquivo: ${selected.path}` : text };
-    const next = buildAssistantRequest(apiMessages, sentText);
+    await requestReply(buildAssistantRequest(apiMessages, sentText), userMessage);
+  };
+
+  const canRegenerate = messages.at(-1)?.role === "model" &&
+    apiMessages.at(-1)?.role === "model" && apiMessages.at(-2)?.role === "user";
+
+  function regenerateReply() {
+    if (!canRegenerate || dictating || attachmentLocked || activeRequest.current || authRequired || !status?.configured) return;
+    composer.current?.focus({ preventScroll: true });
+    void requestReply(apiMessages.slice(0, -1));
+  }
+
+  async function requestReply(next: AssistantMessage[], userMessage?: AssistantMessage) {
     const controller = new AbortController();
     activeRequest.current = controller;
-    setPendingMessage(userMessage.text);
+    setPendingMessage(userMessage?.text ?? "");
+    setRegenerating(!userMessage);
     setSendCanceled(false);
     setBusy(true);
     setError(null);
     try {
-      const saved = readWorkspaceSettings();
       const response = await fetch('/api/assistant', {
         method: 'POST', headers: { 'Content-Type': 'application/json', Accept: ASSISTANT_STREAM_TYPE },
-        body: JSON.stringify({ messages: next, model: geminiModelPattern.test(saved.model) ? saved.model : undefined, key: geminiKeyPattern.test(saved.key) ? saved.key : undefined }), signal: controller.signal,
+        body: JSON.stringify({ accountId, messages: next, model: requestModel, key: customKey }), signal: controller.signal,
       }).catch(() => {
         throw new Error('Não foi possível conectar ao assistente. Tente novamente.');
       });
@@ -361,20 +713,26 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
       if (controller.signal.aborted) return;
       const reply = { role: 'model' as const, text: received };
       setApiMessages([...next, reply]);
-      setMessages(previous => [...previous, userMessage, { ...reply, streamed }]);
-      setPrompt('');
+      const responseModel = response.headers.get('X-CTFunil-Model') ?? '';
+      const model = geminiModelPattern.test(responseModel) ? responseModel : undefined;
+      const completed = { ...reply, streamed, model };
+      setMessages(previous => userMessage
+        ? [...previous, userMessage, completed]
+        : [...previous.slice(0, -1), completed]);
+      if (userMessage) setPrompt("");
     } catch (error) {
-      if (!controller.signal.aborted) setError({ message: error instanceof Error ? error.message : 'Não foi possível enviar.', send: true });
+      if (!controller.signal.aborted) setError({ message: error instanceof Error ? error.message : 'Não foi possível enviar.', send: userMessage ? true : undefined });
     } finally {
       if (activeRequest.current === controller) {
         activeRequest.current = null;
         setPendingMessage('');
+        setRegenerating(false);
         setPartialReply('');
         setBusy(false);
         if (controller.signal.aborted) requestAnimationFrame(() => composer.current?.focus());
       }
     }
-  };
+  }
   function removeAttachment() {
     if (attachmentLocked || activeRequest.current) return;
     setAttachment(null);
@@ -404,59 +762,93 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
       }
       const id = crypto.randomUUID();
       await saveImportDraft({ id, funnel: result.funnel, warnings: result.warnings, source: page?.path || attachment.name, reviewed: false });
-      window.location.assign(`/importar/${id}`);
+      startReviewNavigation(() => router.push(`/importar/${id}`));
     } catch (error) {
       setError({ message: error instanceof Error ? error.message : "Não foi possível preparar a importação." });
+    } finally {
       setBusy(false);
     }
   };
-  return <div className="ct-assistant-shell">
-    <aside className="ct-assistant-rail" aria-label="Conversas do Assistente">
-      <button className="ct-action-link" type="button" disabled={attachmentLocked || !hasCurrentConversation || conversations.length >= 20} onClick={() => switchConversation()}><Plus size={16} aria-hidden="true" /> Nova conversa</button>
-      <h3>Conversas</h3>
-      <ul className="ct-chat-conversation-list">
-        {conversations.map(conversation => <li key={conversation.id}>
-          <button type="button" className="ct-chat-conversation" aria-current={conversation.id === conversationId ? "true" : undefined}
-            disabled={attachmentLocked} onClick={() => switchConversation(conversation)}>{conversationTitle(conversation)}</button>
-        </li>)}
-      </ul>
+  const assistantSettingsLink = <Link href={ASSISTANT_SETTINGS_PATH} className="ct-chat-config-link">
+    <Settings2 size={16} aria-hidden="true" /> Configurações da IA
+  </Link>;
+  return <div className="ct-assistant-shell" data-conversations-open={conversationRailOpen}>
+    <aside id="ct-assistant-conversation-rail" className="ct-assistant-rail" aria-label="Conversas do Assistente">
+      <button className="ct-chat-new-conversation" type="button" disabled={attachmentLocked || !hasCurrentConversation || conversations.length >= 20} onClick={() => switchConversation()}><MessageSquarePlus size={16} aria-hidden="true" /> Nova conversa</button>
+      <h3>{archiveKey ? "Histórico de conversas" : "Conversas desta sessão"}</h3>
+      {renderConversationList()}
+      <p className="ct-chat-history-note">{archiveKey ? "Histórico salvo neste navegador." : "Histórico disponível nesta sessão."}</p>
+      {assistantSettingsLink}
     </aside>
     <section id="assistente" className="ct-panel ct-composer scroll-mt-16" aria-labelledby="ctfunil-builder-title">
-    <dialog ref={clearDialog} className="ct-confirm ct-delete-modal-confirmation" aria-labelledby="assistant-clear-title" aria-describedby="assistant-clear-summary">
+    <dialog ref={renameDialog} className="ct-confirm" aria-labelledby="assistant-rename-title">
+      <h2 id="assistant-rename-title" className="font-semibold">Renomear conversa</h2>
+      <form className="mt-3" onSubmit={event => {
+        event.preventDefault();
+        const id = renameTarget.current;
+        const title = renameInput.current?.value.replace(/\s+/g, " ").trim().slice(0, CONVERSATION_TITLE_LIMIT) ?? "";
+        if (id === conversationId) setConversationTitleOverride(title);
+        else setOtherConversations(items => items.map(item => item.id === id ? { ...item, title } : item));
+        renameDialog.current?.close();
+      }}>
+        <label htmlFor="assistant-conversation-name" className="text-sm text-ct-dim">Nome da conversa</label>
+        <input ref={renameInput} id="assistant-conversation-name" autoFocus maxLength={CONVERSATION_TITLE_LIMIT}
+          className="mt-1 w-full rounded-md border border-ct-line bg-ct-raised px-2 py-1 text-sm" />
+        <div className="mt-5 flex justify-end gap-3">
+          <Button type="button" variant="secondary" size="sm" onClick={() => renameDialog.current?.close()}>Cancelar</Button>
+          <Button type="submit" size="sm">Salvar nome</Button>
+        </div>
+      </form>
+    </dialog>
+    <dialog ref={clearDialog} className="ct-confirm ct-delete-modal-confirmation" aria-labelledby="assistant-clear-title" aria-describedby="assistant-clear-summary" onClose={restoreRemovalFocus}>
       <div className="flex items-center gap-2">
         <DeleteConfirmationIcon />
-        <h2 id="assistant-clear-title" className="font-semibold">Limpar conversa?</h2>
+        <h2 id="assistant-clear-title" className="font-semibold">{deleteTarget ? "Excluir conversa?" : "Limpar conversa?"}</h2>
       </div>
-      <p id="assistant-clear-summary" className="mt-2 text-sm text-ct-dim">As mensagens, o texto em edição e o anexo atual serão removidos.</p>
+      <p id="assistant-clear-summary" className="mt-2 text-sm text-ct-dim">{deleteTarget ? `As mensagens e o rascunho de “${deleteTarget.title}” serão removidos.` : "As mensagens, o texto em edição e o anexo atual serão removidos."}</p>
       <div className="mt-5 flex justify-end gap-3">
         <Button type="button" variant="secondary" size="sm" className="ct-confirm-cancel" autoFocus onClick={() => clearDialog.current?.close()}>Cancelar</Button>
-        <button type="button" className="ct-confirm-delete" onClick={clearConversation}>Limpar conversa</button>
+        <button type="button" className="ct-confirm-delete" onClick={confirmConversationRemoval}>{deleteTarget ? "Excluir conversa" : "Limpar conversa"}</button>
       </div>
     </dialog>
-    <dialog ref={conversationsDialog} className="ct-confirm" aria-labelledby="assistant-conversations-title">
-      <div className="flex items-center justify-between gap-3">
-        <h2 id="assistant-conversations-title" className="font-semibold">Conversas desta sessão</h2>
+    <dialog id="assistant-conversations" ref={conversationsDialog} className="ct-confirm max-h-[calc(100dvh-1rem)] flex-col open:flex" aria-labelledby="assistant-conversations-title">
+      <div className="flex shrink-0 items-center justify-between gap-3">
+        <h2 id="assistant-conversations-title" className="font-semibold">{archiveKey ? "Histórico de conversas" : "Conversas desta sessão"}</h2>
         <button type="button" className="ct-icon-button" aria-label="Fechar conversas" autoFocus onClick={() => conversationsDialog.current?.close()}><X size={16} /></button>
       </div>
-      <ul className="ct-chat-conversation-list">
-        {conversations.map(conversation => <li key={conversation.id}>
-          <button type="button" className="ct-chat-conversation" aria-current={conversation.id === conversationId ? "true" : undefined}
-            onClick={() => conversation.id === conversationId ? conversationsDialog.current?.close() : switchConversation(conversation)}>
-            <span>{conversationTitle(conversation)}</span>
-            {conversation.id === conversationId && <small>Atual</small>}
-          </button>
-        </li>)}
-      </ul>
-      <button type="button" className="ct-confirm-cancel mt-3 inline-flex items-center gap-2"
-        disabled={!hasCurrentConversation || conversations.length >= 20} onClick={() => switchConversation()}><Plus size={16} aria-hidden="true" />Nova conversa</button>
-      {conversations.length >= 20 && <p className="mt-2 text-xs text-ct-dim">Limite de 20 conversas nesta sessão.</p>}
+      <div className="my-3 shrink-0 space-y-2">
+        <button type="button" className="ct-confirm-cancel inline-flex items-center gap-2"
+          disabled={!hasCurrentConversation || conversations.length >= 20} onClick={() => switchConversation()}><Plus size={16} aria-hidden="true" />Nova conversa</button>
+        {conversations.length >= 20 && <p className="text-xs text-ct-dim">Limite de 20 conversas nesta sessão.</p>}
+      </div>
+      {renderConversationList(true)}
+      <div className="mt-3 shrink-0 space-y-2">
+        <p className="ct-chat-history-note">{archiveKey ? "Histórico salvo neste navegador." : "Histórico disponível nesta sessão."}</p>
+        {assistantSettingsLink}
+      </div>
     </dialog>
-    <header className="ct-section-heading">
-      <div><h2 id="ctfunil-builder-title">Assistente de criação</h2><p>Planeje etapas, textos e fluxos com Gemini.</p></div>
+    <header className="ct-section-heading ct-assistant-header">
+      {!authRequired && <>
+        <button ref={conversationToggle} type="button" className="ct-icon-button ct-conversation-toggle" aria-label="Alternar painel de conversas"
+          aria-keyshortcuts="Control+B Meta+B" title="Alternar conversas (Ctrl+B / ⌘B)"
+          aria-controls="ct-assistant-conversation-rail" aria-expanded={conversationRailOpen}
+          onClick={() => setConversationRailOpen(open => !open)}><PanelLeft size={17} aria-hidden="true" /></button>
+        <button type="button" className="ct-icon-button ct-conversation-dialog-toggle" aria-label="Conversas" aria-haspopup="dialog" aria-controls="assistant-conversations" aria-keyshortcuts="Control+B Meta+B"
+          disabled={busy || reading} onClick={() => conversationsDialog.current?.showModal()}><PanelLeft size={17} aria-hidden="true" /></button>
+      </>}
+      <div className="min-w-0">
+        <h2 id="ctfunil-builder-title" tabIndex={-1} className="truncate"
+          title={hasCurrentConversation ? conversationTitle(currentConversation) : undefined}>
+          {hasCurrentConversation ? conversationTitle(currentConversation) : "Nova conversa"}
+        </h2>
+        <p className="ct-assistant-header-caption">
+          <span>Assistente</span>
+          {hasCurrentConversation && <button className="text-ct-blue underline" type="button"
+            disabled={attachmentLocked} aria-haspopup="dialog" onClick={() => openConversationRename(currentConversation)}>Renomear</button>}
+        </p>
+      </div>
       <div className="ct-chat-top-actions">
         <ChatParticipants avatarUrl={avatarUrl} model={status?.model} providerStatus={configLabel} signedOut={authRequired} />
-        {status && !authRequired && <button type="button" className="ct-icon-button" aria-label="Conversas" aria-haspopup="dialog"
-          disabled={busy || reading} onClick={() => conversationsDialog.current?.showModal()}><History size={17} aria-hidden="true" /></button>}
         <button type="button" onClick={event => settings ? closeSettings() : openSettings(event.currentTarget)} aria-expanded={settings} aria-controls="assistant-api-settings" aria-label="Configuração da API" title="Configuração da API" className="rounded-lg border border-ct-line p-2 text-ct-dim hover:bg-ct-raised"><Settings2 size={17} aria-hidden="true"/></button>
       </div>
     </header>
@@ -478,7 +870,39 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
         Verificar configuração
       </StatefulButton>}
     </section>
-    <div className="px-4 pt-4"><p className="text-xs text-ct-dim">Converse e analise arquivos de páginas e funis.</p>
+    <div className="px-4 pt-4">
+      <div role="status">
+        {historySaveFailed && !authRequired && <p className="mb-3 rounded-lg border border-ct-line bg-ct-raised px-3 py-2 text-sm text-ct-dim">
+          O navegador não conseguiu atualizar o histórico. As alterações podem se perder se você recarregar esta página.
+        </p>}
+      </div>
+      {!messages.length && !busy && !attachment && !authRequired && <section className="ct-chat-welcome" aria-labelledby="assistant-welcome-title">
+        <span aria-hidden="true"><AccessOrb /></span>
+        <h3 id="assistant-welcome-title">Como posso ajudar?</h3>
+        <p>Peça ajuda para criar um funil ou anexe um ZIP ou HTML para analisar ou importar uma página.</p>
+        <ul aria-label="Sugestões de pergunta" onFocus={event => {
+          if (!(event.target instanceof HTMLElement)) return;
+          const target = event.target;
+          const list = event.currentTarget;
+          const input = list.closest(".ct-composer")?.querySelector(".ct-chat-input");
+          requestAnimationFrame(() => {
+            if (document.activeElement !== target) return;
+            const bounds = target.getBoundingClientRect();
+            if (list.scrollWidth > list.clientWidth) {
+              const strip = list.getBoundingClientRect();
+              if (bounds.right > strip.right - 4) list.scrollLeft += bounds.right - strip.right + 4;
+              else if (bounds.left < strip.left + 4) list.scrollLeft += bounds.left - strip.left - 4;
+            }
+            if (!input || !window.matchMedia("(max-width: 359px)").matches) return;
+            const overlap = bounds.bottom - input.getBoundingClientRect().top + 8;
+            if (overlap > 0) window.scrollBy({ top: overlap, behavior: "instant" });
+          });
+        }}>
+          {quickPrompts.map(item => <li key={item}>
+            <button type="button" onClick={() => { setPrompt(item); composer.current?.focus(); }}>{item}</button>
+          </li>)}
+        </ul>
+      </section>}
       <p id="assistant-activity-status" role="status" className="sr-only">{activityLabel || (sendCanceled ? "Envio cancelado. Mensagem preservada." : "")}</p>
       {(messages.length > 0 || busy) && <div>
         <div ref={thread} className="ct-chat-thread" aria-label="Conversa" role="log" aria-live="polite" tabIndex={0} onScroll={trackThreadScroll}>
@@ -493,14 +917,32 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
             </ol>
           </details>}
           {message.role === 'model' ? <AssistantResponse text={message.text} /> : <p>{message.text}</p>}
-          {message.role === 'model' && <button type="button" onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(message.text);
-              setCopyState(index);
-            } catch {
-              setError({ message: 'Não foi possível copiar a resposta.' });
-            }
-          }}>{copyState === index ? 'Copiado' : 'Copiar resposta'}</button>}
+          {message.role === 'model' && typeof message.model === 'string' && geminiModelPattern.test(message.model) &&
+            <p className="mt-2 break-all text-xs text-ct-dim">Modelo <code>{message.model}</code></p>}
+          {message.role === 'model' && <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Ações da resposta">
+            <button type="button" className="min-h-11 px-2" onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(message.text);
+                setCopyState(index);
+              } catch {
+                setError({ message: 'Não foi possível copiar a resposta.' });
+              }
+            }}>{copyState === index ? 'Copiado' : 'Copiar resposta'}</button>
+            {index === messages.length - 1 && canRegenerate && <button type="button"
+              className="inline-flex min-h-11 items-center gap-2 px-2 disabled:opacity-50"
+              disabled={dictating || attachmentLocked || authRequired || !status?.configured} onClick={regenerateReply}>
+              <RefreshCw size={15} aria-hidden="true" /> Tentar de novo
+            </button>}
+            {([["up", "Útil", ThumbsUp], ["down", "Não foi útil", ThumbsDown]] as const).map(([value, label, Icon]) =>
+              <button key={value} type="button" aria-label={label} title={label} aria-pressed={message.feedback === value}
+                className="inline-grid size-11 place-items-center rounded-lg border border-ct-line aria-pressed:border-ct-action aria-pressed:bg-ct-selected"
+                onClick={() => setMessages(items => items.map((item, itemIndex) => itemIndex === index
+                  ? { ...item, feedback: item.feedback === value ? undefined : value }
+                  : item))}>
+                <Icon size={16} aria-hidden="true" />
+              </button>
+            )}
+          </div>}
         </article>)}
         {pendingMessage && <article className="ct-chat-message" data-role="user"><strong className="ct-chat-message-author"><ChatAvatar role="user" photo={avatarUrl} />Você</strong><p>{pendingMessage}</p></article>}
         {sending && <section aria-label="Atividade em andamento" aria-live="off"
@@ -523,15 +965,28 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
       </div>}
       {error&&<p id="assistant-error" role="alert" className="mt-3 text-xs text-red-400">{error.message}</p>}
       {authRequired && <div className="mt-3 space-y-2 text-xs text-ct-dim">
-        <p role="status">{checkingConfig ? "Verificando sessão…" : "Entre na sua conta para conversar."}</p>
+        <p role="status">{checkingConfig ? "Verificando sessão…" : configCheckFailed
+          ? "Não foi possível verificar a sessão. Tente novamente." : "Entre na sua conta para conversar."}</p>
         <p>Após entrar, volte a esta aba para continuar.</p>
         <div className="flex flex-wrap gap-x-4 gap-y-2">
-          <a className="text-ct-blue underline" href="/admin/login?next=%2Fctfunil%23assistente" target="_blank" rel="noopener noreferrer">Entrar no CTFunil em nova aba</a>
-          <button type="button" disabled={checkingConfig} className="text-ct-blue underline disabled:opacity-50" onClick={retryConfig}>Verificar sessão</button>
+          <a className="text-ct-blue underline" href="/admin/login?next=%2Fctfunil%2Fassistente" target="_blank" rel="noopener noreferrer">Entrar no CTFunil em nova aba</a>
+          <button ref={sessionRetryButton} type="button" aria-disabled={checkingConfig}
+            className="text-ct-blue underline aria-disabled:opacity-50" onClick={retryConfig}>Verificar sessão</button>
         </div>
       </div>}
-      {!authRequired && !checkingConfig && !status && <button type="button" className="mt-3 text-xs text-ct-blue underline" onClick={retryConfig}>Verificar configuração novamente</button>}
-      {!authRequired && !status?.configured&&status&&<p className="mt-3 text-xs text-ct-dim">Configure a API para começar. <Link className="text-ct-blue underline" href={ASSISTANT_SETTINGS_PATH}>Abrir configuração</Link></p>}
+      {!authRequired && !checkingConfig && !status && <div className="mt-3 space-y-2 text-xs">
+        <p role="alert" className="text-ct-dim">Não foi possível verificar a configuração.</p>
+        <button type="button" className="text-ct-blue underline" onClick={retryConfig}>Verificar configuração novamente</button>
+      </div>}
+      {!authRequired && status && !status.configured && <div className="mt-3 rounded-lg bg-ct-raised px-4 py-3">
+        <p className="flex items-center gap-2 text-[13px] font-medium">
+          <KeyRound size={16} className="shrink-0 text-ct-dim" aria-hidden="true" />
+          API de IA indisponível
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-ct-dim">
+          Configure a API para começar. <Link className="text-ct-blue underline" href={ASSISTANT_SETTINGS_PATH}>Configurações › API (IA)</Link>
+        </p>
+      </div>}
       {attachment&&<div className="mt-3 rounded-xl border border-ct-line bg-ct-raised p-3 text-sm"><div className="flex items-center justify-between gap-3"><strong className="break-all">{attachment.name}</strong><button type="button" aria-label="Remover arquivo" disabled={attachmentLocked} onClick={removeAttachment}><X size={16}/></button></div><p className="mt-1 text-xs text-ct-dim">{attachment.files.length} arquivos · {attachment.pages.length} páginas e componentes</p><div className="mt-3"><WorkspaceSelect searchable label="Página para análise" disabled={attachmentLocked} value={selectedPage} onChange={setSelectedPage} options={[...attachment.pages.map(page=>({value:page.path,label:page.title+' — '+page.path})),...(attachment.pages.filter(page=>/\.html?$/i.test(page.path)).length>1?[{value:ALL_PAGES,label:'Todas as páginas HTML como etapas'}]:[])]}/></div><ProjectFileTree paths={attachment.files} pages={attachmentLocked ? [] : attachment.pages.map(page => page.path)} selected={selectedPage} onSelect={setSelectedPage} /><div className="mt-3">
         <WorkspaceSelect label="Modo de importação" disabled={attachmentLocked} value={importMode}
           onChange={value => setImportMode(value === "blocks" ? "blocks" : "design")}
@@ -543,29 +998,39 @@ function HeroPrompt({ avatarUrl }: { avatarUrl?: string }) {
         className="mt-3 rounded-lg bg-ct-action px-3 text-xs font-semibold text-white disabled:opacity-50">
         Revisar importação
       </StatefulButton></div>}
+    </div>
+    <div className="ct-chat-input px-4 pb-4">
       <label className="sr-only" htmlFor="assistant-prompt">Mensagem para o assistente</label><textarea ref={composer} id="assistant-prompt" value={prompt} readOnly={!!pendingMessage} aria-describedby="assistant-prompt-help"
+        enterKeyHint="send"
         onKeyDown={event => {
-          if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && !event.nativeEvent.isComposing) {
-            event.preventDefault();
-            if (messages.length < 18) void submit();
-          }
-        }} onChange={event=>setPrompt(event.target.value)} maxLength={limit} className="mt-3 min-h-24 w-full resize-none rounded-xl border border-ct-line bg-ct-surface p-3 text-sm text-ct-ink outline-none focus-visible:ring-2 focus-visible:ring-ct-blue" placeholder="Descreva o que você quer criar…"/>
-      <p id="assistant-prompt-help" className="mt-1 text-xs text-ct-dim">{prompt.length.toLocaleString("pt-BR")} de {limit.toLocaleString("pt-BR")} caracteres · Ctrl ou ⌘ + Enter para enviar</p>
-      <div id="anexar-referencia" className="mt-3 flex scroll-mt-24 flex-wrap items-center justify-between gap-3"><label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-ct-line px-3 py-2 text-xs text-ct-dim hover:text-ct-blue focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ct-action"><Paperclip size={15} aria-hidden="true"/>{reading?'Lendo…':'Anexar ZIP ou HTML'}<input ref={attachmentInput} type="file" accept=".zip,.html,.htm,application/zip,text/html" className="sr-only" disabled={reading||busy} onChange={async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;setReading(true);setError(null);try{const project=await readProjectAttachment(file);setAttachment(project);setSelectedPage(preferredPage(project));if(!prompt.trim())setPrompt('Analise esta página e identifique o que é necessário para recriá-la no CTFunil.');}catch(error){setError({ message: error instanceof Error?error.message:'Não foi possível ler o arquivo.' });}finally{setReading(false);}}}/></label><div className="flex min-w-0 max-w-full flex-wrap items-center gap-2"><VoicePrompt disabled={busy || reading} onTranscript={text => setPrompt(current => [current.trim(), text].filter(Boolean).join(" ").slice(0, attachment ? 1800 : MESSAGE_LIMIT))} /><Button type="button" variant="ghost" size="icon" ripple title="Limpar conversa" aria-label="Limpar conversa" aria-haspopup="dialog" disabled={busy || reading || !(messages.length || prompt.trim() || attachment)} onClick={() => clearDialog.current?.showModal()} className="ct-icon-button rounded-lg border border-ct-line focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ct-action"><RefreshCw size={16} aria-hidden="true"/></Button><StatefulButton type="button" onClick={submit}
-        disabled={reading || importing || !prompt.trim() || authRequired || !status?.configured || messages.length >= 18}
+          if (event.key !== 'Enter' || event.shiftKey || event.altKey || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+          event.preventDefault();
+          if (!event.repeat) void submit();
+        }} onChange={event=>setPrompt(event.target.value)} maxLength={limit} className="ct-assistant-prompt mt-3 w-full resize-none rounded-xl border border-ct-line bg-ct-surface p-3 text-sm text-ct-ink outline-none focus-visible:ring-2 focus-visible:ring-ct-blue" placeholder="Descreva o que você quer criar…"/>
+      <p id="assistant-prompt-help" className="mt-1 text-xs text-ct-dim">{prompt.length.toLocaleString("pt-BR")} de {limit.toLocaleString("pt-BR")} caracteres · {dictating ? "Encerre o ditado para enviar" : "Enter para enviar · Shift + Enter para nova linha"}</p>
+      <div id="anexar-referencia" className="mt-3 flex scroll-mt-24 flex-wrap items-center justify-between gap-3"><label className="ct-chat-attachment inline-flex cursor-pointer items-center gap-2 rounded-lg border border-ct-line px-3 py-2 text-xs text-ct-dim hover:text-ct-blue focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ct-action" title="Anexar ZIP ou HTML"><Paperclip size={15} aria-hidden="true"/><span className="ct-chat-attachment-label">{reading?'Lendo…':'Anexar ZIP ou HTML'}</span><input ref={attachmentInput} type="file" accept=".zip,.html,.htm,application/zip,text/html" className="sr-only" disabled={reading||busy} onChange={async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;setReading(true);setError(null);try{const project=await readProjectAttachment(file);setAttachment(project);setSelectedPage(preferredPage(project));if(!prompt.trim())setPrompt('Analise esta página e identifique o que é necessário para recriá-la no CTFunil.');}catch(error){setError({ message: error instanceof Error?error.message:'Não foi possível ler o arquivo.' });}finally{setReading(false);}}}/></label>
+      {!authRequired && status?.modelValid && <div className="ct-chat-model">
+        {canChooseModel ? <WorkspaceSelect searchable className="ct-chat-model-select"
+          label="Modelo do chat" value={status.model} disabled={attachmentLocked} onChange={setChatModel}
+          options={modelChoices.map(value => ({ value, label: value }))} /> : <p className="truncate text-xs text-ct-dim" title={status.model}>
+          <span className="sr-only">Modelo do assistente </span><code>{status.model}</code>
+        </p>}
+      </div>}
+      <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">{!authRequired && <VoicePrompt key={conversationId} disabled={busy || reading} onListeningChange={setDictating} onTranscript={text => setPrompt(current => [current.trim(), text].filter(Boolean).join(" ").slice(0, attachment ? 1800 : MESSAGE_LIMIT))} />}<Button type="button" variant="ghost" size="icon" ripple title="Limpar conversa" aria-label="Limpar conversa" aria-haspopup="dialog" disabled={busy || reading || !(messages.length || prompt.trim() || attachment)} onClick={event => requestConversationRemoval(event.currentTarget)} className="ct-icon-button rounded-lg border border-ct-line focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ct-action"><RefreshCw size={16} aria-hidden="true"/></Button><StatefulButton type="button" onClick={submit}
+        disabled={dictating || reading || busy || !prompt.trim() || authRequired || !status?.configured || messages.length >= 18}
         state={sending ? "loading" : error?.send ? "error" : "idle"}
         aria-label={sending ? "Enviando…" : error?.send ? "Tentar enviar novamente" : "Enviar"}
         aria-describedby={error?.send ? "assistant-error" : undefined}
         loadingText="Enviando…" errorText="Tentar enviar novamente" icon={<Send size={15} aria-hidden="true" />}
         className="rounded-lg bg-ct-action px-4 text-sm font-semibold text-white disabled:opacity-50">
         Enviar
-      </StatefulButton>{pendingMessage && <button type="button" onClick={() => { activeRequest.current?.abort(); setSendCanceled(true); }} className="rounded-lg border border-ct-line px-3 py-2 text-xs">Cancelar envio</button>}</div></div>
+      </StatefulButton>{sending && <button type="button" onClick={() => { activeRequest.current?.abort(); setSendCanceled(true); }} className="rounded-lg border border-ct-line px-3 py-2 text-xs">Cancelar envio</button>}</div></div>
       {messages.length>=18&&<p className="mt-2 text-xs text-ct-dim">Abra Conversas para começar outra ou limpe esta conversa.</p>}
-    </div><div className="flex flex-wrap gap-2 p-4">{quickPrompts.map(item=><button key={item} type="button" disabled={busy} onClick={()=>{setPrompt(item);composer.current?.focus();}} className="rounded-full border border-ct-line bg-ct-surface px-3 py-1.5 text-xs text-ct-dim hover:border-ct-blue hover:text-ct-blue">{item}</button>)}</div>
+    </div>
   </section></div>;
 }
 
-export default function ProjectsWorkspace({ snapshot, avatarUrl }: { snapshot?: Project[]; avatarUrl?: string }) {
+export default function ProjectsWorkspace({ snapshot, avatarUrl, accountEmail, accountId }: { snapshot?: Project[]; avatarUrl?: string; accountEmail?: string; accountId?: string }) {
   const projects = snapshot ?? exampleProjects;
   const demo = !snapshot;
   const filters = demo ? productFilters : [...new Set(projects.map(project => project.product))]
@@ -574,40 +1039,52 @@ export default function ProjectsWorkspace({ snapshot, avatarUrl }: { snapshot?: 
   const [activeFilter, setActiveFilter] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [openProject, setOpenProject] = useState<string | null>(null);
+  const projectSearch = useRef<HTMLInputElement>(null);
+  const normalizedQuery = normalizeSearchText(query);
   const visibleProjects = useMemo(() => projects.filter((p) =>
     (activeTab === "all" || p.type === activeTab) &&
     (!activeFilter.length || activeFilter.some(filter => p.product === filter || p.kind.includes(filter))) &&
-    `${p.name} ${p.id}`.toLocaleLowerCase("pt-BR").includes(query.trim().toLocaleLowerCase("pt-BR"))
-  ), [projects, activeTab, activeFilter, query]);
+    normalizeSearchText(`${p.name} ${p.id}`).includes(normalizedQuery)
+  ), [projects, activeTab, activeFilter, normalizedQuery]);
   const stats = [
     { label: "Projetos", count: projects.length, icon: FolderKanban },
     { label: "Quizzes", count: projects.filter(p => p.type === "quiz").length, icon: GitBranch },
     { label: "Páginas", count: projects.filter(p => p.type === "pages").length, icon: PanelsTopLeft },
     { label: demo ? "Outros módulos" : "Demais funis", count: projects.filter(p => p.type === "plus").length, icon: Layers },
   ];
-  return <WorkspaceFrame title="Projetos" demo={demo}>
+  return <WorkspaceFrame title="Projetos" demo={demo} accountEmail={accountEmail}>
     <header className="ct-page-heading"><div><h1>Projetos</h1><p>{demo ? "Quizzes, páginas e referências da CT4 Educação." : "Funis da CT4 Educação em modo de consulta."}</p></div>
       <Link className="ct-action-link" href="/dashboard">Abrir meus funis</Link></header>
     <div className="ct-metrics">{stats.map(({ label, count, icon: Icon }) => <div className="ct-metric" key={label}>
       <div><span>{label}</span><Icon size={17} /></div><strong>{count}</strong>
     </div>)}</div>
     <section id="biblioteca" className="ct-panel">
-      <header className="ct-section-heading"><div><h2>Biblioteca de projetos</h2><p>{visibleProjects.length} de {projects.length} projetos</p></div>
-        <label className="ct-search"><Search size={15}/><input value={query} onChange={e => setQuery(e.target.value)} aria-label="Buscar projeto" placeholder="Buscar projeto" /></label></header>
+      <header className="ct-section-heading"><div><h2>Biblioteca de projetos</h2><p role="status">{visibleProjects.length} de {projects.length} projetos</p></div>
+        <label className="ct-search"><Search size={15}/><input ref={projectSearch} value={query} onChange={e => setQuery(e.target.value)} aria-label="Buscar projeto" placeholder="Buscar projeto" /></label></header>
       <div className="ct-filters"><div className="ct-segments">{projectTabs.map(t =>
         <button key={t.id} aria-pressed={activeTab === t.id} onClick={() => { setActiveTab(t.id); setActiveFilter([]); }}>{activeTab === t.id && <ActiveTab group="projects-tabs" />}<span>{t.id === "plus" ? (demo ? "Outros" : "Demais funis") : t.label}</span></button>
       )}</div><WorkspaceMultiSelect label={demo ? "Produtos" : "Nichos"} emptyLabel="Todos" values={activeFilter} onChange={setActiveFilter}
         options={filters.map(value => ({ value, label: value }))} /></div>
-      <div className="ct-projects">
+      <div className="ct-projects" data-editor-actions={visibleProjects.some(project => Boolean(project.editorHref)) || undefined}>
         <div className="ct-project-row ct-project-head" aria-hidden="true"><span>Projeto</span><span>{demo ? "Produto" : "Nicho"}</span><span>Status</span><span>Atualização</span><span/></div>
-        {visibleProjects.map(p => <div key={p.id}><button type="button" className="ct-project-row" aria-expanded={openProject === p.id} aria-controls={`project-detail-${p.id}`} onClick={() => setOpenProject(openProject === p.id ? null : p.id)}>
+        {visibleProjects.map(p => <div key={p.id}><div className="ct-project-entry"><button type="button" className="ct-project-row" aria-expanded={openProject === p.id} aria-controls={`project-detail-${p.id}`} onClick={() => setOpenProject(openProject === p.id ? null : p.id)}>
           <span className="ct-project-name"><span className="ct-project-icon">{p.type === "quiz" ? <GitBranch size={17}/> : p.type === "pages" ? <PanelsTopLeft size={17}/> : <Layers size={17}/>}</span>
             <span><strong>{p.name}</strong><small>{p.kind}</small></span></span>
           <span className="ct-project-product">{p.product}</span><span><WorkspaceStatus status={p.status} /></span><span className="ct-project-date">{p.updated}</span><ChevronDown size={15}/></button>
-          <div id={`project-detail-${p.id}`} className="ct-project-disclosure" data-expanded={openProject === p.id} inert={openProject !== p.id}><div><p className="ct-project-detail">{p.preview} · {p.metric} · {p.updated}{p.editorHref && <> · <Link href={p.editorHref} className="font-semibold text-ct-blue underline">Abrir editor</Link></>}{p.reportHref && <> · <Link href={p.reportHref} className="text-ct-blue underline">Ver relatório</Link></>}</p></div></div></div>)}
-        {!visibleProjects.length && <p className="ct-empty">Nenhum projeto corresponde aos filtros.</p>}
+          {p.editorHref && <Link href={p.editorHref} className="ct-project-editor" aria-label={`Abrir editor de ${p.name}`}>Editar</Link>}
+          </div>
+          <div id={`project-detail-${p.id}`} className="ct-project-disclosure" data-expanded={openProject === p.id} inert={openProject !== p.id}><div><p className="ct-project-detail">{p.preview} · {p.metric} · {p.updated}{p.reportHref && <> · <Link href={p.reportHref} className="text-ct-blue underline">Ver relatório</Link></>}</p></div></div></div>)}
+        {!visibleProjects.length && <div className="ct-empty">
+          <p>Nenhum projeto corresponde aos filtros.</p>
+          {(normalizedQuery || activeFilter.length > 0) && <button type="button"
+            className="mt-2 min-h-11 text-ct-blue underline" onClick={() => {
+              setQuery("");
+              setActiveFilter([]);
+              projectSearch.current?.focus();
+            }}>Limpar filtros</button>}
+        </div>}
       </div>
     </section>
-    <HeroPrompt avatarUrl={avatarUrl} />
+    <HeroPrompt key={accountId} accountId={accountId} avatarUrl={avatarUrl} />
   </WorkspaceFrame>;
 }

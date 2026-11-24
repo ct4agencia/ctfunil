@@ -182,7 +182,7 @@ html[data-ct-mode="light"] .ct-workspace { color-scheme: light; }
 .ct-voice-prompt span { font-size: .75rem; color: var(--ct-dim); }
 .ct-voice-prompt [aria-pressed=true] { background: var(--ct-selected); color: var(--ct-blue-ink); }
 @media (prefers-reduced-motion: no-preference) {
-  .ct-voice-prompt [aria-pressed=true] { animation: ct-mic-pulse 1600ms ease-in-out infinite alternate; }
+  .ct-voice-prompt [aria-pressed=true]:not([aria-disabled=true]) { animation: ct-mic-pulse 1600ms ease-in-out infinite alternate; }
 }
 @keyframes ct-mic-pulse { to { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ct-blue) 35%, transparent); } }
 
@@ -214,6 +214,13 @@ html[data-ct-mode="light"] .ct-workspace { color-scheme: light; }
 .ct-confirm-cancel { background: var(--ct-raised); }
 .ct-confirm-delete { background: #a52828; color: #fff; }
 .ct-confirm button:disabled { opacity: .55; }
+@media (forced-colors: active) {
+  .ct-confirm { border-color: CanvasText; }
+  .ct-confirm :is(.ct-confirm-cancel, .ct-confirm-delete) { border: 1px solid ButtonText; }
+  .ct-confirm button:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+  .ct-confirm button:disabled { border-color: GrayText; opacity: 1; }
+  .ct-confirm[open] .ct-delete-confirmation-lid { animation: none; }
+}
 @media (prefers-reduced-motion: no-preference) { .ct-notice { animation: ct-command-open 220ms ease-out both; } }
 
 .ct-file-tree { margin-top: .625rem; color: var(--ct-dim); font-size: .75rem; }
@@ -401,7 +408,7 @@ html[data-ct-mode=light] .ct-chat-code :is(.hljs-number, .hljs-literal, .hljs-at
 
 .ct-voice-prompt button { position: relative; }
 @media (prefers-reduced-motion: no-preference) {
-  .ct-voice-prompt button[aria-pressed=true]::after {
+  .ct-voice-prompt button[aria-pressed=true]:not([aria-disabled=true])::after {
     content: "";
     position: absolute;
     inset: -2px;
@@ -656,8 +663,9 @@ html[data-ct-mode=light] .ct-chat-code :is(.hljs-number, .hljs-literal, .hljs-at
   .ct-typebot-editor .ct-editor-top .ct-wordmark > span:last-child { display: none; }
   .ct-typebot-editor .ct-editor-top .ct-top-tools { min-width: 0; gap: .375rem; }
   .ct-typebot-toolbar { padding-inline: .75rem; }
+  .ct-typebot-editor .ct-typebot-toolbar :is(a, button) { min-height: 44px; }
   .ct-typebot-toolbar > nav { width: 100%; }
-  .ct-typebot-toolbar > nav > button { flex: 1; min-height: 2.75rem; padding-inline: .375rem; }
+  .ct-typebot-toolbar > nav > button { flex: 1; padding-inline: .375rem; }
 }
 
 .ct-date-wheel { display: none; min-width: 0; }

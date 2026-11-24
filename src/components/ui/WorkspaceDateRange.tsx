@@ -27,9 +27,11 @@ export function calendarPresetStart(min: string, max: string, days: number) {
   return key < min ? min : key;
 }
 
-export default function WorkspaceDateRange({ days, value, onChange, label }: {
+export default function WorkspaceDateRange({ days, value, onChange, label, placeholder, allowEarlierDates = false }: {
   days: string[];
   label?: string;
+  placeholder?: string;
+  allowEarlierDates?: boolean;
   value: DateRange;
   onChange: (range: DateRange) => void;
 }) {
@@ -42,13 +44,13 @@ export default function WorkspaceDateRange({ days, value, onChange, label }: {
   const max = days.at(-1);
   if (!min || !max) return null;
 
-  const from = value.from && value.from >= min && value.from <= max ? value.from : min;
+  const from = value.from && (allowEarlierDates || value.from >= min) && value.from <= max ? value.from : min;
   const to = value.to && value.to >= from && value.to <= max ? value.to : max;
-  const week = calendarPresetStart(min, max, 7);
-  const threeDays = calendarPresetStart(min, max, 3);
+  const week = calendarPresetStart(allowEarlierDates ? "" : min, max, 7);
+  const threeDays = calendarPresetStart(allowEarlierDates ? "" : min, max, 3);
   const format = (day: string) => day.split("-").reverse().join("/");
   const wheelValue = endpoint === "from" ? from : to;
-  const wheelOptions = Array.from(new Set([...days, wheelValue]))
+  const wheelOptions = Array.from(new Set([...days, from, to, wheelValue]))
     .filter(day => endpoint === "from" ? day <= to : day >= from)
     .sort()
     .map(day => ({ value: day, label: format(day) }));
@@ -63,7 +65,7 @@ export default function WorkspaceDateRange({ days, value, onChange, label }: {
   }}>
     <summary ref={element => { summary.current = element; }} aria-controls={id}>
       <CalendarDays size={16} aria-hidden="true" />
-      <span>{label && <>{label} · </>}{format(from)} até {format(to)}</span>
+      <span>{placeholder && !value.from && !value.to ? placeholder : <>{label && <>{label} · </>}{format(from)} até {format(to)}</>}</span>
       <ChevronDown size={14} aria-hidden="true" />
     </summary>
     <div id={id} className="ct-date-panel">
@@ -72,8 +74,8 @@ export default function WorkspaceDateRange({ days, value, onChange, label }: {
         <button type="button" onClick={() => choosePreset(threeDays)} aria-pressed={threeDays !== week && from === threeDays && to === max} disabled={threeDays === week}>Últimos 3 dias</button>
       </div>
       <div className="ct-date-fields">
-        <label>Data inicial<input type="date" value={from} min={min} max={to}
-          onChange={event => { const next = event.target.value; if (next >= min && next <= to) onChange({ from: next, to }); }} /></label>
+        <label>Data inicial<input type="date" value={from} min={allowEarlierDates ? undefined : min} max={to}
+          onChange={event => { const next = event.target.value; if (next && (allowEarlierDates || next >= min) && next <= to) onChange({ from: next, to }); }} /></label>
         <label>Data final<input type="date" value={to} min={from} max={max}
           onChange={event => { const next = event.target.value; if (next >= from && next <= max) onChange({ from, to: next }); }} /></label>
       </div>

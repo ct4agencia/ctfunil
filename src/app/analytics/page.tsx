@@ -4,6 +4,7 @@ import { isRealDataPreview, isWorkspacePreview } from "@/lib/workspace-preview";
 import { previewAnalytics } from "@/lib/workspace-preview-data";
 import type { Metadata } from "next";
 import GlobalAnalyticsView from "@/components/dashboard/GlobalAnalyticsView";
+import { hasPreviewFunnelDraft } from "@/lib/workspace-preview-vsl-drafts";
 import { globalAnalytics } from "@/lib/quiz/metrics";
 
 export const metadata: Metadata = { title: "Analytics · CTFUNNEL" };
@@ -15,7 +16,7 @@ export default async function AnalyticsPage() {
   const host = (await headers()).get("host");
   if (isRealDataPreview(host)) {
     const snapshot = await getWorkspaceSnapshot();
-    return <GlobalAnalyticsView data={snapshot.analytics} preview snapshotAt={snapshot.capturedAt} attributionCapturedAt={snapshot.attributionCapturedAt} attributionDaily={snapshot.attributionDaily} adAccounts={snapshot.adAccounts} vslSnapshot={snapshot.vsl} salesSnapshot={snapshot.sales} quizSnapshot={snapshot.quiz} diagnosisSnapshot={snapshot.diagnosis} leadsDaily={snapshot.leadsDaily} />;
+    return <GlobalAnalyticsView accountEmail={snapshot.accountEmail} data={snapshot.analytics} preview snapshotAt={snapshot.capturedAt} attributionCapturedAt={snapshot.attributionCapturedAt} attributionDaily={snapshot.attributionDaily} adAccounts={snapshot.adAccounts} vslSnapshot={snapshot.vsl} salesSnapshot={snapshot.sales} quizSnapshot={snapshot.quiz} diagnosisSnapshot={snapshot.diagnosis} leadsDaily={snapshot.leadsDaily} editableSlugs={snapshot.funnels.map(funnel => funnel.slug).filter(hasPreviewFunnelDraft)} />;
   }
   if (isWorkspacePreview(host)) return <GlobalAnalyticsView data={previewAnalytics} preview />;
   const data = await globalAnalytics();

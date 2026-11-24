@@ -28,7 +28,7 @@ export async function readProjectAttachment(file:File):Promise<ProjectAttachment
   if (!/\.zip$/i.test(file.name) || bytes[0] !== 0x50 || bytes[1] !== 0x4b) throw new Error('Escolha um arquivo ZIP ou HTML válido.');
   const files:string[] = [], pages:ProjectPage[] = [], seen = new Set<string>(),assets:Record<string,string>={};
   const styles: Record<string, string> = {};
-  let total = 0, assetTotal=0, styleTotal=0;
+  let total = 0, imageTotal = 0, fontTotal = 0, styleTotal = 0;
   const unzip = new Unzip(entry => {
     const path = entry.name;
     if (!safePath(path) || seen.has(path.toLowerCase())) throw new Error('O ZIP contém caminhos inválidos ou duplicados.');
@@ -37,9 +37,10 @@ export async function readProjectAttachment(file:File):Promise<ProjectAttachment
     files.push(path);
     const isPage=/\.(?:html?|[jt]sx)$/i.test(path),isImage=/\.(?:png|jpe?g|gif|webp)$/i.test(path);
     const isStyle = /\.css$/i.test(path);
-    if (!isPage&&!isImage&&!isStyle) return;
+    const isFont = /\.woff2?$/i.test(path);
+    if (!isPage && !isImage && !isStyle && !isFont) return;
     if (isStyle && entry.originalSize != null && entry.originalSize > 200_000) return;
-    if(isImage && entry.originalSize!=null && entry.originalSize>750_000)return;
+    if((isImage || isFont) && entry.originalSize!=null && entry.originalSize>750_000)return;
     if (entry.originalSize != null && entry.originalSize > MAX_HTML) throw new Error('Cada página deve ter no máximo 2 MB.');
     let size=0; const chunks:Uint8Array[]=[];
     entry.ondata=(error,chunk,final)=>{
@@ -54,9 +55,12 @@ export async function readProjectAttachment(file:File):Promise<ProjectAttachment
             styles[path] = new TextDecoder().decode(data);
             styleTotal += size;
           }
-        } else if(assetTotal+size<=750_000){
-          const mime=data[0]===0x89&&data[1]===0x50&&data[2]===0x4e&&data[3]===0x47?'image/png':data[0]===0xff&&data[1]===0xd8&&data[2]===0xff?'image/jpeg':data[0]===0x47&&data[1]===0x49&&data[2]===0x46?'image/gif':data[0]===0x52&&data[1]===0x49&&data[2]===0x46&&data[8]===0x57&&data[9]===0x45&&data[10]===0x42&&data[11]===0x50?'image/webp':null;
-          if(mime){let binary='';for(let i=0;i<data.length;i+=8192)binary+=String.fromCharCode(...data.subarray(i,i+8192));assets[path]=`data:${mime};base64,${btoa(binary)}`;assetTotal+=size;}
+        } else if ((isFont ? fontTotal : imageTotal) + size <= 750_000) {
+          const signature = String.fromCharCode(...data.subarray(0, 4));
+          const fontMime = isFont && signature === 'wOF2' && data.length >= 48 ? 'font/woff2'
+            : isFont && signature === 'wOFF' && data.length >= 44 ? 'font/woff' : null;
+          const mime = isFont ? fontMime : data[0]===0x89&&data[1]===0x50&&data[2]===0x4e&&data[3]===0x47?'image/png':data[0]===0xff&&data[1]===0xd8&&data[2]===0xff?'image/jpeg':data[0]===0x47&&data[1]===0x49&&data[2]===0x46?'image/gif':data[0]===0x52&&data[1]===0x49&&data[2]===0x46&&data[8]===0x57&&data[9]===0x45&&data[10]===0x42&&data[11]===0x50?'image/webp':null;
+          if(mime){let binary='';for(let i=0;i<data.length;i+=8192)binary+=String.fromCharCode(...data.subarray(i,i+8192));assets[path]=`data:${mime};base64,${btoa(binary)}`;if (isFont) fontTotal += size; else imageTotal += size;}
         }
       }
     };

@@ -43,7 +43,7 @@ export default function AdAccountCard({ accounts, account, filter, creatives, to
         <WalletCards size={18} aria-hidden="true" /> Contas de anúncio
       </h2>
       <div className="flex flex-wrap gap-2">
-        <WorkspaceSelect searchable expandFromTrigger label="Conta de anúncio" value={filter} onChange={id => {
+        <WorkspaceSelect searchable label="Conta de anúncio" value={filter} onChange={id => {
           if (id === filter) return;
           setMessage("");
           onChange(id);
@@ -71,6 +71,6 @@ export default function AdAccountCard({ accounts, account, filter, creatives, to
       <p>{total - unverified} de {total} criativos têm conta confirmada na captura.</p>
       {unverified > 0 && <p>Sem conta confirmada por origem · {coverage.join(" · ")}</p>}
     </div>
-    <p role="status" className="sr-only">{message}</p>
+    <p role="status" className={message ? "text-sm text-ct-ink" : "sr-only"}>{message}</p>
   </section>;
 }

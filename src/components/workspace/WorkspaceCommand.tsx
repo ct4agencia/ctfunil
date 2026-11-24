@@ -12,9 +12,9 @@ const destinations = [
   { label: "Configurações", href: "/ctfunil/configuracoes", group: "Painel", terms: "geral preferências configurações" },
   { label: "Configurações do assistente", href: "/ctfunil/configuracoes?tab=assistente", group: "Assistente", terms: "api gemini chave modelo" },
   { label: "Configurações de importação", href: "/ctfunil/configuracoes?tab=importacao", group: "Editor", terms: "zip html design" },
-  { label: "Assistente de criação", href: "/ctfunil#assistente", group: "Assistente", terms: "chat gemini configuração ia" },
+  { label: "Assistente de criação", href: "/ctfunil/assistente", group: "Assistente", terms: "chat gemini configuração ia" },
   { label: "Laboratório do construtor", href: "/lab/construtor", group: "Editor", terms: "rascunho configurar design fluxo etapas" },
-  { label: "Anexar referência", href: "/ctfunil#anexar-referencia", group: "Assistente", terms: "importar arquivo zip html" },
+  { label: "Anexar referência", href: "/ctfunil/assistente#anexar-referencia", group: "Assistente", terms: "importar arquivo zip html" },
   { label: "Editar o exemplo da Sônia", href: "/lab/sonia?view=builder", group: "Editor", terms: "roleta componentes configurações" },
   ...sectionLinks.flatMap(section => section.tabs.map(([key, label]) => ({
     label, href: `${section.path}?tab=${key}`, group: section.group, terms: key,
@@ -33,6 +33,7 @@ export default function WorkspaceCommand() {
   const input = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const [expanded, setExpanded] = useState(false);
   const options = destinations.filter(({ label, group, terms }) =>
     normalize(query).split(/\s+/).every(term => normalize(`${label} ${group} ${terms}`).includes(term))
   );
@@ -41,12 +42,13 @@ export default function WorkspaceCommand() {
     setQuery("");
     setActive(0);
     if (!dialog.current?.open) dialog.current?.showModal();
+    setExpanded(true);
     input.current?.focus();
   }
 
   useEffect(() => {
     function onShortcut(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if (!event.defaultPrevented && !event.isComposing && !event.repeat && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         open();
       }
@@ -77,15 +79,18 @@ export default function WorkspaceCommand() {
     <button type="button" className="ct-icon-button ct-command-trigger" onClick={open} aria-label="Buscar no CTFunil" title="Buscar no CTFunil (Ctrl+K)">
       <Search size={17} aria-hidden="true" /><kbd aria-hidden="true">Ctrl K</kbd>
     </button>
-    <dialog className="ct-command" ref={dialog} aria-label="Buscar no CTFunil" onClick={event => {
+    <dialog className="ct-command" ref={dialog} aria-label="Buscar no CTFunil" onClose={() => setExpanded(false)} onClick={event => {
       if (event.target === dialog.current) dialog.current.close();
     }}>
       <div className="ct-command-surface">
         <div className="ct-command-input">
           <Search size={20} aria-hidden="true" />
-          <input ref={input} aria-label="Buscar telas e ações" aria-controls={listId} value={query}
+          <input ref={input} role="combobox" aria-autocomplete="list" aria-expanded={expanded}
+            aria-activedescendant={expanded && options[active] ? `${listId}-option-${active}` : undefined}
+            aria-label="Buscar telas e ações" aria-controls={listId} value={query}
             onChange={event => { setQuery(event.target.value); setActive(0); }}
             onKeyDown={event => {
+              if (event.nativeEvent.isComposing) return;
               if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
                 const delta = event.key === "ArrowDown" ? 1 : -1;
@@ -98,9 +103,10 @@ export default function WorkspaceCommand() {
             placeholder="Buscar telas e ações…" />
           <button type="button" className="ct-icon-button" onClick={() => dialog.current?.close()} aria-label="Fechar busca"><X size={17} /></button>
         </div>
-        <ul id={listId} ref={list}>
-          {options.map(({ href, label, group }, index) => <li key={href}>
-            <button type="button" data-active={index === active} onMouseEnter={() => setActive(index)} onClick={() => navigate(href)}>
+        <ul id={listId} ref={list} role="listbox" aria-label="Telas e ações encontradas">
+          {options.map(({ href, label, group }, index) => <li key={href} role="presentation">
+            <button type="button" role="option" tabIndex={-1} id={`${listId}-option-${index}`}
+              aria-selected={index === active} data-active={index === active} onMouseEnter={() => setActive(index)} onClick={() => navigate(href)}>
               <span>{label}<small>{group}</small></span><ArrowUpRight size={15} aria-hidden="true" />
             </button>
           </li>)}

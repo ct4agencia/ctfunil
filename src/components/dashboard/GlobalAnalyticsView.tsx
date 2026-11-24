@@ -5,6 +5,9 @@ import WorkspaceCheckbox from "@/components/ui/WorkspaceCheckbox";
 import WorkspaceMultiSelect from "@/components/ui/WorkspaceMultiSelect";
 import WorkspaceDateRange, { analyticsDateKey, calendarSeriesDays, type DateRange } from "@/components/ui/WorkspaceDateRange";
 import Bars from "./Bars";
+import ResponseFilters from "./ResponseFilters";
+import SnapshotRangeCoverage from "./SnapshotRangeCoverage";
+import { useSnapshotDateRange } from "./useSnapshotDateRange";
 import SnapshotQuizView, { type QuizSnapshot } from "./SnapshotQuizView";
 import SnapshotLeadsView, { type LeadsDaily } from "./SnapshotLeadsView";
 import SnapshotSalesView, { type SalesSnapshot } from "./SnapshotSalesView";
@@ -89,7 +92,7 @@ const TABS = [
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 const isTab = (v: string | null): v is TabKey => !!v && TABS.some((t) => t.key === v);
-export default function GlobalAnalyticsView({ data, preview = false, snapshotAt, attributionCapturedAt, attributionDaily, adAccounts, vslSnapshot, salesSnapshot, quizSnapshot, diagnosisSnapshot, leadsDaily }: { data: GlobalAnalytics; preview?: boolean; snapshotAt?: string; attributionCapturedAt?: string; attributionDaily?: AttributionDaily; adAccounts?: AdAccount[]; vslSnapshot?: VslSnapshot; salesSnapshot?: SalesSnapshot; quizSnapshot?: QuizSnapshot; diagnosisSnapshot?: DiagnosisSnapshot; leadsDaily?: LeadsDaily }) {
+export default function GlobalAnalyticsView({ data, preview = false, accountEmail, snapshotAt, attributionCapturedAt, attributionDaily, adAccounts, vslSnapshot, salesSnapshot, quizSnapshot, diagnosisSnapshot, leadsDaily, editableSlugs }: { data: GlobalAnalytics; preview?: boolean; accountEmail?: string; snapshotAt?: string; attributionCapturedAt?: string; attributionDaily?: AttributionDaily; adAccounts?: AdAccount[]; vslSnapshot?: VslSnapshot; salesSnapshot?: SalesSnapshot; quizSnapshot?: QuizSnapshot; diagnosisSnapshot?: DiagnosisSnapshot; leadsDaily?: LeadsDaily; editableSlugs?: string[] }) {
   const router = useRouter();
   const [operationQuery, setOperationQuery] = useState("");
   const operationSearch = useRef<HTMLInputElement>(null);
@@ -173,7 +176,6 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
   }
 
   const [operationSort, setOperationSort] = useState<{ key: OperationSort; ascending: boolean }>({ key: "visitantes", ascending: false });
-  const [chartRange, setChartRange] = useState<DateRange>({ from: "", to: "" });
   const referenceDay = new Intl.DateTimeFormat("sv-SE", { timeZone: "America/Sao_Paulo" })
     .format(new Date(snapshotAt || Date.now()));
   const chartDates = data.overview.daily
@@ -181,6 +183,10 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
     .filter(({ day }) => Boolean(day))
     .sort((left, right) => left.day.localeCompare(right.day));
   const chartDays = chartDates.map(({ day }) => day);
+  const {
+    range: chartRange, changeRange: setChartRange,
+    outsideCapture: chartOutsideCapture, beforeCapture: chartBeforeCapture, partialCapture: chartPartialCapture,
+  } = useSnapshotDateRange(chartDays, "sessoes", true);
   const chartData = chartDates.filter(({ day }) =>
     (!chartRange.from || day >= chartRange.from) && (!chartRange.to || day <= chartRange.to)
   ).map(({ item }) => item);
@@ -230,22 +236,33 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
   const topFunnel = data.operacao[0]?.slug;
   // preview do funil em destaque só carrega no clique (iframe pesado na 1ª dobra)
   const [showPreview, setShowPreview] = useState(false);
-  // seleção de funis pra comparação (ilimitada)
-  const [cmp, setCmp] = useState<string[]>([]);
+  const comparisonSlugs = useMemo(() => new Set(data.operacao.map(row => row.slug)), [data.operacao]);
+  const cmp = useMemo(() => [...new Set(searchParams.getAll("comparar"))].filter(slug => comparisonSlugs.has(slug)),
+    [searchParams, comparisonSlugs]);
+
+  function setCmp(next: string[]) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("comparar");
+    for (const slug of next) url.searchParams.append("comparar", slug);
+    window.history.replaceState(null, "", url);
+  }
+
+  const reportComparisonQuery = new URLSearchParams(cmp.map(slug => ["comparar", slug]));
+
   const selectedForComparison = useMemo(() => new Set(cmp), [cmp]);
   const selectedOnPage = useMemo(() => selectionRows.filter(row => selectedForComparison.has(row.slug)).length,
     [selectionRows, selectedForComparison]);
   const entirePageSelected = selectionRows.length > 0 && selectedOnPage === selectionRows.length;
 
   function toggleComparisonRow(slug: string) {
-    setCmp(previous => previous.includes(slug) ? previous.filter(item => item !== slug) : [...previous, slug]);
+    setCmp(selectedForComparison.has(slug) ? cmp.filter(item => item !== slug) : [...cmp, slug]);
   }
 
   function toggleComparisonPage() {
     const pageSlugs = new Set(selectionRows.map(row => row.slug));
-    setCmp(previous => entirePageSelected
-      ? previous.filter(slug => !pageSlugs.has(slug))
-      : [...new Set([...previous, ...pageSlugs])]);
+    setCmp(entirePageSelected
+      ? cmp.filter(slug => !pageSlugs.has(slug))
+      : [...new Set([...cmp, ...pageSlugs])]);
   }
   const cmpRows = useMemo(() => {
     const rows = new Map(data.operacao.map(row => [row.slug, row]));
@@ -265,35 +282,27 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
     ? calendarSeriesDays([...attributionDaily.sources, ...attributionDaily.campaigns, ...attributionDaily.creatives],
       attributionDaily.capturedAt, attributionDaily.timeZone)
     : [], [attributionDaily]);
-  const attributionFrom = searchParams.get("atrDe") ?? "";
-  const attributionTo = searchParams.get("atrAte") ?? "";
-  const attributionRange = useMemo<DateRange>(() => {
-    const min = attributionDays[0];
-    const max = attributionDays.at(-1);
-    const isDate = (value: string) => {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-      const day = new Date(`${value}T00:00:00Z`);
-      return Number.isFinite(day.getTime()) && day.toISOString().slice(0, 10) === value;
-    };
-    return min && max && attributionFrom >= min && attributionTo <= max &&
-      attributionFrom <= attributionTo && isDate(attributionFrom) && isDate(attributionTo)
-      ? { from: attributionFrom, to: attributionTo }
-      : { from: "", to: "" };
-  }, [attributionDays, attributionFrom, attributionTo]);
+  const responseFunnels = useMemo(() => Array.from(new Map([
+    ...(quizSnapshot?.quiz ?? []), ...(diagnosisSnapshot?.questions ?? []),
+  ].map(row => [row.slug, row.name])).entries())
+    .sort((left, right) => left[1].localeCompare(right[1], "pt-BR"))
+    .map(([value, name]) => ({ value, label: `${name} (/${value})` })), [quizSnapshot, diagnosisSnapshot]);
+  const responseSnapshot = tab === "diagnostico" ? diagnosisSnapshot : quizSnapshot;
+  const responseDays = useMemo(() => calendarSeriesDays(
+    responseSnapshot?.daily ?? [], responseSnapshot?.captured_at ?? "", "America/Sao_Paulo",
+  ), [responseSnapshot]);
+  const {
+    range: attributionRange, changeRange: setAttributionRange,
+    outsideCapture: attributionOutsideCapture, partialCapture: attributionPartialCapture,
+  } = useSnapshotDateRange(attributionDays, "atr");
+  const { from: attributionFrom, to: attributionTo } = attributionRange;
   const { traffic, creatives: periodCreatives } = useMemo(
-    () => filterAttribution(data, attributionDaily, attributionRange), [data, attributionDaily, attributionRange]
+    () => filterAttribution(data, attributionDaily, { from: attributionFrom, to: attributionTo }),
+    [data, attributionDaily, attributionFrom, attributionTo],
   );
 
   function changeAttributionRange(range: DateRange) {
-    const url = new URL(window.location.href);
-    if (range.from && range.to) {
-      url.searchParams.set("atrDe", range.from);
-      url.searchParams.set("atrAte", range.to);
-    } else {
-      url.searchParams.delete("atrDe");
-      url.searchParams.delete("atrAte");
-    }
-    window.history.replaceState(null, "", url);
+    setAttributionRange(range);
     setCreatFunnel("");
     setCmpCreat([]);
   }
@@ -393,7 +402,7 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
   })), [data.operacao]);
 
   return (
-    <WorkspaceFrame title="Analytics" activeTab={tab} demo={preview && !snapshotAt}>
+    <WorkspaceFrame title="Analytics" activeTab={tab} accountEmail={accountEmail} demo={preview && !snapshotAt}>
       {snapshotAt && <p className="mb-4 text-sm text-ct-dim">Dados reais em modo de consulta.</p>}
       <div className="ct-controls min-w-0">
         <div className="min-w-0">
@@ -427,9 +436,12 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
               <p className="text-xs text-ct-dim">
               Atribuição capturada em <SnapshotTimestamp capturedAt={attributionCapturedAt} />.
               </p>
-              {attributionDays.length > 0 && <WorkspaceDateRange days={attributionDays} value={attributionRange}
+              {attributionDays.length > 0 && <WorkspaceDateRange allowEarlierDates days={attributionDays} value={attributionRange}
                 onChange={changeAttributionRange} label="Período das sessões" />}
             </div>}
+            {(tab === "trafego" || tab === "criativos") && <SnapshotRangeCoverage
+              outsideCapture={attributionOutsideCapture} partialCapture={attributionPartialCapture}
+              onReset={() => changeAttributionRange({ from: "", to: "" })} />}
             {tab === "geral" && (
               <div className="space-y-5">
                 {topFunnel ? (
@@ -465,13 +477,17 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <h2 className="text-sm font-semibold text-ct-ink">Sessões por dia</h2>
-                        <p role="status" className="mt-1 text-xs text-ct-dim">
+                        {!chartOutsideCapture && <p role="status" className="mt-1 text-xs text-ct-dim">
                           {chartData.reduce((total, day) => total + day.sessoes, 0).toLocaleString("pt-BR")} sessões no período selecionado
-                        </p>
+                        </p>}
                       </div>
                       <WorkspaceDateRange days={chartDays} value={chartRange} onChange={setChartRange} />
                     </div>
-                    <div className="mt-4">{chartData.length ? <DailyChart data={chartData} /> : <p role="status" className="text-sm text-ct-dim">Sem sessões no período selecionado.</p>}</div>
+                    <div className="mt-4">
+                      <SnapshotRangeCoverage outsideCapture={chartOutsideCapture} beforeCapture={chartBeforeCapture} partialCapture={chartPartialCapture}
+                        onReset={() => setChartRange({ from: "", to: "" })} />
+                      {!chartOutsideCapture && (chartData.length ? <DailyChart data={chartData} /> : <p role="status" className="text-sm text-ct-dim">Sem sessões no período selecionado.</p>)}
+                    </div>
                   </section>
                   <section className="rounded-2xl border border-ct-line bg-ct-surface p-5">
                     <h2 className="mb-3 text-sm font-semibold text-ct-ink">Sessões por funil</h2>
@@ -496,7 +512,7 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
                         <thead className="bg-ct-raised text-left text-xs font-semibold uppercase tracking-wide text-ct-dim">
                           <tr>
                             <th scope="col" className="px-4 py-3">Métrica</th>
-                            {cmpRows.map((r) => <th scope="col" key={r.slug} className="max-w-[180px] truncate px-3 py-3" title={r.name}>{r.name}<div className="font-normal normal-case text-ct-dim">/{r.slug}</div></th>)}
+                            {cmpRows.map((r) => <th scope="col" key={r.slug} className="max-w-[180px] truncate px-3 py-3" title={r.name}><Link className="text-ct-blue focus-visible:outline-ct-action" href={`/dashboard/${encodeURIComponent(r.slug)}?${reportComparisonQuery}`}>{r.name}</Link><div className="font-normal normal-case text-ct-dim">/{r.slug}</div></th>)}
                           </tr>
                         </thead>
                         <tbody>
@@ -506,7 +522,7 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
                             ["% que respondem (respostas ÷ visitantes)", (r: typeof cmpRows[number]) => (r.visitantes ? Math.round((r.respostas / r.visitantes) * 1000) / 10 : null), (v: number) => `${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`],
                             ["Leads (volume)", (r: typeof cmpRows[number]) => r.leads, (v: number) => v.toLocaleString("pt-BR")],
                             ["% que viram lead (leads ÷ visitantes)", (r: typeof cmpRows[number]) => (r.visitantes ? Math.round((r.leads / r.visitantes) * 1000) / 10 : null), (v: number) => `${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`],
-                            ["Conclusões (VSL)", (r: typeof cmpRows[number]) => r.conclusoes, (v: number) => v.toLocaleString("pt-BR")],
+                            ["Chegadas à última etapa", (r: typeof cmpRows[number]) => r.conclusoes, (v: number) => v.toLocaleString("pt-BR")],
                             ["Taxa de conclusão", (r: typeof cmpRows[number]) => r.visitantes ? r.taxaConclusao : null, (v: number) => `${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`],
                             ["Score", (r: typeof cmpRows[number]) => r.score, (v: number) => v.toLocaleString("pt-BR")],
                           ] as const).map(([label, get, fmt]) => {
@@ -536,7 +552,9 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
               </div>
             )}
 
-            {tab === "quiz" && quizSnapshot && <SnapshotQuizView data={quizSnapshot} />}
+            {tab === "quiz" && quizSnapshot && <ResponseFilters funnels={responseFunnels} days={responseDays}>
+              {(funnel, range) => <SnapshotQuizView data={quizSnapshot} funnel={funnel} reportRange={range} />}
+            </ResponseFilters>}
             {tab === "quiz" && !quizSnapshot && (
               <div className="space-y-4">
                 {data.quiz.length ? data.quiz.map((q) => (
@@ -548,7 +566,7 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
               </div>
             )}
 
-            {tab === "trafego" && (
+            {tab === "trafego" && !attributionOutsideCapture && (
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <p className="text-xs text-ct-dim lg:col-span-2" role="status">{traffic.total.toLocaleString("pt-BR")} sessões com origem rastreada</p>
                 <section className="rounded-2xl border border-ct-line bg-ct-surface p-5"><h2 className="mb-3 text-sm font-semibold text-ct-ink">Origens (utm_source)</h2><Bars rows={traffic.sources.map((s) => ({ label: s.name, value: s.value, pct: s.pct }))} /></section>
@@ -653,7 +671,7 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
                           if (key === "taxaConclusao") return <td key={key} className="px-3 py-3 font-semibold text-ct-ink">{r[key]}%</td>;
                           return <td key={key} className="px-3 py-3 text-ct-dim">{r[key]}</td>;
                         })}
-                        <td className="px-3 py-3 text-right"><Link href={`/dashboard/${encodeURIComponent(r.slug)}`} aria-label={`Ver relatório de ${r.name}`} className="text-xs font-semibold text-ct-blue hover:underline">Ver →</Link></td>
+                        <td className="px-3 py-3 text-right"><Link href={`/dashboard/${encodeURIComponent(r.slug)}${reportComparisonQuery.size ? `?${reportComparisonQuery}` : ""}`} aria-label={`Ver relatório de ${r.name}`} className="text-xs font-semibold text-ct-blue hover:underline">Ver →</Link></td>
                       </tr>
                     )) : <tr><td colSpan={8} className="px-4 py-8 text-center text-ct-dim">{operationQuery.trim() ? "Nenhum funil corresponde à busca." : "Nenhum funil ainda."}{operationQuery.trim() && <button type="button" onClick={clearOperationSearch} className="mx-auto mt-2 block text-ct-blue underline">Limpar busca</button>}</td></tr>}
                     {continuous && visibleEnd < operationRows.length && <tr aria-hidden="true"><td colSpan={8} style={{ height: (operationRows.length - visibleEnd) * OPERATION_ROW_HEIGHT }} /></tr>}
@@ -667,7 +685,7 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
             )}
 
             {tab === "leads" && (snapshotAt ? (
-              <SnapshotLeadsView rows={data.operacao} total={data.leads.total} daily={leadsDaily} />
+              <SnapshotLeadsView rows={data.operacao} total={data.leads.total} daily={leadsDaily} editableSlugs={editableSlugs} />
             ) : (
               <section className="overflow-hidden rounded-2xl border border-ct-line bg-ct-surface">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ct-line px-4 py-3">
@@ -696,9 +714,11 @@ export default function GlobalAnalyticsView({ data, preview = false, snapshotAt,
 
             {tab === "vendas" && salesSnapshot && <SnapshotSalesView data={salesSnapshot} />}
             {tab === "vendas" && !salesSnapshot && <ComingSoon title="Vendas" desc={snapshotAt ? "A cópia atual não contém transações de venda. As métricas de receita, ticket médio e conversão de checkout dependem de uma fonte de pedidos integrada." : "Receita, ticket médio e conversão de checkout. Integra com Hotmart/UTMify via webhook de venda."} source="webhook de venda / UTMify (próxima etapa)" />}
-            {tab === "diagnostico" && diagnosisSnapshot && <SnapshotDiagnosisView data={diagnosisSnapshot} />}
+            {tab === "diagnostico" && diagnosisSnapshot && <ResponseFilters funnels={responseFunnels} days={responseDays}>
+              {(funnel, range) => <SnapshotDiagnosisView data={diagnosisSnapshot} funnel={funnel} reportRange={range} />}
+            </ResponseFilters>}
             {tab === "diagnostico" && !diagnosisSnapshot && <ComingSoon title="Diagnóstico" desc="Perfil agregado dos respondentes (dores, objeções, segmentos) cruzando respostas do quiz com conversão." source="quiz_answers × funnel_leads (próxima etapa)" />}
-            {tab === "criativos" && (data.creatives.length ? (
+            {tab === "criativos" && !attributionOutsideCapture && (data.creatives.length ? (
               <div className="space-y-4">
                 {adAccounts?.length ? <AdAccountCard accounts={adAccounts} account={account} filter={accountFilter} creatives={accountCreatives}
                   total={data.creatives.length} unverifiedBySource={unverifiedBySource}

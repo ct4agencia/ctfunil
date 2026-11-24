@@ -1,11 +1,12 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { StatefulButton } from "@/components/referencias/beui/motion/button/stateful";
 import { WorkspaceSelect } from '@/components/ui/WorkspaceSelect';
 import type { InleadStep } from '@/lib/quiz/layers/types';
-import { Check, Eye, FileArchive, TriangleAlert } from 'lucide-react';
+import type { TbFunnel } from '@/lib/quiz/typebot/types';
+import { Check, Eye, FileArchive, Pencil, TriangleAlert } from 'lucide-react';
 import { MotionConfig } from 'motion/react';
 import { WorkspaceLoading } from '@/components/workspace/WorkspaceLoading';
 import { Brand, ThemeButton, WorkspaceFrame } from '@/components/workspace/WorkspaceFrame';
@@ -16,12 +17,24 @@ import ChatRunner from '@/components/quiz/typebot/ChatRunner';
 import { LocalDraftContext } from '@/components/builder/fields';
 import { loadImportDraft,saveImportDraft,type ImportDraft } from '@/lib/assistant/import-drafts';
 import { restoreMissingVsl } from '@/lib/workspace-vsl-preview';
+import type { DateRange } from '@/components/ui/WorkspaceDateRange';
 import type { Funnel } from '@/lib/quiz/types';
 import { createImportedFunnel } from '@/app/dashboard/actions';
 
-export default function ImportEditor({id,preview,readOnly,initialStepId,reportHref}:{id:string;preview:boolean;readOnly:boolean;initialStepId?:string;reportHref?:string}) {
+export default function ImportEditor({id,preview,readOnly,initialStepId,reportHref,openLeads,initialRange,dashboardHref,navigationQuery,recoverHref,accountEmail}:{id:string;preview:boolean;readOnly:boolean;initialStepId?:string;reportHref?:string;openLeads?:boolean;initialRange?:DateRange;dashboardHref:string;navigationQuery:string;recoverHref?:string;accountEmail?:string}) {
   const router = useRouter();
+  const path = `/importar/${encodeURIComponent(id)}`;
+  function draftHref(startId?: string, showPreview = false) {
+    const params = new URLSearchParams(navigationQuery);
+    if (showPreview) params.set("preview", "1");
+    if (startId) params.set("etapa", startId);
+    return params.size ? `${path}?${params}` : path;
+  }
   const [draft,setDraft]=useState<ImportDraft|null>(null),[loaded,setLoaded]=useState(false),[error,setError]=useState('');
+  const missingHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (loaded && !draft) missingHeading.current?.focus();
+  }, [loaded, draft]);
   useEffect(()=>{let mounted=true;loadImportDraft(id).then(value=>{if (mounted) {
       const slug = /^preview-vsl-([a-z0-9_-]+)$/.exec(id)?.[1];
       setDraft(value && slug ? { ...value, funnel: restoreMissingVsl(value.funnel, slug) } : value ?? null);
@@ -49,16 +62,19 @@ export default function ImportEditor({id,preview,readOnly,initialStepId,reportHr
     <ThemeButton />
     <section className="ct-access-form" aria-labelledby="missing-import-title">
       <Brand />
-      <h1 id="missing-import-title" className="mt-4 text-xl font-semibold">Importação indisponível</h1>
+      <h1 ref={missingHeading} tabIndex={-1} id="missing-import-title" className="mt-4 text-xl font-semibold">Importação indisponível</h1>
       <p role="alert" className="mb-5 text-sm text-ct-dim">
         {error
           ? `${error} Recarregue a página para tentar novamente.`
           : "Importação não encontrada neste navegador. Abra o endereço no navegador em que criou o rascunho ou importe o arquivo novamente."}
       </p>
-      <Link href="/ctfunil#anexar-referencia" className="ct-action-link">Anexar arquivo no assistente</Link>
+      <div className="flex flex-wrap gap-2">
+        {recoverHref && <Link href={recoverHref} className="ct-action-link">Abrir cópia da biblioteca</Link>}
+        <Link href="/ctfunil/assistente#anexar-referencia" className={recoverHref ? "ct-confirm-cancel inline-flex min-h-11 items-center rounded-lg px-3 text-sm" : "ct-action-link"}>Anexar arquivo no assistente</Link>
+      </div>
     </section>
   </main>;
-  if (!preview && draft.reviewed === false) return <WorkspaceFrame title="Revisão da importação">
+  if (!preview && draft.reviewed === false) return <WorkspaceFrame title="Revisão da importação" accountEmail={accountEmail}>
     <header className="ct-page-heading"><div><h1>Revise a importação</h1><p>{draft.source}</p></div></header>
     <section className="ct-panel ct-import-review" aria-label="Checklist da importação">
       <ol>
@@ -74,19 +90,19 @@ export default function ImportEditor({id,preview,readOnly,initialStepId,reportHr
             {draft.warnings.length > 0 ? <details className="ct-disclosure"><summary>{draft.warnings.length} {draft.warnings.length === 1 ? "ponto de revisão" : "pontos de revisão"}</summary>
               <ul>{draft.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul>
             </details> : <p>A conversão não registrou avisos.</p>}
-            <Link href={`/importar/${encodeURIComponent(id)}?preview=1`} className="ct-import-preview">
+            <Link href={draftHref(undefined, true)} className="ct-import-preview">
               <Eye size={16} aria-hidden="true" />Ver prévia
             </Link>
           </div>
         </li>
         <li>
-          <span className="ct-import-mark" aria-hidden="true">3</span>
+          <span className="ct-import-mark"><Pencil size={17} aria-hidden="true" /></span>
           <div><h2>Abrir para edição</h2><p>O rascunho fica salvo neste navegador.</p></div>
         </li>
       </ol>
       {error && <p role="alert" className="px-4 text-sm text-ct-dim">{error}</p>}
       <footer>
-        <Link href="/ctfunil#assistente" className="text-sm text-ct-blue">Voltar ao assistente</Link>
+        <Link href="/ctfunil/assistente" className="text-sm text-ct-blue">Voltar ao assistente</Link>
         <StatefulButton type="button" className="ct-action-link" onClick={approve}
           state={approving ? "loading" : error ? "error" : "idle"}
           aria-label={approving ? "Abrindo…" : "Aprovar e abrir no construtor"}
@@ -97,37 +113,47 @@ export default function ImportEditor({id,preview,readOnly,initialStepId,reportHr
     </section>
   </WorkspaceFrame>;
 
-  const path = `/importar/${encodeURIComponent(id)}`;
+  const backLabel = draft.reviewed === false ? "Voltar à revisão" : "Voltar à edição";
   const sourceSlug = /^preview-(?:vsl|funil)-([a-z0-9_-]+)$/.exec(id)?.[1];
   if (draft.funnel.settings?.engine === "typebot") {
-    if (preview) return <MotionConfig reducedMotion="user">
-      <Link href={path} className="block p-3 text-sm text-ct-blue underline">Voltar à edição</Link>
-      <div className="h-[100dvh]">
-        <ChatRunner funnel={draft.funnel} preview localOnly />
-      </div>
-    </MotionConfig>;
-    return <LocalDraftContext.Provider value={true}><TypebotBuilder initial={draft.funnel} saveLocal={save} reportHref={reportHref} sourceSlug={sourceSlug} previewHref={path + "?preview=1"} /></LocalDraftContext.Provider>;
+    if (preview) {
+      const chat = draft.funnel.settings.typebot as TbFunnel | undefined;
+      const groups = chat?.groups ?? [];
+      const startId = [initialStepId, chat?.startGroup, groups[0]?.id]
+        .find(id => id && groups.some(group => group.id === id));
+      return <MotionConfig reducedMotion="user">
+        <div className="flex h-[100dvh] flex-col">
+          <div className="ct-workspace flex shrink-0 flex-wrap items-center gap-3 border-b border-ct-line px-4 py-2 text-xs">
+            <Link className="text-ct-blue underline" href={draftHref(startId)}>{backLabel}</Link>
+            {groups.length > 1 && <WorkspaceSelect searchable label="Grupo de início" value={startId ?? ""}
+              onChange={groupId => router.replace(draftHref(groupId, true), { scroll: false })}
+              options={groups.map((group, index) => ({ value: group.id, label: `${index + 1}. ${group.title || "Grupo"}` }))} />}
+          </div>
+          <div className="min-h-0 flex-1">
+            <ChatRunner key={startId} funnel={draft.funnel} startGroupId={startId} preview localOnly />
+          </div>
+        </div>
+      </MotionConfig>;
+    }
+    return <LocalDraftContext.Provider value={true}><TypebotBuilder accountEmail={accountEmail} dashboardHref={dashboardHref} initial={draft.funnel} openLeads={openLeads} initialRange={initialRange} saveLocal={save} reportHref={reportHref} sourceSlug={sourceSlug} initialGroupId={initialStepId} /></LocalDraftContext.Provider>;
   }
 
   const steps = draft.funnel.steps as unknown as InleadStep[];
   const startIndex = Math.max(0, steps.findIndex(step => step.id === initialStepId));
   const startId = steps[startIndex]?.id;
-  const previewHref = (stepId?: string) => `${path}?preview=1${stepId ? `&etapa=${encodeURIComponent(stepId)}` : ""}`;
-  const editorHref = startId ? `${path}?etapa=${encodeURIComponent(startId)}` : path;
-  const awaitingReview = draft.reviewed === false;
 
   return <>
     {preview && <div className="ct-workspace flex flex-wrap items-center gap-3 border-b border-ct-line px-4 py-2 text-xs">
-      <Link className="text-ct-blue underline" href={editorHref}>{awaitingReview ? "Voltar à revisão" : "Voltar à edição"}</Link>
+      <Link className="text-ct-blue underline" href={draftHref(startId)}>{backLabel}</Link>
       {steps.length > 1 && <WorkspaceSelect searchable label="Etapa de início" value={startId ?? ""}
-        onChange={stepId => router.replace(previewHref(stepId), { scroll: false })}
+        onChange={stepId => router.replace(draftHref(stepId, true), { scroll: false })}
         options={steps.map((step, index) => ({ value: step.id, label: `${index + 1}. ${step.title || "Etapa"}` }))} />}
     </div>}
     {preview ? <MotionConfig reducedMotion="user">
       <LayersRunner key={startId} funnel={draft.funnel} startIndex={startIndex} preview
-        simulateVideoTime={id.startsWith("preview-vsl-") || id.startsWith("preview-funil-")} />
+        simulateVideoTime />
     </MotionConfig>
-      : <LayersBuilder initial={draft.funnel} initialStepId={startId}
-          localDraft={{ save, commit: readOnly ? undefined : commit, previewHref: previewHref(), stagePreviewHref: previewHref, reportHref, sourceSlug, dashboardHref: id.startsWith("preview-vsl-") ? "/dashboard?tab=pages" : "/dashboard" }} />}
+      : <LayersBuilder accountEmail={accountEmail} initial={draft.funnel} openLeads={openLeads} initialRange={initialRange} initialStepId={startId}
+          localDraft={{ save, commit: readOnly ? undefined : commit, reportHref, sourceSlug, dashboardHref }} />}
   </>;
 }

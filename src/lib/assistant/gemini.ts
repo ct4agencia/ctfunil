@@ -1,3 +1,4 @@
+import { geminiModelPattern } from './workspace-settings';
 import { readStreamLines } from './stream';
 import { MESSAGE_LIMIT, MESSAGE_TOTAL_LIMIT, REQUEST_MESSAGE_LIMIT, type AssistantMessage } from './messages';
 export type { AssistantMessage } from './messages';
@@ -7,6 +8,57 @@ export function assistantConfig(env: NodeJS.ProcessEnv = process.env) {
   const model = (env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL).trim();
   return { key, model, validModel: /^gemini-[a-z0-9.-]{1,80}$/i.test(model) };
 }
+export async function checkGeminiModel(config: ReturnType<typeof assistantConfig>, signal: AbortSignal) {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(config.model)}`, {
+    headers: { 'x-goog-api-key': config.key },
+    signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]),
+    cache: 'no-store',
+  });
+  if (!response.ok) {
+    await response.body?.cancel();
+    return { ok: false as const, status: response.status, unsupported: false };
+  }
+  const model = await response.json() as { supportedGenerationMethods?: string[] };
+  if (!Array.isArray(model.supportedGenerationMethods) || !model.supportedGenerationMethods.includes('generateContent')) {
+    return { ok: false as const, status: 422, unsupported: true };
+  }
+  return { ok: true as const };
+}
+
+export async function listGeminiModels(key: string, signal: AbortSignal) {
+  const models = new Map<string, { value: string; label: string }>();
+  const url = new URL('https://generativelanguage.googleapis.com/v1beta/models?pageSize=100');
+  const seenTokens = new Set<string>();
+  const requestSignal = AbortSignal.any([signal, AbortSignal.timeout(10000)]);
+  do {
+    const response = await fetch(url, {
+      headers: { 'x-goog-api-key': key },
+      signal: requestSignal,
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      await response.body?.cancel();
+      return { ok: false as const, status: response.status };
+    }
+    const page = await response.json() as {
+      models?: { name?: string; displayName?: string; supportedGenerationMethods?: string[] }[];
+      nextPageToken?: string;
+    };
+    for (const model of Array.isArray(page.models) ? page.models : []) {
+      const value = model?.name?.replace(/^models\//, '') ?? '';
+      if (!geminiModelPattern.test(value) || /(?:^|[-.])(?:image|tts|audio|live|robotics|embedding|computer-use)(?:[-.]|$)/i.test(value)) continue;
+      if (!Array.isArray(model.supportedGenerationMethods) || !model.supportedGenerationMethods.includes('generateContent')) continue;
+      models.set(value, { value, label: model.displayName?.trim().slice(0, 120) || value });
+    }
+    const token = page.nextPageToken;
+    if (!token) break;
+    if (seenTokens.has(token)) throw Error('Paginação inválida.');
+    seenTokens.add(token);
+    url.searchParams.set('pageToken', token);
+  } while (true);
+  return { ok: true as const, models: [...models.values()].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR')) };
+}
+
 export function validateMessages(value: unknown): AssistantMessage[] | null {
   if (!Array.isArray(value) || !value.length || value.length > REQUEST_MESSAGE_LIMIT) return null;
   let total = 0;

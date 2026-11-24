@@ -5,9 +5,10 @@ import { useReducedMotion } from "@/components/referencias/beui/lib/reduced-moti
 import { WorkspaceOrb } from "@/components/workspace/WorkspaceFrame";
 import { Mic, MicOff } from "lucide-react";
 
+type VoiceResult = ArrayLike<{ transcript: string }> & { isFinal: boolean };
 type Recognition = {
   lang: string;
-  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onresult: ((event: { resultIndex: number; results: ArrayLike<VoiceResult> }) => void) | null;
   onerror: ((event: { error: string }) => void) | null;
   onend: (() => void) | null;
   start: (track?: MediaStreamTrack) => void;
@@ -23,22 +24,25 @@ type SpeechSession = {
   recognizer: Recognition;
   retry: "available" | "scheduled" | "starting" | "used" | "disabled";
   stream?: MediaStream;
+  stopTimer?: number;
 };
 
 function stopTracks(stream?: MediaStream | null) {
   stream?.getTracks().forEach(track => track.stop());
 }
 
-export default function VoicePrompt({ disabled, onTranscript }: {
+export default function VoicePrompt({ disabled, onTranscript, onListeningChange }: {
   disabled?: boolean;
   onTranscript: (text: string) => void;
+  onListeningChange?: (listening: boolean) => void;
 }) {
   const reducedMotion = useReducedMotion();
   const meter = useRef<HTMLButtonElement>(null);
   const sessionRef = useRef<SpeechSession | null>(null);
   const [captureStream, setCaptureStream] = useState<MediaStream | null>(null);
-  const [supported, setSupported] = useState(false);
+  const [supported, setSupported] = useState<boolean>();
   const [listening, setListening] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -48,17 +52,19 @@ export default function VoicePrompt({ disabled, onTranscript }: {
       const session = sessionRef.current;
       sessionRef.current = null;
       if (!session) return;
+      window.clearTimeout(session.stopTimer);
       const { recognizer } = session;
       recognizer.onend = null;
       recognizer.onerror = null;
       recognizer.onresult = null;
       if (session.retry !== "starting") recognizer.abort();
       stopTracks(session.stream);
+      onListeningChange?.(false);
     };
-  }, []);
+  }, [onListeningChange]);
 
   useEffect(() => {
-    if (!listening || reducedMotion) return;
+    if (!listening || stopping || reducedMotion) return;
     if (!navigator.mediaDevices?.getUserMedia || !window.AudioContext) return;
 
     const button = meter.current;
@@ -109,14 +115,17 @@ export default function VoicePrompt({ disabled, onTranscript }: {
       disposed = true;
       release();
     };
-  }, [captureStream, listening, reducedMotion]);
+  }, [captureStream, listening, reducedMotion, stopping]);
 
   function finish(session: SpeechSession) {
     if (sessionRef.current !== session) return;
     sessionRef.current = null;
+    window.clearTimeout(session.stopTimer);
     stopTracks(session.stream);
     setCaptureStream(null);
     setListening(false);
+    onListeningChange?.(false);
+    setStopping(false);
   }
 
   async function retryWithTrack(session: SpeechSession) {
@@ -145,10 +154,23 @@ export default function VoicePrompt({ disabled, onTranscript }: {
   function toggle() {
     const current = sessionRef.current;
     if (current) {
-      if (current.retry === "starting" || current.retry === "scheduled") finish(current);
-      else {
-        current.retry = "disabled";
+      if (stopping) return;
+      if (current.retry === "starting" || current.retry === "scheduled") {
+        finish(current);
+        return;
+      }
+      current.retry = "disabled";
+      setStopping(true);
+      function endUnresponsiveCapture(session: SpeechSession) {
+        if (sessionRef.current !== session) return;
+        finish(session);
+        session.recognizer.abort();
+      }
+      current.stopTimer = window.setTimeout(() => endUnresponsiveCapture(current), 2000);
+      try {
         current.recognizer.stop();
+      } catch {
+        endUnresponsiveCapture(current);
       }
       return;
     }
@@ -162,7 +184,12 @@ export default function VoicePrompt({ disabled, onTranscript }: {
     active.lang = "pt-BR";
     active.onresult = event => {
       if (sessionRef.current !== session) return;
-      const text = Array.from(event.results, result => result[0]?.transcript ?? "").join(" ").trim();
+      const segments: string[] = [];
+      for (let index = event.resultIndex; index < event.results.length; index++) {
+        const result = event.results[index];
+        if (result.isFinal && result[0]?.transcript) segments.push(result[0].transcript.trim());
+      }
+      const text = segments.filter(Boolean).join(" ");
       if (text) onTranscript(text);
     };
     active.onerror = event => {
@@ -201,21 +228,26 @@ export default function VoicePrompt({ disabled, onTranscript }: {
     };
     try {
       active.start();
-      setListening(true);
+      if (sessionRef.current === session) {
+        setListening(true);
+        onListeningChange?.(true);
+      }
     } catch {
       finish(session);
       setError("Não foi possível iniciar o microfone.");
     }
   }
 
-  if (!supported) return null;
+  if (supported === undefined) return null;
+  if (!supported) return <p className="text-xs text-ct-dim">Ditado indisponível neste navegador. Digite a mensagem no campo acima.</p>;
+  const action = stopping ? "Encerrando ditado" : listening ? "Parar ditado" : "Ditar mensagem";
   return <div className="ct-voice-prompt">
     <button ref={meter} type="button" className="ct-icon-button" onClick={toggle} aria-pressed={listening}
-      aria-label={listening ? "Parar ditado" : "Ditar mensagem"} title={listening ? "Parar ditado" : "Ditar mensagem"}
-      disabled={disabled && !listening}>
+      aria-label={action} title={action}
+      aria-disabled={stopping || undefined} disabled={disabled && !listening}>
       {listening ? <MicOff size={17} /> : <Mic size={17} />}
     </button>
-    {listening && <span className="ct-voice-status" role="status"><WorkspaceOrb state="listening" size={20} />Ouvindo</span>}
+    {listening && <span className="ct-voice-status" role="status">{!stopping && <WorkspaceOrb state="listening" size={20} />}{stopping ? "Encerrando ditado…" : "Ouvindo"}</span>}
     {error && <span role="alert">{error}</span>}
   </div>;
 }

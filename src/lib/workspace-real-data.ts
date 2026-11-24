@@ -1,4 +1,5 @@
 import "server-only";
+import { profileAvatar } from "@/lib/assistant/profile-avatar";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import attributionDaily from "./workspace-attribution-daily-data.json";
@@ -19,27 +20,39 @@ async function getAuthorizedWorkspaceUser() {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    return user?.email?.toLowerCase() === adminEmail ? user : null;
+    return user?.email?.toLowerCase() === adminEmail ? { user, supabase } : null;
   } catch {
     return null;
   }
 }
 
 export async function getWorkspaceSnapshot() {
-  if (!await getAuthorizedWorkspaceUser()) redirect("/admin/login");
-  return workspaceSnapshot();
+  const session = await getAuthorizedWorkspaceUser();
+  if (!session) redirect("/admin/login");
+  return { ...workspaceSnapshot(await workspaceCatalog(session.supabase)), accountEmail: session.user.email };
 }
 
 export async function getWorkspaceSnapshotIfAuthorized() {
-  const user = await getAuthorizedWorkspaceUser();
-  if (!user) return null;
-  const avatar = user.user_metadata?.avatar_url;
-  const url = typeof avatar === "string" ? URL.parse(avatar) : null;
-  const avatarUrl = url?.protocol === "https:" && !url.username && !url.password ? url.href : undefined;
-  return { ...workspaceSnapshot(), avatarUrl };
+  const session = await getAuthorizedWorkspaceUser();
+  if (!session) return null;
+  const { user, supabase } = session;
+  const avatarUrl = profileAvatar(user.user_metadata?.avatar_url);
+  return { ...workspaceSnapshot(await workspaceCatalog(supabase)), avatarUrl, accountEmail: user.email, accountId: user.id };
 }
 
-function workspaceSnapshot() {
+async function workspaceCatalog(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { data, error } = await supabase.from("funnels")
+    .select("slug,name,niche,domain,engine:settings->>engine,status,palette_id,updated_at")
+    .eq("status", "published")
+    .order("updated_at", { ascending: false })
+    .order("slug");
+  if (error || !Array.isArray(data) || !data.length) return snapshot.funnels;
+
+  const capturedSlugs = new Set(snapshot.funnels.map(funnel => funnel.slug));
+  return [...data.filter(funnel => !capturedSlugs.has(funnel.slug)), ...snapshot.funnels];
+}
+
+function workspaceSnapshot(funnels: Awaited<ReturnType<typeof workspaceCatalog>>) {
   const accountAds = new Map<string, string[]>();
   if (adAccountSnapshot.attributionCapturedAt === attribution.captured_at) {
     const accountByAd = new Map(adAccountSnapshot.ads.map(ad => [`${ad.id}:${ad.campaignId}`, ad.accountId]));
@@ -57,6 +70,7 @@ function workspaceSnapshot() {
   }
   return {
     ...snapshot,
+    funnels,
     analytics: { ...snapshot.analytics, traffic: attribution.traffic, creatives: attribution.creatives },
     vsl,
     sales,

@@ -23,3 +23,8 @@
   .ct-design-layout > :first-child { overflow: visible; }
   .ct-design-preview { min-height: 620px; }
 }
+
+@media (max-width: 767px) {
+  .ct-design-panel :is(select,input[type=number],input[type=url]), .ct-design-stage select,
+  .ct-design-toggle, .ct-design-row input[type=range] { min-height: 44px; }
+}

@@ -1,3 +1,4 @@
+import { hasPreviewVslDraft } from "@/lib/workspace-preview-vsl-drafts";
 import { getWorkspaceSnapshot } from "@/lib/workspace-real-data";
 import { headers } from "next/headers";
 import { isRealDataPreview, isWorkspacePreview } from "@/lib/workspace-preview";
@@ -16,7 +17,12 @@ export default async function DashboardPage() {
   const host = (await headers()).get("host");
   if (isRealDataPreview(host)) {
     const snapshot = await getWorkspaceSnapshot();
-    return <Dashboard funnels={snapshot.funnels} metrics={snapshot.analytics.overview} preview snapshotAt={snapshot.capturedAt} pagesCapturedAt={snapshot.vsl.captured_at} pages={snapshot.vsl.rows.map(({ name, slug, tracked }) => ({ name, slug, tracked }))} />;
+    const capturedPages = snapshot.vsl.rows.map(({ name, slug, tracked }) => ({ name, slug, tracked }));
+    const capturedSlugs = new Set(capturedPages.map(page => page.slug));
+    const newPages = snapshot.funnels
+      .filter(funnel => !capturedSlugs.has(funnel.slug) && hasPreviewVslDraft(funnel.slug))
+      .map(({ name, slug }) => ({ name, slug }));
+    return <Dashboard accountEmail={snapshot.accountEmail} funnels={snapshot.funnels} metrics={snapshot.analytics.overview} preview snapshotAt={snapshot.capturedAt} pagesCapturedAt={snapshot.vsl.captured_at} pages={[...newPages, ...capturedPages]} />;
   }
   if (isWorkspacePreview(host)) return <Dashboard funnels={previewFunnels} metrics={previewAnalytics.overview} preview />;
   const [funnels, metrics] = await Promise.all([listFunnelsDb(), dashboardMetrics()]);

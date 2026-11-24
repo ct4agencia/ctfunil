@@ -348,7 +348,7 @@ export default function LayersFlow({
     vpRef.current?.setPointerCapture(ev.pointerId);
   };
 
-  const botao = "grid h-6 w-6 place-items-center rounded-lg border border-neutral-300 bg-white text-sm font-bold text-neutral-600 hover:bg-neutral-50";
+  const botao = "grid h-6 w-6 max-md:size-11 place-items-center rounded-lg border border-ct-line-strong bg-ct-surface text-sm font-bold text-ct-dim hover:bg-ct-raised";
 
   return (
     <div ref={areaRef} className="ct-flow flex h-full flex-col" onKeyDown={event => {
@@ -363,21 +363,21 @@ export default function LayersFlow({
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="flex items-center gap-2 text-sm font-semibold"><GitBranch size={16}/>Fluxo</span>
-        <span className="text-[11px] text-neutral-400">
+        <span className="text-[11px] text-ct-dim">
           {nodes.length} lâminas · {edges.length} conexões
         </span>
-        <div className="ml-auto flex items-center gap-3 text-[11px]">
+        <div className="ml-auto flex max-w-full flex-wrap items-center gap-3 text-[11px]">
           <span className="flex items-center gap-1"><i className="inline-block h-0.5 w-4" style={{ background: EDGE_COLOR.seq }} />segue</span>
           <span className="flex items-center gap-1"><i className="inline-block h-0.5 w-4" style={{ background: EDGE_COLOR.jump }} />pula</span>
           <span className="flex items-center gap-1"><i className="inline-block h-0.5 w-4" style={{ background: EDGE_COLOR.back }} />volta</span>
-          <button onClick={alternarAnim} className="rounded-lg border border-neutral-300 bg-white px-2.5 py-1 font-semibold text-neutral-600 hover:bg-neutral-50">
+          <button onClick={alternarAnim} className="max-md:min-h-11 rounded-lg border border-ct-line-strong bg-ct-surface px-2.5 py-1 font-semibold text-ct-dim hover:bg-ct-raised">
             {animar ? "Pausar animação" : "Animar conexões"}
           </button>
           <div className="flex items-center gap-1">
-            <button onClick={() => zoomNoCentro(1 / 1.2)} className={botao} title="Diminuir zoom">−</button>
-            <span className="w-9 text-center tabular-nums text-neutral-500">{Math.round(view.z * 100)}%</span>
-            <button onClick={() => zoomNoCentro(1.2)} className={botao} title="Aumentar zoom">+</button>
-            <button onClick={ajustar} className="ml-1 rounded-lg border border-neutral-300 bg-white px-2 py-1 font-semibold text-neutral-600 hover:bg-neutral-50" title="Enquadrar o funil inteiro">ajustar</button>
+            <button onClick={() => zoomNoCentro(1 / 1.2)} className={botao} aria-label="Reduzir zoom do fluxo" title="Diminuir zoom">−</button>
+            <span className="w-9 text-center tabular-nums text-ct-dim">{Math.round(view.z * 100)}%</span>
+            <button onClick={() => zoomNoCentro(1.2)} className={botao} aria-label="Ampliar zoom do fluxo" title="Aumentar zoom">+</button>
+            <button onClick={ajustar} className="ml-1 max-md:min-h-11 rounded-lg border border-ct-line-strong bg-ct-surface px-2 py-1 font-semibold text-ct-dim hover:bg-ct-raised" title="Enquadrar o funil inteiro">ajustar</button>
           </div>
         </div>
       </div>
@@ -389,7 +389,7 @@ export default function LayersFlow({
         onPointerUp={aoSoltar}
         onPointerCancel={cancelarArrasto}
         aria-label="Mapa de conexões"
-        className={`relative flex-1 overflow-hidden rounded-xl border border-neutral-200 ${pegando ? "cursor-grabbing" : "cursor-grab"}`}
+        className={`relative flex-1 overflow-hidden rounded-xl border border-ct-line ${pegando ? "cursor-grabbing" : "cursor-grab"}`}
         style={{
           backgroundColor: "var(--ct-raised, #fafafa)",
           backgroundImage: "radial-gradient(var(--ct-line, #d4d4d4) 1px, transparent 1px)",
@@ -439,7 +439,7 @@ export default function LayersFlow({
               <div
                 key={n.id}
                 data-node={n.id}
-                className={`ct-flow-node absolute rounded-xl border bg-white ${n.disabled ? "border-dashed border-neutral-300 opacity-60" : "border-neutral-200"}`}
+                className={`ct-flow-node absolute rounded-xl border bg-ct-surface ${n.disabled ? "border-dashed border-ct-line-strong opacity-60" : "border-ct-line"}`}
                 data-target={mirando}
                 style={{ left: p.x, top: p.y, width: FLOW.W, height: nodeH(n.exits.length), zIndex: arrastandoEste ? 5 : undefined }}
               >
@@ -447,12 +447,12 @@ export default function LayersFlow({
                 <div
                   onPointerDown={(ev) => pegarNo(ev, n.id)}
                   onDoubleClick={() => onOpenStep?.(n.idx)}
-                  className="flex w-full cursor-grab items-center gap-1.5 rounded-t-xl px-3 text-left hover:bg-neutral-50 active:cursor-grabbing"
+                  className="flex w-full cursor-grab items-center gap-1.5 rounded-t-xl px-3 text-left hover:bg-ct-raised active:cursor-grabbing"
                   style={{ height: FLOW.HEAD, touchAction: "none" }}
                   title="Arraste para posicionar · clique duas vezes para abrir no construtor"
                 >
                   <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-neutral-900 text-[10px] font-bold text-white">{n.idx + 1}</span>
-                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-neutral-700">{n.title}</span>
+                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-ct-ink">{n.title}</span>
                   <button type="button" aria-label={`Editar etapa ${n.idx + 1}: ${n.title}`} onPointerDown={event => event.stopPropagation()}
                     onClick={() => onOpenStep?.(n.idx)} className="ct-flow-edit"><Pencil size={13}/></button>
                   {n.fixado ? (
@@ -463,7 +463,7 @@ export default function LayersFlow({
                       className="shrink-0 cursor-pointer text-[9px] opacity-60 hover:opacity-100"
                       title="Voltar ao layout automático"><Pin size={12}/></span>
                   ) : null}
-                  {n.disabled ? <span className="shrink-0 rounded bg-neutral-200 px-1 text-[9px] font-bold uppercase text-neutral-500">off</span> : null}
+                  {n.disabled ? <span className="shrink-0 rounded bg-ct-raised px-1 text-[9px] font-bold uppercase text-ct-dim">off</span> : null}
                 </div>
 
                 {/* SAÍDAS: uma linha por botão/opção */}
@@ -474,13 +474,13 @@ export default function LayersFlow({
                       onMouseEnter={() => setFocusedExit(`${n.id}:${x.key}`)} onMouseLeave={() => setFocusedExit(null)}
                       onFocus={() => setFocusedExit(`${n.id}:${x.key}`)} onBlur={() => setFocusedExit(null)}>
                       <ListChecks size={13} className="shrink-0 text-ct-dim" aria-hidden="true"/>
-                      <span className="min-w-0 flex-1 truncate text-[11px] text-neutral-600" title={x.label}>{x.label}</span>
+                      <span className="min-w-0 flex-1 truncate text-[11px] text-ct-dim" title={x.label}>{x.label}</span>
                       {x.editable ? (
                         <WorkspaceSelect className="ct-flow-destination" label={`Destino de ${x.label} na etapa ${n.idx+1}`} disabled={n.disabled} value={/^https?:/.test(x.dest||'')?'__url':(x.dest||'next')} onChange={value=>setDest(n.idx,x.layerId,x.optId,value)} options={[{value:'next',label:'Padrão da etapa'},...steps.map((step,index)=>({value:step.id,label:`${index+1}. ${String(step.title||step.id).replace(/<[^>]+>/g,'')}${step.disabled?' (desativada)':''}`,disabled:step.disabled})),...(x.dest&&x.dest!=='next'&&!/^https?:/i.test(x.dest)&&!steps.some(step=>step.id===x.dest)?[{value:x.dest,label:'Destino removido'}]:[]),...(/^https?:/.test(x.dest||'')?[{value:'__url',label:'Link externo'}]:[])]}/>
                       ) : (
                         // o runtime ignora o destino aqui — oferecer um seletor
                         // gravaria dado morto e o mapa mentiria
-                        <span className="shrink-0 text-[10px] text-neutral-500" title="Segue o destino padrão configurado no rodapé da etapa">Padrão da etapa</span>
+                        <span className="shrink-0 text-[10px] text-ct-dim" title="Segue o destino padrão configurado no rodapé da etapa">Padrão da etapa</span>
                       )}
                       {x.editable ? (
                         <button type="button"
@@ -493,7 +493,7 @@ export default function LayersFlow({
                           data-connected={explicito}
                         ><span /></button>
                       ) : (
-                        <span className="shrink-0 rounded-full" style={{ width: 8, height: 8, border: "2px solid #e5e5e5" }} />
+                        <span className="shrink-0 rounded-full" style={{ width: 8, height: 8, border: "2px solid var(--ct-line-strong)" }} />
                       )}
                     </div>
                   );
@@ -507,7 +507,7 @@ export default function LayersFlow({
                   <WorkspaceSelect id={`flow-default-${n.id}`} className="ct-flow-default-select" label={`Destino padrão da etapa ${n.idx+1}`} disabled={n.disabled} value={steps[n.idx].nextStep || ''} onChange={value=>setDest(n.idx,SAIDA_PADRAO,null,value)} options={[{value:'',label:'Seguir a ordem'},...steps.map((step,index)=>({value:step.id,label:`${index+1}. ${step.title}${step.disabled?' (desativada)':''}`,disabled:step.disabled}))]}/>
                   {steps[n.idx]?.nextStep ? (
                     <button type="button" onClick={() => setSteps(steps.map((s, i) => i === n.idx ? { ...s, nextStep: undefined } : s))}
-                      className="shrink-0 text-[9px] text-neutral-300 hover:text-red-500" title="Voltar a seguir a ordem das lâminas">✕</button>
+                      className="shrink-0 text-[9px] text-ct-dim hover:text-red-500" title="Voltar a seguir a ordem das lâminas">✕</button>
                   ) : null}
                   <button type="button" disabled={n.disabled} className="ct-flow-port"
                     aria-label={`Conectar destino padrão da etapa ${n.idx + 1}`}
@@ -524,25 +524,25 @@ export default function LayersFlow({
         {/* popup: soltou o cabo no vazio */}
         {menu ? (
           <div className="absolute inset-0 z-10 grid place-items-center bg-neutral-900/20 p-4" onPointerDown={(e) => e.stopPropagation()}>
-            <div className="w-full max-w-sm rounded-xl border border-neutral-200 bg-white p-4 shadow-xl">
-              <p className="text-sm font-bold text-neutral-800">Criar etapa e conectar</p>
-              <p className="mt-0.5 text-[11px] text-neutral-500">Escolha o conteúdo da nova etapa.</p>
+            <div className="w-full max-w-sm rounded-xl border border-ct-line bg-ct-surface p-4 shadow-xl">
+              <p className="text-sm font-bold text-ct-ink">Criar etapa e conectar</p>
+              <p className="mt-0.5 text-[11px] text-ct-dim">Escolha o conteúdo da nova etapa.</p>
               <div className="mt-3 grid grid-cols-2 gap-1.5">
                 {TIPOS_RAPIDOS.map(([t, rotulo]) => (
                   <button key={t} onClick={() => criarEConectar(menu, t)}
-                    className="flex items-center gap-2 rounded-lg border border-neutral-200 px-2 py-2 text-left text-xs text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50">
+                    className="flex items-center gap-2 rounded-lg border border-ct-line px-2 py-2 text-left text-xs text-ct-ink hover:border-ct-blue hover:bg-ct-raised">
                     <Layers size={14} aria-hidden="true"/>{rotulo}
                   </button>
                 ))}
               </div>
-              <button onClick={() => setMenu(null)} className="mt-3 w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs font-semibold text-neutral-500 hover:bg-neutral-50">
+              <button onClick={() => setMenu(null)} className="mt-3 w-full rounded-lg border border-ct-line px-2 py-1.5 text-xs font-semibold text-ct-dim hover:bg-ct-raised">
                 Cancelar
               </button>
             </div>
           </div>
         ) : null}
 
-        <p className="pointer-events-none absolute bottom-2 left-3 text-[10px] text-neutral-400">
+        <p className="pointer-events-none absolute bottom-2 left-3 text-[10px] text-ct-dim">
           arraste o fundo para mover · scroll para deslocar · ctrl+scroll (ou pinça) para zoom
         </p>
       </div>

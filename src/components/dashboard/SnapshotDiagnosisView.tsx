@@ -2,10 +2,9 @@
 
 import SnapshotTimestamp from "./SnapshotTimestamp";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 import Link from "next/link";
-import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
-import WorkspaceDateRange, { calendarSeriesDays, type DateRange } from "@/components/ui/WorkspaceDateRange";
+import type { DateRange } from "@/components/ui/WorkspaceDateRange";
 
 type Option = { label: string; sessions: number; leads: number };
 export type DiagnosisSnapshot = {
@@ -46,15 +45,17 @@ function filterDiagnosisByDate(questions: DiagnosisSnapshot["questions"], daily:
   });
 }
 
-export default function SnapshotDiagnosisView({ data, individual = false }: { data: DiagnosisSnapshot; individual?: boolean }) {
+export default function SnapshotDiagnosisView({ data, individual = false, reportRange, funnel = "" }: { data: DiagnosisSnapshot; individual?: boolean; reportRange?: DateRange; funnel?: string }) {
   const id = useId();
-  const [funnel, setFunnel] = useState("");
-  const [range, setRange] = useState<DateRange>({ from: "", to: "" });
-  const entries = Array.from(new Map(data.questions.map(row => [row.slug, row.name])))
-    .sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+  const range = reportRange ?? { from: "", to: "" };
+  const reportParams = new URLSearchParams({ origem: "diagnostico" });
+  if (funnel) reportParams.set("respFunil", funnel);
+  if (range.from && range.to) {
+    reportParams.set("from", range.from);
+    reportParams.set("to", range.to);
+  }
   const selected = funnel ? data.questions.filter(row => row.slug === funnel) : data.questions;
   const visible = data.daily ? filterDiagnosisByDate(selected, data.daily, range) : selected;
-  const days = data.daily ? calendarSeriesDays(data.daily, data.captured_at, "America/Sao_Paulo") : [];
   const sessions = visible.reduce((sum, row) => sum + row.sessions, 0);
   const leads = visible.reduce((sum, row) => sum + row.leads, 0);
 
@@ -63,17 +64,13 @@ export default function SnapshotDiagnosisView({ data, individual = false }: { da
       <header className="ct-section-heading flex-wrap gap-3">
         <div><h2>Capturas por alternativa</h2><p>Dados de <SnapshotTimestamp capturedAt={data.captured_at} />. A taxa considera capturas registradas no mesmo funil até a data da cópia.</p>
           <p role="status">{visible.length} perguntas · {number.format(sessions)} sessões por pergunta · {number.format(leads)} com captura</p></div>
-        <div className="flex flex-wrap gap-2">
-          {!individual && <WorkspaceSelect searchable label="Funil do diagnóstico" value={funnel} onChange={setFunnel}
-            options={[{ value: "", label: "Todos os funis" }, ...entries.map(([value, label]) => ({ value, label: `${label} (/${value})` }))]} />}
-          {days.length > 0 && <WorkspaceDateRange days={days} value={range} onChange={setRange} label="Período das respostas" />}
-        </div>
+        
       </header>
       <p className="px-4 pb-4 text-xs text-ct-dim">Cada pergunta usa a última alternativa reconhecida por sessão. Uma sessão pode aparecer em mais de uma pergunta.</p>
     </section>
     {visible.map((row, index) => <details className="ct-panel ct-analytics-disclosure p-4" key={`${row.slug}:${row.id}`}>
       <summary id={`${id}-question-${index}`} className="cursor-pointer font-semibold [overflow-wrap:anywhere]">{row.question.replace(/&nbsp;|\u00a0/g, " ")} <span className="ml-2 text-xs font-normal text-ct-dim">{row.sessions} sessões</span></summary>
-      {!individual && <Link href={`/dashboard/${encodeURIComponent(row.slug)}`} className="mt-2 inline-block text-xs text-ct-blue">{row.name}</Link>}
+      {!individual && <Link href={`/dashboard/${encodeURIComponent(row.slug)}?${reportParams}`} className="mt-2 inline-block text-xs text-ct-blue">{row.name}</Link>}
       <div role="region" aria-labelledby={`${id}-question-${index}`} tabIndex={0} className="ct-comparison-scroll mt-3 overflow-x-auto"><table className="w-full text-sm">
         <thead className="border-b border-ct-line text-left text-ct-dim"><tr>
           <th scope="col" className="py-2">Alternativa</th>

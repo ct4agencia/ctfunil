@@ -6,6 +6,6 @@ export default function ImportError() {
   return <WorkspaceError
     title="Não foi possível abrir a importação"
     editor
-    returnLink={{ href: "/ctfunil#anexar-referencia", label: "Anexar arquivo no assistente" }}
+    returnLink={{ href: "/ctfunil/assistente#anexar-referencia", label: "Anexar arquivo no assistente" }}
   />;
 }

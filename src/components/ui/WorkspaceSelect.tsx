@@ -15,7 +15,6 @@ type WorkspaceSelectProps = {
   id?: string;
   preserveFocus?: boolean;
   searchable?: boolean;
-  expandFromTrigger?: boolean;
 };
 
 export function WorkspaceSelect(props: WorkspaceSelectProps) {
@@ -23,7 +22,7 @@ export function WorkspaceSelect(props: WorkspaceSelectProps) {
   return searchable ? <SearchableSelect {...selectProps} /> : <StandardSelect {...selectProps} />;
 }
 
-function SearchableSelect({ value, onChange, options, label, disabled, className, id, preserveFocus, expandFromTrigger }: WorkspaceSelectProps) {
+function SearchableSelect({ value, onChange, options, label, disabled, className, id, preserveFocus }: WorkspaceSelectProps) {
   const trigger = useRef<HTMLButtonElement>(null);
   const search = useRef<HTMLInputElement>(null);
   const selected = useRef(false);
@@ -42,7 +41,6 @@ function SearchableSelect({ value, onChange, options, label, disabled, className
       <Popover.Portal container={trigger.current?.closest("dialog") || undefined}>
         <Popover.Content
           className="ct-select-content ct-select-searchable"
-          data-expand-from-trigger={expandFromTrigger || undefined}
           aria-label={label}
           align="start"
           sideOffset={5}

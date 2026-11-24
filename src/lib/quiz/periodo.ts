@@ -13,10 +13,15 @@
  * 2019, então o offset fixo -03:00 é seguro.
  */
 
+const civilDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+});
+
+export const spDateYmd = (date: Date): string => civilDateFormatter.format(date);
+
 /** Data yyyy-mm-dd no fuso de São Paulo (offset em dias: 0 = hoje, 1 = ontem). */
 export const spYmd = (offsetDays = 0): string =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" })
-    .format(new Date(Date.now() - offsetDays * 86400000));
+  spDateYmd(new Date(Date.now() - offsetDays * 86400000));
 
 /** Limites UTC de um dia (00:00–23:59.999) no fuso BR. */
 export const dayBounds = (ymd: string): { from: string; to: string } => ({
@@ -44,7 +49,7 @@ export const PERIODOS: { key: string; label: string; make: () => Janela }[] = [
  * usuário e um período inválido não pode derrubar a página de métricas.
  */
 export function janelaDeChave(key?: string, dia?: string): { key: string; janela: Janela } {
-  if (key === "dia" && dia && /^\d{4}-\d{2}-\d{2}$/.test(dia)) {
+  if (key === "dia" && validCivilDay(dia) && dia <= spYmd()) {
     return { key: "dia", janela: dayBounds(dia) };
   }
   const p = PERIODOS.find((x) => x.key === key);
@@ -58,4 +63,26 @@ export function rotuloDoPeriodo(key: string, dia?: string): string {
     return `${d}/${m}/${a}`;
   }
   return PERIODOS.find((x) => x.key === key)?.label ?? "Tudo";
+}
+
+
+function validCivilDay(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+export function parseCivilRange(from: unknown, to: unknown) {
+  return validCivilDay(from) && validCivilDay(to) && from <= to && to <= spYmd()
+    ? { from, to }
+    : undefined;
+}
+
+export function civilRangeFromPeriod(key?: string, day?: string) {
+  const { janela } = janelaDeChave(key, day);
+  if (!janela.from) return undefined;
+  return {
+    from: spDateYmd(new Date(janela.from)),
+    to: janela.to ? spDateYmd(new Date(janela.to)) : spYmd(),
+  };
 }

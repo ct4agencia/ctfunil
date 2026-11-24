@@ -1,14 +1,18 @@
 "use client";
 
+import { normalizeSearchText } from "@/lib/text";
 import RollingNumber from "@/components/ui/RollingNumber";
-import { clearWorkspaceNotices, recordWorkspaceNotice } from "@/components/workspace/WorkspaceNoticeHistory";
+import { recordWorkspaceNotice } from "@/components/workspace/WorkspaceNoticeHistory";
 import WorkspaceNotice from "@/components/ui/WorkspaceNotice";
 import WorkspaceStatus from "@/components/ui/WorkspaceStatus";
+import DeleteConfirmationIcon from "@/components/ui/DeleteConfirmationIcon";
 import ActiveTab from "@/components/ui/ActiveTab";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { WorkspaceFrame } from "@/components/workspace/WorkspaceFrame";
 import { FolderKanban, Users, MousePointer2, CheckCheck, Eye, EyeOff } from "lucide-react";
+import { libraryContext } from "@/lib/quiz/library-context";
+import { parseCivilRange } from "@/lib/quiz/periodo";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { FunnelSummary } from "@/lib/quiz/funnels-db";
 import type { DashboardMetrics } from "@/lib/quiz/metrics";
@@ -16,7 +20,7 @@ import CreateFunnelDialog from "./CreateFunnelDialog";
 import SnapshotTimestamp from "./SnapshotTimestamp";
 import { getPalette } from "@/lib/quiz/theme";
 import { createFunnel, duplicateFunnel, deleteFunnel } from "@/app/dashboard/actions";
-import { signOut } from "@/app/auth/actions";
+import WorkspaceSignOut from "@/components/workspace/WorkspaceSignOut";
 import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import Pagination from "@/components/ui/Pagination";
 import WorkspaceDateRange, { type DateRange } from "@/components/ui/WorkspaceDateRange";
@@ -32,7 +36,7 @@ function updateDay(timestamp: string) {
 const folders = ["Todos", "CDB", "SRC", "Resinas", "Páginas", "Quizzes"];
 
 type ModuleTab = "quizzes" | "pages" | "spy";
-type VslPage = { name: string; slug: string; tracked: number };
+type VslPage = { name: string; slug: string; tracked?: number };
 
 function readTab(value: string | null): ModuleTab {
   return value === "pages" || value === "spy" ? value : "quizzes";
@@ -46,7 +50,7 @@ function fmtDate(s: string): string {
   }
 }
 
-export default function Dashboard({ funnels, metrics, preview = false, snapshotAt, pagesCapturedAt, pages = [] }: { funnels: FunnelSummary[]; metrics: DashboardMetrics; preview?: boolean; snapshotAt?: string; pagesCapturedAt?: string; pages?: VslPage[] }) {
+export default function Dashboard({ funnels, metrics, preview = false, accountEmail, snapshotAt, pagesCapturedAt, pages = [] }: { funnels: FunnelSummary[]; metrics: DashboardMetrics; preview?: boolean; accountEmail?: string; snapshotAt?: string; pagesCapturedAt?: string; pages?: VslPage[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tab = readTab(searchParams.get("tab"));
@@ -58,15 +62,34 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
     window.history.pushState(null, "", url);
   }
   const [hideMetrics, setHideMetrics] = useState(false);
-  const [q, setQ] = useState("");
-  const [pageQuery, setPageQuery] = useState("");
-  const [folder, setFolder] = useState("Todos");
-  const [updateRange, setUpdateRange] = useState<DateRange>({ from: "", to: "" });
+  const q = searchParams.get("buscaFunil")?.slice(0, 160) ?? "";
+  const pageQuery = searchParams.get("buscaPagina")?.slice(0, 160) ?? "";
+  const selectedFolder = searchParams.get("pasta");
+  const folder = folders.find(value => value === selectedFolder) ?? "Todos";
+  const updateFrom = searchParams.get("atualDe");
+  const updateTo = searchParams.get("atualAte");
+  const updateRange = useMemo(() => parseCivilRange(updateFrom, updateTo) ?? { from: "", to: "" }, [updateFrom, updateTo]);
+  const libraryParams = libraryContext({
+    biblioteca: tab, buscaFunil: q, buscaPagina: pageQuery, pasta: folder === "Todos" ? "" : folder,
+    atualDe: updateRange.from, atualAte: updateRange.to,
+  });
+  const editorParams = new URLSearchParams(libraryParams);
+  editorParams.set("editar", "1");
+  function updateLibraryParams(values: Record<string, string>) {
+    const url = new URL(window.location.href);
+    for (const [key, value] of Object.entries(values)) {
+      if (value) url.searchParams.set(key, value);
+      else url.searchParams.delete(key);
+    }
+    window.history.replaceState(null, "", url);
+  }
   const [menu, setMenu] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<FunnelSummary | null>(null);
   const confirmation = useRef<HTMLDialogElement>(null);
+  const menuTrigger = useRef<HTMLButtonElement>(null);
+  const librarySearch = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const dialog = confirmation.current;
     if (!dialog) return;
@@ -79,21 +102,17 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
     setNotice({ message, error });
   }
 
-  function leaveWorkspace() {
-    clearWorkspaceNotices();
-    void signOut();
-  }
-
   const [page, setPage] = useState(1);
 
   const updateDates = useMemo(() => [...new Set(funnels.map(funnel => updateDay(funnel.updated_at)).filter(Boolean))].sort(), [funnels]);
   const hasDateFilter = Boolean(updateRange.from || updateRange.to);
   const filtered = useMemo(() => {
-    const query = q.trim().toLocaleLowerCase("pt-BR");
+    const query = normalizeSearchText(q);
+    const folderQuery = normalizeSearchText(folder);
     return funnels.filter((f) => {
-      const hay = `${f.name} ${f.slug} ${f.niche ?? ""} ${f.engine}`.toLowerCase();
+      const hay = normalizeSearchText(`${f.name} ${f.slug} ${f.niche ?? ""} ${f.engine}`);
       const byQuery = hay.includes(query);
-      const byFolder = folder === "Todos" || hay.includes(folder.toLowerCase());
+      const byFolder = folder === "Todos" || hay.includes(folderQuery);
       const day = hasDateFilter ? updateDay(f.updated_at) : "";
       const byDate = !hasDateFilter || (Boolean(day)
         && (!updateRange.from || day >= updateRange.from)
@@ -101,19 +120,19 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
       return byQuery && byFolder && byDate;
     });
   }, [funnels, folder, q, hasDateFilter, updateRange]);
-  const filteredPages = pages.filter(item => `${item.name} ${item.slug}`.toLocaleLowerCase("pt-BR").includes(pageQuery.trim().toLocaleLowerCase("pt-BR")));
+  const normalizedPageQuery = normalizeSearchText(pageQuery);
+  const filteredPages = pages.filter(item => normalizeSearchText(`${item.name} ${item.slug}`).includes(normalizedPageQuery));
   const onPages = tab === "pages";
   const libraryCapturedAt = onPages ? pagesCapturedAt : snapshotAt;
   const count = onPages ? filteredPages.length : filtered.length;
   const hasFilters = onPages ? Boolean(pageQuery.trim()) : Boolean(q.trim()) || folder !== "Todos" || hasDateFilter;
   function clearFilters() {
-    if (onPages) setPageQuery("");
+    if (onPages) updateLibraryParams({ buscaPagina: "" });
     else {
-      setQ("");
-      setFolder("Todos");
-      setUpdateRange({ from: "", to: "" });
+      updateLibraryParams({ buscaFunil: "", pasta: "", atualDe: "", atualAte: "" });
       setPage(1);
     }
+    librarySearch.current?.focus();
   }
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
@@ -158,10 +177,10 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
   };
 
   return (
-    <WorkspaceFrame title="Meus funis" activeTab={tab} demo={preview && !snapshotAt}>
+    <WorkspaceFrame title="Meus funis" activeTab={tab} accountEmail={accountEmail} demo={preview && !snapshotAt}>
       <div onClick={() => setMenu(null)}>
         <header className="ct-page-heading"><div><h1>Meus funis</h1><p>{snapshotAt ? "Dados reais em modo de consulta" : "Criação e desempenho dos funis da CT4 Educação."}</p></div>
-          {preview ? <div className="flex items-center gap-3">{snapshotAt && <button className="text-sm text-ct-dim" onClick={leaveWorkspace}>Sair</button>}<Link className="ct-action-link" href="/lab/construtor">Criar rascunho</Link></div> : <div className="flex items-center gap-3"><button className="text-sm text-ct-dim" onClick={leaveWorkspace}>Sair</button>
+          {preview ? <div className="flex items-center gap-3">{snapshotAt && <WorkspaceSignOut className="text-sm text-ct-dim" />}<Link className="ct-action-link" href="/lab/construtor">Criar rascunho</Link></div> : <div className="flex items-center gap-3"><WorkspaceSignOut className="text-sm text-ct-dim" />
             <button className="ct-action-link" onClick={() => setCreating(true)}>Criar funil</button></div>}
         </header>
         <section aria-labelledby="dashboard-metrics-heading">
@@ -195,21 +214,23 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
               )}
             </div>
             {tab !== "spy" && <label className="ct-search"><input
+              ref={librarySearch}
               aria-label={onPages ? "Buscar página" : "Buscar funil"}
               placeholder={onPages ? "Buscar página" : "Buscar funil"}
+              maxLength={160}
               value={onPages ? pageQuery : q}
               onChange={event => {
-                if (onPages) setPageQuery(event.target.value);
-                else { setQ(event.target.value); setPage(1); }
+                updateLibraryParams({ [onPages ? "buscaPagina" : "buscaFunil"]: event.target.value });
+                if (!onPages) setPage(1);
               }}
             /></label>}
           </header>
           <div className="ct-filters"><div className="ct-segments">{([["quizzes","Funis"],["pages","Páginas"],["spy","Referências"]] as const).map(([key,label]) =>
             <button key={key} aria-pressed={tab === key} onClick={()=>setTab(key)}>{tab === key && <ActiveTab group="dashboard-tabs" />}<span>{label}</span></button>)}</div>
-            {tab === "quizzes" && <WorkspaceSelect searchable label="Filtrar por pasta" value={folder} onChange={value=>{setFolder(value);setPage(1);}} options={folders.map(f=>({value:f,label:f}))}/>}</div>
+            {tab === "quizzes" && <WorkspaceSelect searchable label="Filtrar por pasta" value={folder} onChange={value=>{updateLibraryParams({ pasta: value === "Todos" ? "" : value });setPage(1);}} options={folders.map(f=>({value:f,label:f}))}/>}</div>
           {tab === "quizzes" && updateDates.length > 1 && <div className="px-4 pb-1">
             <WorkspaceDateRange days={updateDates} value={updateRange} label="Atualização dos funis"
-              onChange={range => { setUpdateRange(range); setPage(1); }} />
+              onChange={range => { updateLibraryParams({ atualDe: range.from, atualAte: range.to }); setPage(1); }} />
           </div>}
           <div className="px-4">
               {tab === "quizzes" ? (
@@ -219,13 +240,13 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
                     return (
                       <article key={f.slug} className={`ct-dashboard-card relative min-w-0 overflow-visible rounded-xl bg-ct-raised p-4 ${menu === f.slug ? "z-30" : ""}`}>
                         <div className="flex items-start justify-between gap-3">
-                          <button type="button" onClick={() => router.push(snapshotAt ? `/builder/${encodeURIComponent(f.slug)}?editar=1` : preview ? "/lab/sonia?view=builder" : `/builder/${f.slug}`)} className="min-w-0 flex-1 text-left">
+                          <button type="button" onClick={() => router.push(snapshotAt ? `/builder/${encodeURIComponent(f.slug)}?${editorParams}` : preview ? "/lab/sonia?view=builder" : `/builder/${f.slug}`)} className="min-w-0 flex-1 text-left">
                             <span className="mb-3 block h-1.5 w-16 rounded-full" style={{ background: pal.primary }} />
                             <h3 className="truncate text-lg font-black">{f.name}</h3>
                             <p className="mt-1 text-xs text-ct-dim [overflow-wrap:anywhere]">/{f.slug} · {fmtDate(f.updated_at)}{f.niche ? ` · ${f.niche}` : ""}</p>
                           </button>
                           {!preview && <div className="relative">
-                            <button onClick={(e) => { e.stopPropagation(); setMenu(menu === f.slug ? null : f.slug); }} className="rounded-xl px-2 py-1 text-xl text-ct-dim hover:bg-ct-raised">⋮</button>
+                            <button type="button" aria-label={`Ações de ${f.name}`} aria-expanded={menu === f.slug} onClick={(e) => { e.stopPropagation(); menuTrigger.current = e.currentTarget; setMenu(menu === f.slug ? null : f.slug); }} className="rounded-xl px-2 py-1 text-xl text-ct-dim hover:bg-ct-raised">⋮</button>
                             {menu === f.slug ? (
                               <div onClick={(e) => e.stopPropagation()} className="absolute right-0 z-40 mt-1 w-44 overflow-hidden rounded-2xl border border-ct-line bg-ct-surface py-1 text-sm shadow-2xl">
                                 <button onClick={() => router.push(`/builder/${f.slug}`)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Editar</button>
@@ -242,8 +263,8 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
                           <WorkspaceStatus status={f.status} />
                           <span className="rounded-full bg-ct-raised px-2.5 py-1 text-[11px] font-bold uppercase text-ct-dim">{f.engine}</span>
                           {snapshotAt && <>
-                            <Link href={`/builder/${encodeURIComponent(f.slug)}?editar=1`} className="text-sm font-semibold text-ct-blue underline">Abrir editor</Link>
-                            <Link href={`/dashboard/${encodeURIComponent(f.slug)}`} className="text-sm text-ct-blue underline">Ver relatório</Link>
+                            <Link href={`/builder/${encodeURIComponent(f.slug)}?${editorParams}`} className="text-sm font-semibold text-ct-blue underline">Abrir editor</Link>
+                            <Link href={`/dashboard/${encodeURIComponent(f.slug)}?${libraryParams}`} className="text-sm text-ct-blue underline">Ver relatório</Link>
                           </>}
                         </div>
                       </article>
@@ -258,12 +279,12 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
                     <article key={item.slug} className="ct-dashboard-card min-w-0 rounded-xl border border-ct-line bg-ct-surface p-4 [overflow-wrap:anywhere]">
                       <p className="text-xs font-medium text-ct-dim">Página VSL · /{item.slug}</p>
                       <h3 className="mt-2 text-lg font-semibold">
-                        <Link href={`/builder/${encodeURIComponent(item.slug)}?editar=1`}>{item.name}</Link>
+                        <Link href={`/builder/${encodeURIComponent(item.slug)}?${editorParams}`}>{item.name}</Link>
                       </h3>
-                      <p className="mt-1 text-sm text-ct-dim">{item.tracked.toLocaleString("pt-BR")} sessões com rastreamento de vídeo</p>
+                      <p className="mt-1 text-sm text-ct-dim">{item.tracked === undefined ? "Rastreamento de vídeo fora da captura" : `${item.tracked.toLocaleString("pt-BR")} sessões com rastreamento de vídeo`}</p>
                       <div className="mt-3 flex flex-wrap gap-4">
-                        <Link href={`/builder/${encodeURIComponent(item.slug)}?editar=1`} className="text-sm font-semibold text-ct-blue underline">Abrir editor</Link>
-                        <Link href={`/dashboard/${encodeURIComponent(item.slug)}`} className="text-sm text-ct-blue underline">Ver relatório</Link>
+                        <Link href={`/builder/${encodeURIComponent(item.slug)}?${editorParams}`} className="text-sm font-semibold text-ct-blue underline">Abrir editor</Link>
+                        <Link href={`/dashboard/${encodeURIComponent(item.slug)}?${libraryParams}`} className="text-sm text-ct-blue underline">Ver relatório</Link>
                       </div>
                     </article>
                   ))}
@@ -275,7 +296,7 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
                 <article className="ct-dashboard-card mt-4 rounded-xl border border-ct-line bg-ct-surface p-4">
                   <h3 className="text-lg font-semibold">Importar referência</h3>
                   <p className="mt-2 text-sm text-ct-dim">Anexe um arquivo HTML ou ZIP no assistente para revisar a estrutura e criar um rascunho editável.</p>
-                  <Link href="/ctfunil#anexar-referencia" className="mt-3 inline-block text-sm text-ct-blue">Anexar referência no assistente</Link>
+                  <Link href="/ctfunil/assistente#anexar-referencia" className="mt-3 inline-block text-sm text-ct-blue">Anexar referência no assistente</Link>
                 </article>
               )}
 
@@ -284,7 +305,7 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
                   <p>{hasFilters
                     ? (onPages ? "Nenhuma página corresponde à busca." : "Nenhum funil corresponde aos filtros.")
                     : (onPages ? "Nenhuma página VSL disponível para consulta." : "Nenhum funil disponível.")}</p>
-                  {hasFilters && <button type="button" className="mt-2 text-ct-blue underline" onClick={clearFilters}>Limpar filtros</button>}
+                  {hasFilters && <button type="button" className="mt-2 min-h-11 text-ct-blue underline" onClick={clearFilters}>Limpar filtros</button>}
                 </div>
               )}
               {tab === "quizzes" && totalPages > 1 ? <div className="mt-5"><Pagination current={curPage} total={totalPages} onChange={setPage} /></div> : null}
@@ -300,9 +321,13 @@ export default function Dashboard({ funnels, metrics, preview = false, snapshotA
         return result;
       }}/>}
       {notice && <WorkspaceNotice {...notice} onDismiss={() => setNotice(null)} />}
-      <dialog ref={confirmation} className="ct-confirm" aria-labelledby="ct-delete-title" aria-describedby="ct-delete-summary"
-        onCancel={event => { event.preventDefault(); if (!busy) setPendingDelete(null); }}>
-        <h2 id="ct-delete-title" className="font-semibold">Excluir funil?</h2>
+      <dialog ref={confirmation} className="ct-confirm ct-delete-modal-confirmation" aria-labelledby="ct-delete-title" aria-describedby="ct-delete-summary"
+        onCancel={event => { event.preventDefault(); if (!busy) setPendingDelete(null); }}
+        onClose={() => { if (!confirmation.current?.open && menuTrigger.current?.isConnected) menuTrigger.current.focus(); }}>
+        <div className="flex items-center gap-2">
+          <DeleteConfirmationIcon />
+          <h2 id="ct-delete-title" className="font-semibold">Excluir funil?</h2>
+        </div>
         <p id="ct-delete-summary" className="mt-2 text-sm text-ct-dim">O funil {pendingDelete?.name} será excluído. Essa ação é permanente.</p>
         <div className="mt-5 flex justify-end gap-3">
           <button type="button" disabled={busy} className="ct-confirm-cancel" onClick={() => setPendingDelete(null)} autoFocus>Cancelar</button>

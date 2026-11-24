@@ -12,5 +12,5 @@ export default async function SettingsPage({ searchParams }: {
   const section = tab === "assistente" || tab === "importacao" ? tab : "geral";
   const auth = await requireAdmin();
   if (!auth.ok) redirect("/admin/login?next=" + encodeURIComponent("/ctfunil/configuracoes?tab=" + section));
-  return <SettingsWorkspace key={section} section={section} />;
+  return <SettingsWorkspace section={section} accountEmail={auth.user.email} />;
 }

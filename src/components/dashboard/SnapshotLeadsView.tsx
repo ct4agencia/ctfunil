@@ -1,8 +1,11 @@
 "use client";
 
+import SnapshotRangeCoverage from "./SnapshotRangeCoverage";
 import Link from "next/link";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
-import WorkspaceDateRange, { calendarSeriesDays, type DateRange } from "@/components/ui/WorkspaceDateRange";
+import WorkspaceDateRange, { calendarSeriesDays } from "@/components/ui/WorkspaceDateRange";
+import { useSnapshotDateRange } from "./useSnapshotDateRange";
 import SnapshotTimestamp from "./SnapshotTimestamp";
 
 type LeadTotal = { slug: string; name: string; leads: number };
@@ -18,9 +21,25 @@ function searchKey(text: string) {
   return text.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("pt-BR").trim();
 }
 
-export default function SnapshotLeadsView({ rows, total, daily }: { rows: LeadTotal[]; total: number; daily?: LeadsDaily }) {
+export default function SnapshotLeadsView({ rows, total, daily, editableSlugs }: { rows: LeadTotal[]; total: number; daily?: LeadsDaily; editableSlugs?: string[] }) {
   const [query, setQuery] = useState("");
-  const [range, setRange] = useState<DateRange>({ from: "", to: "" });
+  const [sort, setSort] = useState<{ key: "funnel" | "leads"; ascending: boolean }>({ key: "leads", ascending: false });
+  const days = daily ? calendarSeriesDays(daily.rows, daily.capturedAt, daily.timeZone) : [];
+  const { range, changeRange, outsideCapture, partialCapture } = useSnapshotDateRange(days, "lead");
+  const editable = new Set(editableSlugs);
+  const showEditorLinks = rows.some(row => editable.has(row.slug));
+
+  function sortHeader(key: "funnel" | "leads", label: string) {
+    const active = sort.key === key;
+    const Icon = active ? sort.ascending ? ArrowUp : ArrowDown : ArrowUpDown;
+    return <th scope="col" aria-sort={active ? sort.ascending ? "ascending" : "descending" : undefined}
+      className={key === "leads" ? "px-3 py-2 text-right" : "py-2"}>
+      <button type="button" className="inline-flex min-h-10 items-center gap-1 rounded focus-visible:outline-ct-action"
+        onClick={() => setSort({ key, ascending: active ? !sort.ascending : key === "funnel" })}>
+        {label}<Icon size={13} aria-hidden="true" />
+      </button>
+    </th>;
+  }
   const search = searchKey(query);
   const dateFiltered = daily && (range.from || range.to);
   const byFunnel = new Map<string, number>();
@@ -32,10 +51,14 @@ export default function SnapshotLeadsView({ rows, total, daily }: { rows: LeadTo
   }
   const periodRows = dateFiltered ? rows.map(row => ({ ...row, leads: byFunnel.get(row.slug) ?? 0 })) : rows;
   const periodTotal = dateFiltered ? periodRows.reduce((sum, row) => sum + row.leads, 0) : total;
-  const days = daily ? calendarSeriesDays(daily.rows, daily.capturedAt, daily.timeZone) : [];
   const results = periodRows
     .filter(row => row.leads > 0 && searchKey(`${row.name} ${row.slug}`).includes(search))
-    .sort((a, b) => b.leads - a.leads || a.name.localeCompare(b.name, "pt-BR"));
+    .sort((left, right) => {
+      const names = left.name.localeCompare(right.name, "pt-BR");
+      const primary = sort.key === "funnel" ? names : left.leads - right.leads;
+      return (sort.ascending ? primary : -primary) || names;
+    });
+  const reportParams = { origem: "leads", ...(dateFiltered ? range : {}) };
   const subtotal = results.reduce((sum, row) => sum + row.leads, 0);
 
   return (
@@ -43,7 +66,7 @@ export default function SnapshotLeadsView({ rows, total, daily }: { rows: LeadTo
       <header className="ct-section-heading flex-wrap gap-3">
         <div>
           <h2 id="snapshot-leads-title">Leads por funil</h2>
-          <p>{number.format(periodTotal)} leads {dateFiltered ? "no período selecionado" : "na cópia"}. A consulta exibe os totais por funil.</p>
+          {!outsideCapture && <p>{number.format(periodTotal)} leads {dateFiltered ? "no período selecionado" : "na cópia"}. A consulta exibe os totais por funil.</p>}
           {daily && <p>Dados capturados em <SnapshotTimestamp capturedAt={daily.capturedAt} />.</p>}
         </div>
         <label className="ct-search">
@@ -52,8 +75,11 @@ export default function SnapshotLeadsView({ rows, total, daily }: { rows: LeadTo
         </label>
       </header>
       {days.length > 0 && <div className="px-4 pb-3">
-        <WorkspaceDateRange days={days} value={range} onChange={setRange} label="Período dos leads" />
+        <WorkspaceDateRange allowEarlierDates days={days} value={range} onChange={changeRange} label="Período dos leads" />
       </div>}
+      <SnapshotRangeCoverage outsideCapture={outsideCapture} partialCapture={partialCapture}
+        onReset={() => changeRange({ from: "", to: "" })} />
+      {!outsideCapture && <>
       <p role="status" className="px-4 pb-3 text-xs text-ct-dim">
         {number.format(subtotal)} leads em {results.length} {results.length === 1 ? "funil" : "funis"} na lista
       </p>
@@ -61,15 +87,23 @@ export default function SnapshotLeadsView({ rows, total, daily }: { rows: LeadTo
         <div role="region" aria-labelledby="snapshot-leads-title" tabIndex={0} className="ct-comparison-scroll overflow-x-auto px-4 pb-4">
           <table className="w-full text-sm" aria-labelledby="snapshot-leads-title">
             <thead className="border-b border-ct-line text-left text-ct-dim">
-              <tr><th scope="col" className="py-2">Funil</th><th scope="col" className="px-3 py-2 text-right">Leads</th></tr>
+              <tr>{sortHeader("funnel", "Funil")}{sortHeader("leads", "Leads")}
+                {showEditorLinks && <th scope="col" className="py-2"><span className="sr-only">Ações</span></th>}
+              </tr>
             </thead>
             <tbody>{results.map(row => (
               <tr key={row.slug} className="border-b border-ct-line">
                 <th scope="row" className="py-2 text-left font-medium">
-                  <Link className="text-ct-blue" href={`/dashboard/${encodeURIComponent(row.slug)}`}>{row.name}</Link>
+                  <Link className="text-ct-blue" href={`/dashboard/${encodeURIComponent(row.slug)}?${new URLSearchParams(reportParams)}`}>{row.name}</Link>
                   <span className="block text-xs text-ct-dim">/{row.slug}</span>
                 </th>
                 <td className="px-3 py-2 text-right">{number.format(row.leads)}</td>
+                {showEditorLinks && <td className="py-2">
+                  {editable.has(row.slug) && <Link className="text-ct-blue" aria-label={`Consultar leads de ${row.name}`}
+                    href={`/builder/${encodeURIComponent(row.slug)}?${new URLSearchParams({
+                      editar: "1", tab: "leads", ...reportParams,
+                    })}`}>Consultar leads</Link>}
+                </td>}
               </tr>
             ))}</tbody>
           </table>
@@ -80,6 +114,7 @@ export default function SnapshotLeadsView({ rows, total, daily }: { rows: LeadTo
           {search && <button type="button" className="mt-2 text-ct-blue underline" onClick={() => setQuery("")}>Limpar busca</button>}
         </div>
       )}
+      </>}
     </section>
   );
 }

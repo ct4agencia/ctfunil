@@ -1,7 +1,7 @@
 "use client";
 
 import { rankingVideoRange } from "@/lib/quiz/relogio-vsl";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { resolveLayerDestination } from "@/lib/quiz/layers/navigation";
 import { designNumber, typographyStyles } from "@/lib/quiz/layers/design";
 import { funnelFontClasses } from "./fonts";
@@ -9,6 +9,7 @@ import "./design.css";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, InleadDesign } from "@/lib/quiz/layers/types";
+import { PreviewScrollContext } from "./PreviewScrollContext";
 import { ComponentFrame } from "./ComponentFrame";
 import { matchesDisplay, plainLabel, buttonDestination } from "@/lib/quiz/layers/component-settings";
 import type { LayerAnswer, Layer } from "@/lib/quiz/layers/types";
@@ -106,7 +107,19 @@ export default function LayersRunner(props: LayersRunnerProps) {
   </div>;
 }
 
-export function LayersContent({ funnel, geo, startIndex = 0, preview = false, editor, localPreviewRedirect, previewWidth, simulateVideoTime = false }: LayersRunnerProps) {
+export function LayersContent(props: LayersRunnerProps) {
+  const allSteps = props.funnel.steps as unknown as InleadStep[];
+  const steps = props.preview ? allSteps : allSteps.filter(step => !step.disabled);
+  if (!steps.length) {
+    return <section className="p-6 text-center" role="status">
+      {props.preview ? "Adicione uma etapa para visualizar a página." : "Esta página está indisponível."}
+    </section>;
+  }
+  return <LayerStages {...props} steps={steps} />;
+}
+
+function LayerStages({ funnel, steps, geo, startIndex = 0, preview = false, editor, localPreviewRedirect, previewWidth, simulateVideoTime = false }: LayersRunnerProps & { steps: InleadStep[] }) {
+  const previewScroll = useContext(PreviewScrollContext);
   const prefersReducedMotion = useReducedMotion();
   const reducePreviewMotion = preview && prefersReducedMotion;
   // Explicit local lab opt-in. Keep every tracking/capture preview guard active.
@@ -114,9 +127,6 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
     && ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname) && window.location.pathname === "/lab/sonia"
     && localPreviewRedirect === SONIA_REDIRECT;
   const allowedPreviewRedirect = canPreviewRedirect() ? SONIA_REDIRECT : undefined;
-  const allSteps = funnel.steps as unknown as InleadStep[];
-  // runtime PULA lâminas desativadas; no preview do construtor mostra todas (pra editar)
-  const steps = preview ? allSteps : allSteps.filter((s) => !s.disabled);
   const globalDesign = (funnel.settings?.design as InleadDesign) || {};
   const total = steps.length;
   // Setinha "role pra baixo". Nasce LIGADA; o Design define o global e cada
@@ -124,8 +134,19 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
   const scrollHintGlobal =
     ((funnel.settings as { header?: Record<string, boolean> })?.header || {}).show_scroll_hint !== false;
 
-  const [idx, setIdx] = useState(startIndex);
-  const [videoSeconds, setVideoSeconds] = useState(0);
+  const [activeIndex, setIdx] = useState(startIndex);
+  const idx = Number.isInteger(activeIndex) ? Math.max(0, Math.min(activeIndex, total - 1)) : 0;
+  const previousPreviewStage = useRef(idx);
+  const [requestedVideoSeconds, setVideoSeconds] = useState(0);
+  const [previewDesktop, setPreviewDesktop] = useState<boolean>();
+  useEffect(() => {
+    if (!preview || !simulateVideoTime || previewWidth != null) return;
+    const desktop = window.matchMedia("(min-width: 768px)");
+    const update = () => setPreviewDesktop(desktop.matches);
+    update();
+    desktop.addEventListener("change", update);
+    return () => desktop.removeEventListener("change", update);
+  }, [preview, previewWidth, simulateVideoTime]);
   const history = useRef<number[]>([]);
   const [canBack, setCanBack] = useState(false);
 
@@ -166,8 +187,13 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
   const [submitting, setSubmitting] = useState(false);
 
   const step = steps[idx];
+  const importedLayout = step?.layers?.some(layer => layer.type === "html" && layer.content.importedDesign && !layer.design?.hidden);
+  const isDesktopPreview = previewWidth == null ? previewDesktop : previewWidth >= 768;
   const videoLimit = preview && simulateVideoTime ? Math.max(0, ...(step?.layers ?? [])
     .flatMap(layer => {
+      if (layer.design?.hidden || !matchesDisplay(layer, answers, fields)) return [];
+      if ((layer.display?.device === "desktop" && isDesktopPreview === false) ||
+          (layer.display?.device === "mobile" && isDesktopPreview === true)) return [];
       if (layer.type === "ranking") return [rankingVideoRange(layer.content.revealAt, layer.content.fimEm).end];
       if (layer.content.revealClock === "video" && (layer.type === "button" || layer.type === "text" || layer.type === "image")) {
         return [Number(layer.content.revealAt)];
@@ -175,6 +201,8 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
       return [];
     })
     .filter(Number.isFinite)) : 0;
+  const videoMax = Math.ceil(videoLimit);
+  const videoSeconds = Math.min(requestedVideoSeconds, videoMax);
   const stageTypography = step?.design || {};
   const design: InleadDesign = { ...globalDesign };
   for (const key of ['featuredFont','contentFont','titleSize','contentSize','titleColor','contentColor','titleWeight','contentWeight','titleLineHeight','contentLineHeight'] as const) {
@@ -191,7 +219,10 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
     // para tudo, qualquer relatório por tipo de lâmina era inútil neste motor
     // (que é o de 12 dos 18 funis). Só afeta eventos NOVOS.
     if (!preview) trackStep(funnel.slug, idx, step.id, tipoDaLamina(step));
-    window.scrollTo({ top: 0 });
+    const scrollContainer = previewScroll?.current;
+    (scrollContainer ?? window).scrollTo({ top: 0, behavior: "instant" });
+    if (previousPreviewStage.current !== idx) scrollContainer?.focus({ preventScroll: true });
+    previousPreviewStage.current = idx;
   }, [idx]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const go = (n: number) => {
@@ -390,11 +421,34 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
      embaixo, como em qualquer outra lâmina. */
   const acimaDoHero = iHero > 0 ? camadas.slice(0, iHero) : [];
   const abaixoDoHero = iHero >= 0 ? camadas.slice(iHero + 1) : [];
+  const videoControls = videoLimit > 0 && <section aria-label="Simulação do tempo da VSL" className="ct-workspace border-b border-ct-line bg-ct-surface px-4 py-3 text-sm text-ct-ink">
+      <div className="mx-auto grid max-w-md gap-2">
+        <p className="font-semibold">Tempo simulado do vídeo</p>
+        <p className="text-xs text-ct-dim">Use este relógio para testar quando os elementos aparecem. A reprodução do vídeo tem um relógio próprio.</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <input className="min-w-24 flex-1 accent-ct-action" type="range" min={0} max={videoMax} step={1}
+            value={videoSeconds} onChange={event => setVideoSeconds(event.currentTarget.valueAsNumber)}
+            aria-label="Tempo simulado do vídeo" aria-valuetext={`${videoSeconds} segundos`} />
+          <label className="flex items-center gap-2 text-xs text-ct-dim">
+            <input className="min-h-11 w-20 rounded-lg border border-ct-line bg-ct-raised px-2 text-sm text-ct-ink"
+              type="number" min={0} max={videoMax} step={1} inputMode="numeric"
+              aria-label="Tempo simulado em segundos" value={videoSeconds}
+              onChange={event => {
+                const seconds = event.currentTarget.valueAsNumber;
+                setVideoSeconds(Number.isFinite(seconds) ? Math.min(videoMax, Math.max(0, Math.trunc(seconds))) : 0);
+              }} />
+            s
+          </label>
+          <button type="button" className="ct-confirm-cancel min-h-11 rounded-lg px-3 text-xs font-semibold"
+            onClick={() => setVideoSeconds(0)}>Reiniciar simulação</button>
+        </div>
+      </div>
+    </section>;
   if (hero) {
     if (hero.type === "sonia-numbers") {
       const key = JSON.stringify([step.id, hero.id, hero.content.numeroX ?? 42, hero.content.numeroY ?? 17]);
       const state = soniaStates[key] ?? initialSoniaState;
-      return <div style={{ background: "#06152E", color: "#F7F2E8" }}>
+      return <>{videoControls}<div style={{ background: "#06152E", color: "#F7F2E8" }}>
         {acimaDoHero.length ? <div className="mx-auto w-full max-w-[492px] px-4 pt-6">{acimaDoHero.map((l, i) => <Block key={l.id} layer={l} ctx={ctx} question={question} indice={i} />)}</div> : null}
         <ComponentFrame key={hero.id} layer={hero} answers={answers} fields={fields} editing={!!editor} viewportWidth={previewWidth}><SoniaNumbers key={key} config={hero.content} state={state}
         setState={(update) => setSoniaStates((prev) => ({ ...prev, [key]: typeof update === "function" ? update(prev[key] ?? initialSoniaState) : update }))}
@@ -411,12 +465,23 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
         }} back={canBack ? back : undefined}
         trackSelection={(value) => ctx.trackAnswer(step.id, "Seleção de número", value)} /></ComponentFrame>
         {abaixoDoHero.length ? <div className="mx-auto w-full max-w-[492px] px-4 pb-8">{abaixoDoHero.map((l, i) => <Block key={l.id} layer={l} ctx={ctx} question={question} indice={acimaDoHero.length + 1 + i} />)}</div> : null}
-      </div>;
+      </div></>;
     }
     const palette = getPalette(funnel.paletteId);
     // SLIDER hero: layout dedicado (foto full-bleed no rodapé + gradiente, botão acima).
     if (hero.type === "slider") {
-      return <ComponentFrame key={hero.id} layer={hero} answers={answers} fields={fields} editing={!!editor} viewportWidth={previewWidth}><SliderHero step={hero.content} ctx={ctx} theme={design.themeColor || palette.primary || "#ea580c"} bgColor={pageBg} /></ComponentFrame>;
+      return <>
+        {videoControls}
+        {acimaDoHero.length > 0 && <div className="px-5 py-6" style={{ background: pageBg, color: design.contentColor || "#000" }}>
+          {acimaDoHero.map((layer, index) => <Block key={layer.id} layer={layer} ctx={ctx} question={question} indice={index} />)}
+        </div>}
+        <ComponentFrame key={hero.id} layer={hero} answers={answers} fields={fields} editing={!!editor} viewportWidth={previewWidth}>
+          <SliderHero step={hero.content} ctx={ctx} theme={design.themeColor || palette.primary || "#ea580c"} bgColor={pageBg} />
+        </ComponentFrame>
+        {abaixoDoHero.length > 0 && <div className="px-5 py-6" style={{ background: pageBg, color: design.contentColor || "#000" }}>
+          {abaixoDoHero.map((layer, index) => <Block key={layer.id} layer={layer} ctx={ctx} question={question} indice={acimaDoHero.length + 1 + index} />)}
+        </div>}
+      </>;
     }
     const stepCtx: StepCtx = {
       ...ctx,
@@ -451,7 +516,7 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
       | { align?: string; titleSize?: number; titleWeight?: number | string; titleColor?: string }
       | undefined;
     return (
-      <div
+      <>{videoControls}<div
         className="relative flex min-h-[100dvh] flex-col overflow-x-hidden"
         style={{
           ...paletteVars(palette),
@@ -495,20 +560,13 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
           ) : null}
         </main>
         <ScrollHint dep={idx} enabled={scrollHintLigado} />
-      </div>
+      </div></>
     );
   }
 
   return (
     <LayersEditContext.Provider value={editor ?? null}>
-    {videoLimit > 0 && <section className="ct-workspace border-b border-ct-line bg-ct-surface px-4 py-3 text-sm text-ct-ink">
-      <label className="mx-auto grid max-w-md gap-2">
-        <span>Tempo simulado do vídeo <span className="text-ct-dim">· {videoSeconds} s</span></span>
-        <input className="w-full accent-ct-action" type="range" min={0} max={Math.ceil(videoLimit)} step={1}
-          value={videoSeconds} onChange={event => setVideoSeconds(event.currentTarget.valueAsNumber)}
-          aria-label="Tempo simulado do vídeo" aria-valuetext={`${videoSeconds} segundos`} />
-      </label>
-    </section>}
+    {videoControls}
     <div className="relative flex min-h-[100dvh] flex-col overflow-x-clip" style={{
       ...typographyStyles(design), backgroundColor: pageBg, color: design.contentColor || "#000",
       backgroundImage: !step.design?.backgroundColor && !stageImage && design.backgroundType === "gradient"
@@ -644,13 +702,13 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
         const goTop = (ov.go_to_top !== undefined ? ov.go_to_top : g.go_to_top) || false;
         if (!goTop || idx === 0) return null;
         return (
-          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Ir ao topo"
+          <button onClick={() => (previewScroll?.current ?? window).scrollTo({ top: 0, behavior: prefersReducedMotion ? "instant" : "smooth" })} aria-label="Ir ao topo"
             className="fixed bottom-4 right-4 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/70 text-lg text-white shadow-lg backdrop-blur">↑</button>
         );
       })()}
 
       {/* conteúdo */}
-      <main className="relative z-10 flex flex-1 flex-col px-5 py-6" style={{ justifyContent: ALIGN[design.verticalAlign || "justify-start"] || "flex-start" }}>
+      <main className={`relative z-10 flex flex-1 flex-col ${importedLayout ? "" : "px-5 py-6"}`} style={{ justifyContent: ALIGN[design.verticalAlign || "justify-start"] || "flex-start" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={idx}
@@ -661,7 +719,7 @@ export function LayersContent({ funnel, geo, startIndex = 0, preview = false, ed
             animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reducePreviewMotion ? 0 : -8 }}
             transition={{ duration: 0.28 }}
             className="mx-auto flex w-full flex-col"
-            style={{ maxWidth: containerMax(design.container), gap: `${designNumber(design.gap,.6,0,3)}rem` }}
+            style={{ maxWidth: importedLayout ? undefined : containerMax(design.container), gap: `${designNumber(design.gap,.6,0,3)}rem` }}
           >
             {(() => {
               /* Bloco OCULTO fica de fora aqui, na origem. O `Block` já pulava

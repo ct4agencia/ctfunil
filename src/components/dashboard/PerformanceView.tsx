@@ -283,7 +283,7 @@ const SLIDES = [
   { t: "Tempo e dispositivos", b: "Tempo de navegação é a MEDIANA entre o primeiro e o último avanço de lâmina; não inclui o tempo parado na última lâmina vendo a VSL. Dispositivos vem dos LEADS (é a única tabela com esse dado), então não bate com o Meta Ads, que reporta por clique." },
 ];
 
-export default function PerformanceView({ m, deltas }: { m: FunnelMetrics; deltas?: Record<string, number> | null }) {
+export default function PerformanceView({ m, deltas, onRetry }: { m: FunnelMetrics; deltas?: Record<string, number> | null; onRetry?: () => void }) {
   const [sum, setSum] = useState(false);
   const [si, setSi] = useState(0);
   const tier = m.score >= 76 ? "Ótimo" : m.score >= 51 ? "Bom" : m.score >= 26 ? "Regular" : "Crítico";
@@ -292,6 +292,8 @@ export default function PerformanceView({ m, deltas }: { m: FunnelMetrics; delta
   // NUNCA sai como número — sai como "—". Erro de banco e funil sem tráfego
   // produziam a mesma tela de zeros, e não dava pra saber qual era.
   const invalidos = new Set((m.issues ?? []).flatMap((i) => i.campos));
+  const delta = (campo: string) => invalidos.has(campo) ? undefined : deltas?.[campo];
+  const leadsDelta = delta("leads");
   /** Função, não componente: componente declarado dentro do render remonta a
    *  cada ciclo (e o lint reprova). Aqui só precisamos do JSX. */
   const num = (campo: string, v: number, suf = "") =>
@@ -331,10 +333,12 @@ export default function PerformanceView({ m, deltas }: { m: FunnelMetrics; delta
       {m.degraded && m.issues.length ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-3">
           <p className="text-xs font-bold uppercase tracking-wide text-red-600">Alguns números não puderam ser calculados</p>
-          <ul className="mt-1.5 space-y-1">
+          <ul role="status" className="mt-1.5 space-y-1">
             {m.issues.map((i, k) => <li key={k} className="text-sm text-red-700" title={i.detalhe || undefined}>• {i.msg}</li>)}
           </ul>
           <p className="mt-1.5 text-[11px] text-red-500">Os campos afetados aparecem como “—”. Não é o mesmo que zero.</p>
+          {onRetry && <button type="button" className="ct-confirm-cancel mt-2 min-h-11 rounded-lg border border-ct-line px-3 text-sm font-semibold"
+            onClick={onRetry}>Consultar novamente</button>}
         </div>
       ) : null}
 
@@ -349,9 +353,11 @@ export default function PerformanceView({ m, deltas }: { m: FunnelMetrics; delta
         {/* Score vira CHIP: é opinião derivada, não fato — não pode ter o mesmo
             peso visual de "Visitantes", que é um número medido. */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className={`rounded-lg px-2 py-1 text-[11px] font-bold ${m.score >= 51 ? "bg-green-50 text-green-700" : m.score >= 26 ? "bg-amber-50 text-amber-700" : "bg-neutral-100 text-neutral-500"}`}>
-            Score {m.score.toFixed(0)} · {tier}
-          </span>
+          {invalidos.has("score") ? <span className="rounded-lg bg-neutral-100 px-2 py-1 text-[11px] font-semibold text-neutral-600">Score indisponível</span> : (
+            <span className={`rounded-lg px-2 py-1 text-[11px] font-bold ${m.score >= 51 ? "bg-green-50 text-green-700" : m.score >= 26 ? "bg-amber-50 text-amber-700" : "bg-neutral-100 text-neutral-500"}`}>
+              Score {m.score.toFixed(0)} · {tier}
+            </span>
+          )}
           <Help text="Nota 0–100 composta por taxa de conclusão (60%) e taxa de interação (40%). É um resumo próprio, não um dado de plataforma — nenhuma ferramenta externa calcula isso igual." />
           <button onClick={() => { setSi(0); setSum(true); }} className="ml-auto rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">⚡ Como ler esta tela</button>
         </div>
@@ -366,13 +372,13 @@ export default function PerformanceView({ m, deltas }: { m: FunnelMetrics; delta
             </div>
             <div className="mt-1 flex items-baseline gap-2">
               <span className="text-3xl font-bold text-neutral-900">{num("leads", m.leads)}</span>
-              {m.visitantes > 0 ? <span className="text-xs font-semibold tabular-nums text-neutral-400">{leads?.pct ?? 0}% dos visitantes</span> : null}
+              {m.visitantes > 0 && !invalidos.has("visitantes") && !invalidos.has("leads") ? <span className="text-xs font-semibold tabular-nums text-neutral-400">{leads?.pct ?? 0}% dos visitantes</span> : null}
             </div>
-            {deltas?.leads != null ? <div className="mt-2"><Delta v={deltas.leads} /></div> : null}
+            {leadsDelta != null ? <div className="mt-2"><Delta v={leadsDelta} /></div> : null}
           </div>
-          <Card label="Visitas" icon={ICONS.eye} value={num("visitantes", m.visitantes)} delta={deltas?.visitantes} help="Sessões que abriram o funil e o app chegou a montar (exclui quem carregou e saiu antes de renderizar)." />
-          <Card label="Respostas" icon={ICONS.spark} value={num("respostas", m.respostas)} delta={deltas?.respostas} help="Quem chegou na 1ª pergunta de verdade. É o MESMO número da linha '1ª resposta' no funil — antes eram dois cálculos diferentes exibidos lado a lado." />
-          <Card label="Conclusões" icon={ICONS.gauge} value={num("conclusoes", m.conclusoes)} delta={deltas?.conclusoes} help="Sessões que alcançaram a última lâmina ativa. É progresso posicional, não venda." />
+          <Card label="Visitas" icon={ICONS.eye} value={num("visitantes", m.visitantes)} delta={delta("visitantes")} help="Sessões que abriram o funil e o app chegou a montar (exclui quem carregou e saiu antes de renderizar)." />
+          <Card label="Respostas" icon={ICONS.spark} value={num("respostas", m.respostas)} delta={delta("respostas")} help="Quem chegou na 1ª pergunta de verdade. É o MESMO número da linha '1ª resposta' no funil — antes eram dois cálculos diferentes exibidos lado a lado." />
+          <Card label="Conclusões" icon={ICONS.gauge} value={num("conclusoes", m.conclusoes)} delta={delta("conclusoes")} help="Sessões que alcançaram a última lâmina ativa. É progresso posicional, não venda." />
         </div>
 
         {/* linha secundária: diagnóstico, não KPI */}
@@ -396,7 +402,9 @@ export default function PerformanceView({ m, deltas }: { m: FunnelMetrics; delta
             Jornada do lead
             <Help text="Cada etapa é um recorte da MESMA população (os visitantes). Por construção, uma etapa nunca supera a anterior. O vermelho à direita é a queda em relação à etapa de cima." />
           </h2>
-          <Funil stages={m.funil} />
+          {invalidos.has("funil")
+            ? <p className="mt-3 text-sm text-ct-dim">A jornada está indisponível nesta consulta.</p>
+            : <Funil stages={m.funil} />}
           {cf || v24 != null ? (
             <div className="mt-4 space-y-0.5 border-t border-neutral-100 pt-3 text-[11px] leading-relaxed text-neutral-500">
               {cf ? (

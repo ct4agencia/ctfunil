@@ -8,7 +8,9 @@ import DeleteConfirmationIcon from "@/components/ui/DeleteConfirmationIcon";
 import WorkspaceNoticeHistory, { recordWorkspaceNotice } from "@/components/workspace/WorkspaceNoticeHistory";
 import WorkspaceNotice from "@/components/ui/WorkspaceNotice";
 import ActiveTab from "@/components/ui/ActiveTab";
-import { useContext, useEffect, useId, useRef, useState } from "react";
+import Pagination from "@/components/ui/Pagination";
+import { useContext, useEffect, useId, useRef, useState, type ReactNode, type Ref } from "react";
+import { Popover } from "radix-ui";
 import Link from "next/link";
 import { EditorTop } from "@/components/workspace/WorkspaceFrame";
 import { AlignLeft, Bell, Calendar, Check, CircleDot, CircleHelp, Code, Columns2, CreditCard, FileText, Gauge, GitBranch, Hash, Heading, Image as ImageIcon, Layers, ListChecks, ListFilter, LoaderCircle, Mail, Megaphone, MessageSquare, MousePointer2, Pencil, PanelTop, Phone, Play, Ruler, ShieldCheck, SlidersHorizontal, Square, Star, Timer, TrendingUp, TriangleAlert, Volume2, type LucideIcon } from "lucide-react";
@@ -19,6 +21,7 @@ import type { Funnel } from "@/lib/quiz/types";
 import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import { SONIA_DEFAULTS, soniaConfigError } from "@/lib/quiz/layers/sonia";
 import { cloneStageWithRules } from "@/lib/quiz/layers/component-settings";
+import ViewCurrentPage from "./ViewCurrentPage";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import CanvasErrorBoundary from "@/components/builder/CanvasErrorBoundary";
 import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
@@ -40,7 +43,8 @@ import { HtmlField, ImageField, TemaFunilContext, LocalDraftContext } from "@/co
 import { normalizarChave } from "@/lib/quiz/colunas";
 // Presets de período (Tudo/Hoje/Ontem/7d/30d) e o tratamento de fuso: os mesmos
 // que `/dashboard/[slug]` usa. Uma cópia só.
-import { PERIODOS, spYmd, dayBounds } from "@/lib/quiz/periodo";
+import WorkspaceDateRange, { type DateRange } from "@/components/ui/WorkspaceDateRange";
+import { PERIODOS, spDateYmd, spYmd, dayBounds } from "@/lib/quiz/periodo";
 import ColorField from "@/components/ui/ColorField";
 import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import dynamic from "next/dynamic";
@@ -429,6 +433,20 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
   const setD = (patch: Record<string, unknown>) => onChange({ ...layer, design: { ...(layer.design || {}), ...patch } });
 
 
+  const videoRevealField = (layer.type === "text" || layer.type === "image") && (
+    <div className="mt-3 space-y-1.5 rounded-xl border border-ct-line bg-ct-raised p-3">
+      <Lbl htmlFor={releaseId}>Exibir no tempo do vídeo (segundos)</Lbl>
+      <input id={releaseId} type="number" min={0} className={inp}
+        value={c.revealClock === "video" ? Number(c.revealAt) || 0 : 0}
+        aria-describedby={`${releaseId}-clock`}
+        onChange={event => {
+          const seconds = Math.max(0, Math.trunc(event.currentTarget.valueAsNumber || 0));
+          setC({ revealAt: seconds, revealClock: seconds > 0 ? "video" : undefined });
+        }} />
+      <p id={`${releaseId}-clock`} className="text-xs text-ct-dim">Use 0 para exibir imediatamente. Teste o atraso pelo relógio em Visualizar página.</p>
+    </div>
+  );
+
   switch (layer.type) {
     case "sonia-numbers":
       return <>
@@ -447,7 +465,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <p className="mt-2 text-xs text-neutral-600">No runtime, destino ausente ou inválido bloqueia a confirmação. Preview nunca abre links externos.</p>
       </>;
     case "text":
-      return (<><Lbl>Texto</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} /></>);
+      return (<><Lbl>Texto</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />{videoRevealField}</>);
     case "alert":
       return (<>
         <Lbl>Estilo</Lbl>
@@ -638,14 +656,20 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
         <WorkspaceSelect searchable label="Ao clicar" value={/^https?:/.test(c.destination || '')?'__url':(c.destination||'next')} onChange={value=>setC({destination:value==='__url'?'https://':value})} options={[{value:'next',label:'Próxima etapa'},...steps.map(step=>({value:step.id,label:step.title||step.id})),{value:'__url',label:'Link externo'}]}/>
         {/^https?:/.test(c.destination || "") ? <input value={c.destination} onChange={(e) => setC({ destination: e.target.value })} placeholder="https://pay.hotmart.com/…" className={`${inp} mt-1`} /> : null}
         <div className="mt-3 space-y-1.5 rounded-xl border border-ct-line bg-ct-raised p-3">
-          <p className="text-xs font-bold text-neutral-700">Liberação do botão</p>
+          <p className="text-xs font-bold text-ct-ink">Liberação do botão</p>
           <Lbl htmlFor={releaseId}>Atraso do botão em segundos</Lbl>
           <input id={releaseId} type="number" min={0} value={c.revealAt ?? 0} aria-describedby={`${releaseId}-clock`}
             onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
           <p id={`${releaseId}-clock`} className="text-xs text-ct-dim">
-            {c.revealClock === "video" ? "Na prévia, o atraso acompanha o relógio simulado do vídeo." : "O atraso começa quando a etapa abre."} Use 0 para exibir imediatamente.
+            {c.revealClock === "video"
+              ? "O atraso acompanha a reprodução. Em Visualizar página, use o relógio da prévia."
+              : "O atraso começa quando a etapa abre."} Use 0 para exibir imediatamente.
           </p>
           {Number(c.revealAt) > 0 ? (<>
+            <Lbl>Contar atraso a partir de</Lbl>
+            <WorkspaceSelect label="Contar atraso a partir de" value={c.revealClock === "video" ? "video" : "page"}
+              options={[{ value: "page", label: "Abertura da etapa" }, { value: "video", label: "Tempo do vídeo" }]}
+              onChange={value => setC({ revealClock: value === "video" ? "video" : undefined })} />
             <Lbl htmlFor={`${releaseId}-wait`}>Texto enquanto o botão está bloqueado</Lbl>
             <input id={`${releaseId}-wait`} value={c.waitText || ""} onChange={(e) => setC({ waitText: e.target.value })} placeholder="⏳ Assista o vídeo para liberar o acesso…" className={inp} />
             <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs text-neutral-600">
@@ -656,6 +680,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
       </>);
     case "image":
       return (<><Lbl>Imagem</Lbl><ImageField value={c.image?.src || ""} onChange={(v) => setC({ image: { ...(c.image || {}), type: "image", src: v } })} />
+        {videoRevealField}
         <div className="mt-2 space-y-1.5 rounded-lg bg-neutral-50 p-2">
           <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
             <input type="checkbox" checked={!!layer.design?.redonda} onChange={(e) => setD({ redonda: e.target.checked || undefined })} className="h-3.5 w-3.5 accent-neutral-900" />
@@ -1065,6 +1090,7 @@ interface LinhaResposta {
   when: string | null;
   temResposta: boolean;
   virouLead: boolean;
+  fromAnswer?: boolean;
   /** valor por coluna, chaveado por `col.key` */
   cells: Record<string, string>;
   /** legado: respostas por texto de pergunta */
@@ -1079,7 +1105,7 @@ interface Analytics {
   respostas: LinhaResposta[];
   cols?: ColunaFunil[];
   grupos?: GrupoFunil[];
-  totais?: { sessoes: number; comResposta: number; leads: number };
+  totais?: { sessoes: number; comResposta: number; leads: number; semVisita?: number };
   degraded?: boolean;
   issues?: { code: string; msg: string; campos: string[]; detalhe?: string }[];
 }
@@ -1119,28 +1145,72 @@ function Bar({ pct, color = "#3b82f6" }: { pct: number; color?: string }) {
 
 /** Aba Leads = sub-abas Respostas / Resultados / Performance (estilo inlead).
  *  Exportada pra ser reusada também no FunnelBuilder (motor typed). */
-export function LeadsTab({ slug, readOnly = false }: { slug: string; readOnly?: boolean }) {
+function LeadTableOptions({ label, children, triggerRef }: { label: string; children: ReactNode; triggerRef?: Ref<HTMLButtonElement> }) {
+  return <Popover.Root>
+    <Popover.Trigger ref={triggerRef} className="min-h-11 rounded-lg border border-ct-line bg-ct-surface px-3 text-xs font-semibold text-ct-ink hover:bg-ct-raised">
+      {label}
+    </Popover.Trigger>
+    <Popover.Portal>
+      <Popover.Content aria-label={label} align="start" sideOffset={4} collisionPadding={8}
+        className="ct-select-content ct-select-searchable">
+        <div className="ct-select-search-options">{children}</div>
+      </Popover.Content>
+    </Popover.Portal>
+  </Popover.Root>;
+}
+
+const defaultLeadColumns = { track: [] as string[], etapas: [] as string[], showMeta: true };
+
+export function LeadsTab({ slug, readOnly = false, reportHref, initialRange, showStageRetention = true }: { slug: string; readOnly?: boolean; reportHref?: string; initialRange?: DateRange; showStageRetention?: boolean }) {
   const [d, setD] = useState<Analytics | null>(null);
   const [sub, setSub] = useState<"respostas" | "resultados" | "performance">("respostas");
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(0);
   const [loadError, setLoadError] = useState("");
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [resetting, setResetting] = useState(false);
-  const [range, setRange] = useState<{ key: string; from?: string; to?: string }>({ key: "tudo" });
+  const resetDialog = useRef<HTMLDialogElement>(null);
+  const resetTitleId = useId();
+  const resetSummaryId = useId();
+  const [resetStatus, setResetStatus] = useState("");
+  const [range, setRange] = useState<{ key: string; from?: string; to?: string }>(() => initialRange
+    ? { key: "intervalo", from: dayBounds(initialRange.from).from, to: dayBounds(initialRange.to).to }
+    : { key: "tudo" });
   const [day, setDay] = useState("");
+  const [customRange, setCustomRange] = useState<DateRange>(() => initialRange ?? { from: "", to: "" });
+  const [calendarDays, setCalendarDays] = useState<string[]>(() => [spYmd()]);
+  function applyCustomRange(next: DateRange) {
+    setCustomRange(next);
+    setDay("");
+    setPage(0);
+    setRange(next.from && next.to
+      ? { key: "intervalo", from: dayBounds(next.from).from, to: dayBounds(next.to).to }
+      : { key: "tudo" });
+  }
   // Onda A: busca, filtros (etapas/colunas), paginação
   const [search, setSearch] = useState("");
+  const leadSearch = useRef<HTMLInputElement>(null);
+  const allSessions = useRef<HTMLButtonElement>(null);
+  const columnsTrigger = useRef<HTMLButtonElement>(null);
   // TODAS as colunas nascem visíveis; o que o usuário desmarcar fica salvo por
   // funil e volta na próxima visita. Antes só 3 colunas de tracking apareciam
   // por padrão, então parecia que o resto não existia.
   const CHAVE_PREF = `ctf_leads_cols_${slug}`;
-  const prefSalva = (): { track?: string[]; etapas?: string[] } => {
-    try { return JSON.parse(localStorage.getItem(CHAVE_PREF) || "{}"); } catch { return {}; }
-  };
-  const [hiddenQ, setHiddenQ] = useState<Set<string>>(() => new Set(prefSalva().etapas ?? []));
-  const [showMeta, setShowMeta] = useState(true); // colunas Lead/Telefone/Data
-  const [hiddenTrack, setHiddenTrack] = useState<Set<string>>(() => new Set(prefSalva().track ?? []));
-  const [openFilter, setOpenFilter] = useState<"etapas" | "colunas" | null>(null);
+  const [columnPrefs, setColumnPrefs] = useState(() => {
+    try {
+      const saved: { track?: string[]; etapas?: string[]; showMeta?: boolean } | null = JSON.parse(localStorage.getItem(CHAVE_PREF) || "{}");
+      return {
+        track: Array.isArray(saved?.track) ? saved.track.filter((value: unknown) => typeof value === "string") : defaultLeadColumns.track,
+        etapas: Array.isArray(saved?.etapas) ? saved.etapas.filter((value: unknown) => typeof value === "string") : defaultLeadColumns.etapas,
+        showMeta: saved?.showMeta !== false,
+      };
+    } catch {
+      return defaultLeadColumns;
+    }
+  });
+  const hiddenQ = new Set(columnPrefs.etapas);
+  const hiddenTrack = new Set(columnPrefs.track);
+  const { showMeta } = columnPrefs;
   // A linha virou a SESSÃO (igual ao inlead), então a contagem sobe bastante.
   // Este filtro deixa voltar à visão antiga sem perder o abandono de vista.
   const [filtroLinha, setFiltroLinha] = useState<"todos" | "resposta" | "lead">("todos");
@@ -1150,46 +1220,99 @@ export function LeadsTab({ slug, readOnly = false }: { slug: string; readOnly?: 
     const controller = new AbortController();
     setLoading(true);
     setLoadError("");
+    setSessionExpired(false);
     const qs = new URLSearchParams({ slug });
     if (range.from) qs.set("from", range.from);
     if (range.to) qs.set("to", range.to);
     fetch(`/api/funnel-analytics?${qs}`, { cache: "no-store", signal: controller.signal })
       .then(async response => {
-        const data = await response.json();
-        if (!response.ok) throw Error(data.error || "Não foi possível carregar os leads.");
+        if (controller.signal.aborted) return;
+        if (response.status === 401) {
+          setSessionExpired(true);
+          throw Error("Sua sessão expirou. Entre novamente para consultar os leads.");
+        }
+        const data = await response.json().catch(() => null);
+        if (!response.ok || !data || !Array.isArray(data.respostas) || !Array.isArray(data.resultados)) {
+          throw Error(typeof data?.error === "string" ? data.error : "Não foi possível carregar os leads.");
+        }
+        if (controller.signal.aborted) return;
         setD(data);
+        if (!range.from && !range.to) {
+          const today = spYmd();
+          const days = new Set([today]);
+          for (const row of (data as Analytics).respostas ?? []) {
+            if (!row.when || !Number.isFinite(Date.parse(row.when))) continue;
+            const date = spDateYmd(new Date(row.when));
+            if (date <= today) days.add(date);
+          }
+          setCalendarDays([...days].sort());
+        }
       })
-      .catch(error => { if (!controller.signal.aborted) { setD(null); setLoadError(error.message); } })
+      .catch(error => {
+        if (controller.signal.aborted) return;
+        setD(null);
+        setLoadError(error instanceof TypeError ? "Não foi possível conectar para consultar os leads." : error.message);
+      })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [slug, range.from, range.to, refresh]);
-  /** Grava a escolha de colunas no ato do clique. Fazer isso num useEffect
-   *  provocaria render em cascata a cada troca de estado. */
-  const salvarPref = (track: Set<string>, etapas: Set<string>) => {
-    try { localStorage.setItem(CHAVE_PREF, JSON.stringify({ track: [...track], etapas: [...etapas] })); } catch { /* storage bloqueado */ }
-  };
-  const alternarEtapa = (stepId: string) => setHiddenQ((s) => {
-    const n = new Set(s); if (n.has(stepId)) n.delete(stepId); else n.add(stepId);
-    salvarPref(hiddenTrack, n); return n;
-  });
-  const alternarColuna = (chave: string) => setHiddenTrack((s) => {
-    const n = new Set(s); if (n.has(chave)) n.delete(chave); else n.add(chave);
-    salvarPref(n, hiddenQ); return n;
-  });
+  function salvarPref(next: typeof columnPrefs) {
+    setColumnPrefs(next);
+    try { localStorage.setItem(CHAVE_PREF, JSON.stringify(next)); } catch { /* storage bloqueado */ }
+  }
+  function alternarPref(key: "track" | "etapas", value: string) {
+    const hidden = columnPrefs[key];
+    salvarPref({ ...columnPrefs, [key]: hidden.includes(value) ? hidden.filter(item => item !== value) : [...hidden, value] });
+  }
   const reset = async () => {
-    if (!window.confirm("Tem certeza? Isso apaga TODOS os dados (respostas, sessões e leads) DESTE funil. Extraia o CSV antes!")) return;
+    if (readOnly || resetting || !resetDialog.current?.open) return;
     setResetting(true);
-    try { await fetch(`/api/reset-funnel-data`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug }) }); } catch { /* noop */ }
-    setResetting(false); setRefresh(value => value + 1);
+    setResetStatus("");
+    try {
+      const response = await fetch("/api/reset-funnel-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      });
+      const data = await response.json();
+      const outcomes = Object.values(data?.result ?? {});
+      if (!response.ok || !data.ok || !outcomes.length) throw new Error();
+      setResetStatus(outcomes.every(value => value === "ok")
+        ? "Dados do funil apagados."
+        : "Não foi possível apagar todos os dados do funil.");
+    } catch {
+      setResetStatus("Não foi possível confirmar a exclusão dos dados do funil.");
+    } finally {
+      setResetting(false);
+      setRefresh(value => value + 1);
+      resetDialog.current?.close();
+    }
   };
+  const reportRange = range.from ? new URLSearchParams({
+    from: spDateYmd(new Date(range.from)),
+    to: range.to ? spDateYmd(new Date(range.to)) : spYmd(),
+  }) : undefined;
+  let loginHref;
+  if (sessionExpired) {
+    const destination = new URL(location.href);
+    if (reportHref) {
+      destination.searchParams.set("tab", "leads");
+      destination.searchParams.delete("from");
+      destination.searchParams.delete("to");
+      reportRange?.forEach((value, key) => destination.searchParams.set(key, value));
+    }
+    loginHref = `/admin/login?${new URLSearchParams({ next: destination.pathname + destination.search + destination.hash })}`;
+  }
   const p = d?.performance;
+  const issues = d?.issues?.filter(issue => (sub === "respostas" || sub === "resultados") && issue.campos.includes(sub)) ?? [];
+  const hasReadIssue = issues.some(issue => issue.code !== "amostra_truncada");
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200">
-        <nav className="flex gap-1">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-ct-line">
+        <nav aria-label="Seções de Leads" className="flex flex-wrap gap-1">
           {([["respostas", "📋 Respostas"], ["resultados", "📊 Resultados"], ["performance", "📈 Performance"]] as const).map(([k, l]) => (
-            <button key={k} onClick={() => setSub(k)} className={`px-3 py-2.5 text-sm font-semibold ${sub === k ? "border-b-2 border-neutral-900 text-neutral-900" : "text-neutral-400 hover:text-neutral-700"}`}>{l}</button>
+            <button key={k} aria-pressed={sub === k} onClick={() => setSub(k)} className={`px-3 py-2.5 text-sm font-semibold ${sub === k ? "border-b-2 border-ct-action text-ct-ink" : "text-ct-dim hover:text-ct-ink"}`}>{l}</button>
           ))}
         </nav>
         {!readOnly && <div className="flex items-center gap-4 pb-2">
@@ -1199,36 +1322,77 @@ export function LeadsTab({ slug, readOnly = false }: { slug: string; readOnly?: 
             href={`/api/export-leads?slug=${encodeURIComponent(slug)}`
               + (range.from ? `&from=${encodeURIComponent(range.from)}` : "")
               + (range.to ? `&to=${encodeURIComponent(range.to)}` : "")}
-            className="text-xs font-semibold text-neutral-600 hover:text-neutral-900"
+            className="text-xs font-semibold text-ct-ink hover:text-ct-ink"
             title={range.from ? "Exporta apenas o período selecionado" : "Exporta todas as sessões"}
           >
             ⬇ Exportar leads{range.from ? " (período)" : ""}
           </a>
-          <button onClick={reset} disabled={resetting} className="text-xs font-semibold text-red-500 hover:text-red-700">{resetting ? "Limpando…" : "♻ Resetar dados"}</button>
+          <button type="button" aria-haspopup="dialog" onClick={() => resetDialog.current?.showModal()}
+            className="text-xs font-semibold text-red-500 hover:text-red-700">Resetar dados</button>
+          <dialog ref={resetDialog} className="ct-confirm ct-delete-modal-confirmation"
+            aria-labelledby={resetTitleId} aria-describedby={resetSummaryId}
+            onCancel={event => { if (resetting) event.preventDefault(); }}>
+            <div className="flex items-center gap-2">
+              <DeleteConfirmationIcon />
+              <h2 id={resetTitleId} className="font-semibold">Resetar dados do funil?</h2>
+            </div>
+            <p id={resetSummaryId} className="mt-2 text-sm text-ct-dim">
+              Todas as respostas, sessões, eventos e leads deste funil serão apagados, inclusive fora do período selecionado. Exporte o CSV antes de continuar.
+            </p>
+            <div className="mt-5 flex flex-wrap justify-end gap-3">
+              <button type="button" autoFocus disabled={resetting} className="ct-confirm-cancel" onClick={() => resetDialog.current?.close()}>Cancelar</button>
+              <button type="button" disabled={resetting} className="ct-confirm-delete" onClick={reset}>{resetting ? "Apagando…" : "Apagar dados"}</button>
+            </div>
+          </dialog>
         </div>}
       </div>
 
+      {!readOnly && <div role="status" className={resetStatus ? "mb-3 text-sm text-ct-dim" : undefined}>{resetStatus}</div>}
+
       {/* filtro de período (aplica às 3 sub-abas) */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold text-neutral-400">Período:</span>
-        <div className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-white p-1">
+        <span className="text-xs font-semibold text-ct-dim">Período:</span>
+        <div className="flex items-center gap-1 rounded-lg border border-ct-line bg-ct-surface p-1">
           {PERIODOS.map((pr) => (
-            <button key={pr.key} onClick={() => { setDay(""); setRange({ key: pr.key, ...pr.make() }); }}
-              className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${range.key === pr.key ? "bg-neutral-900 text-white" : "text-neutral-500 hover:text-neutral-800"}`}>
+            <button key={pr.key} aria-pressed={range.key === pr.key} onClick={() => { setDay(""); setCustomRange({ from: "", to: "" }); setRange({ key: pr.key, ...pr.make() }); setPage(0); }}
+              className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${range.key === pr.key ? "bg-ct-action text-white" : "text-ct-dim hover:text-ct-ink"}`}>
               {pr.label}
             </button>
           ))}
         </div>
-        <label className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${range.key === "dia" ? "border-neutral-900 text-neutral-900" : "border-neutral-200 text-neutral-500"}`}>
+        <label className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${range.key === "dia" ? "border-ct-action text-ct-ink" : "border-ct-line text-ct-dim"}`}>
           📅 Dia
           <input type="date" value={day} max={spYmd(0)}
-            onChange={(e) => { const ymd = e.target.value; setDay(ymd); setRange(ymd ? { key: "dia", ...dayBounds(ymd) } : { key: "tudo" }); }}
-            className="bg-transparent text-neutral-800 outline-none" />
+            onChange={(e) => { const ymd = e.target.value; setDay(ymd); setCustomRange({ from: "", to: "" }); setRange(ymd ? { key: "dia", ...dayBounds(ymd) } : { key: "tudo" }); setPage(0); }}
+            className="bg-transparent text-ct-ink outline-none" />
         </label>
+        <WorkspaceDateRange days={calendarDays} value={customRange} onChange={applyCustomRange}
+          label="Intervalo" placeholder="Escolher intervalo" allowEarlierDates />
+        {reportHref && <Link href={reportRange ? `${reportHref}${reportHref.includes("?") ? "&" : "?"}${reportRange}` : reportHref}
+          className="text-sm text-ct-blue underline">Ver relatório do funil</Link>}
       </div>
 
-      {loading ? <p className="p-8 text-center text-sm text-neutral-400">Carregando…</p> : !d ? <p role="status" className="p-8 text-center text-sm text-ct-dim">{loadError || "Sem dados."}</p> : (
+      {loading ? <p role="status" className="p-8 text-center text-sm text-ct-dim">Carregando leads…</p> : !d ? (
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-ct-line bg-ct-surface p-6 text-center">
+          <p role="alert" className="text-sm text-ct-ink">{loadError || "Não foi possível carregar os leads."}</p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {loginHref && <a className="text-sm text-ct-blue underline" href={loginHref}
+              target="_blank" rel="noopener noreferrer">Entrar novamente em outra aba</a>}
+            <button type="button" onClick={() => setRefresh(value => value + 1)}
+              className="ct-primary min-h-11 rounded-lg px-3 text-sm font-semibold">
+              {sessionExpired ? "Verificar sessão" : "Tentar novamente"}
+            </button>
+          </div>
+        </div>
+      ) : (
         <>
+          {issues.length > 0 && <div className="mb-4 space-y-2 rounded-lg border border-ct-line bg-ct-raised px-3 py-3 text-sm text-ct-ink">
+            <ul role="status" className="list-disc space-y-1 pl-5">
+              {issues.map(issue => <li key={issue.msg}>{issue.msg}</li>)}
+            </ul>
+            {hasReadIssue && <button type="button" className="ct-confirm-cancel min-h-11 rounded-lg border border-ct-line px-3 text-sm font-semibold"
+              onClick={() => setRefresh(value => value + 1)}>Consultar novamente</button>}
+          </div>}
           {/* RESPOSTAS — tabela por lead (colunas = etapas com %) + busca + filtros + paginação */}
           {sub === "respostas" ? (() => {
             const cols = d.cols ?? [];
@@ -1256,6 +1420,7 @@ export function LeadsTab({ slug, readOnly = false }: { slug: string; readOnly?: 
             const rows = d.respostas
               .filter((r) => filtroLinha === "todos" || (filtroLinha === "resposta" ? r.temResposta : r.virouLead))
               .filter((r) => !term || [r.code, r.name, r.phone, ...Object.values(r.cells ?? {})].join(" ").toLowerCase().includes(term));
+            const sessionCount = d.totais?.sessoes ?? d.respostas.length;
             const pages = Math.max(1, Math.ceil(rows.length / PER));
             const pg = Math.min(page, pages - 1);
             const slice = rows.slice(pg * PER, pg * PER + PER);
@@ -1263,146 +1428,175 @@ export function LeadsTab({ slug, readOnly = false }: { slug: string; readOnly?: 
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="relative">
-                    <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} placeholder="Pesquisar nome, telefone, resposta…"
-                      className="w-64 rounded-lg border border-neutral-200 bg-white py-1.5 pl-8 pr-3 text-xs outline-none focus:border-neutral-400" />
-                    <span className="pointer-events-none absolute left-2.5 top-1.5 text-neutral-400">🔎</span>
+                    <input ref={leadSearch} aria-label="Pesquisar nome, telefone ou resposta" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} placeholder="Pesquisar nome, telefone, resposta…"
+                      className="w-64 rounded-lg border border-ct-line bg-ct-surface py-1.5 pl-8 pr-3 text-xs outline-none focus:border-ct-line-strong" />
+                    <span className="pointer-events-none absolute left-2.5 top-1.5 text-ct-dim">🔎</span>
                   </div>
-                  <div className="relative">
-                    <button onClick={() => setOpenFilter(openFilter === "etapas" ? null : "etapas")} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">▦ Etapas ▾</button>
-                    {openFilter === "etapas" ? (
-                      <div className="absolute z-20 mt-1 max-h-72 w-64 overflow-y-auto rounded-xl border border-neutral-200 bg-white p-2 shadow-lg">
-                        {/* "Etapas" alterna a LÂMINA inteira — é o que a palavra
-                            significa no inlead. Antes listava texto de pergunta,
-                            que é outro modelo (e some ao renomear a pergunta). */}
-                        {grupos.map((g) => (
-                          <label key={g.stepId} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
-                            <span className="min-w-0 flex-1 truncate text-neutral-700">{g.stepIdx + 1}. {g.stepTitle}</span>
-                            <input type="checkbox" checked={!hiddenQ.has(g.stepId)} onChange={() => alternarEtapa(g.stepId)} className="h-3.5 w-3.5 accent-neutral-900" />
-                          </label>
-                        ))}
-                        {!grupos.length ? <p className="px-2 py-3 text-center text-[11px] text-neutral-400">Este funil ainda não tem blocos de resposta.</p> : null}
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="relative">
-                    <button onClick={() => setOpenFilter(openFilter === "colunas" ? null : "colunas")} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50">▥ Colunas ▾</button>
-                    {openFilter === "colunas" ? (
-                      <div className="absolute z-20 mt-1 max-h-72 w-56 overflow-y-auto rounded-xl border border-neutral-200 bg-white p-2 shadow-lg">
-                        <label className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
-                          <span className="font-semibold text-neutral-700">Lead / Telefone / Data</span>
-                          <input type="checkbox" checked={showMeta} onChange={() => setShowMeta((v) => !v)} className="h-3.5 w-3.5 accent-neutral-900" />
+                  <LeadTableOptions label="Etapas">
+                    {/* "Etapas" alterna a LÂMINA inteira — é o que a palavra
+                        significa no inlead. Antes listava texto de pergunta,
+                        que é outro modelo (e some ao renomear a pergunta). */}
+                    {grupos.map((g) => (
+                      <label key={g.stepId} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-ct-raised">
+                        <span className="min-w-0 flex-1 truncate text-ct-ink">{g.stepIdx + 1}. {g.stepTitle}</span>
+                        <input type="checkbox" checked={!hiddenQ.has(g.stepId)} onChange={() => alternarPref("etapas", g.stepId)} className="h-3.5 w-3.5 accent-ct-action" />
+                      </label>
+                    ))}
+                    {!grupos.length ? <p className="px-2 py-3 text-center text-[11px] text-ct-dim">Este funil ainda não tem blocos de resposta.</p> : null}
+                  </LeadTableOptions>
+                  <LeadTableOptions label="Colunas" triggerRef={columnsTrigger}>
+                    <label className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-ct-raised">
+                      <span className="font-semibold text-ct-ink">Lead / Telefone / Data</span>
+                      <input type="checkbox" checked={showMeta} onChange={() => salvarPref({ ...columnPrefs, showMeta: !showMeta })} className="h-3.5 w-3.5 accent-ct-action" />
+                    </label>
+                    {cols.length ? (<>
+                      <p className="mt-1 px-2 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-ct-dim">Blocos</p>
+                      {cols.map((c) => (
+                        <label key={c.key} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-ct-raised">
+                          <span className="min-w-0 flex-1 truncate text-ct-ink" title={c.header}>{c.label} <span className="font-mono text-[10px] text-ct-dim">{c.key}</span></span>
+                          <input type="checkbox" checked={!hiddenTrack.has(`col:${c.key}`)} onChange={() => alternarPref("track", `col:${c.key}`)} className="h-3.5 w-3.5 accent-ct-action" />
                         </label>
-                        {cols.length ? (<>
-                          <p className="mt-1 px-2 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">Blocos</p>
-                          {cols.map((c) => (
-                            <label key={c.key} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
-                              <span className="min-w-0 flex-1 truncate text-neutral-700" title={c.header}>{c.label} <span className="font-mono text-[10px] text-neutral-400">{c.key}</span></span>
-                              <input type="checkbox" checked={!hiddenTrack.has(`col:${c.key}`)} onChange={() => alternarColuna(`col:${c.key}`)} className="h-3.5 w-3.5 accent-neutral-900" />
-                            </label>
-                          ))}
-                        </>) : null}
-                        <p className="mt-1 px-2 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400">Tracking</p>
-                        {TRACK_COLS.map((c) => (
-                          <label key={c.key} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-neutral-50">
-                            <span className="text-neutral-700">{c.label}</span>
-                            <input type="checkbox" checked={!hiddenTrack.has(c.key)} onChange={() => alternarColuna(c.key)} className="h-3.5 w-3.5 accent-neutral-900" />
-                          </label>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
+                      ))}
+                    </>) : null}
+                    <p className="mt-1 px-2 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-ct-dim">Tracking</p>
+                    {TRACK_COLS.map((c) => (
+                      <label key={c.key} className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-xs hover:bg-ct-raised">
+                        <span className="text-ct-ink">{c.label}</span>
+                        <input type="checkbox" checked={!hiddenTrack.has(c.key)} onChange={() => alternarPref("track", c.key)} className="h-3.5 w-3.5 accent-ct-action" />
+                      </label>
+                    ))}
+                    <Popover.Close asChild>
+                      <button type="button" className="ct-confirm-cancel mt-2 min-h-11 w-full rounded-lg px-2 text-left text-xs font-semibold"
+                        onClick={() => salvarPref(defaultLeadColumns)}>Restaurar colunas padrão</button>
+                    </Popover.Close>
+                  </LeadTableOptions>
                   {/* A linha passou a ser a SESSÃO (igual ao inlead), então a
                       contagem sobe. Sem esses contadores, parece bug. */}
-                  <div className="ml-auto flex items-center gap-1">
-                    {([["todos", `${d.totais?.sessoes ?? rows.length} sessões`], ["resposta", `${d.totais?.comResposta ?? 0} com resposta`], ["lead", `${d.totais?.leads ?? 0} leads`]] as const).map(([k, label]) => (
-                      <button key={k} onClick={() => { setFiltroLinha(k); setPage(0); }}
-                        className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${filtroLinha === k ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-500 hover:bg-neutral-50"}`}>
+                  <div className="ml-auto flex flex-wrap items-center gap-1" role="group" aria-label="Filtrar sessões por atividade">
+                    {([
+                      ["todos", `${sessionCount.toLocaleString("pt-BR")} ${sessionCount === 1 ? "sessão" : "sessões"}`],
+                      ["resposta", `${(d.totais?.comResposta ?? d.respostas.filter(row => row.temResposta).length).toLocaleString("pt-BR")} com resposta`],
+                      ["lead", `${(d.totais?.leads ?? d.respostas.filter(row => row.virouLead).length).toLocaleString("pt-BR")} com lead`],
+                    ] as const).map(([k, label]) => (
+                      <button key={k} ref={k === "todos" ? allSessions : undefined} aria-pressed={filtroLinha === k} onClick={() => { setFiltroLinha(k); setPage(0); }}
+                        className={`min-h-11 rounded-lg border px-2.5 py-1 text-xs font-semibold ${filtroLinha === k ? "border-ct-action bg-ct-action text-white" : "border-ct-line text-ct-dim hover:bg-ct-raised"}`}>
                         {label}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {slice.length ? (
-                  <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+                {!!d.totais?.semVisita && <p className="text-xs text-ct-dim">
+                  As linhas marcadas como Data da resposta têm respostas registradas e visita indisponível no período.
+                </p>}
+
+                {slice.length > 0 && !showMeta && !colsVis.length && !visTrack.length ? (
+                  <div className="space-y-2 rounded-xl border border-ct-line bg-ct-surface p-6 text-center">
+                    <p role="status" className="text-sm text-ct-dim">Todas as colunas estão ocultas.</p>
+                    <button type="button" className="ct-confirm-cancel min-h-11 rounded-lg px-3 text-sm font-semibold"
+                      onClick={() => {
+                        salvarPref(defaultLeadColumns);
+                        columnsTrigger.current?.focus();
+                      }}>Restaurar colunas padrão</button>
+                  </div>
+                ) : slice.length ? (
+                  <div role="region" aria-label="Tabela de respostas do funil" tabIndex={0} className="ct-comparison-scroll overflow-x-auto rounded-xl border border-ct-line bg-ct-surface">
                     <table className="w-full border-separate border-spacing-0 text-xs">
                       {/* DOIS cabeçalhos, como no inlead (print 20):
                           linha 1 = a LÂMINA (+ % de retenção)
                           linha 2 = o BLOCO, com o chip da CHAVE — e esse chip é
                                     literalmente o header da planilha exportada. */}
-                      <thead className="text-left text-neutral-500">
-                        <tr className="bg-neutral-50">
+                      <thead className="text-left text-ct-dim">
+                        <tr className="bg-ct-raised">
                           {/* o grupo "Entrada" precisa da MESMA largura somada das
                               3 colunas fixas de baixo (44+116+96=256), senão o
                               cabeçalho desalinha do corpo ao rolar na horizontal */}
-                          {showMeta ? <th colSpan={3} className="sticky left-0 z-30 w-[256px] border-b border-r border-neutral-200 bg-neutral-50 px-3 py-2 text-left text-[11px] font-semibold text-neutral-400">– Entrada</th> : null}
+                          {showMeta ? <th colSpan={3} className="sm:sticky sm:left-0 z-30 w-[256px] border-b border-r border-ct-line bg-ct-raised px-3 py-2 text-left text-[11px] font-semibold text-ct-dim">– Entrada</th> : null}
                           {gruposVis.map((g) => (
-                            <th key={g.stepId} colSpan={g.span} className="whitespace-nowrap border-b border-r border-neutral-200 bg-neutral-50 px-3 py-2">
+                            <th key={g.stepId} colSpan={g.span} className="whitespace-nowrap border-b border-r border-ct-line bg-ct-raised px-3 py-2">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-neutral-400">{g.stepIdx + 1}</span>
-                                <span className="font-semibold text-neutral-700">{g.stepTitle.slice(0, 24)}</span>
-                                <PctRing pct={pctPorStep.get(g.stepId) ?? 0} />
+                                <span className="text-ct-dim">{g.stepIdx + 1}</span>
+                                <span className="font-semibold text-ct-ink">{g.stepTitle.slice(0, 24)}</span>
+                                {showStageRetention && <PctRing pct={pctPorStep.get(g.stepId) ?? 0} />}
                               </div>
                             </th>
                           ))}
-                          {visTrack.length ? <th colSpan={visTrack.length} className="border-b border-neutral-200 bg-neutral-50 px-3 py-2 text-[11px] font-semibold text-violet-400">Tracking</th> : null}
+                          {visTrack.length ? <th colSpan={visTrack.length} className="border-b border-ct-line bg-ct-raised px-3 py-2 text-[11px] font-semibold text-violet-400">Tracking</th> : null}
                         </tr>
-                        <tr className="bg-white">
+                        <tr className="bg-ct-surface">
                           {showMeta ? (<>
-                            <th className="sticky left-0 z-30 w-[44px] min-w-[44px] border-b border-neutral-200 bg-white px-2 py-2 font-semibold">#</th>
-                            <th className="sticky left-[44px] z-30 w-[116px] min-w-[116px] border-b border-neutral-200 bg-white px-3 py-2 font-semibold">[ID] Lead</th>
-                            <th className="sticky left-[160px] z-30 w-[96px] min-w-[96px] border-b border-r border-neutral-200 bg-white px-3 py-2 font-semibold">Data</th>
+                            <th className="sm:sticky sm:left-0 z-30 w-[44px] min-w-[44px] border-b border-ct-line bg-ct-surface px-2 py-2 font-semibold">#</th>
+                            <th className="sm:sticky sm:left-[44px] z-30 w-[116px] min-w-[116px] border-b border-ct-line bg-ct-surface px-3 py-2 font-semibold">[ID] Lead</th>
+                            <th className="sm:sticky sm:left-[160px] z-30 w-[96px] min-w-[96px] border-b border-r border-ct-line bg-ct-surface px-3 py-2 font-semibold">Data</th>
                           </>) : null}
                           {colsVis.map((c) => (
-                            <th key={c.key} className="whitespace-nowrap border-b border-neutral-200 px-3 py-2">
+                            <th key={c.key} className="whitespace-nowrap border-b border-ct-line px-3 py-2">
                               <span className="flex items-center gap-1.5">
-                                <span className="text-neutral-400">{c.kind === "options" ? "☰" : c.kind === "button" ? "▭" : c.kind === "passou" ? "👁" : "📝"}</span>
-                                <span className="font-semibold text-neutral-600">{c.label}</span>
-                                <span className="rounded bg-neutral-100 px-1 py-0.5 font-mono text-[9px] font-normal text-neutral-400" title="chave usada no CSV exportado">{c.key.slice(0, 14)}</span>
+                                <span className="text-ct-dim">{c.kind === "options" ? "☰" : c.kind === "button" ? "▭" : c.kind === "passou" ? "👁" : "📝"}</span>
+                                <span className="font-semibold text-ct-ink">{c.label}</span>
+                                <span className="rounded bg-ct-raised px-1 py-0.5 font-mono text-[9px] font-normal text-ct-dim" title="chave usada no CSV exportado">{c.key.slice(0, 14)}</span>
                               </span>
                             </th>
                           ))}
-                          {visTrack.map((c) => <th key={c.key} className="whitespace-nowrap border-b border-neutral-200 px-3 py-2 font-semibold text-violet-500">{c.label}</th>)}
+                          {visTrack.map((c) => <th key={c.key} className="whitespace-nowrap border-b border-ct-line px-3 py-2 font-semibold text-ct-blue">{c.label}</th>)}
                         </tr>
                       </thead>
                       <tbody>
                         {slice.map((r, i) => (
-                          <tr key={r.code || i} className="hover:bg-neutral-50">
+                          <tr key={r.code || i} className="hover:bg-ct-raised">
                             {showMeta ? (<>
-                              <td className="sticky left-0 z-10 w-[44px] min-w-[44px] border-b border-neutral-100 bg-white px-2 py-1.5 tabular-nums text-neutral-400">{pg * PER + i + 1}</td>
-                              <td className="sticky left-[44px] z-10 w-[116px] min-w-[116px] max-w-[116px] truncate whitespace-nowrap border-b border-neutral-100 bg-white px-3 py-1.5 font-semibold text-neutral-800" title={r.name || r.code}>
-                                {r.name || <span className="font-mono text-[11px] font-normal text-blue-600">{r.code}</span>}
+                              <td className="sm:sticky sm:left-0 z-10 w-[44px] min-w-[44px] border-b border-ct-line bg-ct-surface px-2 py-1.5 tabular-nums text-ct-dim">{pg * PER + i + 1}</td>
+                              <td className="sm:sticky sm:left-[44px] z-10 w-[116px] min-w-[116px] max-w-[116px] truncate whitespace-nowrap border-b border-ct-line bg-ct-surface px-3 py-1.5 font-semibold text-ct-ink" title={r.name || r.code}>
+                                {r.name || <span className="font-mono text-[11px] font-normal text-ct-blue">{r.code}</span>}
                               </td>
-                              <td className="sticky left-[160px] z-10 w-[96px] min-w-[96px] whitespace-nowrap border-b border-r border-neutral-100 bg-white px-3 py-1.5 text-neutral-400">{r.when ? new Date(r.when).toLocaleDateString("pt-BR") : "—"}</td>
+                              <td className="sm:sticky sm:left-[160px] z-10 w-[96px] min-w-[96px] whitespace-nowrap border-b border-r border-ct-line bg-ct-surface px-3 py-1.5 text-ct-dim">{r.when ? new Date(r.when).toLocaleDateString("pt-BR") : "—"}
+                                {r.fromAnswer && <span className="block whitespace-normal text-[10px]">Data da resposta</span>}
+                              </td>
                             </>) : null}
                             {colsVis.map((c) => {
                               const v = r.cells?.[c.key] ?? "";
                               return (
-                                <td key={c.key} className="max-w-[220px] truncate whitespace-nowrap border-b border-neutral-100 px-3 py-1.5 text-neutral-600" title={v || undefined}>
+                                <td key={c.key} className="max-w-[220px] truncate whitespace-nowrap border-b border-ct-line px-3 py-1.5 text-ct-ink" title={v || undefined}>
                                   {/* célula vazia é VAZIA (igual ao inlead) — travessão só nos metadados */}
                                   {v === "clicked"
-                                    ? <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">clicked</span>
+                                    ? <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-ct-blue">clicked</span>
                                     : v === "visto"
-                                    ? <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-500">visto</span>
+                                    ? <span className="rounded bg-ct-raised px-1.5 py-0.5 text-[10px] font-semibold text-ct-dim">visto</span>
                                     : v}
                                 </td>
                               );
                             })}
-                            {visTrack.map((c) => <td key={c.key} className="max-w-[160px] truncate whitespace-nowrap border-b border-neutral-100 px-3 py-1.5 text-neutral-400" title={r.track?.[c.key] || ""}>{r.track?.[c.key] || "—"}</td>)}
+                            {visTrack.map((c) => <td key={c.key} className="max-w-[160px] truncate whitespace-nowrap border-b border-ct-line px-3 py-1.5 text-ct-dim" title={r.track?.[c.key] || ""}>{r.track?.[c.key] || "—"}</td>)}
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                ) : <p className="p-8 text-center text-sm text-neutral-400">{term ? "Nenhuma linha bate com a busca." : filtroLinha !== "todos" ? "Nenhuma linha nesse filtro." : "Nenhuma visita ainda. Passe um lead pelo funil."}</p>}
+                ) : <div className="space-y-2 rounded-xl border border-ct-line bg-ct-surface p-6 text-center">
+                  <p role="status" className="text-sm text-ct-dim">
+                    {issues.length > 0 ? "Nenhum resultado nos dados disponíveis. A consulta deste período está incompleta."
+                      : term ? "Nenhuma sessão corresponde à busca."
+                      : filtroLinha === "lead" ? "Nenhum lead capturado no período."
+                      : filtroLinha === "resposta" ? "Nenhuma sessão com resposta no período."
+                      : "Nenhuma sessão registrada no período."}
+                  </p>
+                  {(term || (filtroLinha !== "todos" && sessionCount > 0)) && <button type="button"
+                    className="ct-confirm-cancel inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold"
+                    onClick={() => {
+                      setPage(0);
+                      if (term) {
+                        setSearch("");
+                        leadSearch.current?.focus();
+                      } else {
+                        setFiltroLinha("todos");
+                        allSessions.current?.focus();
+                      }
+                    }}>
+                    {term ? "Limpar busca" : "Ver todas as sessões"}
+                  </button>}
+                </div>}
 
-                {pages > 1 ? (
-                  <div className="flex items-center justify-center gap-2 text-xs">
-                    <button onClick={() => setPage(Math.max(0, pg - 1))} disabled={pg === 0} className="rounded border border-neutral-200 px-2 py-1 font-semibold disabled:opacity-40">←</button>
-                    <span className="text-neutral-500">Página {pg + 1} de {pages}</span>
-                    <button onClick={() => setPage(Math.min(pages - 1, pg + 1))} disabled={pg >= pages - 1} className="rounded border border-neutral-200 px-2 py-1 font-semibold disabled:opacity-40">→</button>
-                  </div>
-                ) : null}
+                <Pagination current={pg + 1} total={pages} onChange={pageNumber => setPage(pageNumber - 1)} />
               </div>
             );
           })() : null}
@@ -1412,12 +1606,12 @@ export function LeadsTab({ slug, readOnly = false }: { slug: string; readOnly?: 
             d.resultados.length ? (
               <div className="space-y-4">
                 {d.resultados.map((r) => (
-                  <div key={r.question} className="rounded-xl border border-neutral-200 bg-white p-4">
-                    <p className="mb-2 text-sm font-bold text-neutral-800">{r.question} <span className="ml-1 text-xs font-normal text-neutral-400">({r.total} respostas)</span></p>
+                  <div key={r.question} className="rounded-xl border border-ct-line bg-ct-surface p-4">
+                    <p className="mb-2 text-sm font-bold text-ct-ink">{r.question} <span className="ml-1 text-xs font-normal text-ct-dim">({r.total} respostas)</span></p>
                     <div className="space-y-2">
                       {r.options.map((o, i) => (
                         <div key={i}>
-                          <div className="mb-0.5 flex items-center justify-between text-xs"><span className="text-neutral-700">{o.label}</span><span className="font-semibold text-neutral-500">{o.value} · {o.pct}%</span></div>
+                          <div className="mb-0.5 flex items-center justify-between text-xs"><span className="text-ct-ink">{o.label}</span><span className="font-semibold text-ct-dim">{o.value} · {o.pct}%</span></div>
                           <Bar pct={o.pct} />
                         </div>
                       ))}
@@ -1425,24 +1619,25 @@ export function LeadsTab({ slug, readOnly = false }: { slug: string; readOnly?: 
                   </div>
                 ))}
               </div>
-            ) : <p className="p-8 text-center text-sm text-neutral-400">Sem respostas de quiz ainda.</p>
+            ) : <p role="status" className="p-8 text-center text-sm text-ct-dim">
+              {issues.length > 0 ? "O resultado parcial não contém respostas de quiz." : "Sem respostas de quiz ainda."}
+            </p>
           ) : null}
 
           {/* PERFORMANCE — tela completa (= antigo "Métricas"): cards c/ deltas, funil, tráfego, campanhas, dispositivos, Sumário */}
-          {sub === "performance" && p ? <PerformanceView m={p} deltas={d.deltas} /> : null}
+          {sub === "performance" && p ? <PerformanceView m={p} deltas={d.deltas} onRetry={() => setRefresh(value => value + 1)} /> : null}
         </>
       )}
     </div>
   );
 }
 
-export default function LayersBuilder({ initial, initialStepId, localDraft, initiallyDraft=false }: { initial: Funnel; initialStepId?: string; initiallyDraft?:boolean; localDraft?: {
+export default function LayersBuilder({ initial, initialStepId, localDraft, initiallyDraft=false, openLeads=false, initialRange, accountEmail }: { initial: Funnel; initialStepId?: string; initiallyDraft?:boolean; openLeads?:boolean; initialRange?:DateRange; accountEmail?:string; localDraft?: {
   save: (funnel: Funnel) => Promise<{ ok: boolean; error?: string }>;
-  previewHref: string;
+  previewHref?: string;
   reportHref?: string;
   dashboardHref?: string;
   sourceSlug?: string;
-  stagePreviewHref?: (stepId: string) => string;
   commit?: (funnel:Funnel) => Promise<{ok:boolean;error?:string}>;
 } }) {
   const [funnel, setFunnel] = useState<Funnel>(initial);
@@ -1451,6 +1646,8 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
   const [selStep, setSelStep] = useState(() => Math.max(0, steps.findIndex(step => step.id === initialStepId)));
   const stageDialog = useRef<HTMLDialogElement>(null);
   const layerDeleteDialog = useRef<HTMLDialogElement>(null);
+  const propertiesHeading = useRef<HTMLHeadingElement>(null);
+  const canvasEditTrigger = useRef<HTMLButtonElement>(null);
   const [pendingLayerDelete, setPendingLayerDelete] = useState<{ stageId: string; layerId: string; label: string } | null>(null);
   const [actionStepId, setActionStepId] = useState("");
   const [confirmStageRemoval, setConfirmStageRemoval] = useState(false);
@@ -1481,7 +1678,8 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
     items: category.items.filter(([, label]) => normalize(label).includes(query) || normalize(category.name).includes(query)),
   })).filter((category) => category.items.length > 0);
   const [verResultado, setVerResultado] = useState(false);
-  const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">("construtor");
+  const [tab, setTab] = useState<"construtor" | "fluxo" | "design" | "leads">(openLeads ? "leads" : "construtor");
+  const [leadsOpened, setLeadsOpened] = useState(openLeads);
   const [showSettings, setShowSettings] = useState(false);
   const [device, setDevice] = useState(DEFAULT_DEVICE); // id do aparelho do preview
   const [zoom, setZoom] = useState<Zoom>("fit");        // "fit" = moldura sempre cabe
@@ -1492,14 +1690,13 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
   const setLayers = (next: Layer[]) => patchStep(selStep, { layers: next });
 
   const step = steps[selStep];
-  const localPreviewHref = step && localDraft?.stagePreviewHref ? localDraft.stagePreviewHref(step.id) : localDraft?.previewHref;
-  async function openLocalPreview() {
-    if (!localDraft || !localPreviewHref || saving) return;
+  async function prepareLocalPreview() {
+    if (!localDraft || saving) return false;
     setSaving(true);
     try {
       const result = await localDraft.save(funnel);
-      if (result.ok) window.location.assign(localPreviewHref);
-      else notify(result.error || "Não foi possível abrir a visualização.", true);
+      if (!result.ok) notify(result.error || "Não foi possível abrir a visualização.", true);
+      return result.ok;
     } finally {
       setSaving(false);
     }
@@ -1644,7 +1841,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
     <LocalDraftContext.Provider value={!!localDraft}>
     <TemaFunilContext.Provider value={theme}>
     <div className="ct-workspace ct-editor">
-      <EditorTop label={saving ? "Salvando" : localDraft ? "Rascunho local" : isDraft ? "Rascunho" : "Edição de funil"} busy={saving}/>
+      <EditorTop accountEmail={accountEmail} label={saving ? "Salvando" : localDraft ? "Rascunho local" : isDraft ? "Rascunho" : "Edição de funil"} busy={saving}/>
       <header className="ct-toolbar flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
         <div className="flex min-w-0 max-w-full items-center gap-3">
           <Link href={localDraft?.dashboardHref ?? "/dashboard"} className="rounded-md border border-ct-line px-2 py-1 text-xs font-semibold text-ct-dim hover:bg-ct-raised">← Dashboard</Link>
@@ -1655,7 +1852,10 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
         </div>
         <nav aria-label="Seções do construtor" className="ct-segments">
           {([["construtor", "Construtor"], ["fluxo", "Fluxo"], ["design", "Design"], ["leads", "Leads"]] as const).map(([k, label]) => (
-            <button type="button" key={k} aria-pressed={tab === k} disabled={!!localDraft && !localDraft.sourceSlug && k === "leads"} onClick={() => setTab(k)}>
+            <button type="button" key={k} aria-pressed={tab === k} disabled={!!localDraft && !localDraft.sourceSlug && k === "leads"} onClick={() => {
+              if (k === "leads") setLeadsOpened(true);
+              setTab(k);
+            }}>
               {tab === k && <ActiveTab group="builder-tabs" />}<span>{label}</span>
             </button>
           ))}
@@ -1676,10 +1876,17 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
           </StatefulButton>
           {localDraft?.commit&&<button onClick={commit} disabled={saving} className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Salvar nos meus funis</button>}
           {isDraft&&!localDraft&&<button onClick={publish} disabled={saving} className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Publicar</button>}
-          {localDraft ? <button type="button" onClick={openLocalPreview} disabled={saving}
-            className="rounded-lg bg-ct-action px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Visualizar página</button>
-            : !isDraft && <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer"
-              className="rounded-lg bg-ct-action px-3 py-2 text-xs font-semibold text-white">Visualizar página ↗</a>}
+          {localDraft?.previewHref ? <button type="button" disabled={saving}
+            className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+            onClick={async () => {
+              if (localDraft.previewHref && await prepareLocalPreview()) window.location.assign(localDraft.previewHref);
+            }}>Visualizar página</button>
+          : <ViewCurrentPage disabled={Boolean(localDraft) && saving} prepare={localDraft ? prepareLocalPreview : undefined} initialStageId={step?.id}
+            stages={steps.map((item, index) => ({ value: item.id, label: `${index + 1}. ${item.title || "Etapa"}` }))}>
+            {stageId => <LayersRunner key={stageId} funnel={funnel}
+              startIndex={Math.max(0, steps.findIndex(item => item.id === stageId))} preview
+              simulateVideoTime />}
+          </ViewCurrentPage>}
         </div>
       </header>
 
@@ -1722,9 +1929,8 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
           />
         </div>
       )}
-      {tab === "leads" && <div className="ct-controls min-h-0 flex-1 overflow-auto p-4">
-        <LeadsTab slug={localDraft?.sourceSlug ?? funnel.slug} readOnly={Boolean(localDraft)} />
-        {localDraft?.reportHref && <Link href={localDraft.reportHref} className="mt-4 inline-block text-sm text-ct-blue underline">Ver relatório do funil</Link>}
+      {leadsOpened && <div hidden={tab !== "leads"} className="ct-controls min-h-0 flex-1 overflow-auto p-4">
+        <LeadsTab slug={localDraft?.sourceSlug ?? funnel.slug} readOnly={Boolean(localDraft)} reportHref={localDraft?.reportHref} initialRange={initialRange} />
       </div>}
 
       {tab === "construtor" && (
@@ -1737,6 +1943,12 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
           if (pendingLayerDelete) {
             delLayer(pendingLayerDelete.layerId);
             if (selLayer === pendingLayerDelete.layerId) setSelLayer(null);
+            requestAnimationFrame(() => {
+              if (document.activeElement && document.activeElement !== document.body) return;
+              const heading = propertiesHeading.current;
+              if (heading?.getClientRects().length) heading.focus();
+              else canvasEditTrigger.current?.focus();
+            });
           }
         }}>
         <form method="dialog" className="ct-step-delete-confirmation space-y-3 p-4">
@@ -1870,7 +2082,13 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
                 {cat.items.map(([key, label]) => {
                   const soon = !ADDABLE.has(key);
                   return (
-                    <button key={key} onClick={() => addPaletteItem(key)} disabled={soon}
+                    <button key={key} onClick={event => {
+                      const trigger = event.currentTarget;
+                      addPaletteItem(key);
+                      if (event.detail === 0) requestAnimationFrame(() => {
+                        if (!trigger.getClientRects().length) propertiesHeading.current?.focus();
+                      });
+                    }} disabled={soon}
                       draggable={!soon} onDragStart={(event) => {
                         event.dataTransfer.setData("application/x-ctfunil-block", key);
                         event.dataTransfer.effectAllowed = "copy";
@@ -1906,7 +2124,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
           }}>
         <div className="ct-preview-actions" role="group" aria-label="Modo da prévia">
           {([[false, "Editar", Pencil], [true, "Ver resultado", Eye]] as const).map(([value, label, Icon]) => (
-            <button type="button" key={String(value)} aria-label={label} aria-pressed={verResultado === value}
+            <button ref={value ? undefined : canvasEditTrigger} type="button" key={String(value)} aria-label={label} aria-pressed={verResultado === value}
               onClick={() => { setVerResultado(value); setSelLayer(null); }}>
               <Icon size={15} aria-hidden="true" /><span>{label}</span>
             </button>
@@ -1952,7 +2170,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
         {/* 4 · PAINEL direito (Componente/Aparência/Exibição OU Etapa) */}
         <aside data-panel="properties" data-visible={compactPanel === "properties"} className="ct-controls overflow-y-auto border-l border-neutral-200 bg-white">
             <div className="space-y-3 p-4">
-              <p className="text-sm font-bold text-neutral-700">Etapa</p>
+              <h2 ref={propertiesHeading} tabIndex={-1} className="text-sm font-bold text-neutral-700">Etapa</h2>
               {/* LISTA DE BLOCOS — o caminho de edição quando a lâmina tem tela
                   própria. Nessas, o celular desenha a tela pronta (para bater
                   com o site) e não há bloco solto para clicar; sem esta lista,

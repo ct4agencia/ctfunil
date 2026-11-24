@@ -45,6 +45,15 @@ export default function ChatRunner({ funnel, preview = false, localOnly = false,
   const theme = useMemo(() => ({ ...TB_DEFAULT_THEME, ...(tb?.theme || {}) }), [tb]);
   const groupById = useMemo(() => Object.fromEntries((tb?.groups || []).map((g) => [g.id, g])), [tb]);
   const groupIndex = useMemo(() => Object.fromEntries((tb?.groups || []).map((g, i) => [g.id, i])), [tb]);
+  const firstGroup = [startGroupId, tb?.startGroup, tb?.groups?.[0]?.id]
+    .find(id => id && Object.hasOwn(groupById, id));
+  const openedGroups = new Set<string>();
+  let initial = firstGroup ? groupById[firstGroup] : undefined;
+  while (initial && !initial.blocks.length && !openedGroups.has(initial.id)) {
+    openedGroups.add(initial.id);
+    initial = initial.to ? groupById[initial.to] : undefined;
+  }
+  const canStart = Boolean(initial?.blocks.length);
 
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [pending, setPending] = useState<{ groupId: string; blockIdx: number; block: TbInput } | null>(null);
@@ -104,9 +113,12 @@ export default function ChatRunner({ funnel, preview = false, localOnly = false,
 
   async function runFrom(groupId: string, blockIdx: number) {
     let gid = groupId, bi = blockIdx;
+    const emptyGroups = new Set<string>();
     while (true) {
       const g = groupById[gid];
-      if (!g) return;
+      if (!g || emptyGroups.has(gid)) return;
+      if (!g.blocks.length) emptyGroups.add(gid);
+      else emptyGroups.clear();
       if (bi === 0 && !preview) trackStep(funnel.slug, groupIndex[gid] ?? 0, gid, "typebot");
       if (bi >= g.blocks.length) {
         if (g.to) { gid = g.to; bi = 0; continue; }
@@ -170,9 +182,7 @@ export default function ChatRunner({ funnel, preview = false, localOnly = false,
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    const firstGroup = [startGroupId, tb?.startGroup, tb?.groups?.[0]?.id]
-      .find(id => id && Object.hasOwn(groupById, id));
-    if (firstGroup) void runFrom(firstGroup, 0);
+    if (canStart && firstGroup) void runFrom(firstGroup, 0);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -226,7 +236,9 @@ export default function ChatRunner({ funnel, preview = false, localOnly = false,
     else runFrom(np.groupId, np.blockIdx + 1);
   }
 
-  if (!tb || !tb.groups?.length) return <div className="grid min-h-[100dvh] place-items-center text-neutral-400">Funil typebot vazio.</div>;
+  if (!tb || !canStart) return <section role="status" className="grid min-h-48 place-items-center p-6 text-center">
+    {preview ? "Adicione um bloco ao grupo inicial para visualizar a conversa." : "Esta conversa está indisponível."}
+  </section>;
 
   const ios = (theme.device || "ios") === "ios";
   const dark = !!theme.dark;

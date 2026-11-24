@@ -32,11 +32,15 @@ export function AdvancedField({layer,ctx}:{layer:Layer;ctx:LayersCtx}) {
   </div>;
 }
 
-export function HtmlWidget({html,height=240,runScripts=false,title='Conteúdo personalizado',preview=false,importedDesign=false}:{html:string;height?:number;runScripts?:boolean;title?:string;preview?:boolean;importedDesign?:boolean}) {
+export function HtmlWidget({html,height=240,runScripts=false,title='Conteúdo personalizado',preview=false,importedDesign=false,importedRoot}:{html:string;height?:number;runScripts?:boolean;title?:string;preview?:boolean;importedDesign?:boolean;importedRoot?: Record<string, string>}) {
   // Isolated origin: custom styles/scripts work without changing the editor or accessing its session.
   if (importedDesign) {
-    const header = `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">`;
-    return <iframe title={title} srcDoc={header + html} sandbox="" referrerPolicy="no-referrer"
+    const attributes = Object.entries(importedRoot ?? {})
+      .filter(([name, value]) => /^(?:class|id|lang|dir|style|data-[a-z0-9_-]+)$/.test(name) && typeof value === "string")
+      .map(([name, value]) => ` ${name}="${value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"`)
+      .join("");
+    const header = `<!doctype html><html${attributes}><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; form-action 'none'; base-uri 'none'"><style>body{margin:0}</style></head>`;
+    return <iframe title={title} srcDoc={header + html + "</html>"} sandbox="" referrerPolicy="no-referrer"
       style={{ width: "100%", height: Math.max(320, Math.min(2000, Number(height) || 844)), border: 0 }} />;
   }
   return <iframe title={title} srcDoc={`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;font-family:Arial,sans-serif;overflow-wrap:anywhere}img,video,iframe{max-width:100%}</style></head><body>${html}</body></html>`}
@@ -59,7 +63,7 @@ export default function CatalogBlock({layer,ctx}:{layer:Layer;ctx:LayersCtx}) {
   const items=(c.items||[]) as ContentItem[];
   const [open,setOpen]=useState<string[]>(c.firstOpen&&items[0]?[items[0].id]:[]);
   const style={ '--catalog-background':d.backgroundColor||'transparent','--catalog-border':d.borderColor||'color-mix(in srgb, var(--catalog-text) 20%, transparent)','--catalog-border-width':`${d.borderWidth??1}px`, '--catalog-accent':ctx.design.themeColor||'#1d4f88', '--catalog-text':d.color||d.textColor||ctx.design.contentColor||'#222621', '--catalog-radius':`${d.cornerRadius??12}px`, '--catalog-padding':`${d.padding??16}px`, '--catalog-gap':`${d.optionGap??12}px`, '--catalog-mobile-cols':Math.min(2,Math.max(1,Number(c.columns)||1)), '--catalog-cols':Math.min(4,Math.max(1,Number(c.columns)||1)), width:`${Math.min(200,Math.max(20,Number(d.basis)||100))}%`, marginLeft:d.align==='left'?0:'auto',marginRight:d.align==='right'?0:'auto' } as CSSProperties;
-  if(layer.type==='html') return <div className="ct-catalog ct-catalog-html" style={style}><HtmlWidget html={String(c.html||'')} height={c.height} importedDesign={c.importedDesign} runScripts={c.runScripts} preview={ctx.preview} title={layer.title||'HTML personalizado'}/></div>;
+  if(layer.type==='html') return <div className="ct-catalog ct-catalog-html" style={style}><HtmlWidget html={String(c.html||'')} height={c.height} importedDesign={c.importedDesign} importedRoot={c.importedRoot} runScripts={c.runScripts} preview={ctx.preview} title={layer.title||'HTML personalizado'}/></div>;
   if(layer.type==='audio') return <div className="ct-catalog ct-audio-card" style={style}>{safeMediaUrl(c.avatar)&&<img src={c.avatar} alt=""/>}<div><strong>{c.name||'Áudio'}</strong>{safeMediaUrl(c.src)?<audio controls src={c.src} preload="metadata" autoPlay={!!c.autoplay&&!ctx.preview} loop={!!c.loop}/>:<p>Adicione um arquivo ou URL de áudio.</p>}</div></div>;
   if(layer.type==='faq') return <div className="ct-catalog" style={style}>{items.map(item=><div className="ct-faq-item" key={item.id}><h3><button type="button" aria-expanded={open.includes(item.id)} aria-controls={`faq-${layer.id}-${item.id}`} onClick={()=>setOpen(previous=>previous.includes(item.id)?previous.filter(id=>id!==item.id):c.allowMultiple?[...previous,item.id]:[item.id])}>{item.title||'Pergunta'}<span aria-hidden>{open.includes(item.id)?'−':'+'}</span></button></h3><div id={`faq-${layer.id}-${item.id}`} hidden={!open.includes(item.id)} className="ct-faq-answer">{item.text}</div></div>)}</div>;
   if(layer.type==='price') {

@@ -126,19 +126,28 @@ export default function FunnelSettingsPanel({
     }
   }
 
-  const [published, setPublished] = useState<{ rows?: { id: string; name?: string; host?: string; method: string; trigger_event: string; component_id?: string; enabled: boolean }[]; error?: string }>({});
+  const [published, setPublished] = useState<{ rows?: { id: string; name?: string; host?: string; method?: string; trigger_event?: string; component_id?: string; enabled?: boolean }[]; error?: string; sessionExpired?: boolean }>({});
+  const [webhookAttempt, setWebhookAttempt] = useState(0);
   useEffect(() => {
     if (tab !== "webhooks" || !sourceSlug) return;
     const controller = new AbortController();
+    setPublished({});
     fetch(`/api/workspace-webhooks?slug=${encodeURIComponent(sourceSlug)}`, { cache: "no-store", signal: controller.signal })
       .then(async response => {
-        const data = await response.json();
-        if (!response.ok) throw Error(data.error);
-        setPublished({ rows: data.webhooks });
+        if (controller.signal.aborted) return;
+        if (response.status === 401) {
+          setPublished({ error: "Sua sessão expirou. Entre novamente para consultar os webhooks.", sessionExpired: true });
+          return;
+        }
+        const data = await response.json().catch(() => null);
+        if (!response.ok || !Array.isArray(data?.webhooks)) {
+          throw Error(typeof data?.error === "string" ? data.error : "Não foi possível consultar os webhooks.");
+        }
+        if (!controller.signal.aborted) setPublished({ rows: data.webhooks });
       })
-      .catch(error => { if (!controller.signal.aborted) setPublished({ error: error.message || "Falha ao consultar os webhooks." }); });
+      .catch(error => { if (!controller.signal.aborted) setPublished({ error: error instanceof TypeError ? "Não foi possível conectar para consultar os webhooks." : error.message }); });
     return () => controller.abort();
-  }, [tab, sourceSlug]);
+  }, [tab, sourceSlug, webhookAttempt]);
   // Webhooks
   const webhooks = funnel.webhooks ?? [];
   const [pendingWebhookDelete, setPendingWebhookDelete] = useState<string | null>(null);
@@ -172,7 +181,7 @@ export default function FunnelSettingsPanel({
           <Button type="button" variant="ghost" size="icon" onClick={closeSettings} className="ct-icon-button" aria-label="Fechar configurações"><X size={18} aria-hidden="true" /></Button>
         </header>
         <nav className="ct-segments ct-settings-tabs" aria-label="Seções das configurações">
-          {tabs.map(t => <button type="button" key={t.key} onClick={() => { setPendingWebhookDelete(null); setTab(t.key); }} aria-pressed={tab === t.key}>
+          {tabs.map(t => <button type="button" key={t.key} onClick={() => { setPendingWebhookDelete(null); setVisibleTokens({}); setTab(t.key); }} aria-pressed={tab === t.key}>
             {tab === t.key && <ActiveTab group="settings-tabs" />}<span>{t.label}</span>
           </button>)}
         </nav>
@@ -314,10 +323,23 @@ export default function FunnelSettingsPanel({
               <p className="text-xs text-neutral-500">Dispara no formato inlead (campos <b>nome</b>, <b>telefone</b>, <b>{"{componente}"}: clicked</b>) — casa com os mapeamentos do Datacrazy.</p>
               {sourceSlug && <section className="space-y-2 rounded-xl border border-ct-line p-3" aria-label="Webhooks publicados">
                 <h3 className="font-semibold">Webhooks publicados</h3>
-                {!published.rows?.length && <p role="status" className="text-sm text-ct-dim">{published.error ?? (published.rows ? "Nenhum webhook cadastrado neste funil." : "Consultando webhooks…")}</p>}
+                {published.error ? <div className="space-y-2">
+                  <p role="alert" className="text-sm text-ct-ink">{published.error}</p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {published.sessionExpired && <a className="text-sm text-ct-blue underline"
+                      href={`/admin/login?${new URLSearchParams({ next: location.pathname + location.search + location.hash })}`}
+                      target="_blank" rel="noopener noreferrer">Entrar novamente em outra aba</a>}
+                    <button type="button" onClick={() => setWebhookAttempt(value => value + 1)}
+                      className="ct-primary min-h-11 rounded-lg px-3 text-sm font-semibold">
+                      {published.sessionExpired ? "Verificar sessão" : "Tentar novamente"}
+                    </button>
+                  </div>
+                </div> : !published.rows?.length && <p role="status" className="text-sm text-ct-dim">
+                  {published.rows ? "Nenhum webhook cadastrado neste funil." : "Consultando webhooks…"}
+                </p>}
                 {published.rows?.map(webhook => <article key={webhook.id} className="rounded-lg bg-ct-raised p-3 text-sm">
                   <strong>{webhook.name || webhook.host || "Webhook"}</strong>
-                  <p className="break-words text-ct-dim">{[webhook.host, webhook.method, webhook.trigger_event === "lead_capture" ? "Captura de lead" : "Clique em componente", webhook.component_id, webhook.enabled ? "Ativo" : "Desativado"].filter(Boolean).join(" · ")}</p>
+                  <p className="break-words text-ct-dim">{[webhook.host, webhook.method, webhook.trigger_event === "lead_capture" ? "Captura de lead" : webhook.trigger_event === "click_component" ? "Clique em componente" : webhook.trigger_event === "vsl_progress" ? "Progresso da VSL" : "Disparo indisponível", webhook.component_id, webhook.enabled === undefined ? "Estado indisponível" : webhook.enabled ? "Ativo" : "Desativado"].filter(Boolean).join(" · ")}</p>
                 </article>)}
                 <p className="text-xs text-ct-dim">Consulta da configuração publicada. Endereço completo e token ficam protegidos.</p>
               </section>}
@@ -359,7 +381,11 @@ export default function FunnelSettingsPanel({
                     <WorkspaceSelect label="Quando enviar" value={w.trigger_event} onChange={value=>patchWh(i,{trigger_event:value as FunnelWebhook['trigger_event']})} options={[{value:'lead_capture',label:'Captura de lead'},{value:'click_component',label:'Clique em componente'}]}/>
                     <input className={inputCls} placeholder="component_id" value={w.component_id ?? ""} onChange={(e) => patchWh(i, { component_id: e.target.value || undefined })} />
                   </div>
-                  <label className="ct-settings-token"><span className="sr-only">Token do webhook</span>
+                  <label className="ct-settings-token" onBlur={event => {
+                    if (!event.currentTarget.contains(event.relatedTarget) && visibleTokens[w.id]) {
+                      setVisibleTokens(tokens => ({ ...tokens, [w.id]: false }));
+                    }
+                  }}><span className="sr-only">Token do webhook</span>
                     <input className={inputCls} type={visibleTokens[w.id] ? "text" : "password"} autoComplete="off" spellCheck={false} placeholder="Token (Bearer, opcional)" value={w.token ?? ""} onChange={e => patchWh(i, { token: e.target.value || undefined })} />
                     <Button type="button" variant="ghost" size="icon" className="ct-icon-button" aria-pressed={!!visibleTokens[w.id]} aria-label={visibleTokens[w.id] ? "Ocultar token" : "Mostrar token"}
                       onClick={() => setVisibleTokens(tokens => ({ ...tokens, [w.id]: !tokens[w.id] }))}>

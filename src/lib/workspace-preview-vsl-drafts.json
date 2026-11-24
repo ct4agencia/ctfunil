@@ -1019,5 +1019,36 @@
         ]
       }
     ]
+  },
+  {
+    "slug": "upvda",
+    "steps": [
+      {
+        "id": "c13-vsl",
+        "title": "VSL",
+        "layers": [
+          {
+            "id": "vsl-player",
+            "type": "embed"
+          },
+          {
+            "id": "vsl-continue",
+            "type": "button",
+            "label": "QUERO O VIVENDO DE ARTESANATO",
+            "revealAt": 585,
+            "waitText": "",
+            "countdown": false,
+            "revealClock": "video"
+          },
+          {
+            "id": "whatsapp-return-note",
+            "text": "Caso o botão não funcione, volte no WhatsApp e envie a mensagem “Quero o vivendo de artesanato” na nossa conversa.",
+            "type": "text",
+            "revealAt": 585,
+            "revealClock": "video"
+          }
+        ]
+      }
+    ]
   }
 ]

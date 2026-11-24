@@ -2,6 +2,7 @@
 
 import { StatefulButton } from "@/components/referencias/beui/motion/button/stateful";
 import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
+import ActiveTab from "@/components/ui/ActiveTab";
 import WorkspaceNotice from "@/components/ui/WorkspaceNotice";
 import WorkspaceNoticeHistory, { recordWorkspaceNotice } from "@/components/workspace/WorkspaceNoticeHistory";
 import { EditorTop } from "@/components/workspace/WorkspaceFrame";
@@ -11,8 +12,10 @@ import Link from "next/link";
 import type { Funnel } from "@/lib/quiz/types";
 import type { TbBlock, TbFunnel, TbGroup } from "@/lib/quiz/typebot/types";
 import { TB_BLOCK_LABEL, TB_DEFAULT_THEME, isInput } from "@/lib/quiz/typebot/types";
+import ViewCurrentPage from "./ViewCurrentPage";
 import ChatRunner from "@/components/quiz/typebot/ChatRunner";
 import { LeadsTab } from "@/components/builder/LayersBuilder";
+import type { DateRange } from "@/components/ui/WorkspaceDateRange";
 import { ImageField, LocalDraftContext } from "@/components/builder/fields";
 import ColorField from "@/components/ui/ColorField";
 import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
@@ -83,19 +86,24 @@ const ICON: Record<string, string> = {
   wait: "⏲️", "set-variable": "🧮", condition: "🔀", redirect: "↗️", vsl: "📺",
 };
 
-export default function TypebotBuilder({ initial, saveLocal, reportHref, sourceSlug, previewHref }: {
+export default function TypebotBuilder({ initial, saveLocal, reportHref, sourceSlug, initialGroupId, openLeads = false, initialRange, dashboardHref = "/dashboard", accountEmail }: {
   initial: Funnel;
   reportHref?: string;
   sourceSlug?: string;
-  previewHref?: string;
+  initialGroupId?: string;
+  openLeads?: boolean;
+  initialRange?: DateRange;
+  dashboardHref?: string;
+  accountEmail?: string;
   saveLocal?: (funnel: Funnel) => Promise<{ ok: boolean; error?: string }>;
 }) {
   const [funnel, setFunnel] = useState<Funnel>(initial);
   const tb = (funnel.settings?.typebot || { startGroup: "", groups: [], variables: [], theme: TB_DEFAULT_THEME, typing: { enabled: true, speed: 28, maxDelay: 1.4 } }) as TbFunnel;
   const groups = tb.groups || [];
-  const [selG, setSelG] = useState(0);
+  const [selG, setSelG] = useState(() => Math.max(0, groups.findIndex(group => group.id === initialGroupId)));
   const [selB, setSelB] = useState<string | null>(null);
-  const [tab, setTab] = useState<"chat" | "fluxo" | "tema" | "leads">("chat");
+  const [tab, setTab] = useState<"chat" | "fluxo" | "tema" | "leads">(openLeads ? "leads" : "chat");
+  const [leadsOpened, setLeadsOpened] = useState(openLeads);
   const canViewLeads = !saveLocal || Boolean(sourceSlug);
   const [panel, setPanel] = useState<"groups" | "blocks" | "preview">("groups");
   const panelId = useId();
@@ -222,17 +230,22 @@ export default function TypebotBuilder({ initial, saveLocal, reportHref, sourceS
 
   return (
     <div className="ct-workspace ct-controls ct-typebot-editor flex h-[100dvh] flex-col">
-      <EditorTop label={saving ? "Salvando" : "Edição de conversa"} busy={saving}/>
+      <EditorTop accountEmail={accountEmail} label={saving ? "Salvando" : "Edição de conversa"} busy={saving}/>
       {/* HEADER */}
       <header className="ct-toolbar ct-typebot-toolbar flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-2.5">
         <div className="ct-typebot-name flex min-w-0 items-center gap-3">
-          <span className="rounded bg-ct-selected px-2 py-0.5 text-[11px] font-bold text-ct-blue">Chat</span>
+          <Link href={dashboardHref} className="inline-flex shrink-0 items-center whitespace-nowrap rounded-md border border-ct-line px-2 text-xs font-semibold text-ct-dim hover:bg-ct-raised">← Dashboard</Link>
           <input aria-label="Nome do funil" value={funnel.name} onChange={(e) => setFunnel((f) => ({ ...f, name: e.target.value }))} className="w-64 rounded border border-transparent px-1 py-0.5 text-sm font-bold text-neutral-900 hover:border-neutral-200" />
           <span className="text-xs text-neutral-500">/{funnel.slug}</span>
         </div>
-        <nav aria-label="Seções do editor conversacional" className="flex gap-1 rounded-lg bg-neutral-100 p-1">
+        <nav aria-label="Seções do editor conversacional" className="ct-segments">
           {([["chat", "Construtor"], ["fluxo", "Fluxo"], ["tema", "Design"], ["leads", "Leads"]] as const).map(([k, l]) => (
-            <button key={k} disabled={k === "leads" && !canViewLeads} aria-pressed={tab === k} onClick={() => setTab(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${tab === k ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500"}`}>{l}</button>
+            <button type="button" key={k} disabled={k === "leads" && !canViewLeads} aria-pressed={tab === k} onClick={() => {
+              if (k === "leads") setLeadsOpened(true);
+              setTab(k);
+            }}>
+              {tab === k && <ActiveTab group="typebot-builder-tabs" />}<span>{l}</span>
+            </button>
           ))}
         </nav>
         <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
@@ -246,26 +259,30 @@ export default function TypebotBuilder({ initial, saveLocal, reportHref, sourceS
             className="ct-primary rounded-lg px-3 text-xs font-bold text-white disabled:opacity-50">
             Salvar
           </StatefulButton>
-          {saveLocal && previewHref && <button type="button" disabled={saving} className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white" onClick={async () => {
-            setSaving(true);
-            try {
-              const result = await saveLocal(funnel);
-              if (result.ok) window.location.assign(previewHref);
-              else notify(result.error || "Não foi possível abrir a visualização.", true);
-            } finally {
-              setSaving(false);
-            }
-          }}>Visualizar página</button>}
+          <ViewCurrentPage disabled={Boolean(saveLocal) && saving} initialStageId={group?.id}
+            stages={groups.map((item, index) => ({ value: item.id, label: `${index + 1}. ${item.title || "Grupo"}` }))}
+            prepare={saveLocal ? async () => {
+              setSaving(true);
+              try {
+                const result = await saveLocal(funnel);
+                if (!result.ok) notify(result.error || "Não foi possível abrir a visualização.", true);
+                return result.ok;
+              } finally {
+                setSaving(false);
+              }
+            } : undefined}>
+            {groupId => <ChatRunner key={groupId} funnel={funnel} startGroupId={groupId || undefined} preview localOnly />}
+          </ViewCurrentPage>
           {!saveLocal && <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white">Ver ao vivo ↗</a>}
         </div>
       </header>
 
-      {tab === "leads" ? (
-        <div className="flex-1 overflow-auto p-4">
-          {reportHref && <Link href={reportHref} className="text-sm text-ct-blue underline">Consultar indicadores no relatório do funil</Link>}
-          {(!saveLocal || sourceSlug) && <LeadsTab slug={sourceSlug ?? funnel.slug} readOnly={Boolean(saveLocal)} />}
+      {leadsOpened && canViewLeads && (
+        <div hidden={tab !== "leads"} className="flex-1 overflow-auto p-4">
+          <LeadsTab showStageRetention={false} slug={sourceSlug ?? funnel.slug} readOnly={Boolean(saveLocal)} reportHref={reportHref} initialRange={initialRange} />
         </div>
-      ) : tab === "fluxo" ? (
+      )}
+      {tab === "leads" ? null : tab === "fluxo" ? (
         <TypebotFlow tb={tb} setGroups={setGroups} onSelect={(gid) => { const i = groups.findIndex((g) => g.id === gid); if (i >= 0) { selectGroup(i); setTab("chat"); } }} />
       ) : tab === "tema" ? (
         <ThemeTab tb={tb} setTb={setTb} />
@@ -641,7 +658,7 @@ function RemoteMediaField({ value, onChange, placeholder, accept }: MediaFieldPr
 }
 
 const Toggle = ({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) => (
-    <label className="flex cursor-pointer items-center justify-between py-1.5 text-sm"><span className="text-neutral-700">{label}</span>
+    <label className="flex cursor-pointer items-center justify-between gap-2 py-1.5 text-sm max-md:min-h-11"><span className="text-neutral-700">{label}</span>
       <input type="checkbox" checked={on} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 accent-neutral-900" /></label>
   );
 const Card = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -653,7 +670,7 @@ function ThemeTab({ tb, setTb }: { tb: TbFunnel; setTb: (n: Partial<TbFunnel> | 
   const set = (p: Partial<typeof t>) => setTb(current => ({ theme: { ...TB_DEFAULT_THEME, ...current.theme, ...p } }));
   const color = (label: string, k: keyof typeof t) => (
     <div className="flex items-center justify-between py-1.5 text-sm"><span className="text-neutral-600">{label}</span>
-      <ColorField value={(t[k] as string) || "#000000"} onChange={(v) => set({ [k]: v })} className="h-8 w-12" label={label} /></div>
+      <ColorField value={(t[k] as string) || "#000000"} onChange={(v) => set({ [k]: v })} className="h-8 w-12 max-md:h-11" label={label} /></div>
   );
   return (
     <div className="flex-1 overflow-auto bg-neutral-50 p-4">

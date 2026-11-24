@@ -43,12 +43,13 @@ export type FonteTempo = "video" | "pagina" | "esperando";
  * há player. Quem revela conteúdo deve tratá-lo como "ainda não" — é o que
  * impede o CTA de piscar na tela antes de o player assumir o relógio.
  */
-export function useTempoVsl(): { segundos: number; fonte: FonteTempo } {
+export function useTempoVsl(enabled = true): { segundos: number; fonte: FonteTempo } {
   const [segundos, setSegundos] = useState(0);
   const [fonte, setFonte] = useState<FonteTempo>("esperando");
   const montadoEm = useRef(0);
 
   useEffect(() => {
+    if (!enabled) return;
     montadoEm.current = Date.now();
 
     const ler = () => {
@@ -78,7 +79,7 @@ export function useTempoVsl(): { segundos: number; fonte: FonteTempo } {
     ler();
     const iv = setInterval(ler, PASSO);
     return () => clearInterval(iv);
-  }, []);
+  }, [enabled]);
 
   return { segundos, fonte };
 }

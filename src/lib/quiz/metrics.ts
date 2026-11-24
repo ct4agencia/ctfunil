@@ -457,9 +457,9 @@ function stageIndices(steps: Step[]) {
 export interface DateRange { from?: string; to?: string }
 
 /** Conta leads REAIS (tabela funnel_leads) de um funil — fonte de verdade. */
-async function realLeadCount(slug: string, range?: DateRange, issues?: MetricsIssue[]): Promise<number> {
+async function realLeadCount(slug: string, range?: DateRange, issues?: MetricsIssue[], client?: ReturnType<typeof createAdminClient>): Promise<number> {
   try {
-    const sb = createAdminClient();
+    const sb = client ?? createAdminClient();
     let q = sb.from("funnel_leads").select("*", { count: "exact", head: true }).eq("funnel_slug", slug);
     if (range?.from) q = q.gte("created_at", range.from);
     if (range?.to) q = q.lte("created_at", range.to);
@@ -486,9 +486,9 @@ async function realLeadCount(slug: string, range?: DateRange, issues?: MetricsIs
  * quem só entrou não tem duração — e contar esses como "0s" era o que puxava a
  * média para baixo.
  */
-async function tempoMediano(slug: string, range?: DateRange, issues?: MetricsIssue[]): Promise<{ seg: number; sessoes: number }> {
+async function tempoMediano(slug: string, range?: DateRange, issues?: MetricsIssue[], client?: ReturnType<typeof createAdminClient>): Promise<{ seg: number; sessoes: number }> {
   try {
-    const sb = createAdminClient();
+    const sb = client ?? createAdminClient();
     let q = sb.from("step_events").select("session_id,created_at").eq("funnel_slug", slug).limit(100000);
     if (range?.from) q = q.gte("created_at", range.from);
     if (range?.to) q = q.lte("created_at", range.to);
@@ -531,9 +531,9 @@ async function tempoMediano(slug: string, range?: DateRange, issues?: MetricsIss
 
 /** Mix de aparelho dos leads. Os dados já existiam e já chegavam ao cliente —
  *  só o painel era um placeholder. */
-async function mixDispositivos(slug: string, range?: DateRange): Promise<DeviceMix | undefined> {
+async function mixDispositivos(slug: string, range?: DateRange, client?: ReturnType<typeof createAdminClient>): Promise<DeviceMix | undefined> {
   try {
-    const sb = createAdminClient();
+    const sb = client ?? createAdminClient();
     let q = sb.from("funnel_leads").select("viewport,user_agent").eq("funnel_slug", slug).limit(20000);
     if (range?.from) q = q.gte("created_at", range.from);
     if (range?.to) q = q.lte("created_at", range.to);
@@ -584,9 +584,10 @@ async function retencaoPorLamina(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   steps: any[],
   range?: DateRange,
+  client?: ReturnType<typeof createAdminClient>,
 ): Promise<RetencaoLamina[] | undefined> {
   try {
-    const sb = createAdminClient();
+    const sb = client ?? createAdminClient();
     let q = sb.from("step_events").select("session_id,step_id").eq("funnel_slug", slug).limit(100000);
     if (range?.from) q = q.gte("created_at", range.from);
     if (range?.to) q = q.lte("created_at", range.to);
@@ -797,7 +798,7 @@ export async function funnelMetrics(slug: string, range?: DateRange, source?: { 
     if (error) {
       issues.push({
         code: "rpc_ausente",
-        msg: "Cálculo exato indisponível (migration 0019 pendente) — média de etapas e campanhas usam amostra.",
+        msg: "Média de etapas e campanhas calculadas com uma amostra de sessões.",
         campos: [],
         detalhe: `${error.code ?? ""} ${error.message}`.trim(),
       });
@@ -820,7 +821,7 @@ export async function funnelMetrics(slug: string, range?: DateRange, source?: { 
         countSessions(undefined, ["visitantes", "taxaConclusao", "taxaInteracao", "taxaRejeicao", "score", "funil"]),
         countSessions(firstQ, ["respostas", "taxaInteracao", "taxaRejeicao", "score"]),
         countSessions(lastI, ["conclusoes", "taxaConclusao", "score", "funil"]),
-        realLeadCount(slug, range, issues),
+        realLeadCount(slug, range, issues, sbCount),
         countSessions(firstQ, ["funil"]),   // "1ª resposta" = MESMO número do card
         countSessions(secondQ >= 0 ? secondQ : 1_000_000, ["funil"]),
       ]);
@@ -845,9 +846,9 @@ export async function funnelMetrics(slug: string, range?: DateRange, source?: { 
   // Fontes próprias, em paralelo: o tempo vem de step_events (não de
   // last_seen_at) e o mix de aparelho de funnel_leads.
   const [tmp, dispositivos, retencao] = await Promise.all([
-    tempoMediano(slug, range, issues),
-    mixDispositivos(slug, range),
-    retencaoPorLamina(slug, steps, range),
+    tempoMediano(slug, range, issues, sbCount),
+    mixDispositivos(slug, range, sbCount),
+    retencaoPorLamina(slug, steps, range, sbCount),
   ]);
 
   // Funil = histograma cumulativo do "estágio máximo atingido". Cada etapa é um

@@ -32,6 +32,6 @@
 @keyframes ct-component-zoom { from { opacity:0; transform:scale(.92); } to { opacity:1; transform:scale(1); } }
 @keyframes ct-component-pulse { 50% { transform:scale(1.025); } }
 @keyframes ct-component-float { 50% { transform:translateY(-6px); } }
-@media (max-width:767px) { .ct-device-desktop { display:none; } }
+@media (width < 768px) { .ct-device-desktop { display:none; } }
 @media (min-width:768px) { .ct-device-mobile { display:none; } }
 @media (prefers-reduced-motion:reduce) { .ct-component,.ct-component > * { animation:none !important; } }

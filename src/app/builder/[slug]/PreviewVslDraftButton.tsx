@@ -29,7 +29,7 @@ export function restoreOriginalImages(current: Funnel, source: Funnel) {
   return { restored, funnel: restored ? { ...current, steps: steps as unknown as Funnel["steps"] } : current };
 }
 
-export default function PreviewVslDraftButton({ funnel, video, autoOpen = false }: { funnel: Funnel; video: boolean; autoOpen?: boolean }) {
+export default function PreviewVslDraftButton({ funnel, video, autoOpen = false, draftQuery = "" }: { funnel: Funnel; video: boolean; autoOpen?: boolean; draftQuery?: string }) {
   const router = useRouter();
   const [pending, setPending] = useState<"open" | "restore" | null>(null);
   const [notice, setNotice] = useState("");
@@ -54,14 +54,14 @@ export default function PreviewVslDraftButton({ funnel, video, autoOpen = false 
           warnings: [video ? videoMediaWarning : legacyMediaWarning],
         });
       }
-      const href = `/importar/${encodeURIComponent(id)}`;
+      const href = `/importar/${encodeURIComponent(id)}${draftQuery}`;
       if (replace) router.replace(href);
       else router.push(href);
     } catch {
       setError("Não foi possível abrir a cópia local neste navegador.");
       setPending(null);
     }
-  }, [pending, id, funnel, router, video]);
+  }, [pending, id, funnel, router, video, draftQuery]);
 
   useEffect(() => {
     if (!autoOpen || autoOpened.current) return;

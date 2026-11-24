@@ -43,6 +43,55 @@ export interface FunnelCol {
   fieldName?: string;
 }
 
+/** Respostas de blocos removidos continuam consultáveis pelo ID registrado. */
+export function incluirColunasHistoricas(
+  cols: FunnelCol[],
+  answers: { step_id?: string | null; question?: string | null }[],
+): FunnelCol[] {
+  const known = new Set(cols.map(col => col.layerId));
+  const keys = new Set(cols.map(col => col.key));
+  const groups = new Set(cols.map(col => col.stepId));
+  const stepIdx = cols.reduce((max, col) => Math.max(max, col.stepIdx + 1), 0);
+  let stepId = "historico-typebot";
+  while (groups.has(stepId)) stepId += "-";
+  const historic: FunnelCol[] = [];
+  for (const answer of answers) {
+    const layerId = answer.step_id;
+    if (!layerId || known.has(layerId)) continue;
+    known.add(layerId);
+    const base = `historico_${normalizarChave(layerId) || historic.length + 1}`;
+    let key = base;
+    for (let suffix = 2; keys.has(key); suffix++) key = `${base}#${suffix}`;
+    keys.add(key);
+    historic.push({
+      key, header: `field: ${key}`, kind: "field", layerId, stepId, stepIdx,
+      stepTitle: "Respostas anteriores", label: answer.question?.trim().slice(0, 100) || "Bloco anterior",
+    });
+  }
+  return [...cols, ...historic];
+}
+
+/** Reúne respostas com identificador de sessão mesmo quando a visita fica fora do recorte. */
+export function incluirSessoesComRespostas<T extends { session_id: string | null; created_at: string | null }>(
+  sessions: T[],
+  answers: { session_id?: string | null; created_at?: string | null }[],
+) {
+  const known = new Set(sessions.map(session => session.session_id));
+  const dates = new Map<string, string>();
+  for (const answer of answers) {
+    const id = answer.session_id;
+    const when = answer.created_at;
+    if (!id || known.has(id) || !when || !Number.isFinite(Date.parse(when))) continue;
+    const previous = dates.get(id);
+    if (!previous || Date.parse(when) < Date.parse(previous)) dates.set(id, when);
+  }
+  if (!dates.size) return sessions;
+  return [
+    ...sessions,
+    ...Array.from(dates, ([session_id, created_at]) => ({ session_id, created_at, max_step_reached: null, fromAnswer: true as const })),
+  ].sort((a, b) => Date.parse(b.created_at ?? "") - Date.parse(a.created_at ?? ""));
+}
+
 /** Cabeçalho de grupo: uma lâmina, abrangendo N colunas. */
 export interface FunnelColGroup {
   stepId: string;
@@ -101,7 +150,24 @@ function keyOf(l: any, step: any, idx: number): string {
  * Chaves repetidas ganham sufixo `#2`, `#3`… — dois campos "telefone" em lâminas
  * diferentes gerariam headers idênticos e o CSV ficaria ambíguo.
  */
-export function colunasDoFunil(steps: any[]): FunnelCol[] {
+export function colunasDoFunil(steps: any[], settings?: unknown): FunnelCol[] {
+  const config = settings as { engine?: string; typebot?: { groups?: unknown } } | undefined;
+  if (config?.engine === "typebot" && Array.isArray(config.typebot?.groups)) {
+    steps = config.typebot.groups.flatMap(group => {
+      if (!group || typeof group.id !== "string" || !Array.isArray(group.blocks)) return [];
+      const layers = group.blocks.flatMap((block: any) => {
+        if (typeof block?.id !== "string" || typeof block.type !== "string" || !block.type.startsWith("input-")) return [];
+        const choice = ["input-choice", "input-picture", "input-cards", "input-rating"].includes(block.type);
+        return [{
+          id: block.id,
+          type: choice ? "options" : "field",
+          webhookKey: typeof block.variable === "string" && block.variable.trim() ? block.variable : block.id,
+          content: { name: block.type === "input-phone" ? "telefone" : block.variable },
+        }];
+      });
+      return layers.length ? [{ id: group.id, title: group.title, layers }] : [];
+    });
+  }
   const cols: FunnelCol[] = [];
   const usadas = new Map<string, number>();
   const ativos = (steps || []).filter((s) => !s?.disabled);

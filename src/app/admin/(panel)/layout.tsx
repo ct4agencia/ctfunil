@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { signOut } from "@/app/auth/actions";
+import WorkspaceSignOut from "@/components/workspace/WorkspaceSignOut";
 
 /**
  * Layout das páginas protegidas do admin (route group `(panel)`).
@@ -41,14 +41,7 @@ export default async function PanelLayout({
           </Link>
           <div className="flex items-center gap-4 text-sm">
             <span className="text-slate-500">{user.email}</span>
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="rounded-md border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100"
-              >
-                Sair
-              </button>
-            </form>
+            <WorkspaceSignOut className="rounded-md border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100" />
           </div>
         </div>
       </header>

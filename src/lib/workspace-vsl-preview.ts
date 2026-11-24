@@ -17,6 +17,7 @@ const players = new Map([
   ["sdbspit6", "6afc3071ce292bd10f008115"],
   ["vdmcpit6", "6afc3843491de0e2d095b5c1"],
   ["vdmspit6", "6afc383428cb64aefe600be6"],
+  ["upvda", "6b01190f9fbcc3abae13ec0d"],
 ]);
 
 const playerOrigin = "https://scripts.converteai.net";

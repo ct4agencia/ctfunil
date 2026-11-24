@@ -23,13 +23,14 @@ html[data-ct-mode=light] .ct-select-item[data-highlighted] { background:#e1eef8;
 .ct-select-search-field input:focus-visible { outline:2px solid #3eafe6; border-radius:3px; }
 .ct-select-search-options { overflow:auto; overscroll-behavior:contain; padding:4px; }
 .ct-select-search-options button { width:100%; text-align:left; }
+.ct-select-search-options button > span { min-width:0; overflow-wrap:anywhere; }
 .ct-select-search-options button:is(:hover, :focus-visible):not(:disabled) { background:#3eafe624; }
 .ct-select-search-options button[aria-pressed=true] { color:#3eafe6; }
 .ct-select-search-options button:disabled { opacity:.5; cursor:not-allowed; }
 .ct-select-search-options p { padding:8px; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .ct-select-searchable[data-expand-from-trigger][data-state=open] {
+  .ct-select-searchable[data-state=open] {
     transform-origin: var(--radix-popover-content-transform-origin);
     animation: ct-select-expand .22s cubic-bezier(.2,.8,.2,1) both;
   }

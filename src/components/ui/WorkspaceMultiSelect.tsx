@@ -50,7 +50,10 @@ export default function WorkspaceMultiSelect({ label, options, values, onChange,
         <ChevronDown size={16} aria-hidden="true" />
       </summary>
       <div id={id} className="ct-multi-panel">
-        <label className="ct-search"><Search size={15} aria-hidden="true" /><input type="search" aria-label={`Buscar em ${label}`} value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar opção" /></label>
+        <label className="ct-search"><Search size={15} aria-hidden="true" /><input type="search" aria-label={`Buscar em ${label}`} value={query}
+          onChange={event => setQuery(event.target.value)} onKeyDown={event => {
+            if (event.key === "Enter") event.preventDefault();
+          }} placeholder="Buscar opção" /></label>
         {visible.length > 1 && <label className="ct-multi-option ct-multi-all">
           <WorkspaceCheckbox checked={allVisibleSelected} mixed={partiallySelected} onChange={toggleVisible} />
           <span>{query.trim() ? "Selecionar resultados da busca" : "Selecionar todas as opções"}</span>

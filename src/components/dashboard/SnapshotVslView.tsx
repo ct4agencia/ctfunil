@@ -1,5 +1,7 @@
 "use client";
 
+import SnapshotRangeCoverage from "./SnapshotRangeCoverage";
+import { useSnapshotDateRange } from "./useSnapshotDateRange";
 import SnapshotTimestamp from "./SnapshotTimestamp";
 
 import WorkspaceCheckbox from "@/components/ui/WorkspaceCheckbox";
@@ -69,15 +71,17 @@ function searchKey(value: string) {
   return value.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("pt-BR").trim();
 }
 
-export default function SnapshotVslView({ data, individual = false }: { data: VslSnapshot; individual?: boolean }) {
+export default function SnapshotVslView({ data, individual = false, reportRange }: { data: VslSnapshot; individual?: boolean; reportRange?: DateRange }) {
   const heading = useId();
   const comparison = useId();
   const searchInput = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{ metric: Metric; ascending: boolean } | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
-  const [range, setRange] = useState<DateRange>({ from: "", to: "" });
   const days = calendarSeriesDays(data.daily, data.captured_at, data.timeZone);
+  const { range: analyticsRange, changeRange, outsideCapture, partialCapture } = useSnapshotDateRange(days, "vsl");
+  const range = reportRange ?? (individual ? { from: "", to: "" } : analyticsRange);
+  const reportQuery = new URLSearchParams(range.from ? { origem: "vsl", ...range } : { origem: "vsl" });
   const periodRows = rowsInPeriod(data, range);
   const individualRow = periodRows[0];
   const term = searchKey(query);
@@ -98,14 +102,16 @@ export default function SnapshotVslView({ data, individual = false }: { data: Vs
         <h2 id={heading}>{individual ? "Progresso de vídeo" : "Progresso de vídeo por funil"}</h2>
         <p>Eventos registrados pelo CTFunil até <SnapshotTimestamp capturedAt={data.captured_at} />. Cada coluna conta as sessões que atingiram aquele marco.</p>
       </div>
-      {days.length > 0 && <WorkspaceDateRange days={days} value={range} label="Data de início das sessões"
-        onChange={value => { setRange(value); setSelected([]); }} />}
+      {!individual && days.length > 0 && <WorkspaceDateRange allowEarlierDates days={days} value={range} label="Data de início das sessões"
+        onChange={value => { changeRange(value); setSelected([]); }} />}
       {!individual && data.rows.length > 0 && <label className="ct-search">
         <input ref={searchInput} type="search" aria-label="Buscar funil em VSL" placeholder="Buscar funil"
           value={query} onChange={event => setQuery(event.target.value)} />
       </label>}
     </header>
-    {individual ? individualRow ? (
+    {!individual && <SnapshotRangeCoverage outsideCapture={outsideCapture} partialCapture={partialCapture}
+        onReset={() => changeRange({ from: "", to: "" })} />}
+    {(!outsideCapture || individual) && (individual ? individualRow ? (
       <dl className="grid gap-3 px-4 pb-4 sm:grid-cols-2 lg:grid-cols-3">
         {columns.map(([key, label]) => (
           <div key={key} className="rounded-xl border border-ct-line bg-ct-raised p-4">
@@ -170,11 +176,11 @@ export default function SnapshotVslView({ data, individual = false }: { data: Vs
                   setSelected(current => checked ? [...current, row.slug] : current.filter(slug => slug !== row.slug));
                 }} />
             </td>
-            <th scope="row" className="min-w-36 py-2 text-left font-medium"><Link className="text-ct-blue" href={`/dashboard/${encodeURIComponent(row.slug)}`}>{row.name}</Link></th>
+            <th scope="row" className="min-w-36 py-2 text-left font-medium"><Link className="text-ct-blue" href={`/dashboard/${encodeURIComponent(row.slug)}?${reportQuery}`}>{row.name}</Link></th>
             {columns.map(([key]) => <td key={key} className="whitespace-nowrap px-3 py-2 text-right">{formatMetric(row, key)}</td>)}
           </tr>)}</tbody>
         </table>
       </div> : <p className="px-4 pb-4 text-sm text-ct-dim">{periodRows.length ? "Nenhum funil encontrado." : "Nenhuma sessão com progresso neste período."}</p>}
-    </> : <p className="px-4 pb-4 text-sm text-ct-dim">A cópia ainda não contém eventos de progresso de vídeo.</p>}
+    </> : <p className="px-4 pb-4 text-sm text-ct-dim">A cópia ainda não contém eventos de progresso de vídeo.</p>)}
   </section>;
 }

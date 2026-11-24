@@ -1,11 +1,35 @@
 import { NextResponse } from "next/server";
 import { workspaceLiveReader } from "@/lib/quiz/workspace-live-read";
 import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/quiz/admin-guard";
 import { createAdminClient } from "@/lib/supabase/server";
 import { funnelMetrics, type MetricsIssue } from "@/lib/quiz/metrics";
 // Mesmo módulo de colunas do CSV: é o que faz a tela e a planilha baterem.
-import { colunasDoFunil, gruposDeColunas } from "@/lib/quiz/colunas";
+import { colunasDoFunil, gruposDeColunas, incluirColunasHistoricas, incluirSessoesComRespostas } from "@/lib/quiz/colunas";
+
+type QueryPage<Row> = {
+  data: Row[] | null;
+  count: number | null;
+  error: { code: string; message: string } | null;
+};
+
+async function readBatches<Row>(
+  read: (offset: number, size: number, count: boolean) => PromiseLike<QueryPage<Row>>,
+  limit: number,
+): Promise<QueryPage<Row>> {
+  const first = await read(0, Math.min(limit, 1000), true);
+  if (first.error || !first.data || first.count === null) return first;
+
+  const data = first.data;
+  const target = Math.min(first.count, limit);
+  while (data.length < target) {
+    const page = await read(data.length, Math.min(target - data.length, 1000), false);
+    if (page.error) return { data, count: first.count, error: page.error };
+    if (!page.data?.length) break;
+    data.push(...page.data);
+  }
+  return { data, count: first.count, error: null };
+}
 
 /**
  * Análise por funil (sub-abas Respostas / Resultados / Performance, estilo inlead).
@@ -13,13 +37,11 @@ import { colunasDoFunil, gruposDeColunas } from "@/lib/quiz/colunas";
  * pergunta) + respostas por lead (sessão → respostas + nome/telefone).
  */
 export async function GET(request: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
-  if (!user || (!adminEmail || user.email?.toLowerCase() !== adminEmail)) {
+  const admin = await requireAdmin();
+  if (!admin.ok) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  const live = workspaceLiveReader(request.headers.get("host"));
+  const live = workspaceLiveReader(request.headers.get("host"), admin.supabase);
   if (isReadOnlyWorkspace() && !live) {
     return NextResponse.json({ error: "Consulte os indicadores no relatório do funil no preview." }, {
       status: 403, headers: { "Cache-Control": "no-store" },
@@ -44,9 +66,13 @@ export async function GET(request: Request) {
   // `step_id` entra para casar a resposta com a COLUNA certa. A sub-aba
   // Resultados continua agrupando por `question` (o texto), mas a tabela de
   // Respostas junta por lâmina — assim renomear a pergunta não órfã a coluna.
-  let answersQ = sb.from("quiz_answers").select("session_id,step_id,question,answer").eq("funnel_slug", slug).limit(50000);
-  if (from) answersQ = answersQ.gte("created_at", from);
-  if (to) answersQ = answersQ.lte("created_at", to);
+  const through = to ?? new Date().toISOString();
+  const answersQuery = (offset: number, size: number, count: boolean) => {
+    const query = sb.from("quiz_answers")
+      .select("session_id,step_id,question,answer,created_at", count ? { count: "exact" } : undefined)
+      .eq("funnel_slug", slug).lte("created_at", through).order("id");
+    return (from ? query.gte("created_at", from) : query).range(offset, offset + size - 1).abortSignal(request.signal);
+  };
 
   // Estrutura do funil → as MESMAS colunas que o CSV usa.
   const funilRes = await sb.from("funnels").select("name,steps,settings").eq("slug", slug).maybeSingle();
@@ -58,22 +84,24 @@ export async function GET(request: Request) {
   const source = live && funilRes.data ? { client: live, funnel: funilRes.data } : undefined;
 
   // Respostas: por lead (sessão → respostas + dados do lead capturado)
-  let leadsQ = sb.from("funnel_leads")
-    .select("session_id,name,phone,created_at,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,fbclid,ctwa_clid,source_id,viewport,screen,platform,user_agent")
-    .eq("funnel_slug", slug).order("created_at", { ascending: false }).limit(5000);
-  if (from) leadsQ = leadsQ.gte("created_at", from);
-  if (to) leadsQ = leadsQ.lte("created_at", to);
+  const leadsQuery = (offset: number, size: number, count: boolean) => {
+    const query = sb.from("funnel_leads")
+      .select("session_id,name,phone,created_at,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,fbclid,ctwa_clid,source_id,viewport,screen,platform,user_agent", count ? { count: "exact" } : undefined)
+      .eq("funnel_slug", slug).lte("created_at", through).order("created_at", { ascending: false }).order("id", { ascending: false });
+    return (from ? query.gte("created_at", from) : query).range(offset, offset + size - 1).abortSignal(request.signal);
+  };
 
   // Tracking da SESSÃO (fallback): a campanha/origem é capturada na sessão; se o
   // lead foi salvo sem utm, puxamos da sessão pra aparecer também nas Respostas.
   // `created_at` e `max_step_reached` entram porque a LINHA da tabela passou a
   // ser a SESSÃO (igual ao inlead e ao CSV): a data vem daqui, e o "clicked" dos
   // botões é derivado do progresso — mesma regra que o CSV já usava.
-  let sessQ = sb.from("funnel_sessions")
-    .select("session_id,created_at,max_step_reached,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,ctwa_clid,source_id")
-    .eq("funnel_slug", slug).order("created_at", { ascending: false }).limit(20000);
-  if (from) sessQ = sessQ.gte("created_at", from);
-  if (to) sessQ = sessQ.lte("created_at", to);
+  const sessionsQuery = (offset: number, size: number, count: boolean) => {
+    const query = sb.from("funnel_sessions")
+      .select("session_id,created_at,max_step_reached,utm_source,utm_medium,utm_campaign,utm_content,utm_term,src,ctwa_clid,source_id", count ? { count: "exact" } : undefined)
+      .eq("funnel_slug", slug).lte("created_at", through).order("created_at", { ascending: false }).order("id", { ascending: false });
+    return (from ? query.gte("created_at", from) : query).range(offset, offset + size - 1).abortSignal(request.signal);
+  };
 
   // Período anterior (deltas): mesma duração imediatamente antes do início.
   const prevRange = from
@@ -88,9 +116,9 @@ export async function GET(request: Request) {
   const [performance, prev, ansRes, leadsRes, sessRes] = await Promise.all([
     funnelMetrics(slug, range, source),
     prevRange ? funnelMetrics(slug, prevRange, source) : Promise.resolve(null),
-    answersQ,
-    leadsQ,
-    sessQ,
+    readBatches(answersQuery, 50000),
+    readBatches(leadsQuery, 5000),
+    readBatches(sessionsQuery, 20000),
   ]);
   const { data: answers } = ansRes, { data: leads } = leadsRes, { data: sessRows } = sessRes;
 
@@ -103,6 +131,18 @@ export async function GET(request: Request) {
   anota(ansRes.error, "Não consegui ler as respostas do quiz.", ["resultados", "questions", "respostas"]);
   anota(leadsRes.error, "Não consegui ler os leads.", ["respostas"]);
   anota(sessRes.error, "Não consegui ler o rastreamento das sessões.", ["respostas"]);
+  for (const [result, label, campos] of [
+    [sessRes, "sessões", ["respostas"]],
+    [leadsRes, "leads", ["respostas"]],
+    [ansRes, "respostas", ["respostas", "resultados"]],
+  ] as const) {
+    if (result.count === null || !result.data || result.count <= result.data.length) continue;
+    erros.push({
+      code: "amostra_truncada",
+      msg: `Exibindo ${result.data.length.toLocaleString("pt-BR")} de ${result.count.toLocaleString("pt-BR")} ${label}. Selecione um período menor para consultar os demais registros.`,
+      campos: [...campos],
+    });
+  }
 
   let deltas: Record<string, number> | null = null;
   if (prev) {
@@ -166,7 +206,11 @@ export async function GET(request: Request) {
   };
   // ── COLUNAS: as mesmas do CSV (lib/quiz/colunas.ts) ───────────────────────
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cols = colunasDoFunil(((funilRes?.data?.steps as any[]) ?? []));
+  const currentCols = colunasDoFunil(((funilRes?.data?.steps as any[]) ?? []), funilRes.data?.settings);
+  const typebot = funilRes.data?.settings?.engine === "typebot";
+  const cols = typebot ? incluirColunasHistoricas(currentCols, answers ?? []) : currentCols;
+  const sessions = sessRows ?? [];
+  const responseSessions = typebot ? incluirSessoesComRespostas(sessions, answers ?? []) : sessions;
   const grupos = gruposDeColunas(cols);
 
   // resposta por sessão+lâmina — a junção é por step_id, NUNCA pelo texto da
@@ -186,7 +230,7 @@ export async function GET(request: Request) {
    * mostrava quem respondeu algo, então lead de funil só-VSL sumia da lista.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const respostas = ((sessRows ?? []) as any[]).map((s) => {
+  const respostas = (responseSessions as any[]).map((s) => {
     const sid = String(s.session_id ?? "");
     const l = leadBy.get(sid);
     const max = Number(s.max_step_reached ?? 0);
@@ -214,6 +258,7 @@ export async function GET(request: Request) {
       phone: (l?.phone as string) || null,
       temResposta: !!porStep?.size,
       virouLead: !!l,
+      fromAnswer: s.fromAnswer === true,
       cells,
       // compat: a tela antiga lia `answers` por texto de pergunta
       answers: bySession.get(sid) ?? {},
@@ -240,6 +285,7 @@ export async function GET(request: Request) {
     cols, grupos,
     totais: {
       sessoes: respostas.length,
+      semVisita: respostas.length - sessions.length,
       comResposta: respostas.filter((r) => r.temResposta).length,
       leads: respostas.filter((r) => r.virouLead).length,
     },

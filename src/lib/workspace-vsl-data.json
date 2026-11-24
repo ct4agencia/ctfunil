@@ -1,14 +1,34 @@
 {
   "rows": [
     {
+      "name": "SDB [BOLSAS] - COM PITCH 6",
+      "slug": "sdbcpit6",
+      "tracked": 2274,
+      "avg_watch": 85.9,
+      "at_least_25": 2143,
+      "at_least_50": 2091,
+      "at_least_75": 2046,
+      "at_least_95": 1009
+    },
+    {
       "name": "SDB 👛 [BOLSAS] - COM PITCH 5",
       "slug": "sdbcpit5",
-      "tracked": 2091,
+      "tracked": 2092,
       "avg_watch": 86.9,
-      "at_least_25": 1988,
-      "at_least_50": 1939,
-      "at_least_75": 1884,
-      "at_least_95": 859
+      "at_least_25": 1989,
+      "at_least_50": 1940,
+      "at_least_75": 1885,
+      "at_least_95": 860
+    },
+    {
+      "name": "SDB [BOLSAS] - SEM PITCH 6",
+      "slug": "sdbspit6",
+      "tracked": 1959,
+      "avg_watch": 82.8,
+      "at_least_25": 1830,
+      "at_least_50": 1774,
+      "at_least_75": 1716,
+      "at_least_95": 632
     },
     {
       "name": "SDB 👛 [BOLSAS] - SEM PITCH 5",
@@ -18,27 +38,27 @@
       "at_least_25": 1485,
       "at_least_50": 1434,
       "at_least_75": 1372,
-      "at_least_95": 465
+      "at_least_95": 466
     },
     {
       "name": "SDB 👛 [BOLSAS] - CURTA COM PITCH 4",
       "slug": "sdbcpit4",
-      "tracked": 1284,
+      "tracked": 1299,
       "avg_watch": 92.9,
-      "at_least_25": 1248,
-      "at_least_50": 1239,
-      "at_least_75": 1219,
-      "at_least_95": 953
+      "at_least_25": 1263,
+      "at_least_50": 1253,
+      "at_least_75": 1233,
+      "at_least_95": 964
     },
     {
       "name": "SDB👛 [BOLSAS] - CURTA SEM PITCH 4",
       "slug": "sdbspit4",
-      "tracked": 1214,
+      "tracked": 1217,
       "avg_watch": 90.7,
-      "at_least_25": 1180,
-      "at_least_50": 1169,
-      "at_least_75": 1150,
-      "at_least_95": 796
+      "at_least_25": 1183,
+      "at_least_50": 1172,
+      "at_least_75": 1153,
+      "at_least_95": 799
     },
     {
       "name": "CDB 👛 [BOLSAS] - CURTA SEM PITCH 3",
@@ -49,26 +69,6 @@
       "at_least_50": 979,
       "at_least_75": 955,
       "at_least_95": 673
-    },
-    {
-      "name": "SDB [BOLSAS] - COM PITCH 6",
-      "slug": "sdbcpit6",
-      "tracked": 1007,
-      "avg_watch": 84.9,
-      "at_least_25": 944,
-      "at_least_50": 917,
-      "at_least_75": 895,
-      "at_least_95": 427
-    },
-    {
-      "name": "SDB [BOLSAS] - SEM PITCH 6",
-      "slug": "sdbspit6",
-      "tracked": 915,
-      "avg_watch": 82.8,
-      "at_least_25": 860,
-      "at_least_50": 836,
-      "at_least_75": 804,
-      "at_least_95": 276
     },
     {
       "name": "CDB 👛 [BOLSAS] - CURTA COM PITCH 3",
@@ -91,24 +91,34 @@
       "at_least_95": 380
     },
     {
+      "name": "Upsell do Vivendo de Artesanato",
+      "slug": "upvda",
+      "tracked": 243,
+      "avg_watch": 82.7,
+      "at_least_25": 219,
+      "at_least_50": 204,
+      "at_least_75": 189,
+      "at_least_95": 148
+    },
+    {
       "name": "VDM [MODAS] - SEM PITCH 6",
       "slug": "vdmspit6",
-      "tracked": 199,
-      "avg_watch": 81.5,
-      "at_least_25": 187,
-      "at_least_50": 182,
-      "at_least_75": 176,
-      "at_least_95": 52
+      "tracked": 203,
+      "avg_watch": 82,
+      "at_least_25": 192,
+      "at_least_50": 187,
+      "at_least_75": 181,
+      "at_least_95": 54
     },
     {
       "name": "VDM [MODAS] - COM PITCH 6",
       "slug": "vdmcpit6",
-      "tracked": 135,
-      "avg_watch": 82.6,
-      "at_least_25": 127,
-      "at_least_50": 125,
-      "at_least_75": 117,
-      "at_least_95": 40
+      "tracked": 140,
+      "avg_watch": 82.5,
+      "at_least_25": 131,
+      "at_least_50": 129,
+      "at_least_75": 121,
+      "at_least_95": 41
     },
     {
       "name": "CDB 👛 [BOLSAS] - BLOCO 1 VIU PITCH",
@@ -141,7 +151,7 @@
       "at_least_95": 58
     }
   ],
-  "captured_at": "2026-11-21 13:28:52.779821+00",
+  "captured_at": "2026-11-24 14:05:57.146604+00",
   "timeZone": "America/Sao_Paulo",
   "daily": [
     {
@@ -1381,8 +1391,8 @@
       "at_least_25": 162,
       "at_least_50": 155,
       "at_least_75": 150,
-      "at_least_95": 42,
-      "watched_sum": 14280
+      "at_least_95": 43,
+      "watched_sum": 14289
     },
     {
       "day": "2026-11-14",
@@ -1471,8 +1481,8 @@
       "at_least_25": 351,
       "at_least_50": 344,
       "at_least_75": 332,
-      "at_least_95": 163,
-      "watched_sum": 32270
+      "at_least_95": 164,
+      "watched_sum": 32282
     },
     {
       "day": "2026-11-15",
@@ -1561,8 +1571,8 @@
       "at_least_25": 138,
       "at_least_50": 133,
       "at_least_75": 131,
-      "at_least_95": 66,
-      "watched_sum": 12449
+      "at_least_95": 68,
+      "watched_sum": 12468
     },
     {
       "day": "2026-11-17",
@@ -1591,8 +1601,8 @@
       "at_least_25": 131,
       "at_least_50": 128,
       "at_least_75": 123,
-      "at_least_95": 44,
-      "watched_sum": 11562
+      "at_least_95": 45,
+      "watched_sum": 11576
     },
     {
       "day": "2026-11-17",
@@ -1747,12 +1757,12 @@
     {
       "day": "2026-11-19",
       "slug": "sdbspit6",
-      "tracked": 236,
-      "at_least_25": 219,
-      "at_least_50": 213,
-      "at_least_75": 204,
+      "tracked": 237,
+      "at_least_25": 220,
+      "at_least_50": 214,
+      "at_least_75": 205,
       "at_least_95": 74,
-      "watched_sum": 19369
+      "watched_sum": 19460
     },
     {
       "day": "2026-11-19",
@@ -1820,9 +1830,9 @@
       "tracked": 270,
       "at_least_25": 253,
       "at_least_50": 248,
-      "at_least_75": 241,
-      "at_least_95": 91,
-      "watched_sum": 22774
+      "at_least_75": 242,
+      "at_least_95": 92,
+      "watched_sum": 22799
     },
     {
       "day": "2026-11-20",
@@ -1838,51 +1848,241 @@
       "day": "2026-11-20",
       "slug": "vdmspit6",
       "tracked": 58,
-      "at_least_25": 53,
-      "at_least_50": 51,
-      "at_least_75": 49,
+      "at_least_25": 54,
+      "at_least_50": 52,
+      "at_least_75": 50,
       "at_least_95": 12,
-      "watched_sum": 4534
+      "watched_sum": 4607
     },
     {
       "day": "2026-11-21",
       "slug": "sdbcpit4",
+      "tracked": 3,
+      "at_least_25": 2,
+      "at_least_50": 2,
+      "at_least_75": 2,
+      "at_least_95": 2,
+      "watched_sum": 208
+    },
+    {
+      "day": "2026-11-21",
+      "slug": "sdbcpit5",
       "tracked": 1,
-      "at_least_25": 0,
-      "at_least_50": 0,
-      "at_least_75": 0,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
       "at_least_95": 0,
-      "watched_sum": 8
+      "watched_sum": 88
     },
     {
       "day": "2026-11-21",
       "slug": "sdbcpit6",
-      "tracked": 32,
-      "at_least_25": 27,
-      "at_least_50": 25,
-      "at_least_75": 25,
-      "at_least_95": 15,
-      "watched_sum": 2429
+      "tracked": 408,
+      "at_least_25": 383,
+      "at_least_50": 377,
+      "at_least_75": 368,
+      "at_least_95": 193,
+      "watched_sum": 35165
     },
     {
       "day": "2026-11-21",
       "slug": "sdbspit6",
-      "tracked": 26,
-      "at_least_25": 24,
-      "at_least_50": 23,
-      "at_least_75": 22,
-      "at_least_95": 5,
-      "watched_sum": 2077
+      "tracked": 348,
+      "at_least_25": 320,
+      "at_least_50": 311,
+      "at_least_75": 302,
+      "at_least_95": 122,
+      "watched_sum": 28625
+    },
+    {
+      "day": "2026-11-21",
+      "slug": "upvda",
+      "tracked": 70,
+      "at_least_25": 57,
+      "at_least_50": 55,
+      "at_least_75": 49,
+      "at_least_95": 32,
+      "watched_sum": 5250
+    },
+    {
+      "day": "2026-11-21",
+      "slug": "vdmcpit6",
+      "tracked": 2,
+      "at_least_25": 2,
+      "at_least_50": 2,
+      "at_least_75": 2,
+      "at_least_95": 1,
+      "watched_sum": 187
     },
     {
       "day": "2026-11-21",
       "slug": "vdmspit6",
+      "tracked": 6,
+      "at_least_25": 6,
+      "at_least_50": 6,
+      "at_least_75": 6,
+      "at_least_95": 2,
+      "watched_sum": 541
+    },
+    {
+      "day": "2026-11-22",
+      "slug": "sdbcpit4",
+      "tracked": 5,
+      "at_least_25": 5,
+      "at_least_50": 5,
+      "at_least_75": 5,
+      "at_least_95": 5,
+      "watched_sum": 500
+    },
+    {
+      "day": "2026-11-22",
+      "slug": "sdbcpit6",
+      "tracked": 380,
+      "at_least_25": 358,
+      "at_least_50": 349,
+      "at_least_75": 343,
+      "at_least_95": 158,
+      "watched_sum": 32552
+    },
+    {
+      "day": "2026-11-22",
+      "slug": "sdbspit6",
+      "tracked": 289,
+      "at_least_25": 265,
+      "at_least_50": 253,
+      "at_least_75": 247,
+      "at_least_95": 91,
+      "watched_sum": 23534
+    },
+    {
+      "day": "2026-11-22",
+      "slug": "upvda",
+      "tracked": 64,
+      "at_least_25": 62,
+      "at_least_50": 57,
+      "at_least_75": 54,
+      "at_least_95": 44,
+      "watched_sum": 5732
+    },
+    {
+      "day": "2026-11-22",
+      "slug": "vdmcpit6",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 0,
+      "watched_sum": 91
+    },
+    {
+      "day": "2026-11-22",
+      "slug": "vdmspit6",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 0,
+      "watched_sum": 85
+    },
+    {
+      "day": "2026-11-23",
+      "slug": "sdbcpit4",
+      "tracked": 7,
+      "at_least_25": 7,
+      "at_least_50": 6,
+      "at_least_75": 6,
+      "at_least_95": 3,
+      "watched_sum": 581
+    },
+    {
+      "day": "2026-11-23",
+      "slug": "sdbcpit6",
+      "tracked": 442,
+      "at_least_25": 421,
+      "at_least_50": 411,
+      "at_least_75": 404,
+      "at_least_95": 215,
+      "watched_sum": 38781
+    },
+    {
+      "day": "2026-11-23",
+      "slug": "sdbspit4",
       "tracked": 3,
       "at_least_25": 3,
       "at_least_50": 3,
       "at_least_75": 3,
+      "at_least_95": 3,
+      "watched_sum": 298
+    },
+    {
+      "day": "2026-11-23",
+      "slug": "sdbspit6",
+      "tracked": 366,
+      "at_least_25": 347,
+      "at_least_50": 336,
+      "at_least_75": 326,
+      "at_least_95": 128,
+      "watched_sum": 30941
+    },
+    {
+      "day": "2026-11-23",
+      "slug": "upvda",
+      "tracked": 100,
+      "at_least_25": 94,
+      "at_least_50": 86,
+      "at_least_75": 80,
+      "at_least_95": 68,
+      "watched_sum": 8520
+    },
+    {
+      "day": "2026-11-23",
+      "slug": "vdmcpit6",
+      "tracked": 2,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
       "at_least_95": 0,
-      "watched_sum": 258
+      "watched_sum": 110
+    },
+    {
+      "day": "2026-11-24",
+      "slug": "sdbcpit4",
+      "tracked": 1,
+      "at_least_25": 1,
+      "at_least_50": 1,
+      "at_least_75": 1,
+      "at_least_95": 1,
+      "watched_sum": 100
+    },
+    {
+      "day": "2026-11-24",
+      "slug": "sdbcpit6",
+      "tracked": 69,
+      "at_least_25": 64,
+      "at_least_50": 62,
+      "at_least_75": 61,
+      "at_least_95": 29,
+      "watched_sum": 5886
+    },
+    {
+      "day": "2026-11-24",
+      "slug": "sdbspit6",
+      "tracked": 66,
+      "at_least_25": 61,
+      "at_least_50": 60,
+      "at_least_75": 57,
+      "at_least_95": 18,
+      "watched_sum": 5365
+    },
+    {
+      "day": "2026-11-24",
+      "slug": "upvda",
+      "tracked": 9,
+      "at_least_25": 6,
+      "at_least_50": 6,
+      "at_least_75": 6,
+      "at_least_95": 4,
+      "watched_sum": 606
     }
   ]
 }

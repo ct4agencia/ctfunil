@@ -19,7 +19,7 @@ export default function FunnelDesignPanel({ funnel, setFunnel }: { funnel: Funne
   const patch = (value: Partial<InleadDesign>) => setFunnel(f => ({ ...f, settings: { ...f.settings, design: { ...f.settings?.design, ...value } } }));
   const patchHeader = (value: Record<string, boolean>) => setFunnel(f => ({ ...f, settings: { ...f.settings, header: { ...f.settings?.header, ...value } } }));
   const color = (label: string, key: "themeColor" | "backgroundColor" | "titleColor" | "contentColor" | "gradientColor", fallback: string) =>
-    <Row label={label}><ColorField label={label} value={design[key] || fallback} onChange={value => patch({ [key]: value })} className="h-8 w-8" /><span>{design[key] || fallback}</span></Row>;
+    <Row label={label}><ColorField label={label} value={design[key] || fallback} onChange={value => patch({ [key]: value })} className="h-8 w-8 max-md:size-11" /><span>{design[key] || fallback}</span></Row>;
   const range = (label: string, key: "gap" | "elementSize" | "logoSize" | "logoOpacity" | "backgroundOpacity" | "gradientAngle", fallback: number, min: number, max: number, unit: string, step = 1) => {
     const number = designNumber(String(design[key] ?? fallback).replace("px", ""), fallback, min, max);
     return <Row label={label}><input aria-label={label} type="range" min={min} max={max} step={step} value={number}

@@ -40,6 +40,8 @@ export default function BlackFriday({ roulette = false, redirectUrl }: { roulett
   const [celebrate, setCelebrate] = useState(false);
   const [next, setNext] = useState("/upbf1/roleta");
   const dialog = useRef<HTMLDialogElement>(null);
+  const benefitButton = useRef<HTMLButtonElement>(null);
+  const benefitTitle = useRef<HTMLHeadingElement>(null);
   const effects = useRef<HTMLCanvasElement>(null);
   const viewed = useRef(false);
   const busy = useRef(false);
@@ -66,11 +68,17 @@ export default function BlackFriday({ roulette = false, redirectUrl }: { roulett
     } catch {}
   }, [roulette]);
 
+  const openBenefit = useCallback(() => {
+    if (!dialog.current || dialog.current.open) return;
+    dialog.current.showModal();
+    benefitTitle.current?.focus();
+  }, []);
+
   useEffect(() => {
     if (phase !== "done" || dialog.current?.open) return;
-    dialog.current?.showModal();
+    openBenefit();
     if (celebrate && effects.current) void fireRouletteConfetti(effects.current).catch(() => {});
-  }, [phase, celebrate]);
+  }, [phase, celebrate, openBenefit]);
 
   const finish = useCallback((animate = true) => {
     setCelebrate(animate);
@@ -127,12 +135,12 @@ export default function BlackFriday({ roulette = false, redirectUrl }: { roulett
             <span className={styles.hubIcon}><Gift size={30} /></span>
           </div>
           {phase === "idle" && <span className={styles.hint} aria-hidden="true">TOQUE AQUI <ArrowDown size={20} /></span>}
-          {phase === "done" ? <button className={styles.green} type="button" onClick={() => dialog.current?.showModal()}>VER MEU BENEFÍCIO</button> :
+          {phase === "done" ? <button ref={benefitButton} className={styles.green} type="button" onClick={openBenefit}>VER MEU BENEFÍCIO</button> :
             <button className={styles.green} type="button" disabled={phase === "spinning"} onClick={spin}>{phase === "spinning" ? "GIRANDO…" : "GIRAR AGORA"}</button>}
-          <dialog ref={dialog} className={styles.result} aria-labelledby="upbf1-result">
+          <dialog ref={dialog} className={styles.result} aria-labelledby="upbf1-result" onClose={() => benefitButton.current?.focus()}>
             <canvas ref={effects} className={styles.confetti} aria-hidden="true" />
             <RouletteCelebration />
-            <h2 id="upbf1-result">PARABÉNS!!!</h2>
+            <h2 ref={benefitTitle} id="upbf1-result" tabIndex={-1}>PARABÉNS!!!</h2>
             <p>Seu benefício está liberado.</p>
             <strong>{benefit}</strong>
             {redirectUrl ? (

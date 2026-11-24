@@ -3,9 +3,7 @@
 import SnapshotTimestamp from "./SnapshotTimestamp";
 
 import Link from "next/link";
-import { useState } from "react";
-import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
-import WorkspaceDateRange, { calendarSeriesDays, type DateRange } from "@/components/ui/WorkspaceDateRange";
+import type { DateRange } from "@/components/ui/WorkspaceDateRange";
 import type { GlobalAnalytics } from "@/lib/quiz/metrics";
 import Bars from "./Bars";
 
@@ -34,28 +32,26 @@ function filterQuizByDate(questions: QuizSnapshot["quiz"], daily: NonNullable<Qu
   });
 }
 
-export default function SnapshotQuizView({ data, individual = false }: { data: QuizSnapshot; individual?: boolean }) {
-  const [funnel, setFunnel] = useState("");
-  const [range, setRange] = useState<DateRange>({ from: "", to: "" });
-  const options = Array.from(new Map(data.quiz.map(row => [row.slug, row.name])).entries())
-    .sort((a, b) => a[1].localeCompare(b[1], "pt-BR"))
-    .map(([value, label]) => ({ value, label: `${label} (/${value})` }));
+export default function SnapshotQuizView({ data, individual = false, reportRange, funnel = "" }: { data: QuizSnapshot; individual?: boolean; reportRange?: DateRange; funnel?: string }) {
+  const range = reportRange ?? { from: "", to: "" };
+  const reportParams = new URLSearchParams({ origem: "quiz" });
+  if (funnel) reportParams.set("respFunil", funnel);
+  if (range.from && range.to) {
+    reportParams.set("from", range.from);
+    reportParams.set("to", range.to);
+  }
   const selectedQuestions = funnel ? data.quiz.filter(row => row.slug === funnel) : data.quiz;
   const questions = data.daily ? filterQuizByDate(selectedQuestions, data.daily, range) : selectedQuestions;
-  const days = data.daily ? calendarSeriesDays(data.daily, data.captured_at, "America/Sao_Paulo") : [];
   const responses = questions.reduce((sum, row) => sum + row.total, 0);
   return <div className="space-y-4">
     <header className="ct-panel ct-section-heading flex-wrap gap-3">
       <div><h2>Respostas por alternativa</h2><p role="status">{questions.length} perguntas · {responses.toLocaleString("pt-BR")} respostas · Captura de <SnapshotTimestamp capturedAt={data.captured_at} />.</p>
         <p>A contagem inclui respostas vinculadas a uma alternativa cadastrada.</p></div>
-      <div className="flex flex-wrap gap-2">
-        {!individual && <WorkspaceSelect searchable label="Funil das respostas" value={funnel} onChange={setFunnel} options={[{ value: "", label: "Todos os funis" }, ...options]} />}
-        {days.length > 0 && <WorkspaceDateRange days={days} value={range} onChange={setRange} label="Período das respostas" />}
-      </div>
+      
     </header>
     {questions.map(row => <details open key={`${row.slug}:${row.id}`} className="ct-panel ct-analytics-disclosure p-4">
       <summary className="cursor-pointer font-semibold [overflow-wrap:anywhere]">{row.question.replace(/&nbsp;|\u00a0/g, " ")} <span className="ml-2 text-xs font-normal text-ct-dim">{row.total.toLocaleString("pt-BR")} respostas</span></summary>
-      {!individual && <Link href={`/dashboard/${encodeURIComponent(row.slug)}`} className="mt-2 inline-block text-xs text-ct-blue">{row.name}</Link>}
+      {!individual && <Link href={`/dashboard/${encodeURIComponent(row.slug)}?${reportParams}`} className="mt-2 inline-block text-xs text-ct-blue">{row.name}</Link>}
       <div className="mt-3"><Bars rows={row.options} /></div>
     </details>)}
     {!questions.length && <p role="status" className="text-sm text-ct-dim">A cópia não contém respostas vinculadas a alternativas para este filtro.</p>}
