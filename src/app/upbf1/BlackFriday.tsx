@@ -34,11 +34,17 @@ function track(event: string, data: Record<string, string> = {}) {
   } catch {}
 }
 
-export default function BlackFriday({ roulette = false, redirectUrl }: { roulette?: boolean; redirectUrl?: string }) {
+export default function BlackFriday({ roulette = false, redirectUrl, autoRedirectSeconds }: {
+  roulette?: boolean; redirectUrl?: string;
+  /** Com valor, o popup do presente leva ao WhatsApp sozinho depois destes segundos. */
+  autoRedirectSeconds?: number;
+}) {
   const [phase, setPhase] = useState<"idle" | "spinning" | "done">("idle");
   const [skipAnimation, setSkipAnimation] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [next, setNext] = useState("/upbf1/roleta");
+  // Segundos que faltam para o redirecionamento automático; null = sem contagem.
+  const [remaining, setRemaining] = useState<number | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const benefitButton = useRef<HTMLButtonElement>(null);
   const benefitTitle = useRef<HTMLHeadingElement>(null);
@@ -68,11 +74,38 @@ export default function BlackFriday({ roulette = false, redirectUrl }: { roulett
     } catch {}
   }, [roulette]);
 
+  // A contagem recomeça a cada abertura do popup. Fechar o popup a cancela.
+  const startCountdown = useCallback(() => {
+    if (redirectUrl && autoRedirectSeconds) setRemaining(autoRedirectSeconds);
+  }, [redirectUrl, autoRedirectSeconds]);
+
   const openBenefit = useCallback(() => {
     if (!dialog.current || dialog.current.open) return;
     dialog.current.showModal();
     benefitTitle.current?.focus();
-  }, []);
+    startCountdown();
+  }, [startCountdown]);
+
+  useEffect(() => {
+    if (remaining === null || !redirectUrl) return;
+    if (remaining <= 0) {
+      track("whatsapp_auto_redirect", { seconds: String(autoRedirectSeconds ?? 0) });
+      window.location.assign(redirectUrl);
+      return;
+    }
+    const timer = window.setTimeout(() => setRemaining(value => value === null ? null : value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [remaining, redirectUrl, autoRedirectSeconds]);
+
+  // Quem volta do WhatsApp pelo botão Voltar reencontra a página guardada pelo
+  // navegador, com a contagem parada em zero: recomeça se o popup estiver aberto.
+  useEffect(() => {
+    function restore(event: PageTransitionEvent) {
+      if (event.persisted && dialog.current?.open) startCountdown();
+    }
+    window.addEventListener("pageshow", restore);
+    return () => window.removeEventListener("pageshow", restore);
+  }, [startCountdown]);
 
   useEffect(() => {
     if (phase !== "done" || dialog.current?.open) return;
@@ -137,7 +170,10 @@ export default function BlackFriday({ roulette = false, redirectUrl }: { roulett
           {phase === "idle" && <span className={styles.hint} aria-hidden="true">TOQUE AQUI <ArrowDown size={20} /></span>}
           {phase === "done" ? <button ref={benefitButton} className={styles.green} type="button" onClick={openBenefit}>VER MEU PRESENTE</button> :
             <button className={styles.green} type="button" disabled={phase === "spinning"} onClick={spin}>{phase === "spinning" ? "GIRANDO…" : "GIRAR AGORA"}</button>}
-          <dialog ref={dialog} className={styles.result} aria-labelledby="upbf1-result" onClose={() => benefitButton.current?.focus()}>
+          <dialog ref={dialog} className={styles.result} aria-labelledby="upbf1-result" onClose={() => {
+            setRemaining(null);
+            benefitButton.current?.focus();
+          }}>
             <canvas ref={effects} className={styles.confetti} aria-hidden="true" />
             <RouletteCelebration />
             <h2 ref={benefitTitle} id="upbf1-result" tabIndex={-1}>PARABÉNS!!!</h2>
@@ -145,8 +181,12 @@ export default function BlackFriday({ roulette = false, redirectUrl }: { roulett
             <strong>{benefit}</strong>
             {redirectUrl ? (
               <>
-                <a className={styles.green} href={redirectUrl} onClick={() => track("whatsapp_cta_click")}><Lock aria-hidden="true" /> DESBLOQUEAR PRESENTE</a>
-                <p>Você vai para o WhatsApp da Sônia.</p>
+                <a className={styles.green} href={redirectUrl} onClick={() => {
+                  setRemaining(null);
+                  track("whatsapp_cta_click");
+                }}><Lock aria-hidden="true" /> DESBLOQUEAR PRESENTE</a>
+                <p>{remaining === null ? "Você vai para o WhatsApp da Sônia." : remaining > 0 ?
+                  `Você vai para o WhatsApp da Sônia em ${remaining} s.` : "Abrindo o WhatsApp da Sônia…"}</p>
               </>
             ) : <p>O atendimento por WhatsApp está indisponível no momento.</p>}
             <form method="dialog"><button className={styles.close}>Fechar</button></form>

@@ -9,6 +9,7 @@ import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import { recordWorkspaceNotice } from "@/components/workspace/WorkspaceNoticeHistory";
 import { settingsSection } from "@/components/workspace/section-links";
 import { ThemeButton, WorkspaceFrame } from "@/components/workspace/WorkspaceFrame";
+import Upbf1RouletteCard, { type Upbf1RouletteCardProps } from "./Upbf1RouletteCard";
 import { ASSISTANT_SETTINGS_PATH, geminiKeyPattern, geminiModelPattern, readWorkspaceSettings, saveAssistantSettings, saveImportMode, type ImportMode } from "@/lib/assistant/workspace-settings";
 
 const tabs = settingsSection.tabs;
@@ -25,7 +26,7 @@ function describeServerStatus(status: AssistantServerStatus | undefined) {
   return status.modelValid ? keyStatus : `O modelo do servidor é inválido. ${keyStatus}`;
 }
 
-function SettingsContent({ section }: { section: Section }) {
+function SettingsContent({ section, upbf1 }: { section: Section; upbf1?: Upbf1RouletteCardProps }) {
   const [model, setModel] = useState("");
   const [chatModels, setChatModels] = useState<string[]>([]);
   const [savedChatModels, setSavedChatModels] = useState<string[]>([]);
@@ -193,6 +194,7 @@ function SettingsContent({ section }: { section: Section }) {
           <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ct-dim" />
         </Link>
       ))}
+      {upbf1 && <Upbf1RouletteCard {...upbf1} />}
     </div> : <form key={section} onSubmit={submit} className="ct-panel max-w-[1100px] space-y-5 p-5 sm:p-6">
       {section === "assistente" ? <>
         <div><h2 className="text-lg font-semibold">API (IA)</h2>
@@ -290,7 +292,7 @@ function SettingsContent({ section }: { section: Section }) {
   </>;
 }
 
-export default function SettingsWorkspace({ section, accountEmail }: { section: Section; accountEmail?: string }) {
+export default function SettingsWorkspace({ section, accountEmail, upbf1 }: { section: Section; accountEmail?: string; upbf1?: Upbf1RouletteCardProps }) {
   const reduceMotion = useReducedMotion();
 
   return <WorkspaceFrame title="Configurações" activeTab={section} accountEmail={accountEmail}>
@@ -307,6 +309,6 @@ export default function SettingsWorkspace({ section, accountEmail }: { section: 
         </Link>)}
       </nav>
     </LayoutGroup>
-    <SettingsContent key={section} section={section} />
+    <SettingsContent key={section} section={section} upbf1={upbf1} />
   </WorkspaceFrame>;
 }
