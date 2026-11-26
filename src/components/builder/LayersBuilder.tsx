@@ -22,7 +22,7 @@ import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import { SONIA_DEFAULTS, soniaConfigError } from "@/lib/quiz/layers/sonia";
 import { cloneStageWithRules } from "@/lib/quiz/layers/component-settings";
 import ViewCurrentPage from "./ViewCurrentPage";
-import { funnelDomain, funnelPublicUrl } from "@/lib/quiz/public-url";
+import { funnelDominioProprio, funnelPublicUrl } from "@/lib/quiz/public-url";
 import { FAIXA_LIMITES, FAIXA_PADRAO, faixaConfig } from "@/lib/quiz/layers/faixa";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import CanvasErrorBoundary from "@/components/builder/CanvasErrorBoundary";
@@ -1788,7 +1788,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
       if (!result.ok) { notify(result.error || "Não foi possível publicar o funil.", true); return; }
       setIsDraft(false);
       setNonce(n => n + 1);
-      notify(funnelDomain(funnel.domain) ? "Funil publicado. No domínio próprio, a página pode levar alguns minutos para atualizar." : "Funil publicado");
+      notify(funnelDominioProprio(funnel.domain) ? "Funil publicado. No domínio próprio, a página pode levar alguns minutos para atualizar." : "Funil publicado");
     } catch {
       notify("Não foi possível publicar o funil. Tente novamente.", true);
     } finally {
@@ -1953,7 +1953,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
             ) : (
               <a href={funnelPublicUrl(funnel)} target="_blank" rel="noopener noreferrer"
                 aria-label="Abrir o funil publicado em outra página"
-                title={`Abre a página que os visitantes veem, em outra aba.${funnelDomain(funnel.domain) ? " Em domínio próprio, a atualização pode levar alguns minutos." : ""}`}
+                title={`Abre a página que os visitantes veem, em outra aba.${funnelDominioProprio(funnel.domain) ? " Em domínio próprio, a atualização pode levar alguns minutos." : ""}`}
                 className="inline-flex items-center rounded-lg border border-ct-line px-2.5 py-2 text-ct-ink hover:bg-ct-raised">
                 <Eye size={16} aria-hidden="true" />
               </a>
