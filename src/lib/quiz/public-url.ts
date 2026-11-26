@@ -24,11 +24,32 @@ export function funnelDominioProprio(domain?: string | null): string | undefined
   return host && !HOSTS_DO_PAINEL.has(host) ? host : undefined;
 }
 
+/**
+ * Desde 26/11 (pedido do Luca), o painel serve qualquer funil publicado em
+ * `/{slug}`, com cache: é a "URL padrão do CTFunil". O `/q/{slug}` é a prévia
+ * sem cache, para ver o funil como está salvo agora.
+ */
+export const HOST_PADRAO = "ctfunil.vercel.app";
+
+/** URL padrão do CTFunil (com cache). */
+export function funnelUrlPadrao(slug: string): string {
+  return `https://${HOST_PADRAO}/${encodeURIComponent(slug)}`;
+}
+
+/** URL no domínio próprio do funil, quando há. */
+export function funnelUrlDominio(funnel: { slug: string; domain?: string | null }): string | undefined {
+  const dominio = funnelDominioProprio(funnel.domain);
+  return dominio ? `https://${dominio}/${encodeURIComponent(funnel.slug)}` : undefined;
+}
+
+/** Prévia sem cache: o funil como está salvo agora (sempre no painel). */
+export function funnelUrlPrevia(slug: string): string {
+  return `https://${HOST_PADRAO}/q/${encodeURIComponent(slug)}`;
+}
+
+/** Endereço público principal: o domínio próprio, se houver; senão, a URL padrão do CTFunil. */
 export function funnelPublicUrl(funnel: { slug: string; domain?: string | null }): string {
-  const domain = funnelDomain(funnel.domain);
-  const slug = encodeURIComponent(funnel.slug);
-  if (!domain) return `/q/${slug}`;
-  return HOSTS_DO_PAINEL.has(domain) ? `https://${domain}/q/${slug}` : `https://${domain}/${slug}`;
+  return funnelUrlDominio(funnel) ?? funnelUrlPadrao(funnel.slug);
 }
 
 /** O mesmo endereço sem o protocolo, para mostrar como texto. */

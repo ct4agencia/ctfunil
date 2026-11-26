@@ -22,7 +22,8 @@ import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import { SONIA_DEFAULTS, soniaConfigError } from "@/lib/quiz/layers/sonia";
 import { cloneStageWithRules } from "@/lib/quiz/layers/component-settings";
 import ViewCurrentPage from "./ViewCurrentPage";
-import { funnelDominioProprio, funnelPublicUrl } from "@/lib/quiz/public-url";
+import { funnelUrlDominio, funnelUrlPadrao, funnelUrlPrevia } from "@/lib/quiz/public-url";
+import PublicarFunilDialog from "./PublicarFunilDialog";
 import { FAIXA_LIMITES, FAIXA_PADRAO, faixaConfig } from "@/lib/quiz/layers/faixa";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import CanvasErrorBoundary from "@/components/builder/CanvasErrorBoundary";
@@ -1779,6 +1780,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
    * página". Rascunho passa a publicado; funil que já está no ar recebe a
    * versão do editor. O botão do olho, ao lado, abre a página publicada.
    */
+  const [janelaPublicado, setJanelaPublicado] = useState(false);
   const publicarFunil = async () => {
     if (saving) return;
     if (funnel.slug !== initial.slug) { notify("Salve o novo endereço antes de publicar.", true); return; }
@@ -1788,7 +1790,9 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
       if (!result.ok) { notify(result.error || "Não foi possível publicar o funil.", true); return; }
       setIsDraft(false);
       setNonce(n => n + 1);
-      notify(funnelDominioProprio(funnel.domain) ? "Funil publicado. No domínio próprio, a página pode levar alguns minutos para atualizar." : "Funil publicado");
+      notify("Funil publicado");
+      // segunda ação do botão: a janela com as URLs para copiar e o "Ver página"
+      setJanelaPublicado(true);
     } catch {
       notify("Não foi possível publicar o funil. Tente novamente.", true);
     } finally {
@@ -1951,13 +1955,15 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
                 <Eye size={16} aria-hidden="true" />
               </button>
             ) : (
-              <a href={funnelPublicUrl(funnel)} target="_blank" rel="noopener noreferrer"
-                aria-label="Abrir o funil publicado em outra página"
-                title={`Abre a página que os visitantes veem, em outra aba.${funnelDominioProprio(funnel.domain) ? " Em domínio próprio, a atualização pode levar alguns minutos." : ""}`}
+              <a href={funnelUrlPrevia(funnel.slug)} target="_blank" rel="noopener noreferrer"
+                aria-label="Abrir a prévia do funil em outra aba"
+                title="Prévia sem cache: mostra o funil como está salvo agora, em outra aba." 
                 className="inline-flex items-center rounded-lg border border-ct-line px-2.5 py-2 text-ct-ink hover:bg-ct-raised">
                 <Eye size={16} aria-hidden="true" />
               </a>
             )}
+            {janelaPublicado && <PublicarFunilDialog urlPadrao={funnelUrlPadrao(funnel.slug)} urlDominio={funnelUrlDominio(funnel)}
+              onClose={() => setJanelaPublicado(false)} />}
           </> : localDraft.previewHref ? <button type="button" disabled={saving}
             className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
             onClick={async () => {

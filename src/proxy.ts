@@ -29,10 +29,17 @@ export async function proxy(request: NextRequest) {
   if (previewHost && pathname === "/") {
     return NextResponse.redirect(new URL("/dashboard", `https://${previewHost}`));
   }
-  // Keep unknown single-segment requests away from the production funnel resolver.
-  if ((isReadOnlyWorkspace() || official) && /^\/[^/]+$/.test(pathname) &&
+  // Caminhos de um segmento (`/{slug}`):
+  // - no preview em consulta, nunca chegam ao resolvedor de funis de produção;
+  // - no painel oficial, desde 26/11/2026 o `/{slug}` abre o funil publicado:
+  //   é a "URL padrão do CTFunil", com cache (pedido do Luca). Só caminhos de
+  //   arquivo (com ponto) param aqui, para robôs não consultarem o banco.
+  if (/^\/[^/]+$/.test(pathname) &&
       !["/dashboard", "/analytics", "/ctfunil", "/upbf1", "/manifest.webmanifest", "/calculadora-lucrativa", "/nao-encontrado"].includes(pathname)) {
-    if (pathname.includes(".")) return new NextResponse(null, { status: 404 });
+    if ((isReadOnlyWorkspace() || official) && pathname.includes(".")) return new NextResponse(null, { status: 404 });
+  }
+  if (isReadOnlyWorkspace() && /^\/[^/]+$/.test(pathname) &&
+      !["/dashboard", "/analytics", "/ctfunil", "/upbf1", "/manifest.webmanifest", "/calculadora-lucrativa", "/nao-encontrado"].includes(pathname)) {
     const missing = request.nextUrl.clone();
     missing.protocol = "http:";
     missing.pathname = "/nao-encontrado";
