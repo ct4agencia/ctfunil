@@ -448,7 +448,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                 {step.segments.map((s, i) => {
                   // raio 62 e não 56: mais para fora a fatia é mais larga, e o
                   // texto ganha espaço sem precisar encolher
-                  const [tx, ty] = polar(62, i * seg);
+                  const [tx, ty] = polar(encaixes[i]?.raio ?? 62, i * seg);
                   // maior corpo que cabe na fatia, com o tamanho da fatia (ou
                   // da lâmina) como teto — regra única em roleta-texto.ts
                   const { linhas: ls, fontSize: fs } = encaixes[i] ?? { linhas: [s.label], fontSize: 11 };

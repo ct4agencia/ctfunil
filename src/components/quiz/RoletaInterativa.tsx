@@ -280,7 +280,7 @@ export default function RoletaInterativa({
           ))}
           {segments.map((s, i) => {
             // raio 62: mais para fora a fatia é mais larga (ver roleta-texto)
-            const [tx, ty] = polar(62, i * SEG);
+            const [tx, ty] = polar(s.labelLines?.length ? 62 : encaixes[i]?.raio ?? 62, i * SEG);
             // mesma regra da roleta clássica (roleta-texto.ts). `labelLines`
             // escrito à mão continua valendo como está.
             const { linhas, fontSize: fs } = s.labelLines?.length

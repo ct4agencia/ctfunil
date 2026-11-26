@@ -25,10 +25,14 @@ import { useEffect, useMemo, useState, type RefObject } from "react";
 
 /** Largura de um texto num corpo, na mesma unidade do desenho. */
 export type Medidor = (texto: string, fontSize: number) => number;
-/** A geometria da fatia: as larguras das linhas cabem neste corpo? */
-export type Cabe = (larguras: number[], fontSize: number, linhas: number) => boolean;
+/**
+ * A geometria da fatia: as larguras das linhas cabem neste corpo? Pode
+ * devolver um número, o raio onde a pilha deve ficar para caber.
+ */
+export type Cabe = (larguras: number[], fontSize: number, linhas: number) => boolean | number;
 
-export interface Encaixe { linhas: string[]; fontSize: number; cabe: boolean }
+/** `raio`: centro da pilha de linhas, quando a geometria o escolhe (SVG). */
+export interface Encaixe { linhas: string[]; fontSize: number; cabe: boolean; raio?: number }
 
 /** Entrelinha, em múltiplos do corpo: a mesma para medir e para desenhar. */
 export const ENTRELINHA = 1.1;
@@ -120,7 +124,7 @@ export function encaixarRotulo(
   let menosPior: { linhas: string[]; estouro: number } | null = null;
   for (let n = 1; n <= Math.min(maxLinhas, palavras.length); n++) {
     for (const linhas of quebras(palavras, n)) {
-      const testa = (fs: number) => cabe(linhas.map(l => medir(l, fs)), fs, linhas.length);
+      const testa = (fs: number) => cabe(linhas.map(l => medir(l, fs)), fs, linhas.length) !== false;
       if (!testa(fsMin)) {
         const estouro = Math.max(...linhas.map(l => medir(l, fsMin)));
         if (!menosPior || estouro < menosPior.estouro) menosPior = { linhas, estouro };
@@ -130,7 +134,10 @@ export function encaixarRotulo(
       if (testa(alto)) baixo = alto;
       else for (let k = 0; k < 16; k++) { const meio = (baixo + alto) / 2; if (testa(meio)) baixo = meio; else alto = meio; }
       const fontSize = Math.floor(baixo * 4) / 4;
-      if (!melhor || fontSize > melhor.fontSize * 1.08) melhor = { linhas, fontSize, cabe: true };
+      const posicao = cabe(linhas.map(l => medir(l, fontSize)), fontSize, linhas.length);
+      if (!melhor || fontSize > melhor.fontSize * 1.08) {
+        melhor = { linhas, fontSize, cabe: true, ...(typeof posicao === "number" ? { raio: posicao } : {}) };
+      }
     }
   }
   return melhor ?? { linhas: menosPior?.linhas ?? [palavras.join(" ")], fontSize: fsMin, cabe: false };
@@ -138,21 +145,28 @@ export function encaixarRotulo(
 
 /**
  * Geometria TANGENCIAL (clássica e interativa, viewBox 200): o texto corre de
- * lado a lado da fatia, centrado no raio `raioCentro`, com as linhas
- * empilhadas ao longo do raio. Cada linha cabe na corda do seu próprio raio
- * (medida no lado de dentro, o mais estreito), e a pilha fica entre o miolo e
- * a borda.
+ * lado a lado da fatia, com as linhas empilhadas ao longo do raio. Uma linha
+ * de largura w no raio r cabe se as pontas não passam das divisórias
+ * (w ≤ 2·r·tg(θ/2), medido no lado de dentro do texto) nem da borda da roda.
+ * A pilha fica no raio de sempre (`raioCentro`); se não couber ali, vai para
+ * fora, onde a fatia é mais larga, até encostar na borda. Devolve o raio
+ * escolhido para o centro da pilha, ou false.
  */
 export function cabeTangencial({ fatias, raioCentro, raioMin, raioMax }: { fatias: number; raioCentro: number; raioMin: number; raioMax: number }): Cabe {
-  const meioAngulo = Math.sin(Math.PI / Math.max(2, fatias));
+  const tangente = Math.tan(Math.PI / Math.max(3, fatias));
   return (larguras, fs, n) => {
     const passo = fs * ENTRELINHA;
     const metade = ((n - 1) / 2) * passo;
-    if (raioCentro + metade + fs / 2 > raioMax || raioCentro - metade - fs / 2 < raioMin) return false;
-    return larguras.every((largura, k) => {
-      const raioInterno = raioCentro + metade - k * passo - fs * 0.4;
-      return largura <= 2 * raioInterno * meioAngulo * 0.84;
-    });
+    // linha k fica no raio rc + desloc[k] (a primeira é a de fora)
+    const desloc = larguras.map((_, k) => metade - k * passo);
+    // o mais longe que a pilha pode ir sem os cantos passarem da borda
+    const rcMax = Math.min(...larguras.map((w, k) => Math.sqrt(Math.max(0, raioMax ** 2 - (w / 2) ** 2)) - fs / 2 - desloc[k]));
+    const rcMin = raioMin + metade + fs / 2;
+    const cabeEm = (rc: number) => rc >= rcMin && rc <= rcMax &&
+      larguras.every((w, k) => w <= 2 * (rc + desloc[k] - fs * 0.45) * tangente * 0.9);
+    if (cabeEm(raioCentro)) return raioCentro;
+    if (rcMax > raioCentro && cabeEm(rcMax)) return rcMax;
+    return false;
   };
 }
 
