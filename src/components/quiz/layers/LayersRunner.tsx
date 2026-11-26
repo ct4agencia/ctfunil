@@ -1084,6 +1084,8 @@ function LayerStages({ funnel, steps, geo, startIndex = 0, preview = false, edit
                     logoAltura={Number((design as { logoSize?: string }).logoSize) * 0.74 || undefined}
                     selosImagem={(step as { selosImagem?: string }).selosImagem}
                     rodape={(step as { rodape?: string }).rodape}
+                    termosUrl={funnel.settings?.termosUrl}
+                    privacidadeUrl={funnel.settings?.privacidadeUrl}
                     onCheckout={() => { if (!preview) fireMetaEvent("InitiateCheckout"); }}
                   />
                 );

@@ -236,8 +236,11 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   const textoPrevia = destino ? `Prévia: aqui a pessoa iria para ${destino}` : "Prévia: aqui a pessoa iria para a próxima etapa.";
   const [avisoPrevia, setAvisoPrevia] = useState("");
   const navegar = () => {
-    if (destino) window.location.assign(comRastreio(destino));
-    else ctx.advance();
+    if (destino) {
+      // saída do funil (checkout, WhatsApp): avisa a Meta, como o bloco botão
+      fireMetaEvent("InitiateCheckout");
+      window.location.assign(comRastreio(destino));
+    } else ctx.advance();
   };
   const acionarBotao = () => {
     setRedirectIn(null);
@@ -247,11 +250,21 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   const textoContagem = redirectIn === null ? "" : redirectIn > 0
     ? `${destino ? "Redirecionando" : "Avançando"} em ${redirectIn} s…`
     : ctx.preview ? textoPrevia : "Redirecionando…";
+  // A pessoa pode parar a contagem (WCAG 2.2.1): fica na página, com o botão.
+  const contando = redirectIn !== null && redirectIn > 0 && !avisoPrevia;
+  const cancelarContagem = () => setRedirectIn(null);
+  // Leitor de tela ouve a contagem uma vez, no começo, e não a cada segundo.
+  const anuncioContagem = contando
+    ? `${destino ? "Você será redirecionado" : "A página vai avançar"} em ${autoRedirectSeconds} segundos. Use o botão Cancelar para ficar.`
+    : "";
 
   /** Vitória: som, confete e liberação do botão. Um só lugar para os dois motores. */
-  const celebrar = () => {
+  const celebrar = (resultado = vencedor) => {
     setDone(true); setSpinning(false);
     startRedirect();
+    // o prêmio sorteado entra nas respostas do funil, como qualquer resposta
+    const sorteado = step.segments[resultado];
+    if (sorteado) logAnswer(ctx, step.id, "Prêmio da roleta", sorteado.label);
     if (step.sound?.enabled) {
       if (somVitoria.ativo) void somVitoria.tocar().then((ok) => { if (!ok) playWin(); });
       // a v3 toca o próprio arpejo quando o som do giro é o dela: tocar outro
@@ -269,7 +282,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
       setDone(false);
       return;
     }
-    celebrar();
+    celebrar(resultado);
   };
 
   const spin = () => {
@@ -489,12 +502,21 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
             carregam a mesma copy (winTitle/winBody), e exibir ambos faria o
             visitante ler o prêmio duplicado na mesma tela. */}
         <AnimatePresence>
+          {/* Com as cores do popup configuradas, o cartão usa as mesmas: o
+              texto do prêmio foi escrito para elas (dourado no fundo escuro
+              some no branco). Sem elas, segue branco, como sempre foi. */}
           {done && !popupOn ? (
             <motion.div key="win" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="mt-6 rounded-2xl bg-white p-5 text-center shadow-xl">
-              <p className="text-lg font-bold text-[var(--q-primary-dark)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx)} /></p>
-              {step.winBody ? <p className="mt-1 text-sm text-neutral-600"><RichText text={interp(step.winBody, ctx)} /></p> : null}
-              {textoContagem || avisoPrevia ? <p className="mt-2 text-xs font-semibold text-neutral-500">{avisoPrevia || textoContagem}</p> : null}
+              className={`mt-6 rounded-2xl p-5 text-center shadow-xl ${step.popupBg ? "" : "bg-white"}`}
+              style={step.popupBg ? { background: step.popupBg, color: step.popupText || "#ffffff" } : undefined}>
+              <p className={`text-lg font-bold ${step.popupBg ? "" : "text-[var(--q-primary-dark)]"}`}><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx)} /></p>
+              {step.winBody ? <p className={`mt-1 text-sm ${step.popupBg ? "opacity-90" : "text-neutral-600"}`}><RichText text={interp(step.winBody, ctx)} /></p> : null}
+              {textoContagem || avisoPrevia ? (
+                <p className={`mt-2 text-xs font-semibold ${step.popupBg ? "opacity-80" : "text-neutral-500"}`}>
+                  {avisoPrevia || textoContagem}
+                  {contando ? <> · <BotaoCancelarContagem onClick={cancelarContagem} /></> : null}
+                </p>
+              ) : null}
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -546,10 +568,11 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           >
             <CartaoPremio step={step} premio={premio} ctx={ctx} destino={destino} onBotao={acionarBotao}
-              rodape={avisoPrevia || textoContagem} reduzir={!!reduzMovimento} />
+              rodape={avisoPrevia || textoContagem} onCancelar={contando ? cancelarContagem : undefined} reduzir={!!reduzMovimento} />
           </motion.div>
         ) : null}
       </AnimatePresence>
+      <span role="status" aria-live="polite" className="sr-only">{anuncioContagem}</span>
     </>
   );
 }
@@ -559,9 +582,9 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
  * da roleta usa o MESMO componente na pré-visualização: o que se vê no
  * construtor é o que vai ao ar.
  */
-export function CartaoPremio({ step, premio, ctx, destino, onBotao, rodape, reduzir }: {
+export function CartaoPremio({ step, premio, ctx, destino, onBotao, rodape, onCancelar, reduzir }: {
   step: RouletteStep; premio?: RouletteStep["segments"][number]; ctx: StepCtx;
-  destino?: string; onBotao: () => void; rodape?: string; reduzir: boolean;
+  destino?: string; onBotao: () => void; rodape?: string; onCancelar?: () => void; reduzir: boolean;
 }) {
   return (
       <motion.div
@@ -627,9 +650,22 @@ export function CartaoPremio({ step, premio, ctx, destino, onBotao, rodape, redu
           </motion.button>
         )}
         {rodape ? (
-          <p className="mt-3 text-xs font-semibold leading-snug opacity-90">{rodape}</p>
+          <p className="mt-3 text-xs font-semibold leading-snug opacity-90">
+            {rodape}
+            {onCancelar ? <> · <BotaoCancelarContagem onClick={onCancelar} /></> : null}
+          </p>
         ) : null}
       </motion.div>
+  );
+}
+
+/** "Cancelar" da contagem do redirecionamento: para o tempo e deixa o botão. */
+function BotaoCancelarContagem({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick}
+      className="inline-flex min-h-6 items-center px-1 underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+      Cancelar
+    </button>
   );
 }
 

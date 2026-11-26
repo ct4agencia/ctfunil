@@ -736,6 +736,13 @@ export interface FunnelSettings {
   };
   /** rodapé/copyright exibido na lâmina final (VSL) */
   footer?: string;
+  /**
+   * Links legais do rodapé da VSL (Termos de Uso, Política de Privacidade).
+   * Vazio = o link não aparece. Antes, a VSL apontava para /termos e
+   * /privacidade, rotas que não existem no app (404).
+   */
+  termosUrl?: string;
+  privacidadeUrl?: string;
   /** motor de renderização: "layers" = clone do page-builder do inlead;
    *  "typebot" = funil conversacional em chat (clone do Typebot) */
   engine?: "layers" | "typebot";

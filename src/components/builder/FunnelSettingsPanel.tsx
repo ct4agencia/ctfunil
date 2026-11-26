@@ -8,6 +8,7 @@ import { Button } from "@/components/referencias/beui/motion/button/base";
 import DeleteConfirmationIcon from "@/components/ui/DeleteConfirmationIcon";
 import { Eye, EyeOff, X } from "lucide-react";
 import type { Funnel, FunnelPixels, FunnelSettings, FunnelWebhook, WeekAvailability } from "@/lib/quiz/types";
+import { checarLink, mensagemLinkInvalido } from "@/lib/quiz/link-seguro";
 
 /* ── Smart Install: detecta scripts colados e mapeia pros campos ── */
 type DetTarget = "utmify_fb" | "utmify_google" | "hotmart" | "ga" | "gtm" | "fb_pixel" | "site_verify" | "head_raw" | "info";
@@ -232,6 +233,18 @@ export default function FunnelSettingsPanel({
                 <input className={inputCls} placeholder="Copyright Clube das Bolsas® — Todos os direitos reservados."
                   value={funnel.settings?.footer ?? ""} onChange={(e) => onPatch({ settings: { ...funnel.settings, footer: e.target.value || undefined } })} />
               </label>
+              <label className="block">
+                <span className={labelCls}>Link dos Termos de Uso (rodapé da VSL)</span>
+                <input className={inputCls} type="url" inputMode="url" placeholder="https://seusite.com.br/termos"
+                  value={funnel.settings?.termosUrl ?? ""} onChange={(e) => onPatch({ settings: { ...funnel.settings, termosUrl: e.target.value.trim() || undefined } })} />
+                <AvisoLinkLegal valor={funnel.settings?.termosUrl} />
+              </label>
+              <label className="block">
+                <span className={labelCls}>Link da Política de Privacidade (rodapé da VSL)</span>
+                <input className={inputCls} type="url" inputMode="url" placeholder="https://seusite.com.br/privacidade"
+                  value={funnel.settings?.privacidadeUrl ?? ""} onChange={(e) => onPatch({ settings: { ...funnel.settings, privacidadeUrl: e.target.value.trim() || undefined } })} />
+                <AvisoLinkLegal valor={funnel.settings?.privacidadeUrl} />
+              </label>
             </div>
           )}
 
@@ -406,4 +419,12 @@ export default function FunnelSettingsPanel({
       </div>
     </dialog>
   );
+}
+
+/** Ajuda e erro dos links legais: vazio some do rodapé; link inválido é avisado. */
+function AvisoLinkLegal({ valor }: { valor?: string }) {
+  const resultado = checarLink(valor);
+  if (!resultado) return <span className="mt-1 block text-[11px] text-neutral-400">Vazio = o link não aparece no rodapé da VSL.</span>;
+  if (!resultado.ok) return <span role="alert" className="mt-1 block text-[11px] font-semibold text-amber-700">{mensagemLinkInvalido(resultado.motivo)}</span>;
+  return null;
 }

@@ -22,7 +22,7 @@
  */
 
 import { useEffect, useRef, type ReactNode } from "react";
-import Link from "next/link";
+import { linkSeguro } from "@/lib/quiz/link-seguro";
 import { prefereMenosMovimento } from "@/lib/quiz/motion";
 import { clarear, fundoEscuroTema, gradienteTema, rgbDe } from "@/lib/quiz/resina";
 // relógio da VSL: revela pelo tempo do VÍDEO, com queda para tempo de página
@@ -74,6 +74,9 @@ export interface ResinaVSLProps {
   /** selos de confiança do rodapé (ex.: "Google Site Seguro") */
   selosImagem?: string;
   rodape?: string;
+  /** Links legais do funil (Configurações › Geral). Vazio = o link não aparece. */
+  termosUrl?: string;
+  privacidadeUrl?: string;
   /**
    * Largura das imagens da lâmina, em % — o campo "Largura (%)" de cada bloco.
    *
@@ -206,7 +209,7 @@ export default function ResinaVSL({
   embedHtml, preview = false, cta, checkoutUrl, revelarEm = 0,
   textoEspera = "⏳ Assista o vídeo para liberar o acesso…",
   headline, alertas = [], topo,
-  selosImagem, rodape, garantiaTitulo, garantiaImagem, pagamentosImagem,
+  selosImagem, rodape, termosUrl, privacidadeUrl, garantiaTitulo, garantiaImagem, pagamentosImagem,
   larguraGarantia, larguraPagamentos, tamanhoHeadline, tamanhoGarantia,
   selos, garantiaTexto, garantiaChip, ctaRepete, aposCta, logo, logoAltura, onCheckout,
 }: ResinaVSLProps) {
@@ -592,10 +595,12 @@ export default function ResinaVSL({
             {rodape ? (
               <p className="mt-4 whitespace-pre-line text-center text-xs leading-relaxed" style={{ color: "rgba(255,255,255,.45)" }}>{rodape}</p>
             ) : null}
-            <p className="mt-3 flex justify-center gap-5 text-xs">
-              <Link href="/termos" style={{ color: "rgba(255,255,255,.55)" }}>Termos de Uso</Link>
-              <Link href="/privacidade" style={{ color: "rgba(255,255,255,.55)" }}>Políticas de Privacidade</Link>
-            </p>
+            {linkSeguro(termosUrl) || linkSeguro(privacidadeUrl) ? (
+              <p className="mt-3 flex justify-center gap-5 text-xs">
+                {linkSeguro(termosUrl) ? <a href={linkSeguro(termosUrl)} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,.55)" }}>Termos de Uso</a> : null}
+                {linkSeguro(privacidadeUrl) ? <a href={linkSeguro(privacidadeUrl)} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,.55)" }}>Políticas de Privacidade</a> : null}
+              </p>
+            ) : null}
           </div>
         </div>
       ) : null}
