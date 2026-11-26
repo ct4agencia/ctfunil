@@ -919,7 +919,10 @@ function FaixaEmMovimento({ html, faixa, design }: { html: string; faixa: Return
   const linha = html.replace(/<\/?(?:p|div|h[1-6]|ul|ol|li)\b[^>]*>/gi, " ").replace(/<br\s*\/?>/gi, " ");
   const plano = linha.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
   const repeticoes = Math.min(30, Math.max(2, Math.ceil(140 / Math.max(1, plano.length))));
-  const copia = Array.from({ length: repeticoes }, () => linha).join("");
+  // texto que não termina em separador ("BLACK FRIDAY" em vez de "BLACK
+  // FRIDAY · ") ganha um respiro entre as repetições, para não grudar
+  const respiro = /[·•|–—\-★✦✶*\/]$/.test(plano) ? "" : '<span style="display:inline-block;width:1.5em"></span>';
+  const copia = Array.from({ length: repeticoes }, () => linha + respiro).join("");
   // a fita (116% da largura) sobe e desce nas pontas: a folga evita o corte
   const folga = Math.ceil(Math.abs(Math.sin((faixa.inclinacao * Math.PI) / 180)) * largura * 0.58) + 2;
   // sangra 1rem para cada lado, o menor recuo dos contêineres do funil: mais
