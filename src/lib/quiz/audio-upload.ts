@@ -23,8 +23,16 @@ export function extensaoDe(nome: string) {
   return nome.split(".").pop()?.toLowerCase() ?? "";
 }
 
+/**
+ * É envio de áudio? Com tipo informado, vale o tipo: um vídeo .mp4/.webm
+ * (video/*) segue o caminho de sempre. Sem tipo, decide a extensão, menos
+ * mp4 e webm, que também são vídeo.
+ */
 export function pareceAudio(nome: string, tipo?: string) {
-  return (tipo ?? "").toLowerCase().startsWith("audio/") || AUDIO_EXTENSOES.includes(extensaoDe(nome));
+  const mime = (tipo ?? "").toLowerCase();
+  if (mime) return mime.startsWith("audio/");
+  const extensao = extensaoDe(nome);
+  return AUDIO_EXTENSOES.includes(extensao) && extensao !== "mp4" && extensao !== "webm";
 }
 
 /**

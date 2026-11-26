@@ -906,16 +906,29 @@ function DisclaimerBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
  * laço fecha em -50%, sem emenda. Leitores de tela ouvem o texto uma vez.
  */
 function FaixaEmMovimento({ html, faixa, design }: { html: string; faixa: ReturnType<typeof faixaConfig>; design: Record<string, unknown> }) {
+  // largura real do bloco: a folga vertical da fita inclinada depende dela
+  const caixa = useRef<HTMLDivElement>(null);
+  const [largura, setLargura] = useState(480);
+  useEffect(() => {
+    const el = caixa.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observador = new ResizeObserver(([entrada]) => setLargura(entrada.contentRect.width));
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, []);
   const linha = html.replace(/<\/?(?:p|div|h[1-6]|ul|ol|li)\b[^>]*>/gi, " ").replace(/<br\s*\/?>/gi, " ");
   const plano = linha.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
   const repeticoes = Math.min(30, Math.max(2, Math.ceil(140 / Math.max(1, plano.length))));
   const copia = Array.from({ length: repeticoes }, () => linha).join("");
-  // a fita inclinada sobe e desce nas pontas: a folga evita que ela seja cortada
-  const folga = Math.ceil(Math.abs(Math.sin((faixa.inclinacao * Math.PI) / 180)) * 300) + 2;
+  // a fita (116% da largura) sobe e desce nas pontas: a folga evita o corte
+  const folga = Math.ceil(Math.abs(Math.sin((faixa.inclinacao * Math.PI) / 180)) * largura * 0.58) + 2;
+  // sangra 1rem para cada lado, o menor recuo dos contêineres do funil: mais
+  // que isso criaria rolagem horizontal onde o recuo é de 1rem
   return (
     <div
+      ref={caixa}
       className={faixaStyles.faixa}
-      style={{ width: "calc(100% + 2.5rem)", marginLeft: "-1.25rem", marginRight: "-1.25rem", paddingBlock: folga }}
+      style={{ width: "calc(100% + 2rem)", marginLeft: "-1rem", marginRight: "-1rem", paddingBlock: folga }}
     >
       <div
         className={faixaStyles.fita}

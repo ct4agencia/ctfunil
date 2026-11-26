@@ -604,7 +604,12 @@ export function CartaoPremio({ step, premio, ctx, destino, onBotao, rodape, redu
         {destino ? (
           <motion.a
             href={destino}
-            onClick={(event) => { event.preventDefault(); onBotao(); }}
+            onClick={(event) => {
+            // Ctrl/Cmd/Shift ou botão do meio: deixa o navegador abrir em outra aba
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            onBotao();
+          }}
             className="fx-pulse fx-shine relative mt-5 block w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
             style={estiloTipografia(step.popupBotao, { background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" })}
             whileTap={{ scale: 0.97 }}
