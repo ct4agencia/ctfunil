@@ -22,6 +22,8 @@ import type { InleadStep, Layer, LayerType } from "@/lib/quiz/layers/types";
 import { SONIA_DEFAULTS, soniaConfigError } from "@/lib/quiz/layers/sonia";
 import { cloneStageWithRules } from "@/lib/quiz/layers/component-settings";
 import ViewCurrentPage from "./ViewCurrentPage";
+import { funnelDomain, funnelPublicUrl } from "@/lib/quiz/public-url";
+import { FAIXA_LIMITES, FAIXA_PADRAO, faixaConfig } from "@/lib/quiz/layers/faixa";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import CanvasErrorBoundary from "@/components/builder/CanvasErrorBoundary";
 import FunnelSettingsPanel from "@/components/builder/FunnelSettingsPanel";
@@ -85,7 +87,7 @@ const CATS: { name: string; items: [string, string][] }[] = [
   { name: "Jogos (hero)", items: [["sonia-numbers", "Sorteio da Sônia"], ["roulette", "Roleta"], ["scratch", "Raspadinha"], ["slider", "Slider 0–10"], ["measure", "Pedida (régua)"], ["gauge", "Medidor"]] },
   { name: "Conversão (hero)", items: [["vsl", "VSL (vídeo + CTA)"], ["confirm", "Parabéns"]] },
   { name: "Mídia e conteúdo", items: [["text", "Texto"], ["card", "Card"], ["image", "Imagem"], ["video", "Vídeo"], ["audio", "Áudio"]] },
-  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"], ["disclaimer", "Disclaimer"], ["trust", "Garantia e pagamento"], ["ranking", "Ranking"]] },
+  { name: "Atenção", items: [["alert", "Alerta"], ["notification", "Notificação"], ["timer", "Timer"], ["loading", "Loading"], ["level", "Nível"], ["check", "Check ✓"], ["disclaimer", "Disclaimer"], ["marquee", "Faixa em movimento"], ["trust", "Garantia e pagamento"], ["ranking", "Ranking"]] },
   { name: "Argumentação", items: [["arguments", "Argumentos"], ["testimonials", "Depoimentos"], ["faq", "FAQ"], ["price", "Preço"], ["checklist", "Checklist"], ["beforeafter", "Antes/Depois"], ["carousel", "Carrossel"]] },
   { name: "Gráficos", items: [["graphics", "Métricas"], ["charts", "Gráficos"]] },
   { name: "Personalização", items: [["clear", "Espaço"], ["html", "HTML/Script"]] },
@@ -119,7 +121,7 @@ const BLOCK_ICONS: Record<string, LucideIcon> = {
   options: ListFilter, multi: ListChecks, single: CircleDot, yesno: GitBranch, videoanswer: Play, text: Heading, image: ImageIcon, video: Play, audio: Volume2,
   card: PanelTop, ranking: TrendingUp, alert: TriangleAlert, notification: Bell, timer: Timer, loading: LoaderCircle, level: SlidersHorizontal, arguments: MessageSquare, testimonials: Star,
   faq: CircleHelp, price: CreditCard, checklist: ListChecks, beforeafter: Columns2, carousel: Layers, graphics: TrendingUp, charts: TrendingUp, html: Code,
-  roulette: CircleDot, slider: SlidersHorizontal, measure: Ruler, gauge: Gauge, confirm: Check, check: Check, trust: ShieldCheck, disclaimer: Megaphone, vsl: Play,
+  roulette: CircleDot, slider: SlidersHorizontal, measure: Ruler, gauge: Gauge, confirm: Check, check: Check, trust: ShieldCheck, disclaimer: Megaphone, marquee: Megaphone, vsl: Play,
   "sonia-numbers": Hash, scratch: Square, clear: AlignLeft,
 };
 function BlockIcon({ type }: { type: string }) {
@@ -127,7 +129,7 @@ function BlockIcon({ type }: { type: string }) {
   return <Icon aria-hidden="true" size={15} strokeWidth={1.7}/>;
 }
 /** Tipos que o construtor já adiciona funcionais (o resto é "em breve"). */
-const ADDABLE = new Set([...NEW_COMPONENTS,"multi", "single", "yesno", "text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "disclaimer", "trust", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
+const ADDABLE = new Set([...NEW_COMPONENTS,"multi", "single", "yesno", "text", "image", "button", "options", "field", "alert", "timer", "loading", "clear", "check", "disclaimer", "marquee", "trust", "embed", "email", "phone", "video", "carousel", "roulette", "slider",
   // blocos-hero herdados do motor tipado (todos com preset pronto)
   "scratch", "measure", "gauge", "vsl", "confirm", "sonia-numbers",
   // Estes DOIS o funil já desenhava (blocks.tsx: GraphicsBlock e
@@ -155,6 +157,10 @@ function newLayer(type: LayerType): Layer {
   const catalog = catalogLayer(type, id);
   if (catalog) return catalog;
   const base = { id, type, content: { id: genId() } } as Layer;
+  // "Faixa em movimento" é um disclaimer com esteira: degrada para faixa parada
+  // nos domínios que ainda rodam o deploy antigo, em vez de sumir.
+  if ((type as string) === "marquee") return { id, type: "disclaimer", title: "Faixa em movimento",
+    design: { ...FAIXA_PADRAO.design }, content: { id: genId(), ...FAIXA_PADRAO.content } } as unknown as Layer;
   const atalho = ATALHO_CAMPO[type as string];
   if (atalho) return { id, type: "field", content: { id, ...atalho } } as unknown as Layer;
   switch (type) {
@@ -299,6 +305,39 @@ function createTemplateStep(template?: StepTemplate): InleadStep {
 
 const Lbl = ({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor} className="mb-1 mt-2 block text-[11px] font-semibold text-neutral-500">{children}</label>;
 const inp = "w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs";
+
+/** Controles da faixa em movimento (bloco disclaimer). Fonte e cor ficam na aba Aparência. */
+function FaixaMovimentoFields({ content, onChange }: { content: Record<string, unknown>; onChange: (patch: Record<string, unknown>) => void }) {
+  const faixa = faixaConfig(content);
+  const { velocidade, inclinacao, espacamento } = FAIXA_LIMITES;
+  return (
+    <div className="mt-3 rounded-lg bg-neutral-50 p-2.5 ring-1 ring-neutral-200">
+      <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-neutral-700">
+        <input type="checkbox" checked={faixa.animar} onChange={(e) => onChange({ animar: e.target.checked })} className="h-3.5 w-3.5 accent-neutral-900" />
+        Texto em movimento
+      </label>
+      <p className="mt-1 text-[11px] text-neutral-400">O texto corre pela faixa como uma esteira, repetido até preencher a largura.</p>
+      {faixa.animar ? (<>
+        <Lbl htmlFor="faixa-velocidade">Cada volta leva {faixa.velocidade} s (menos segundos, mais rápido)</Lbl>
+        <input id="faixa-velocidade" type="range" min={velocidade.min} max={velocidade.max} step={1} value={faixa.velocidade}
+          onChange={(e) => onChange({ velocidade: Number(e.target.value) })} className="w-full accent-neutral-900" />
+        <Lbl htmlFor="faixa-inclinacao">Inclinação: {faixa.inclinacao}°</Lbl>
+        <input id="faixa-inclinacao" type="range" min={inclinacao.min} max={inclinacao.max} step={1} value={faixa.inclinacao}
+          onChange={(e) => onChange({ inclinacao: Number(e.target.value) })} className="w-full accent-neutral-900" />
+        <Lbl htmlFor="faixa-espacamento">Espaço entre letras (px)</Lbl>
+        <input id="faixa-espacamento" type="number" min={espacamento.min} max={espacamento.max} value={faixa.espacamento}
+          onChange={(e) => onChange({ espacamento: e.target.value === "" ? undefined : Number(e.target.value) })} className={inp} />
+        <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-neutral-700">
+          <input type="checkbox" checked={faixa.sombra} onChange={(e) => onChange({ sombra: e.target.checked })} className="h-3.5 w-3.5 accent-neutral-900" />
+          Sombra embaixo da faixa
+        </label>
+        <p className="mt-2 text-[11px] text-neutral-400">
+          Fonte, tamanho, peso e cor do texto ficam na aba Aparência. Quem pede menos movimento no aparelho vê a faixa parada.
+        </p>
+      </>) : null}
+    </div>
+  );
+}
 
 /** Tipos de bloco que viram coluna na aba Leads — espelha `lib/quiz/colunas.ts`. */
 
@@ -546,6 +585,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
     case "disclaimer":
       return (<>
         <Lbl>Texto da faixa</Lbl><HtmlField value={c.text} onChange={(v) => setC({ text: v })} />
+        <FaixaMovimentoFields content={c} onChange={setC} />
 
           <Lbl>Aparece após (segundos) — 0 = já visível</Lbl>
           <input type="number" min={0} value={Number(c.revealAt) || 0}
@@ -1855,7 +1895,12 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
           <Link href={localDraft?.dashboardHref ?? dashboardHref ?? "/dashboard"} className="rounded-md border border-ct-line px-2 py-1 text-xs font-semibold text-ct-dim hover:bg-ct-raised">← Dashboard</Link>
           <div className="min-w-0 break-words">
             <h1 className="text-sm font-bold">Construtor · {funnel.name}</h1>
-            <p className="text-xs text-ct-dim">/{funnel.slug} · {steps.length} lâminas{localDraft ? " · RASCUNHO LOCAL — não publicado" : ""}</p>
+            <p className="text-xs text-ct-dim">/{funnel.slug} · {steps.length} lâminas{localDraft ? " · RASCUNHO LOCAL — não publicado" : ""}
+              {!localDraft && !isDraft && <> · <a href={funnelPublicUrl(funnel)} target="_blank" rel="noopener noreferrer"
+                className="font-semibold text-ct-blue underline"
+                title={`Abre a página que os visitantes veem. Salve antes de conferir.${funnelDomain(funnel.domain) ? " Em domínio próprio, a atualização pode levar alguns minutos." : ""}`}>
+                Ver publicado ↗<span className="sr-only"> (abre em nova aba)</span></a></>}
+            </p>
           </div>
         </div>
         <nav aria-label="Seções do construtor" className="ct-segments">
@@ -2255,7 +2300,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
                 <input type="checkbox" checked={!step?.disabled} onChange={(e) => patchStep(selStep, { disabled: !e.target.checked })} className="h-4 w-4 accent-green-600" />
               </label>
               {step?.disabled ? <p className="-mt-1 text-[11px] text-amber-600">Esta lâmina é PULADA no funil publicado (continua aqui pra reativar).</p> : null}
-              {sel ? <RightPanel key={sel.id} layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} conteudo={HERO_EDITAVEL.has(sel.type) ? <StepEditor step={{...sel.content,type:sel.type} as unknown as import('@/lib/quiz/types').Step} onChange={patch => updateLayer(sel.id,{...sel,content:{...sel.content,...(patch as Record<string, unknown>)}})} /> : undefined} /> : <>
+              {sel ? <RightPanel key={sel.id} layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} conteudo={HERO_EDITAVEL.has(sel.type) ? <StepEditor step={{...sel.content,type:sel.type} as unknown as import('@/lib/quiz/types').Step} onChange={patch => updateLayer(sel.id,{...sel,content:{...sel.content,...(patch as Record<string, unknown>)}})} ultimaEtapa={selStep === steps.length - 1} /> : undefined} /> : <>
               <div><Lbl>Título</Lbl><input aria-label="Nome da etapa" value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className={inp} /></div>
 
               {/* `key` obrigatório: este painel NÃO remonta ao trocar de lâmina
@@ -2335,6 +2380,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
                           <StepEditor
                             step={sc}
                             onChange={(patch) => patchSpecial(patch as Record<string, unknown>)}
+                            ultimaEtapa={selStep === steps.length - 1}
                           />
                         }
                       />

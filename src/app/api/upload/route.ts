@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { AUDIO_FORMATOS, AUDIO_LIMITE_BYTES, MENSAGENS_AUDIO, detectarFormatoAudio, extensaoDe, pareceAudio } from "@/lib/quiz/audio-upload";
 
 const BUCKET = "vsl-assets";
 export const runtime = "nodejs";
@@ -25,6 +26,21 @@ export async function POST(request: Request) {
   let path = `uploads/${Date.now()}-${safe}`;
   let body: File | Buffer = file;
   let contentType = file.type || undefined;
+
+  // Áudio (som da roleta, bloco de áudio): formato pela assinatura do arquivo,
+  // não pelo nome nem pelo tipo que o navegador diz; tamanho limitado; o tipo
+  // servido sai do formato detectado. Mesmas regras que o editor avisa antes.
+  if (pareceAudio(file.name, file.type)) {
+    if (file.size > AUDIO_LIMITE_BYTES) return NextResponse.json({ error: MENSAGENS_AUDIO.grande }, { status: 413 });
+    const inicio = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    const formato = detectarFormatoAudio(inicio);
+    if (!formato) return NextResponse.json({ error: MENSAGENS_AUDIO.invalido }, { status: 415 });
+    const { extensoes, mime } = AUDIO_FORMATOS[formato];
+    const extensao = extensoes.includes(extensaoDe(file.name)) ? extensaoDe(file.name) : extensoes[0];
+    const base = file.name.replace(/\.[^.]*$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50) || "audio";
+    path = `uploads/audio/${Date.now()}-${base}.${extensao}`;
+    contentType = mime;
+  }
 
   // Imagens raster → webp otimizado (max 1080px). Mantém o funil rápido: um PNG
   // de 1MB do ChatGPT vira ~90KB webp automaticamente. Áudio/vídeo/svg passam direto.

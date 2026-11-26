@@ -32,6 +32,7 @@
  */
 
 import { useCallback, useEffect, useRef } from "react";
+import { cabeRadial, encaixarRotulo, ENTRELINHA, TAMANHO_AUTO, type Medidor } from "@/lib/quiz/roleta-texto";
 
 export interface SegmentoV3 {
   label: string;
@@ -66,8 +67,15 @@ export interface RoletaFisicaV3Props {
   /** recebe o índice REALMENTE entregue (pode ser o anterior, se não passou) */
   onFim: (indiceReal: number) => void;
   som?: boolean;
+  /** false = não toca o arpejo de vitória (a lâmina toca o arquivo próprio) */
+  somDeVitoria?: boolean;
+  /**
+   * Duração aproximada do giro, em ms (giro sincronizado com o som próprio).
+   * A fase roteirizada se ajusta; a física do fim soma cerca de 3,2 s.
+   */
+  duracaoMs?: number;
   centerImage?: string;
-  /** corpo do texto das fatias, na escala do construtor (padrão 11) */
+  /** teto do texto das fatias, na escala do construtor (roleta-texto.ts) */
   labelSize?: number;
   /** ângulo em que a roda repousa antes do primeiro giro (fatia parada) */
   anguloInicial?: number;
@@ -85,7 +93,7 @@ const CORES = ["#7e0f1d", "#f6ead8", "#bf1e63", "#f5a623", "#8e1030", "#ff7fae"]
 const CREME = "#f6ead8";
 
 export default function RoletaFisicaV3({
-  segments, vencedor, girando, onFim, som = true, centerImage, labelSize,
+  segments, vencedor, girando, onFim, som = true, somDeVitoria = true, duracaoMs, centerImage, labelSize,
   anguloInicial = 0,
   quasePassa = true, hesitacao = 0, mostrarControles = false, onControles,
 }: RoletaFisicaV3Props) {
@@ -266,13 +274,14 @@ export default function RoletaFisicaV3({
     ctx.fillStyle = vign;
     ctx.fill();
 
-    /* textos das demais fatias — duas linhas, corpo encolhe até caber */
+    /* textos das demais fatias — maior corpo que cabe (roleta-texto.ts) */
+    const cabeAqui = cabeRadial({ fatias: N, raioMin: R * 0.3, raioMax: R * 0.8 });
+    const medir: Medidor = (texto, fs) => { ctx.font = `800 ${fs}px Poppins, Arial, sans-serif`; return ctx.measureText(texto).width; };
     for (let i = 0; i < N; i++) {
       if (arteDe(i)) continue; // a arte já ocupa esta fatia
       const mid = offset + i * slice + slice / 2;
       const cor = segments[i].color || CORES[i % CORES.length];
       const isCream = cor.toLowerCase() === CREME;
-      const maxLen = R * 0.78 - R * 0.3;
       ctx.save();
       ctx.translate(C, C);
       ctx.rotate(mid);
@@ -283,18 +292,15 @@ export default function RoletaFisicaV3({
       /* o arquivo trazia `lines` escrito à mão; aqui a quebra sai do rótulo do
          bloco, para o construtor continuar mandando no texto */
       const bruto = `${segments[i].emoji ? `${segments[i].emoji} ` : ""}${segments[i].label}`.trim();
-      const palavras = bruto.split(/\s+/);
-      const lines = palavras.length > 1
-        ? [palavras.slice(0, Math.ceil(palavras.length / 2)).join(" "),
-           palavras.slice(Math.ceil(palavras.length / 2)).join(" ")]
-        : [bruto];
 
-      /* O corpo sai do PAINEL: da fatia quando ela tem o seu, senão da lâmina,
-         senão 11 — o mesmo padrão dos outros motores. O encolhimento automático
-         continua como rede: só entra quando o tamanho pedido não cabe, e nunca
-         abaixo de 12px no desenho de 600. */
-      const corpo = (segments[i].labelSize ?? labelSize ?? 11) * ESCALA_FONTE;
-      const lh2 = Math.round(corpo * 1.1);
+      /* O TETO sai do painel: da fatia quando ela tem o seu, senão da lâmina,
+         senão o automático — o mesmo dos outros motores. O texto cresce até o
+         teto se couber e encolhe até 12px no desenho de 600. A entrelinha
+         acompanha o corpo final: antes ela ficava no corpo pedido e as linhas
+         encolhidas ganhavam um vão grande entre si. */
+      const teto = (segments[i].labelSize ?? labelSize ?? TAMANHO_AUTO) * ESCALA_FONTE;
+      const encaixe = encaixarRotulo(bruto, { medir, cabe: cabeAqui, fsMin: 12, fsMax: teto });
+      const lh2 = encaixe.fontSize * ENTRELINHA;
 
       /* MEDIR ANTES DE GIRAR. O rótulo é um bloco de várias linhas, e girar em
          torno de um canto dele o faz pivotar pela borda — foi o que apareceu na
@@ -302,19 +308,11 @@ export default function RoletaFisicaV3({
          Aqui o corpo de cada linha é resolvido primeiro (o encolhimento muda a
          largura), a maior largura define o bloco, e a origem vai para o CENTRO
          dele. Só então a rotação é aplicada: o texto gira no próprio eixo. */
-      const medidas = lines.map((ln) => {
-        let fs = corpo;
-        ctx.font = `800 ${fs}px Poppins, Arial, sans-serif`;
-        while (ctx.measureText(ln).width > maxLen && fs > 12) {
-          fs -= 1;
-          ctx.font = `800 ${fs}px Poppins, Arial, sans-serif`;
-        }
-        return { ln, fs, largura: ctx.measureText(ln).width };
-      });
+      const medidas = encaixe.linhas.map((ln) => ({ ln, fs: encaixe.fontSize, largura: medir(ln, encaixe.fontSize) }));
       const largura = Math.max(...medidas.map((m) => m.largura));
 
-      // borda externa do bloco em 0.78R (a de sempre) → centro meia largura antes
-      ctx.translate(R * 0.78 - largura / 2, 0);
+      // borda externa do bloco em 0.8R → centro meia largura antes
+      ctx.translate(R * 0.8 - largura / 2, 0);
       ctx.rotate(((segments[i].labelRotacao || 0) * Math.PI) / 180);
       ctx.textAlign = "center";
 
@@ -385,6 +383,12 @@ export default function RoletaFisicaV3({
   }, [urls, drawWheel]);
 
   useEffect(() => { drawWheel(); }, [drawWheel]);
+  // a medida do rótulo depende da Poppins: redesenha quando as fontes carregam
+  useEffect(() => {
+    let vivo = true;
+    void document.fonts?.ready.then(() => { if (vivo) drawWheel(); });
+    return () => { vivo = false; };
+  }, [drawWheel]);
 
 
   const aplicarRot = useCallback(() => {
@@ -448,7 +452,8 @@ export default function RoletaFisicaV3({
     const vEnter = 55 + Math.random() * 12;    // velocidade ao entrar na reta final
     const vHillT = 24 + Math.random() * 5;     // velocidade desejada ao chegar no morro
     const E = boundary - 45;
-    const tA = 3800;                           // ms da fase 1
+    // ms da fase 1: 3,8 s, ou o que sobra do giro sincronizado depois da física
+    const tA = duracaoMs ? Math.max(1200, duracaoMs - 3200) : 3800;
     const W = Math.min(0.4, (vEnter * (tA / 1000)) / (E - rot0)); // casa a velocidade na troca
     const cPre = Math.max(8, (vEnter * vEnter - vHillT * vHillT) / (2 * (45 - HILL_W)));
     const cPost = 12 + Math.random() * 5;      // atrito depois do pino (rola e morre)
@@ -473,7 +478,7 @@ export default function RoletaFisicaV3({
       }, 16);
 
       const passed = rotRef.current > boundary;
-      if (passed) winSound(); else almostSound();
+      if (passed) { if (somDeVitoria) winSound(); } else almostSound();
       /* quem NÃO passou fica no prêmio anterior — a lâmina precisa saber qual,
          senão o pop-up celebraria um prêmio que a roda não entregou */
       onFim(passed ? idx : (idx + 1) % N);
@@ -542,7 +547,7 @@ export default function RoletaFisicaV3({
 
     rafRef.current = requestAnimationFrame(frame);
   }, [vencedor, sliceDeg, quasePassa, hesitacao, garantirAudio, phase, aplicarRot,
-      aplicarFlap, tickSound, thudSound, winSound, almostSound, onFim, N]);
+      aplicarFlap, tickSound, thudSound, winSound, almostSound, onFim, N, somDeVitoria, duracaoMs]);
 
   // a lâmina manda girar; o componente não tem botão próprio
   useEffect(() => { if (girando) girar(); }, [girando, girar]);

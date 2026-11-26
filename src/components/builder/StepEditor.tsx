@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useState } from "react";
+import dynamic from "next/dynamic";
 import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 // Mesmo dnd-kit do painel de blocos — nenhuma dependência nova para reordenar
 // as duas peças do popup.
@@ -9,13 +10,17 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from "@dnd-kit/utilities";
 import type {
   Step, RouletteStep, ScratchStep, ScratchCard, MeasureStep, SliderStep, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep,
-  ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint, ScarcityBar, StepAppearance,
+  ResultStep, OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, RouletteSegment, LoadingCheckpoint, ScarcityBar, StepAppearance, TipografiaPopup,
 } from "@/lib/quiz/types";
+import type { StepCtx } from "@/components/quiz/steps";
+import { FUNNEL_FONTS } from "@/lib/quiz/layers/design";
+import { checarLink, ehLinkWhatsapp, linkSeguro, mensagemLinkInvalido } from "@/lib/quiz/link-seguro";
+import { CONTRASTE_GRANDE, CONTRASTE_TEXTO, formatarRazao, razaoContraste } from "@/lib/quiz/contraste";
 import { ROULETTE_STYLES, ROULETTE_ENGINES } from "@/lib/quiz/types";
 // Presets de movimento da roleta interativa — os mesmos que /lab/roleta usa,
 // para o que o Luca ouve no laboratório ser o que o funil publica.
 import { PRESETS as PRESETS_ROLETA, PADRAO as PARAMS_PADRAO_ROLETA } from "@/lib/quiz/roleta-fisica";
-import { Field, Text, Area, HtmlField, ImageField, Num, Toggle, Select, StringList, OptionsList } from "./fields";
+import { Field, Text, Area, HtmlField, ImageField, Num, Toggle, Select, StringList, OptionsList, TemaFunilContext, AudioField } from "./fields";
 import { playSpinTicks, playWin } from "@/lib/quiz/sound";
 import { clampRedirectSeconds, ROULETTE_REDIRECT_SECONDS_DEFAULT, ROULETTE_REDIRECT_SECONDS_MAX, ROULETTE_REDIRECT_SECONDS_MIN } from "@/lib/quiz/roleta-redirect";
 // Seletor único do painel. Substitui os <input type="color"> nativos, que aqui
@@ -138,8 +143,182 @@ function OrdemPopup({ ordem, onChange }: { ordem: PecaPopup[]; onChange: (v: Pec
   );
 }
 
+/* ── Roleta: botão do resultado, redirecionamento e estilo do popup ─────────
+   Definidos no módulo (fora do StepEditor) pelo mesmo motivo do Grid: dentro
+   do render, cada tecla remontaria os campos e o foco se perderia. */
+const PESOS_POPUP = [{ value: "", label: "Padrão" }, ...[400, 500, 600, 700, 800, 900].map(peso => ({ value: String(peso), label: String(peso) }))];
+const FONTES_POPUP = [{ value: "", label: "Padrão do funil" }, ...FUNNEL_FONTS.map(fonte => ({ value: fonte, label: fonte }))];
+const ENTRADAS_POPUP: { value: NonNullable<RouletteStep["popupEntrada"]>; label: string }[] = [
+  { value: "mola", label: "Mola (padrão)" }, { value: "fade", label: "Aparecer" }, { value: "zoom", label: "Zoom" },
+  { value: "subir", label: "Subir" }, { value: "nenhuma", label: "Sem animação" },
+];
+const CartaoPremio = dynamic(() => import("@/components/quiz/steps").then(m => m.CartaoPremio), { ssr: false });
+const campoNumero = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm";
+
+/** Texto, link e mensagem do WhatsApp do botão do resultado (popup ou lâmina). */
+function BotaoResultadoFields({ s, p }: { s: RouletteStep; p: (patch: Partial<RouletteStep>) => void }) {
+  const link = checarLink(s.winCtaUrl);
+  const whatsapp = link?.ok && ehLinkWhatsapp(link.url) && !link.url.searchParams.has("text");
+  return (
+    <>
+      <Field label="Texto do botão do resultado"><Text value={s.winCta} onChange={(v) => p({ winCta: v })} /></Field>
+      <Field label="Link do botão" full>
+        <Text value={s.winCtaUrl} onChange={(v) => p({ winCtaUrl: v.trim() || undefined })} placeholder="https://…" />
+        <span className={`mt-1 block text-[11px] leading-snug ${link && !link.ok ? "font-semibold text-red-600" : "text-neutral-500"}`} role={link && !link.ok ? "alert" : undefined}>
+          {link && !link.ok ? mensagemLinkInvalido(link.motivo) : "Vazio: o botão leva para a próxima etapa. O link recebe as UTMs da página."}
+        </span>
+      </Field>
+      {whatsapp || s.winCtaMensagem ? (
+        <Field label="Mensagem pronta do WhatsApp" full>
+          <Area value={s.winCtaMensagem} onChange={(v) => p({ winCtaMensagem: v || undefined })} rows={2} />
+          <span className="mt-1 block text-[11px] leading-snug text-neutral-500">Vai escrita na conversa quando o link é do WhatsApp (wa.me) e ainda não tem mensagem.</span>
+        </Field>
+      ) : null}
+    </>
+  );
+}
+
+/** O que a pessoa vê depois da vitória, para cada combinação de popup e redirecionamento. */
+function explicarCombinacao(popup: boolean, redirecionar: boolean, temLink: boolean) {
+  const acao = temLink ? "abre o link do botão" : "vai para a próxima etapa";
+  if (popup && redirecionar) return `O popup mostra a contagem e, no zero, ${acao}.`;
+  if (popup) return "O popup fica aberto até a pessoa tocar no botão.";
+  if (redirecionar) return `O resultado aparece na própria tela, com a contagem embaixo; no zero, ${acao}.`;
+  return "O resultado aparece na própria tela e espera o toque no botão.";
+}
+
+function RedirecionamentoFields({ s, p, ultimaEtapa }: { s: RouletteStep; p: (patch: Partial<RouletteStep>) => void; ultimaEtapa?: boolean }) {
+  const ligado = s.popupAutoRedirect === true;
+  const temLink = Boolean(linkSeguro(s.winCtaUrl));
+  return (
+    <div className="mt-3 rounded-lg border border-neutral-200 bg-white p-3">
+      <Toggle label="Redirecionar automaticamente" value={ligado} onChange={(v) => p({ popupAutoRedirect: v })} />
+      {ligado ? (
+        <div className="mt-3">
+          <Field label="Segundos até redirecionar">
+            <input type="number" inputMode="numeric" step={1} min={ROULETTE_REDIRECT_SECONDS_MIN} max={ROULETTE_REDIRECT_SECONDS_MAX}
+              placeholder={String(ROULETTE_REDIRECT_SECONDS_DEFAULT)} value={s.popupAutoRedirectSeconds ?? ""}
+              onChange={(e) => p({ popupAutoRedirectSeconds: e.target.value === "" ? undefined : clampRedirectSeconds(Number(e.target.value)) })}
+              className="w-28 rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
+          </Field>
+          <p className="mt-1 text-[11px] text-neutral-500">De {ROULETTE_REDIRECT_SECONDS_MIN} a {ROULETTE_REDIRECT_SECONDS_MAX} (vazio = {ROULETTE_REDIRECT_SECONDS_DEFAULT}). A contagem começa quando o resultado aparece.</p>
+        </div>
+      ) : null}
+      <p className="mt-2 text-[11px] leading-snug text-neutral-600">{explicarCombinacao(!!s.popupEnabled, ligado, temLink)}</p>
+      {ultimaEtapa && !temLink ? (
+        <p role="alert" className="mt-2 rounded-md bg-amber-50 px-2 py-1.5 text-[11px] font-semibold leading-snug text-amber-900 ring-1 ring-amber-200">
+          Esta roleta é a última etapa e o botão não tem link: o botão{ligado ? " e o redirecionamento" : ""} não levam a lugar nenhum. Coloque um link no botão ou adicione uma etapa depois.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Fonte, tamanho, peso e cor de um texto do popup. Vazio mantém o padrão. */
+function TipografiaFields({ titulo, valor, padraoTamanho, onChange }: { titulo: string; valor?: TipografiaPopup; padraoTamanho: number; onChange: (v: TipografiaPopup | undefined) => void }) {
+  const t = valor ?? {};
+  const set = (patch: Partial<TipografiaPopup>) => {
+    const proximo: TipografiaPopup = { ...t, ...patch };
+    for (const chave of Object.keys(proximo) as (keyof TipografiaPopup)[]) if (proximo[chave] === undefined || proximo[chave] === "") delete proximo[chave];
+    onChange(Object.keys(proximo).length ? proximo : undefined);
+  };
+  return (
+    <fieldset className="rounded-lg border border-neutral-200 bg-white p-2.5">
+      <legend className="px-1 text-xs font-semibold text-neutral-600">{titulo}</legend>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Field label="Fonte"><WorkspaceSelect label={`Fonte — ${titulo}`} value={t.fonte ?? ""} onChange={(v) => set({ fonte: v || undefined })} options={FONTES_POPUP} /></Field>
+        <Field label="Tamanho (px)">
+          <input type="number" min={10} max={64} placeholder={String(padraoTamanho)} value={t.tamanho ?? ""} aria-label={`Tamanho — ${titulo}`}
+            onChange={(e) => set({ tamanho: e.target.value ? Number(e.target.value) : undefined })} className={campoNumero} />
+        </Field>
+        <Field label="Peso"><WorkspaceSelect label={`Peso — ${titulo}`} value={t.peso ? String(t.peso) : ""} onChange={(v) => set({ peso: v ? Number(v) : undefined })} options={PESOS_POPUP} /></Field>
+        <Field label="Cor">
+          <div className="flex items-center gap-2">
+            <ColorField value={t.cor ?? ""} onChange={(v) => set({ cor: v || undefined })} label={`Cor — ${titulo}`} />
+            {t.cor ? <button type="button" onClick={() => set({ cor: undefined })} className="text-[11px] text-neutral-500 underline">padrão</button> : <span className="text-[11px] text-neutral-400">padrão</span>}
+          </div>
+        </Field>
+      </div>
+    </fieldset>
+  );
+}
+
+/** Avisos de contraste (WCAG 2.x) do popup: orientam, não impedem salvar. */
+function avisosContraste(s: RouletteStep, fundoTema?: string | null) {
+  const fundo = s.popupBg || fundoTema || undefined;
+  const texto = s.popupText ?? "#ffffff";
+  const botaoFundo = s.popupBtnBg ?? "#ffffff";
+  const botaoTexto = s.popupBotao?.cor ?? fundo;
+  const tituloGrande = (s.popupTitulo?.tamanho ?? 20) >= 24 || ((s.popupTitulo?.tamanho ?? 20) >= 18.66 && (s.popupTitulo?.peso ?? 900) >= 700);
+  const pares: [string | undefined, string | undefined, number, string][] = [
+    [s.popupTitulo?.cor ?? texto, fundo, tituloGrande ? CONTRASTE_GRANDE : CONTRASTE_TEXTO, "o título e o fundo do popup"],
+    [s.popupCorpo?.cor ?? texto, fundo, CONTRASTE_TEXTO, "o texto e o fundo do popup"],
+    [botaoTexto, botaoFundo, CONTRASTE_TEXTO, "o texto do botão e o fundo do botão"],
+    [botaoFundo, fundo, CONTRASTE_GRANDE, "o botão e o fundo do popup"],
+  ];
+  const avisos: string[] = [];
+  for (const [a, b, minimo, onde] of pares) {
+    const razao = razaoContraste(a, b);
+    if (razao !== null && razao < minimo) avisos.push(`Contraste baixo entre ${onde}: ${formatarRazao(razao)}, abaixo do mínimo de ${formatarRazao(minimo)}. Troque uma das cores para facilitar a leitura.`);
+  }
+  return avisos;
+}
+
+const CTX_PREVIA = { name: "", setName: () => {}, advance: () => {}, funnelSlug: "previa", preview: true } as unknown as StepCtx;
+
+function PopupEstiloFields({ s, p }: { s: RouletteStep; p: (patch: Partial<RouletteStep>) => void }) {
+  const fundoTema = useContext(TemaFunilContext);
+  const [previa, setPrevia] = useState(0);
+  const avisos = avisosContraste(s, fundoTema);
+  const premio = s.segments[s.winningIndex] ?? s.segments[0];
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-2">
+        <TipografiaFields titulo="Título do popup" valor={s.popupTitulo} padraoTamanho={20} onChange={(v) => p({ popupTitulo: v })} />
+        <TipografiaFields titulo="Texto do popup" valor={s.popupCorpo} padraoTamanho={14} onChange={(v) => p({ popupCorpo: v })} />
+        <TipografiaFields titulo="Texto do botão" valor={s.popupBotao} padraoTamanho={15} onChange={(v) => p({ popupBotao: v })} />
+      </div>
+      <Grid>
+        <Field label="Entrada do popup">
+          <WorkspaceSelect label="Entrada do popup" value={s.popupEntrada ?? "mola"} onChange={(v) => p({ popupEntrada: v === "mola" ? undefined : v as RouletteStep["popupEntrada"] })} options={ENTRADAS_POPUP} />
+        </Field>
+        <div className="flex items-end pb-2"><Toggle label="Confete na vitória" value={s.popupConfete !== false} onChange={(v) => p({ popupConfete: v ? undefined : false })} /></div>
+      </Grid>
+      {avisos.length ? (
+        <ul role="status" className="space-y-1 rounded-md bg-amber-50 px-2.5 py-2 text-[11px] font-semibold leading-snug text-amber-900 ring-1 ring-amber-200">
+          {avisos.map(aviso => <li key={aviso}>{aviso}</li>)}
+        </ul>
+      ) : null}
+      <div className="rounded-lg border border-neutral-200 bg-white p-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-semibold text-neutral-600">Pré-visualização</span>
+          <button type="button" onClick={() => setPrevia(v => v + 1)} className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold">
+            {previa ? "Ver a entrada de novo" : "Mostrar popup"}
+          </button>
+        </div>
+        {previa ? (
+          <div key={previa} className="mt-2 flex justify-center rounded-lg bg-black/55 px-4 py-6" style={{ ["--q-primary" as string]: fundoTema || "#1d4f88" }}>
+            <CartaoPremio step={s} premio={premio} ctx={CTX_PREVIA} destino={linkSeguro(s.winCtaUrl, s.winCtaMensagem)}
+              onBotao={() => {}} rodape={s.popupAutoRedirect ? `Redirecionando em ${s.popupAutoRedirectSeconds ?? ROULETTE_REDIRECT_SECONDS_DEFAULT} s…` : undefined} reduzir={false} />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** "Testar som": toca os arquivos escolhidos; sem arquivo, os sons padrão. */
+function testarSom(giro?: string, vitoria?: string) {
+  const tocarVitoria = () => { if (vitoria) void new Audio(vitoria).play().catch(() => playWin()); else playWin(); };
+  if (!giro) { playSpinTicks(1400, 12); setTimeout(tocarVitoria, 1500); return; }
+  // com arquivo, a vitória toca quando o som do giro termina, como no funil
+  const audio = new Audio(giro);
+  audio.onended = tocarVitoria;
+  audio.play().catch(() => { playSpinTicks(1400, 12); setTimeout(tocarVitoria, 1500); });
+}
+
 /** Editor de campos da lâmina selecionada — varia por tipo (estilo inlead). */
-export default function StepEditor({ step, onChange }: { step: Step; onChange: (patch: Partial<Step>) => void }) {
+export default function StepEditor({ step, onChange, ultimaEtapa }: { step: Step; onChange: (patch: Partial<Step>) => void; ultimaEtapa?: boolean }) {
   // Feedback do botão "Salvar" do movimento da roleta. Volta a false a cada
   // mudança, para não ficar dizendo "Salvo" sobre algo que já mudou depois.
   const [salvoRoleta, setSalvoRoleta] = useState(false);
@@ -202,8 +381,11 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             </Field>
             {/* Texto DENTRO das fatias. Era fixo em 11 nos dois motores, então
                 prêmio de nome longo cabia mal e não havia como ajustar. */}
-            <Field label="Tamanho do texto nas fatias">
-              <Num value={s.labelSize ?? 11} onChange={(v) => p({ labelSize: Math.min(20, Math.max(7, v)) } as Partial<Step>)} />
+            <Field label="Tamanho máximo do texto nas fatias">
+              <input type="number" min={7} max={20} placeholder="Automático" value={s.labelSize ?? ""}
+                onChange={(e) => p({ labelSize: e.target.value === "" ? undefined : Math.min(20, Math.max(7, Number(e.target.value))) } as Partial<Step>)}
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" aria-describedby="roleta-tamanho-ajuda" />
+              <span id="roleta-tamanho-ajuda" className="mt-1 block text-[11px] leading-snug text-neutral-500">O texto cresce até esse tamanho se couber na fatia e diminui se não couber. Vazio: o maior que couber.</span>
             </Field>
             <Field label="Tipo de roleta">
               <WorkspaceSelect label="Tipo de roleta" value={s.engine ?? "classica"} onChange={(v) => p({ engine: v } as Partial<Step>)} options={ROULETTE_ENGINES.map((e) => ({ value: e.id, label: e.name }))} />
@@ -504,10 +686,11 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                       porque um nome longo dividindo a roda com nomes curtos
                       obrigaria a encolher todos por causa de um. */}
                   <input
-                    type="number" min={6} max={20} placeholder={String(s.labelSize ?? 11)}
+                    type="number" min={6} max={20} placeholder={s.labelSize ? String(s.labelSize) : "auto"}
                     value={seg.labelSize ?? ""}
                     onChange={(e) => patchSeg(i, { labelSize: e.target.value === "" ? undefined : Math.min(20, Math.max(6, Number(e.target.value))) })}
-                    title="Tamanho do texto desta fatia (vazio = usa o da lâmina)"
+                    title="Tamanho máximo do texto desta fatia (vazio = usa o da lâmina). O texto cresce até ele se couber e diminui se não couber."
+                    aria-label={`Tamanho máximo do texto de ${seg.label || `fatia ${i + 1}`}`}
                     className="w-14 shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-center text-sm"
                   />
                   <button type="button" onClick={() => p({ segments: s.segments.filter((_, k) => k !== i), winningIndex: Math.min(s.winningIndex, s.segments.length - 2) } as Partial<Step>)} disabled={s.segments.length <= 2} className="shrink-0 text-sm text-red-500 disabled:opacity-30">✕</button>
@@ -590,7 +773,7 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                 ) : null}
               </div>
             </Field>
-            <Field label="Botão pós-vitória"><Text value={s.winCta} onChange={(v) => p({ winCta: v } as Partial<Step>)} /></Field>
+            <BotaoResultadoFields s={s} p={(patch) => p(patch as Partial<Step>)} />
             <Field label="Título da vitória" full><HtmlField value={s.winTitle} onChange={(v) => p({ winTitle: v } as Partial<Step>)} /></Field>
             <Field label="Texto da vitória" full><HtmlField value={s.winBody} onChange={(v) => p({ winBody: v } as Partial<Step>)} /></Field>
           </Grid>
@@ -598,11 +781,17 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
             <Toggle label="Efeito sonoro" value={sound.enabled} onChange={(v) => p({ sound: { ...sound, enabled: v } } as Partial<Step>)} />
             {sound.enabled ? (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <p className="col-span-full text-[11px] text-neutral-500">Deixe vazio para usar os sons padrão.</p>
-                <Field label="Som do giro (.mp3, opcional)"><Text value={sound.tickUrl} onChange={(v) => p({ sound: { ...sound, tickUrl: v } } as Partial<Step>)} placeholder="https://...mp3" /></Field>
-                <Field label="Som da vitória (.mp3, opcional)"><Text value={sound.winUrl} onChange={(v) => p({ sound: { ...sound, winUrl: v } } as Partial<Step>)} placeholder="https://...mp3" /></Field>
+                <p className="col-span-full text-[11px] text-neutral-500">Sem arquivo, a roleta usa os sons padrão. Se um arquivo falhar no celular da pessoa, o som padrão entra no lugar.</p>
+                <AudioField rotulo="Som do giro" value={sound.tickUrl} onChange={(v) => p({ sound: { ...sound, tickUrl: v } } as Partial<Step>)} />
+                <AudioField rotulo="Som da vitória" value={sound.winUrl} onChange={(v) => p({ sound: { ...sound, winUrl: v } } as Partial<Step>)} />
+                {sound.tickUrl ? (
+                  <div className="col-span-full">
+                    <Toggle label="Terminar o giro junto com o som do giro" value={sound.sincronizar ?? false} onChange={(v) => p({ sound: { ...sound, sincronizar: v || undefined } } as Partial<Step>)} />
+                    <p className="mt-1 text-[11px] leading-snug text-neutral-500">O giro dura o mesmo que o áudio (de 2 a 15 s). Na roleta clássica o fim bate certinho; na interativa e na v3, que desaceleram com física, fica próximo.</p>
+                  </div>
+                ) : null}
                 <div className="col-span-full flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => { playSpinTicks(1400, 12); setTimeout(() => playWin(), 1500); }} className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold">Testar som</button>
+                  <button type="button" onClick={() => testarSom(sound.tickUrl, sound.winUrl)} className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold">Testar som</button>
                   <a href="https://pixabay.com/sound-effects/search/roulette/" target="_blank" rel="noreferrer" className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold">Buscar som de giro ↗</a>
                   <a href="https://pixabay.com/sound-effects/search/win/" target="_blank" rel="noreferrer" className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold">Buscar som de vitória ↗</a>
                 </div>
@@ -615,42 +804,23 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
               conta de um campo que ninguém marcou. */}
           <div className="rounded-xl bg-neutral-50 p-3">
             <Toggle label="Popup de prêmio" value={s.popupEnabled ?? false} onChange={(v) => p({ popupEnabled: v } as Partial<Step>)} />
+            {/* REDIRECIONAMENTO AUTOMÁTICO — logo abaixo de "Popup de prêmio", onde o
+                Luca pediu (25/11), e visível com o popup ligado ou desligado: os
+                dois são independentes. */}
+            <RedirecionamentoFields s={s} p={(patch) => p(patch as Partial<Step>)} ultimaEtapa={ultimaEtapa} />
             {s.popupEnabled ? (
               <div className="mt-3 space-y-3">
                 <p className="text-[11px] text-neutral-500">
                   Exibido ao final do giro, com o conteúdo da vitória.
                 </p>
 
-                {/* REDIRECIONAMENTO AUTOMÁTICO — logo abaixo do liga/desliga do
-                    popup, onde o Luca pediu (25/11). Faz o mesmo que o botão do
-                    popup depois de N segundos; o popup mostra a contagem. */}
-                <div className="rounded-lg border border-neutral-200 bg-white p-3">
-                  <Toggle label="Redirecionar automaticamente" value={s.popupAutoRedirect ?? false}
-                    onChange={(v) => p({ popupAutoRedirect: v } as Partial<Step>)} />
-                  {s.popupAutoRedirect ? (
-                    <div className="mt-3 space-y-2">
-                      <Field label="Segundos até redirecionar">
-                        <input
-                          type="number" inputMode="numeric" step={1}
-                          min={ROULETTE_REDIRECT_SECONDS_MIN} max={ROULETTE_REDIRECT_SECONDS_MAX}
-                          placeholder={String(ROULETTE_REDIRECT_SECONDS_DEFAULT)}
-                          value={s.popupAutoRedirectSeconds ?? ""}
-                          onChange={(e) => p({ popupAutoRedirectSeconds: e.target.value === "" ? undefined : clampRedirectSeconds(Number(e.target.value)) } as Partial<Step>)}
-                          className="w-28 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-                        />
-                      </Field>
-                      <p className="text-[11px] leading-snug text-neutral-500">
-                        De {ROULETTE_REDIRECT_SECONDS_MIN} a {ROULETTE_REDIRECT_SECONDS_MAX} (vazio = {ROULETTE_REDIRECT_SECONDS_DEFAULT}). A contagem começa quando o popup abre e aparece nele.{" "}
-                        {s.winCtaUrl
-                          ? <>Ao chegar a zero, a pessoa vai para <span className="break-all font-semibold text-neutral-700">{s.winCtaUrl}</span>, o link do botão do popup.</>
-                          : "Sem link no botão do popup, ao chegar a zero a pessoa avança para a próxima etapa."}
-                        {" "}Na prévia, a contagem roda, mas não sai da página.
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
                 <Grid>
-                  <Field label="Fundo do popup"><ColorField value={s.popupBg ?? "#16a34a"} onChange={(v) => p({ popupBg: v } as Partial<Step>)} label="Fundo do popup" /></Field>
+                  <Field label="Fundo do popup">
+                    <div className="flex items-center gap-2">
+                      <ColorField value={s.popupBg ?? ""} onChange={(v) => p({ popupBg: v || undefined } as Partial<Step>)} label="Fundo do popup" />
+                      {s.popupBg ? <button type="button" onClick={() => p({ popupBg: undefined } as Partial<Step>)} className="text-[11px] text-neutral-500 underline">cor do funil</button> : <span className="text-[11px] text-neutral-400">cor do funil</span>}
+                    </div>
+                  </Field>
                   <Field label="Cor do texto"><ColorField value={s.popupText ?? "#ffffff"} onChange={(v) => p({ popupText: v } as Partial<Step>)} label="Cor do texto" /></Field>
                   <Field label="Fundo do botão"><ColorField value={s.popupBtnBg ?? "#ffffff"} onChange={(v) => p({ popupBtnBg: v } as Partial<Step>)} label="Fundo do botão" /></Field>
                 </Grid>
@@ -676,6 +846,8 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                     </p>
                   </div>
                 ) : null}
+
+                <PopupEstiloFields s={s} p={(patch) => p(patch as Partial<Step>)} />
               </div>
             ) : null}
           </div>

@@ -16,6 +16,8 @@ import { entradaBloco, prefereMenosMovimento, DUR, EASE } from "@/lib/quiz/motio
 import { estiloOpcao, estiloCheck, gradienteTema } from "@/lib/quiz/resina";
 import { buttonDestination, selectedAnswer, componentIdentity } from "@/lib/quiz/layers/component-settings";
 import { ComponentFrame, interactiveStyles } from "./ComponentFrame";
+import { faixaConfig } from "@/lib/quiz/layers/faixa";
+import faixaStyles from "./faixa.module.css";
 import type { LayerAnswer } from "@/lib/quiz/layers/types";
 import type { Layer, InleadOption, InleadDesign, InleadMedia } from "@/lib/quiz/layers/types";
 
@@ -878,6 +880,8 @@ function DisclaimerBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
 
   if (!visivel) return null;
   const html = interpHtml(String(c.text || ""), ctx).replace(/\[vagas\]/gi, String(conta ? n : de || ""));
+  const faixa = faixaConfig(c);
+  if (faixa.animar) return <FaixaEmMovimento html={html} faixa={faixa} design={d} />;
   /* Fundo escuro por padrão: a faixa costuma pousar sobre a VSL, e sobre fundo
      claro o texto branco sumiria. `backgroundColor` sobrescreve. */
   return (
@@ -893,6 +897,43 @@ function DisclaimerBlock({ layer, ctx }: { layer: Layer; ctx: LayersCtx }) {
       }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
+  );
+}
+
+/**
+ * Esteira da faixa em movimento. O texto vira uma linha só, repetida até
+ * passar com folga da largura do bloco; duas cópias iguais correm juntas e o
+ * laço fecha em -50%, sem emenda. Leitores de tela ouvem o texto uma vez.
+ */
+function FaixaEmMovimento({ html, faixa, design }: { html: string; faixa: ReturnType<typeof faixaConfig>; design: Record<string, unknown> }) {
+  const linha = html.replace(/<\/?(?:p|div|h[1-6]|ul|ol|li)\b[^>]*>/gi, " ").replace(/<br\s*\/?>/gi, " ");
+  const plano = linha.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+  const repeticoes = Math.min(30, Math.max(2, Math.ceil(140 / Math.max(1, plano.length))));
+  const copia = Array.from({ length: repeticoes }, () => linha).join("");
+  // a fita inclinada sobe e desce nas pontas: a folga evita que ela seja cortada
+  const folga = Math.ceil(Math.abs(Math.sin((faixa.inclinacao * Math.PI) / 180)) * 300) + 2;
+  return (
+    <div
+      className={faixaStyles.faixa}
+      style={{ width: "calc(100% + 2.5rem)", marginLeft: "-1.25rem", marginRight: "-1.25rem", paddingBlock: folga }}
+    >
+      <div
+        className={faixaStyles.fita}
+        style={{
+          transform: faixa.inclinacao ? `rotate(${faixa.inclinacao}deg)` : undefined,
+          background: (design.backgroundColor as string) || "rgba(0,0,0,.35)",
+          color: (design.textColor as string) || (design.color as string) || "#fff",
+          letterSpacing: faixa.espacamento ? `${faixa.espacamento}px` : undefined,
+          boxShadow: faixa.sombra ? "0 6px 18px #0007" : undefined,
+        }}
+      >
+        <div className={faixaStyles.esteira} style={{ animationDuration: `${faixa.velocidade}s` }} aria-hidden="true">
+          <span className="lyr-html" dangerouslySetInnerHTML={{ __html: copia }} />
+          <span className="lyr-html" dangerouslySetInnerHTML={{ __html: copia }} />
+        </div>
+        <span className="sr-only">{plano}</span>
+      </div>
+    </div>
   );
 }
 

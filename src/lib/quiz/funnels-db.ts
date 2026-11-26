@@ -6,9 +6,6 @@ import type { Funnel } from "./types";
 import { getFunnel as getSeedFunnel } from "./registry";
 import { createLayersFunnel, creationError, type CreationInput } from "./creation";
 
-/** Tag de cache de quem guarda a leitura de um funil (a página fixa /upbf1/roleta). Salvar no construtor a derruba. */
-export const funnelCacheTag = (slug: string) => `funnel-${slug}`;
-
 export interface FunnelSummary {
   slug: string;
   name: string;

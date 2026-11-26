@@ -19,6 +19,7 @@ import PerformanceView from "@/components/dashboard/PerformanceView";
 import { requireAdmin } from "@/lib/quiz/admin-guard";
 import { funnelMetrics } from "@/lib/quiz/metrics";
 import { resolveFunnel } from "@/lib/quiz/funnels-db";
+import { funnelPublicUrl } from "@/lib/quiz/public-url";
 import { PERIODOS, civilRangeFromPeriod, janelaDeChave, parseCivilRange, rotuloDoPeriodo, spDateYmd, spYmd } from "@/lib/quiz/periodo";
 
 export const metadata: Metadata = { title: "Performance do funil · CTFUNNEL" };
@@ -105,7 +106,7 @@ async function SnapshotFunnelReport({ slug, range, comparison, origin, responseF
     diagnostico: "Voltar ao Diagnóstico",
     leads: "Voltar aos Leads no Analytics",
   };
-  const liveHref = funnel.status === "published" && funnel.domain ? `https://${funnel.domain}/${encodeURIComponent(slug)}` : null;
+  const liveHref = funnel.status === "published" ? funnelPublicUrl({ slug, domain: funnel.domain }) : null;
 
   function renderCapturedPanel(label: string, capturedAt: string, hasDaily: boolean, render: (period?: DateRange) => ReactNode) {
     const captureDay = spDateYmd(new Date(capturedAt));
@@ -261,7 +262,7 @@ export default async function FunnelMetricsPage({
   const { key: periodo, janela } = janelaDeChave(sp.p, sp.d);
   const [m, funnel] = await Promise.all([funnelMetrics(slug, janela), resolveFunnel(slug)]);
   if (!m.found && !funnel) notFound();
-  const liveHref = funnel?.domain ? `https://${funnel.domain}/${slug}` : `/${slug}`;
+  const liveHref = funnelPublicUrl({ slug, domain: funnel?.domain });
   return (
     <WorkspaceFrame title="Desempenho"><div className="ct-controls">
       <header className="border-b border-neutral-200 bg-white px-6 py-3">

@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
+
 /**
  * Efeitos sonoros da roleta via Web Audio (sem arquivos). Tudo best-effort:
  * se o navegador bloquear/áudio falhar, nunca quebra. O AudioContext é criado
@@ -116,4 +118,64 @@ export function playUrl(url: string): void {
   } catch {
     /* best-effort */
   }
+}
+
+/**
+ * Arquivo de som pronto para tocar sem atraso (som próprio da roleta).
+ *
+ * O arquivo é carregado ao montar a lâmina, e não no clique: o som do giro tem
+ * de sair junto com o gesto, não depois dele. `liberar()` deve ser chamado
+ * DENTRO do toque em "Girar": no iOS, um áudio que nunca tocou num gesto não
+ * pode tocar depois sozinho (o som da vitória chega segundos mais tarde).
+ * Se o arquivo falhar, `falhou` vira true e quem usa volta ao som sintetizado.
+ */
+export function useAudioPronto(url?: string) {
+  const elemento = useRef<HTMLAudioElement | null>(null);
+  const [info, setInfo] = useState<{ url: string; duracao?: number; falhou?: boolean } | null>(null);
+  useEffect(() => {
+    if (!url || typeof Audio === "undefined") { elemento.current = null; return; }
+    const audio = new Audio();
+    audio.preload = "auto";
+    const meta = () => setInfo({ url, duracao: Number.isFinite(audio.duration) ? audio.duration : undefined });
+    const erro = () => setInfo({ url, falhou: true });
+    audio.addEventListener("loadedmetadata", meta);
+    audio.addEventListener("error", erro);
+    audio.src = url;
+    elemento.current = audio;
+    return () => {
+      audio.removeEventListener("loadedmetadata", meta);
+      audio.removeEventListener("error", erro);
+      audio.pause();
+      elemento.current = null;
+    };
+  }, [url]);
+  const atual = info?.url === url ? info : null;
+  const falhou = Boolean(url && atual?.falhou);
+
+  /** Toca do começo. Resolve false se o navegador recusar: aí vale o som sintetizado. */
+  const tocar = useCallback((): Promise<boolean> => {
+    const audio = elemento.current;
+    if (!audio) return Promise.resolve(false);
+    try {
+      audio.muted = false;
+      audio.currentTime = 0;
+      return audio.play().then(() => true, () => false);
+    } catch {
+      return Promise.resolve(false);
+    }
+  }, []);
+
+  /** Destrava o áudio no gesto do usuário, sem som, para tocar depois. */
+  const liberar = useCallback(() => {
+    const audio = elemento.current;
+    if (!audio) return;
+    try {
+      audio.muted = true;
+      void audio.play().then(() => { audio.pause(); audio.currentTime = 0; audio.muted = false; }, () => { audio.muted = false; });
+    } catch { /* best-effort */ }
+  }, []);
+
+  const parar = useCallback(() => { try { elemento.current?.pause(); } catch { /* noop */ } }, []);
+
+  return { ativo: Boolean(url) && !falhou, falhou, duracao: atual?.duracao, tocar, liberar, parar };
 }

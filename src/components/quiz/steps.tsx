@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useReducedMotion } from "@/components/referencias/beui/lib/reduced-motion-seguro";
 import { comRastreio } from "@/lib/quiz/rastreio";
 import type {
-  RouletteStep, RouletteStyle, ScratchStep, MeasureStep, SliderStep, Palette, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep, ResultStep,
+  RouletteStep, RouletteStyle, TipografiaPopup, ScratchStep, MeasureStep, SliderStep, Palette, HeroStep, NameStep, ConfirmStep, QuestionStep, LoadingStep, GaugeStep, ResultStep,
   OfferStep, CaptureStep, PostStep, BridgeStep, VslStep, QuizOption,
 } from "@/lib/quiz/types";
 import { CtaButton, OptionButton, StepShell, StickyCta, RichText, RICH_RE, useEdit, DedoArrasta } from "./ui";
@@ -13,10 +13,13 @@ import { submitLead, submitFunnelLead, fireMetaEvent } from "@/lib/tracking";
 import { attachVslWatch } from "@/lib/quiz/vsl-watch";
 import { trackAnswer } from "@/lib/quiz/track";
 import { interpEstado } from "@/lib/quiz/estado";
-import { playSpinTicks, playWin, playUrl } from "@/lib/quiz/sound";
+import { playSpinTicks, playWin, playUrl, useAudioPronto } from "@/lib/quiz/sound";
 import { fireRouletteConfetti, RouletteCelebration } from "./RouletteCelebration";
-import { ajustarRotulo } from "@/lib/quiz/roleta-texto";
+import { ENTRELINHA, useEncaixesSvg } from "@/lib/quiz/roleta-texto";
 import { rouletteAutoRedirectSeconds } from "@/lib/quiz/roleta-redirect";
+import { linkSeguro } from "@/lib/quiz/link-seguro";
+import { fontFamily } from "@/lib/quiz/layers/design";
+import { DUR, EASE } from "@/lib/quiz/motion";
 import dynamic from "next/dynamic";
 // Motor alternativo da roleta. `dynamic` de propósito: funil que usa a roleta
 // clássica (todos os de hoje) não baixa uma linha da simulação.
@@ -160,6 +163,9 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   const [done, setDone] = useState(false);
   const [spinCount, setSpinCount] = useState(0);
   const spinTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // rótulos das fatias: maior corpo que cabe, medido na fonte que o SVG herdou
+  const svgRoleta = useRef<SVGSVGElement>(null);
+  const encaixes = useEncaixesSvg(step.segments, step.labelSize, svgRoleta);
   useEffect(() => () => clearTimeout(spinTimer.current), []);
   const N = step.segments.length;
   const seg = 360 / N;
@@ -206,21 +212,53 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   const reduzMovimento = useReducedMotion();
   const premio = step.segments[vencedor];
 
-  // Redirecionamento automático do popup: segundos que faltam; null = sem
-  // contagem. Começa quando o popup aparece e recomeça a cada aparição.
+  // Som próprio: arquivos carregados ao montar a lâmina (o som do giro sai junto
+  // com o toque); se falharem, volta o som sintetizado.
+  const somLigado = !!step.sound?.enabled;
+  const somGiro = useAudioPronto(somLigado ? step.sound?.tickUrl || undefined : undefined);
+  const somVitoria = useAudioPronto(somLigado ? step.sound?.winUrl || undefined : undefined);
+  const giroComArquivo = somGiro.ativo;
+  // Giro sincronizado com o áudio: dura o mesmo que o som do giro (2 a 15 s).
+  const duracaoGiroMs = step.sound?.sincronizar && giroComArquivo && somGiro.duracao
+    ? Math.round(Math.min(15000, Math.max(2000, somGiro.duracao * 1000))) : undefined;
+  const duracaoClassica = duracaoGiroMs ?? 4200;
+
+  // Redirecionamento automático depois da vitória: segundos que faltam; null =
+  // sem contagem. Não depende do popup: começa quando o resultado aparece (no
+  // popup ou na própria lâmina) e recomeça a cada aparição.
   const autoRedirectSeconds = rouletteAutoRedirectSeconds(step);
   const [redirectIn, setRedirectIn] = useState<number | null>(null);
-  const startRedirect = () => { if (popupOn && autoRedirectSeconds) setRedirectIn(autoRedirectSeconds); };
+  const startRedirect = () => { if (autoRedirectSeconds) setRedirectIn(autoRedirectSeconds); };
+
+  // Destino do botão do resultado: link seguro (só HTTPS) com o rastreio da
+  // página, ou a próxima etapa. Na prévia do construtor, não sai da página.
+  const destino = linkSeguro(step.winCtaUrl, step.winCtaMensagem);
+  const textoPrevia = destino ? `Prévia: aqui a pessoa iria para ${destino}` : "Prévia: aqui a pessoa iria para a próxima etapa.";
+  const [avisoPrevia, setAvisoPrevia] = useState("");
+  const navegar = () => {
+    if (destino) window.location.assign(comRastreio(destino));
+    else ctx.advance();
+  };
+  const acionarBotao = () => {
+    setRedirectIn(null);
+    if (ctx.preview) setAvisoPrevia(textoPrevia);
+    else navegar();
+  };
+  const textoContagem = redirectIn === null ? "" : redirectIn > 0
+    ? `${destino ? "Redirecionando" : "Avançando"} em ${redirectIn} s…`
+    : ctx.preview ? textoPrevia : "Redirecionando…";
 
   /** Vitória: som, confete e liberação do botão. Um só lugar para os dois motores. */
   const celebrar = () => {
     setDone(true); setSpinning(false);
     startRedirect();
     if (step.sound?.enabled) {
-      if (step.sound.winUrl) playUrl(step.sound.winUrl);
-      else playWin();
+      if (somVitoria.ativo) void somVitoria.tocar().then((ok) => { if (!ok) playWin(); });
+      // a v3 toca o próprio arpejo quando o som do giro é o dela: tocar outro
+      // aqui dobrava a vitória
+      else if (!(fisica3 && !giroComArquivo)) playWin();
     }
-    void fireRouletteConfetti().catch(() => {});
+    if (step.popupConfete !== false) void fireRouletteConfetti().catch(() => {});
   };
 
   /** O primeiro giro controlado para no índice de tentativa; só o seguinte premia. */
@@ -263,8 +301,10 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     // agenda `playSpinTicks` — seriam duas trilhas concorrentes, uma por tempo
     // e outra pelo movimento. O som customizado (tickUrl) vale nos dois motores.
     if (step.sound?.enabled) {
-      if (step.sound.tickUrl) playUrl(step.sound.tickUrl);
-      else if (!simulada) playSpinTicks(4200);
+      // no gesto: destrava o som da vitória (iOS) e toca o do giro já carregado
+      somVitoria.liberar();
+      if (giroComArquivo) void somGiro.tocar().then((ok) => { if (!ok && !simulada) playSpinTicks(duracaoClassica); });
+      else if (!simulada) playSpinTicks(duracaoClassica);
     }
     if (simulada) return; // o fim chega pelo callback do componente
 
@@ -272,36 +312,35 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     const moduloPremio = ((-win * seg) % 360 + 360) % 360;
     const ajuste = (moduloPremio - moduloAtual + 360) % 360;
     setRotation(rotation + 360 * 6 + ajuste);
-    spinTimer.current = setTimeout(() => finalizarGiro(win), 4300);
+    spinTimer.current = setTimeout(() => finalizarGiro(win), duracaoClassica + 100);
   };
 
-  // Contagem do redirecionamento. Ao chegar a zero, faz o mesmo que o botão do
-  // popup: abre o link ou avança. No construtor, a prévia não sai da página.
+  // Contagem do redirecionamento. Ao chegar a zero, faz o mesmo que o botão:
+  // abre o link ou avança. Na prévia, mostra para onde iria e fica na página.
   useEffect(() => {
     if (redirectIn === null) return;
     if (redirectIn > 0) {
       const t = setTimeout(() => setRedirectIn((v) => (v === null ? null : v - 1)), 1000);
       return () => clearTimeout(t);
     }
-    if (ctx.preview) return;
-    if (step.winCtaUrl) window.location.assign(step.winCtaUrl);
-    else ctx.advance();
+    if (!ctx.preview) navegar();
   }, [redirectIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Quem volta do link pelo botão Voltar reencontra a página guardada pelo
-  // navegador, com a contagem parada em zero: recomeça com o popup aberto.
+  // navegador, com a contagem parada em zero: recomeça com o resultado à vista.
   useEffect(() => {
-    if (!done || !popupOn || !autoRedirectSeconds) return;
+    if (!done || !autoRedirectSeconds) return;
     const restore = (event: PageTransitionEvent) => { if (event.persisted) setRedirectIn(autoRedirectSeconds); };
     window.addEventListener("pageshow", restore);
     return () => window.removeEventListener("pageshow", restore);
-  }, [done, popupOn, autoRedirectSeconds]);
+  }, [done, autoRedirectSeconds]);
 
   // após vencer, avança sozinho (sem 2º clique) quando autoAdvance.
   // Com o popup ligado o avanço automático NÃO roda: o popup existe para ser
-  // lido e clicado, e um timer o arrancaria da tela no meio da leitura.
+  // lido e clicado, e um timer o arrancaria da tela no meio da leitura. Com o
+  // redirecionamento ligado, é ele quem decide o tempo.
   useEffect(() => {
-    if (!done || !step.autoAdvance || popupOn) return;
+    if (!done || !step.autoAdvance || popupOn || autoRedirectSeconds) return;
     const t = setTimeout(() => ctx.advance(), step.autoAdvanceMs ?? 2600);
     return () => clearTimeout(t);
   }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -346,7 +385,9 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                  a roda para no prêmio anterior, e celebrar o alvo seria mentir
                  sobre o que está debaixo do ponteiro */
               onFim={(real) => { setVencedor(real); finalizarGiro(real); }}
-              som={!!step.sound?.enabled && !step.sound?.tickUrl}
+              som={somLigado && !giroComArquivo}
+              somDeVitoria={!somVitoria.ativo}
+              duracaoMs={duracaoGiroMs}
               centerImage={step.centerImage}
               // o corpo do texto vem do painel, como nos outros motores
               labelSize={step.labelSize}
@@ -364,7 +405,8 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               vencedor={vencedor}
               girando={spinning}
               onFim={() => finalizarGiro()}
-              som={!!step.sound?.enabled && !step.sound?.tickUrl}
+              som={somLigado && !giroComArquivo}
+              duracaoAlvo={duracaoGiroMs ? (duracaoGiroMs / 1000) * 0.85 : undefined}
               preset={step.preset}
               intensidade={step.intensidade ?? 0}
               // só o modo Personalizado grava valores crus; nos demais é undefined
@@ -391,8 +433,8 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                 style={{ width: 26, height: 26, background: ch.pointer, border: "3px solid #fff", borderRadius: "50% 50% 0 50%", transform: "rotate(45deg)", boxShadow: "0 4px 9px rgba(0,0,0,.28)" }} />
             )}
             <motion.div className="h-full w-full" initial={false} animate={{ rotate: rotation }}
-              transition={{ duration: instant || reduzMovimento ? 0 : 4.2, ease: [0.16, 1, 0.3, 1] }}>
-              <svg viewBox="0 0 200 200" className="h-full w-full" style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,.22))" }}>
+              transition={{ duration: instant || reduzMovimento ? 0 : duracaoClassica / 1000, ease: [0.16, 1, 0.3, 1] }}>
+              <svg ref={svgRoleta} viewBox="0 0 200 200" className="h-full w-full" style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,.22))" }}>
                 <circle cx={c} cy={c} r={97} fill={ch.rim} />
                 <circle cx={c} cy={c} r={88.5} fill="none" stroke={ch.rimInner} strokeWidth={3} />
                 {pegs.map(([x, y], k) => (
@@ -407,20 +449,17 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                   // raio 62 e não 56: mais para fora a fatia é mais larga, e o
                   // texto ganha espaço sem precisar encolher
                   const [tx, ty] = polar(62, i * seg);
-                  // tamanho DESTA fatia > tamanho da lâmina > 11. Definido à
-                  // mão, o valor é respeitado; automático, encolhe até caber.
-                  const fixo = s.labelSize != null;
-                  const { linhas: ls, fontSize: fs } = ajustarRotulo(
-                    s.label, N, 62, s.labelSize ?? step.labelSize ?? 11, fixo,
-                  );
+                  // maior corpo que cabe na fatia, com o tamanho da fatia (ou
+                  // da lâmina) como teto — regra única em roleta-texto.ts
+                  const { linhas: ls, fontSize: fs } = encaixes[i] ?? { linhas: [s.label], fontSize: 11 };
                   const fill = contrastText(s.color);
                   // pilha de N linhas centralizada: sobe metade da altura total
-                  const dy0 = ls.length === 1 ? "0" : `${-((ls.length - 1) * 0.55)}em`;
+                  const dy0 = ls.length === 1 ? "0" : `${-((ls.length - 1) * ENTRELINHA / 2)}em`;
                   return (
                     <text key={`t${i}`} x={tx} y={ty} textAnchor="middle" dominantBaseline="middle"
                       transform={`rotate(${i * seg} ${tx} ${ty})`}
-                      fontSize={fs} fontWeight={800} fill={fill} style={{ letterSpacing: ".2px" }}>
-                      {ls.length === 1 ? ls[0] : ls.map((l, j) => <tspan key={j} x={tx} dy={j === 0 ? dy0 : "1.1em"}>{l}</tspan>)}
+                      fontSize={fs} fontWeight={800} fill={fill}>
+                      {ls.length === 1 ? ls[0] : ls.map((l, j) => <tspan key={j} x={tx} dy={j === 0 ? dy0 : `${ENTRELINHA}em`}>{l}</tspan>)}
                     </text>
                   );
                 })}
@@ -455,6 +494,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               className="mt-6 rounded-2xl bg-white p-5 text-center shadow-xl">
               <p className="text-lg font-bold text-[var(--q-primary-dark)]"><RichText text={interp(step.winTitle ?? "🎉 Você ganhou!", ctx)} /></p>
               {step.winBody ? <p className="mt-1 text-sm text-neutral-600"><RichText text={interp(step.winBody, ctx)} /></p> : null}
+              {textoContagem || avisoPrevia ? <p className="mt-2 text-xs font-semibold text-neutral-500">{avisoPrevia || textoContagem}</p> : null}
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -471,7 +511,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                 <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : spinCount > 0 ? (step.retryCta ?? "Girar novamente") : step.cta}</CtaButton>
               </>
             ) : !step.autoAdvance && !popupOn ? (
-              <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
+              <CtaButton onClick={acionarBotao}>{step.winCta ?? "Continuar →"}</CtaButton>
             ) : null}
           </div>
         ) : null}
@@ -487,7 +527,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
       {!step.ctaBelow ? (
         <StickyCta bare>
           {done ? (
-            popupOn ? null : <CtaButton onClick={ctx.advance}>{step.winCta ?? "Continuar →"}</CtaButton>
+            popupOn ? null : <CtaButton onClick={acionarBotao}>{step.winCta ?? "Continuar →"}</CtaButton>
           ) : (
             <CtaButton onClick={spin} disabled={spinning} pulse={!spinning} cor={step.ctaCor}>{spinning ? "Girando..." : spinCount > 0 ? (step.retryCta ?? "Girar novamente") : step.cta}</CtaButton>
           )}
@@ -505,77 +545,113 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-6 backdrop-blur-sm"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           >
-            <motion.div
-              className="w-full max-w-[330px] rounded-3xl px-6 py-7 text-center shadow-2xl"
-              style={{ background: step.popupBg || "var(--q-primary)", color: step.popupText || "#ffffff" }}
-              initial={{ scale: 0.82, y: 18 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 24 }}
-            >
-              {/* EMOJI com o motion do bloco `check`: entra girando em mola,
-                  duas ondas saindo de trás e um balanço contínuo. É o momento
-                  mais alto do funil — o emoji parado deixava a cena morta.
-                  As ondas são brancas translúcidas, não coloridas como no
-                  bloco: aqui o fundo do popup já é a cor do prêmio, e um disco
-                  da mesma cor sumiria dentro dele. */}
-              {premio?.emoji !== "" && <RouletteCelebration emoji={premio?.emoji} />}
-              {/* MIOLO na ordem gravada. Emoji e botão são a moldura e ficam
-                  fixos; a arte e a copy trocam de lugar conforme o arraste do
-                  painel. Sem `popupOrdem`, a arte vem antes — que é como o
-                  popup nasceu. */}
-              {(step.popupOrdem?.length ? step.popupOrdem : ["imagem", "texto"]).map((peca) =>
-                peca === "imagem" ? (
-                  step.popupImagem ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      key="imagem" src={step.popupImagem} alt="" loading="lazy" decoding="async"
-                      className="mx-auto mt-4 h-auto w-full max-w-[210px] rounded-xl object-contain"
-                      style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,.28))" }}
-                    />
-                  ) : null
-                ) : (
-                  <div key="texto">
-                    <p className="mt-3 text-xl font-black uppercase leading-tight tracking-tight">
-                      <RichText text={interp(premio?.popupTitle || step.winTitle || "Parabéns!", ctx)} />
-                    </p>
-                    <p className="mt-2 text-sm font-medium leading-snug opacity-95">
-                      <RichText text={interp(premio?.popupBody || step.winBody || "Você ganhou...", ctx)} />
-                    </p>
-                  </div>
-                )
-              )}
-              {step.winCtaUrl ? (
-                <motion.a
-                  href={step.winCtaUrl}
-                  onClick={() => setRedirectIn(null)}
-                  className="fx-pulse fx-shine relative mt-5 block w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
-                  style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  {step.winCta ?? "Pegar meu prêmio"}
-                </motion.a>
-              ) : (
-                <motion.button
-                  onClick={() => { setRedirectIn(null); ctx.advance(); }}
-                  className="fx-pulse fx-shine relative mt-5 w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
-                  style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  {step.winCta ?? "Pegar meu prêmio"}
-                </motion.button>
-              )}
-              {redirectIn !== null ? (
-                <p className="mt-3 text-xs font-semibold leading-snug opacity-90">
-                  {redirectIn > 0
-                    ? `${step.winCtaUrl ? "Redirecionando" : "Avançando"} em ${redirectIn} s…`
-                    : ctx.preview ? "Prévia: aqui a pessoa seria redirecionada." : "Redirecionando…"}
-                </p>
-              ) : null}
-            </motion.div>
+            <CartaoPremio step={step} premio={premio} ctx={ctx} destino={destino} onBotao={acionarBotao}
+              rodape={avisoPrevia || textoContagem} reduzir={!!reduzMovimento} />
           </motion.div>
         ) : null}
       </AnimatePresence>
     </>
   );
+}
+
+/**
+ * Cartão do popup de prêmio. O funil o mostra sobre o fundo escuro, e o editor
+ * da roleta usa o MESMO componente na pré-visualização: o que se vê no
+ * construtor é o que vai ao ar.
+ */
+export function CartaoPremio({ step, premio, ctx, destino, onBotao, rodape, reduzir }: {
+  step: RouletteStep; premio?: RouletteStep["segments"][number]; ctx: StepCtx;
+  destino?: string; onBotao: () => void; rodape?: string; reduzir: boolean;
+}) {
+  return (
+      <motion.div
+        className="w-full max-w-[330px] rounded-3xl px-6 py-7 text-center shadow-2xl"
+        style={{ background: step.popupBg || "var(--q-primary)", color: step.popupText || "#ffffff" }}
+        {...entradaDoPopup(step.popupEntrada, reduzir)}
+      >
+        {/* EMOJI com o motion do bloco `check`: entra girando em mola,
+            duas ondas saindo de trás e um balanço contínuo. É o momento
+            mais alto do funil — o emoji parado deixava a cena morta.
+            As ondas são brancas translúcidas, não coloridas como no
+            bloco: aqui o fundo do popup já é a cor do prêmio, e um disco
+            da mesma cor sumiria dentro dele. */}
+        {premio?.emoji !== "" && <RouletteCelebration emoji={premio?.emoji} />}
+        {/* MIOLO na ordem gravada. Emoji e botão são a moldura e ficam
+            fixos; a arte e a copy trocam de lugar conforme o arraste do
+            painel. Sem `popupOrdem`, a arte vem antes — que é como o
+            popup nasceu. */}
+        {(step.popupOrdem?.length ? step.popupOrdem : ["imagem", "texto"]).map((peca) =>
+          peca === "imagem" ? (
+            step.popupImagem ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key="imagem" src={step.popupImagem} alt="" loading="lazy" decoding="async"
+                className="mx-auto mt-4 h-auto w-full max-w-[210px] rounded-xl object-contain"
+                style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,.28))" }}
+              />
+            ) : null
+          ) : (
+            <div key="texto">
+              <p className="mt-3 text-xl font-black uppercase leading-tight tracking-tight" style={estiloTipografia(step.popupTitulo)}>
+                <RichText text={interp(premio?.popupTitle || step.winTitle || "Parabéns!", ctx)} />
+              </p>
+              <p className="mt-2 text-sm font-medium leading-snug opacity-95" style={estiloTipografia(step.popupCorpo)}>
+                <RichText text={interp(premio?.popupBody || step.winBody || "Você ganhou...", ctx)} />
+              </p>
+            </div>
+          )
+        )}
+        {destino ? (
+          <motion.a
+            href={destino}
+            onClick={(event) => { event.preventDefault(); onBotao(); }}
+            className="fx-pulse fx-shine relative mt-5 block w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
+            style={estiloTipografia(step.popupBotao, { background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" })}
+            whileTap={{ scale: 0.97 }}
+          >
+            {step.winCta ?? "Pegar meu prêmio"}
+          </motion.a>
+        ) : (
+          <motion.button
+            onClick={onBotao}
+            className="fx-pulse fx-shine relative mt-5 w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
+            style={estiloTipografia(step.popupBotao, { background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" })}
+            whileTap={{ scale: 0.97 }}
+          >
+            {step.winCta ?? "Pegar meu prêmio"}
+          </motion.button>
+        )}
+        {rodape ? (
+          <p className="mt-3 text-xs font-semibold leading-snug opacity-90">{rodape}</p>
+        ) : null}
+      </motion.div>
+  );
+}
+
+/** Estilo de um texto do popup: só o que foi configurado sobrescreve o padrão. */
+function estiloTipografia(t: TipografiaPopup | undefined, base: CSSProperties = {}): CSSProperties {
+  const estilo: CSSProperties = { ...base };
+  if (t?.fonte) estilo.fontFamily = fontFamily(t.fonte) ?? t.fonte;
+  if (typeof t?.tamanho === "number" && t.tamanho > 0) estilo.fontSize = `${Math.min(64, Math.max(10, t.tamanho))}px`;
+  if (typeof t?.peso === "number" && t.peso > 0) estilo.fontWeight = t.peso;
+  if (t?.cor) estilo.color = t.cor;
+  return estilo;
+}
+
+/**
+ * Entrada do popup de prêmio. "mola" é a de sempre (padrão). Quem pede menos
+ * movimento vê um fade curto, em qualquer opção.
+ */
+function entradaDoPopup(tipo: RouletteStep["popupEntrada"], reduzir: boolean) {
+  const tween = (duracao: number) => ({ duration: duracao, ease: EASE.entrada });
+  if (reduzir) return { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: tween(0.2) };
+  switch (tipo) {
+    case "nenhuma": return { initial: false as const, animate: { opacity: 1 }, exit: { opacity: 0 } };
+    case "fade": return { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: tween(DUR.entrada / 1000) };
+    case "zoom": return { initial: { opacity: 0, scale: 0.88 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.94 }, transition: tween(0.4) };
+    case "subir": return { initial: { opacity: 0, y: 48 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 24 }, transition: tween(0.45) };
+    default: return { initial: { scale: 0.82, y: 18 }, animate: { scale: 1, y: 0 }, exit: { scale: 0.9, opacity: 0 }, transition: { type: "spring" as const, stiffness: 300, damping: 24 } };
+  }
 }
 
 // ── Raspadinha (scratch-card) ─────────────────────────────────────

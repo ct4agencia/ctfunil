@@ -1,0 +1,15 @@
+/* Faixa em movimento (bloco "disclaimer" com animar). A fita inclinada é mais
+   larga que o bloco e o bloco corta o excesso: nada vaza para os lados, então
+   não há rolagem horizontal. A folga vertical vem do componente, pela
+   inclinação. Só `transform` anima. */
+.faixa { position: relative; overflow: hidden; }
+.fita {
+  position: relative; left: -8%; width: 116%;
+  display: flex; align-items: center; min-height: 34px; padding-block: 8px;
+  overflow: hidden; white-space: nowrap;
+  font-size: 14px; font-weight: 800; line-height: 1.2;
+}
+.esteira { display: flex; flex: none; width: max-content; animation: faixa-rolar 14s linear infinite; }
+.esteira > span { flex: none; white-space: pre; }
+@keyframes faixa-rolar { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .esteira { animation: none; } }

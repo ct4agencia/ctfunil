@@ -10,12 +10,13 @@ export function clampRedirectSeconds(value: number) {
 }
 
 /**
- * Segundos até o popup redirecionar sozinho, ou `undefined` quando o
- * redirecionamento está desligado. Um valor inválido gravado vira o padrão.
- * Serve ao funil (cliente) e à página fixa do /upbf1 (servidor).
+ * Segundos até a roleta redirecionar sozinha depois da vitória, ou `undefined`
+ * quando o redirecionamento está desligado. Não depende do popup: com ele
+ * desligado, a contagem aparece no resultado da própria lâmina. Um valor
+ * inválido gravado vira o padrão.
  */
-export function rouletteAutoRedirectSeconds(step: Pick<RouletteStep, "popupEnabled" | "popupAutoRedirect" | "popupAutoRedirectSeconds"> | null | undefined) {
-  if (!step?.popupEnabled || step.popupAutoRedirect !== true) return undefined;
+export function rouletteAutoRedirectSeconds(step: Pick<RouletteStep, "popupAutoRedirect" | "popupAutoRedirectSeconds"> | null | undefined) {
+  if (step?.popupAutoRedirect !== true) return undefined;
   const seconds = step.popupAutoRedirectSeconds;
   return typeof seconds === "number" && Number.isFinite(seconds) ? clampRedirectSeconds(seconds) : ROULETTE_REDIRECT_SECONDS_DEFAULT;
 }

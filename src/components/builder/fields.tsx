@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import type { QuizOption } from "@/lib/quiz/types";
+import { AUDIO_ACCEPT, AUDIO_DURACAO_MAXIMA, AUDIO_EXTENSOES, AUDIO_LIMITE_BYTES, MENSAGENS_AUDIO, extensaoDe } from "@/lib/quiz/audio-upload";
 
 // ── Editor de texto VISUAL (WYSIWYG fase 3b) ──────────────────────
 // Mostra o texto JÁ FORMATADO (negrito/pílula), sem exibir os marcadores.
@@ -177,6 +178,78 @@ async function paraWebp(file: File): Promise<File> {
     if (!blob || blob.size >= file.size) return file;
     return new File([blob], `${file.name.replace(/\.[^.]+$/, "")}.webp`, { type: "image/webp" });
   } catch { return file; }
+}
+
+/** Duração de um arquivo de áudio local, em segundos, ou null se não der para ler. */
+function duracaoDoArquivo(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = new Audio();
+    const fim = (valor: number | null) => { URL.revokeObjectURL(url); resolve(valor); };
+    const limite = setTimeout(() => fim(null), 6000);
+    audio.preload = "metadata";
+    audio.onloadedmetadata = () => { clearTimeout(limite); fim(Number.isFinite(audio.duration) ? audio.duration : null); };
+    audio.onerror = () => { clearTimeout(limite); fim(null); };
+    audio.src = url;
+  });
+}
+
+/**
+ * Som próprio (roleta e afins): envia um arquivo ou aceita um link HTTPS.
+ * Confere formato, tamanho e duração ANTES de enviar, com as mesmas regras que
+ * a rota /api/upload confere de novo no servidor (audio-upload.ts).
+ */
+export function AudioField({ value, onChange, rotulo }: { value?: string; onChange: (v: string | undefined) => void; rotulo: string }) {
+  const local = useContext(LocalDraftContext);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState("");
+  const tocando = useRef<HTMLAudioElement | null>(null);
+  const enviar = async (file: File) => {
+    setErro("");
+    if (!AUDIO_EXTENSOES.includes(extensaoDe(file.name))) { setErro(MENSAGENS_AUDIO.formato); return; }
+    if (file.size > AUDIO_LIMITE_BYTES) { setErro(MENSAGENS_AUDIO.grande); return; }
+    const duracao = await duracaoDoArquivo(file);
+    if (duracao === null) { setErro(MENSAGENS_AUDIO.invalido); return; }
+    if (duracao > AUDIO_DURACAO_MAXIMA) { setErro(MENSAGENS_AUDIO.longo); return; }
+    setEnviando(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const resposta = await fetch("/api/upload", { method: "POST", body });
+      const dados = await resposta.json().catch(() => ({}));
+      if (!resposta.ok || !dados.url) throw new Error(dados.error || "Não foi possível enviar o áudio. Tente de novo.");
+      onChange(dados.url);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Não foi possível enviar o áudio. Tente de novo.");
+    } finally {
+      setEnviando(false);
+    }
+  };
+  const ouvir = () => {
+    try { tocando.current?.pause(); } catch { /* noop */ }
+    if (!value) return;
+    const audio = new Audio(value);
+    tocando.current = audio;
+    audio.play().catch(() => setErro("Não foi possível tocar este áudio. Confira o link ou envie o arquivo de novo."));
+  };
+  return (
+    <div className="space-y-1.5">
+      <span className="block text-xs font-semibold text-neutral-500">{rotulo}</span>
+      <input className={base} value={value ?? ""} placeholder="Som padrão (sintetizado)" readOnly={enviando}
+        onChange={(e) => { setErro(""); onChange(e.target.value.trim() || undefined); }} aria-label={`${rotulo}: link do arquivo`} />
+      <div className="flex flex-wrap items-center gap-2">
+        <label className={`rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold ${local || enviando ? "opacity-50" : "cursor-pointer"}`}>
+          {enviando ? "Enviando…" : "Enviar arquivo"}
+          <input type="file" accept={AUDIO_ACCEPT} className="sr-only" disabled={local || enviando}
+            onChange={(e) => { const file = e.target.files?.[0]; e.target.value = ""; if (file) void enviar(file); }} />
+        </label>
+        {value ? <button type="button" onClick={ouvir} className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold">Ouvir</button> : null}
+        {value ? <button type="button" onClick={() => { setErro(""); onChange(undefined); }} className="text-xs text-neutral-500 underline">Usar o som padrão</button> : null}
+      </div>
+      <span className="block text-[11px] leading-snug text-neutral-400">MP3, WAV, OGG, M4A, AAC ou WebM, até {AUDIO_LIMITE_BYTES / 1024 / 1024} MB e {AUDIO_DURACAO_MAXIMA} s.{local ? " No laboratório, use um link para testar sem enviar arquivos." : ""}</span>
+      {erro ? <span role="alert" className="block text-[11px] font-semibold leading-snug text-red-600">{erro}</span> : null}
+    </div>
+  );
 }
 
 export function ImageField({ value, onChange }: { value?: string; onChange: (v: string) => void }) {

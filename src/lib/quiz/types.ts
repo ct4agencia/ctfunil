@@ -132,9 +132,18 @@ export interface RouletteSegment {
 
 export interface RouletteSound {
   enabled: boolean;
-  /** URLs/arquivos .mp3 opcionais; vazio = síntese via Web Audio (tique no giro + chime na vitória) */
+  /**
+   * Arquivos de áudio próprios (enviados pelo editor, até 2 MB e 15 s; ver
+   * audio-upload.ts). Vazio, ou se o arquivo falhar = síntese via Web Audio
+   * (tique no giro + arpejo na vitória).
+   */
   tickUrl?: string;
   winUrl?: string;
+  /**
+   * O giro termina junto com o som do giro (2 a 15 s). Exato na roleta
+   * clássica; aproximado na interativa e na v3, que têm física no fim.
+   */
+  sincronizar?: boolean;
 }
 
 /** Estilo visual da roleta (paleta-adaptável). */
@@ -215,7 +224,11 @@ export interface RouletteStep extends BaseStep {
   retryIndex?: number;
   /** Texto do botão que libera o segundo giro. */
   retryCta?: string;
-  /** Link direto do botão exibido no popup de prêmio. */
+  /**
+   * Link do botão do resultado (no popup ou na própria lâmina). Só HTTPS: o
+   * funil usa `linkSeguro` (link-seguro.ts) e ignora qualquer outro. Sem link,
+   * o botão avança para a próxima etapa.
+   */
   winCtaUrl?: string;
   centerImage?: string;
   cta: string;
@@ -272,17 +285,38 @@ export interface RouletteStep extends BaseStep {
    */
   popupOrdem?: ("imagem" | "texto")[];
   /**
-   * Redirecionamento automático do popup (pedido do Luca, 25/11/2026). Ligado,
-   * depois de `popupAutoRedirectSeconds` segundos com o popup aberto, faz o
-   * mesmo que o botão do popup: abre o `winCtaUrl` ou, sem link, avança para a
-   * próxima etapa. AUSENTE = desligado. Só vale com `popupEnabled`.
-   *
-   * A página fixa `/upbf1/roleta` também lê estes dois campos da roleta do
-   * funil `upbf1`: é o construtor que liga e desliga o redirecionamento dela.
+   * Redirecionamento automático depois da vitória (pedido do Luca, 25/11/2026).
+   * Ligado, `popupAutoRedirectSeconds` segundos depois de o resultado aparecer,
+   * faz o mesmo que o botão: abre o `winCtaUrl` ou, sem link, avança para a
+   * próxima etapa. Vale com o popup ligado (contagem no popup) ou desligado
+   * (contagem no resultado da própria lâmina). AUSENTE = desligado. O nome
+   * `popup…` ficou por compatibilidade com o que já foi gravado.
    */
   popupAutoRedirect?: boolean;
   /** Segundos de espera, de 1 a 60. Sem valor, 5. */
   popupAutoRedirectSeconds?: number;
+  /** Mensagem pronta acrescentada a links do WhatsApp (wa.me) que não têm `text`. */
+  winCtaMensagem?: string;
+  /**
+   * Tipografia do popup de prêmio. Campos vazios mantêm o visual de antes:
+   * título em caixa alta e peso 900, texto 14 px, botão 15 px peso 900 com o
+   * texto na cor do fundo do popup.
+   */
+  popupTitulo?: TipografiaPopup;
+  popupCorpo?: TipografiaPopup;
+  popupBotao?: TipografiaPopup;
+  /** Entrada do popup. Ausente = "mola", a de sempre. */
+  popupEntrada?: "mola" | "fade" | "zoom" | "subir" | "nenhuma";
+  /** Confete na vitória. Ausente = ligado, como sempre foi. */
+  popupConfete?: boolean;
+}
+
+/** Fonte, tamanho, peso e cor de um texto do popup. Vazio = padrão do popup. */
+export interface TipografiaPopup {
+  fonte?: string;
+  tamanho?: number;
+  peso?: number;
+  cor?: string;
 }
 
 /** Um card da grade de raspadinha. Espelha o painel de prêmios da roleta:

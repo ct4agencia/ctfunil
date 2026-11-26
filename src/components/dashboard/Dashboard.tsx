@@ -23,6 +23,7 @@ import { createFunnel, duplicateFunnel, deleteFunnel } from "@/app/dashboard/act
 import WorkspaceSignOut from "@/components/workspace/WorkspaceSignOut";
 import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import Pagination from "@/components/ui/Pagination";
+import { funnelPublicUrl } from "@/lib/quiz/public-url";
 import WorkspaceDateRange, { type DateRange } from "@/components/ui/WorkspaceDateRange";
 
 const PER_PAGE = 12;
@@ -252,7 +253,7 @@ export default function Dashboard({ funnels, metrics, preview = false, accountEm
                                 <button onClick={() => router.push(`/builder/${encodeURIComponent(f.slug)}?${editorParams}`)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Editar</button>
                                 <button onClick={() => router.push(`/dashboard/${encodeURIComponent(f.slug)}?${libraryParams}`)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Performance</button>
                                 <a href={`/api/export-leads?slug=${encodeURIComponent(f.slug)}`} className="block px-3 py-2 hover:bg-ct-raised">Exportar leads</a>
-                                <a href={f.domain ? `https://${f.domain}/${f.slug}` : `/${f.slug}`} target="_blank" rel="noreferrer" className="block px-3 py-2 hover:bg-ct-raised">Visualizar</a>
+                                <a href={funnelPublicUrl(f)} target="_blank" rel="noreferrer" className="block px-3 py-2 hover:bg-ct-raised">Visualizar</a>
                                 <button disabled={busy} onClick={() => doDuplicate(f.slug)} className="block w-full px-3 py-2 text-left hover:bg-ct-raised">Duplicar</button>
                                 <button disabled={busy} onClick={() => { setMenu(null); setPendingDelete(f); }} className="block w-full px-3 py-2 text-left text-red-600 hover:bg-red-50">Excluir</button>
                               </div>

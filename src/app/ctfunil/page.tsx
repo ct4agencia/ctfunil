@@ -1,5 +1,6 @@
 import { hasPreviewVslDraft } from "@/lib/workspace-preview-vsl-drafts";
 import { headers } from "next/headers";
+import { funnelPublicLabel } from "@/lib/quiz/public-url";
 import { getWorkspaceSnapshotIfAuthorized } from "@/lib/workspace-real-data";
 import { isOfficialWorkspaceHost, isRealDataPreview } from "@/lib/workspace-preview";
 import { globalAnalytics } from "@/lib/quiz/metrics";
@@ -31,7 +32,7 @@ export default async function ProjectsPage() {
       product: funnel.niche?.trim() || "Sem nicho informado",
       status: funnel.status,
       updated: Number.isNaN(updated.getTime()) ? "Sem data" : date.format(updated),
-      preview: official && funnel.domain ? `${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`,
+      preview: official ? funnelPublicLabel(funnel) : `/${funnel.slug}`,
       metric: sessions === undefined ? "Sem total de sessões" : `${number.format(sessions)} sessões`,
       editorHref: `/builder/${encodeURIComponent(funnel.slug)}?editar=1`,
       reportHref: `/dashboard/${encodeURIComponent(funnel.slug)}`,

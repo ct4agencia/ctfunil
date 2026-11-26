@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PRESETS, PADRAO, comIntensidade, type Params } from "@/lib/quiz/roleta-fisica";
-import { ajustarRotulo } from "@/lib/quiz/roleta-texto";
+import { ENTRELINHA, useEncaixesSvg } from "@/lib/quiz/roleta-texto";
 
 /**
  * Motor de animação "interativa" da roleta — a alternativa à clássica.
@@ -45,6 +45,11 @@ export interface RoletaInterativaProps {
    * o que o modo "Personalizado" usa, já que ali não há preset de onde derivar.
    */
   params?: Params;
+  /**
+   * Duração-alvo do giro, em segundos, por cima do preset (giro sincronizado
+   * com o som próprio). A catraca e a mola do fim somam um pouco a mais.
+   */
+  duracaoAlvo?: number;
   /** cores vindas de `wheelChrome` (steps.tsx:43), para casar com o estilo */
   chrome: { rim: string; rimInner: string; pegColor: string; pointer: string; dark?: boolean };
   centerImage?: string;
@@ -119,7 +124,7 @@ function contraste(hex: string): string {
 
 export default function RoletaInterativa({
   segments, labelSize, vencedor, girando, onFim, som = true,
-  preset, intensidade = 0, params, chrome, centerImage,
+  preset, intensidade = 0, params, duracaoAlvo, chrome, centerImage,
   hubR = 94, hub = "#fdf8ef", hubInner = "#eef5f0", anguloInicial = 0,
 }: RoletaInterativaProps) {
   const N = segments.length;
@@ -129,6 +134,9 @@ export default function RoletaInterativa({
   const [angulo, setAngulo] = useState(anguloInicial);
   const [flap, setFlap] = useState(0);
   const raf = useRef<number | null>(null);
+  // rótulos das fatias: mesma regra de encaixe da roleta clássica
+  const svgRoda = useRef<SVGSVGElement>(null);
+  const encaixes = useEncaixesSvg(segments, labelSize, svgRoda);
   const rodou = useRef(false);
   const st = useRef({
     ang: anguloInicial, vel: 0, atrito: 0, ultimoPeg: 0,
@@ -140,7 +148,8 @@ export default function RoletaInterativa({
   const rodar = useCallback(() => {
     // `params` (modo Personalizado) vence; senão deriva do preset + intensidade.
     const pr = PRESETS.find((x) => x.nome === preset);
-    const p: Params = params ?? (pr ? comIntensidade(pr.params, pr.dir, intensidade) : PADRAO);
+    const doPreset: Params = params ?? (pr ? comIntensidade(pr.params, pr.dir, intensidade) : PADRAO);
+    const p: Params = duracaoAlvo ? { ...doPreset, duracaoAlvo: Math.min(12, Math.max(1.5, duracaoAlvo)) } : doPreset;
 
     ac();
     const base = st.current.ang;
@@ -229,7 +238,7 @@ export default function RoletaInterativa({
     };
 
     raf.current = requestAnimationFrame(passo);
-  }, [vencedor, SEG, CRISTA, som, onFim, preset, intensidade, params]);
+  }, [vencedor, SEG, CRISTA, som, onFim, preset, intensidade, params, duracaoAlvo]);
 
   // Dispara UMA vez quando `girando` vira true. `rodou` evita que uma
   // re-renderização do pai reinicie o giro no meio.
@@ -258,7 +267,7 @@ export default function RoletaInterativa({
       </div>
 
       <div className="h-full w-full" style={{ transform: `rotate(${angulo}deg)` }}>
-        <svg viewBox="0 0 200 200" className="h-full w-full" style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,.22))" }}>
+        <svg ref={svgRoda} viewBox="0 0 200 200" className="h-full w-full" style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,.22))" }}>
           <circle cx={C} cy={C} r={97} fill={chrome.rim} />
           <circle cx={C} cy={C} r={88.5} fill="none" stroke={chrome.rimInner} strokeWidth={3} />
           {segments.map((s, i) => (
@@ -272,20 +281,18 @@ export default function RoletaInterativa({
           {segments.map((s, i) => {
             // raio 62: mais para fora a fatia é mais larga (ver roleta-texto)
             const [tx, ty] = polar(62, i * SEG);
-            // mesma regra da roleta clássica — antes eram duas cópias divergentes
-            const fixo = s.labelSize != null;
+            // mesma regra da roleta clássica (roleta-texto.ts). `labelLines`
+            // escrito à mão continua valendo como está.
             const { linhas, fontSize: fs } = s.labelLines?.length
               ? { linhas: s.labelLines, fontSize: s.labelSize ?? labelSize ?? 11 }
-              : ajustarRotulo(
-              s.label, N, 62, s.labelSize ?? labelSize ?? 11, fixo,
-            );
-            const dy0 = linhas.length === 1 ? "0" : `${-((linhas.length - 1) * 0.55)}em`;
+              : encaixes[i] ?? { linhas: [s.label], fontSize: 11 };
+            const dy0 = linhas.length === 1 ? "0" : `${-((linhas.length - 1) * ENTRELINHA / 2)}em`;
             return (
               <text key={`t${i}`} x={tx} y={ty} textAnchor="middle" dominantBaseline="middle"
                 transform={`rotate(${i * SEG} ${tx} ${ty})`} fontSize={fs} fontWeight={800}
-                fill={contraste(s.color)} style={{ letterSpacing: ".2px" }}>
+                fill={contraste(s.color)}>
                 {linhas.length === 1 ? linhas[0] : linhas.map((l, j) => (
-                  <tspan key={j} x={tx} dy={j === 0 ? dy0 : "1.1em"}>{l}</tspan>
+                  <tspan key={j} x={tx} dy={j === 0 ? dy0 : `${ENTRELINHA}em`}>{l}</tspan>
                 ))}
               </text>
             );

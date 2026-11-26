@@ -3,6 +3,7 @@
 import { StatefulButton } from "@/components/referencias/beui/motion/button/stateful";
 import { WorkspaceSelect } from "@/components/ui/WorkspaceSelect";
 import ActiveTab from "@/components/ui/ActiveTab";
+import { funnelPublicUrl } from "@/lib/quiz/public-url";
 import WorkspaceNotice from "@/components/ui/WorkspaceNotice";
 import WorkspaceNoticeHistory, { recordWorkspaceNotice } from "@/components/workspace/WorkspaceNoticeHistory";
 import { EditorTop } from "@/components/workspace/WorkspaceFrame";
@@ -273,7 +274,7 @@ export default function TypebotBuilder({ initial, saveLocal, reportHref, sourceS
             } : undefined}>
             {groupId => <ChatRunner key={groupId} funnel={funnel} startGroupId={groupId || undefined} preview localOnly />}
           </ViewCurrentPage>
-          {!saveLocal && <a href={funnel.domain ? `https://${funnel.domain}/${funnel.slug}` : `/${funnel.slug}`} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white">Ver ao vivo ↗</a>}
+          {!saveLocal && <a href={funnelPublicUrl(funnel)} target="_blank" rel="noreferrer" className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white">Ver ao vivo ↗</a>}
         </div>
       </header>
 
