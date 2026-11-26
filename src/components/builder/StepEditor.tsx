@@ -215,13 +215,23 @@ function RedirecionamentoFields({ s, p, ultimaEtapa }: { s: RouletteStep; p: (pa
 }
 
 /** Fonte, tamanho, peso e cor de um texto do popup. Vazio mantém o padrão. */
-function TipografiaFields({ titulo, valor, padraoTamanho, onChange }: { titulo: string; valor?: TipografiaPopup; padraoTamanho: number; onChange: (v: TipografiaPopup | undefined) => void }) {
+/** Tipografia sem chaves vazias; sem nenhuma, volta `undefined` (= padrão). */
+function limparTipografia(t: TipografiaPopup): TipografiaPopup | undefined {
+  const proximo: TipografiaPopup = { ...t };
+  for (const chave of Object.keys(proximo) as (keyof TipografiaPopup)[]) if (proximo[chave] === undefined || proximo[chave] === "") delete proximo[chave];
+  return Object.keys(proximo).length ? proximo : undefined;
+}
+
+function TipografiaFields({ titulo, valor, padraoTamanho, padraoCor, comCor = true, onChange }: {
+  titulo: string; valor?: TipografiaPopup; padraoTamanho: number;
+  /** cor que vale quando o campo está vazio, mostrada ao lado do seletor */
+  padraoCor?: string;
+  /** a cor do texto do botão mora junto das cores do popup, não aqui */
+  comCor?: boolean;
+  onChange: (v: TipografiaPopup | undefined) => void;
+}) {
   const t = valor ?? {};
-  const set = (patch: Partial<TipografiaPopup>) => {
-    const proximo: TipografiaPopup = { ...t, ...patch };
-    for (const chave of Object.keys(proximo) as (keyof TipografiaPopup)[]) if (proximo[chave] === undefined || proximo[chave] === "") delete proximo[chave];
-    onChange(Object.keys(proximo).length ? proximo : undefined);
-  };
+  const set = (patch: Partial<TipografiaPopup>) => onChange(limparTipografia({ ...t, ...patch }));
   return (
     <fieldset className="rounded-lg border border-neutral-200 bg-white p-2.5">
       <legend className="px-1 text-xs font-semibold text-neutral-600">{titulo}</legend>
@@ -232,12 +242,18 @@ function TipografiaFields({ titulo, valor, padraoTamanho, onChange }: { titulo: 
             onChange={(e) => set({ tamanho: e.target.value ? Number(e.target.value) : undefined })} className={campoNumero} />
         </Field>
         <Field label="Peso"><WorkspaceSelect label={`Peso — ${titulo}`} value={t.peso ? String(t.peso) : ""} onChange={(v) => set({ peso: v ? Number(v) : undefined })} options={PESOS_POPUP} /></Field>
-        <Field label="Cor">
-          <div className="flex items-center gap-2">
-            <ColorField value={t.cor ?? ""} onChange={(v) => set({ cor: v || undefined })} label={`Cor — ${titulo}`} />
-            {t.cor ? <button type="button" onClick={() => set({ cor: undefined })} className="text-[11px] text-neutral-500 underline">padrão</button> : <span className="text-[11px] text-neutral-400">padrão</span>}
-          </div>
-        </Field>
+        {comCor ? (
+          <Field label="Cor">
+            {/* Largura fixa: dentro desta linha o seletor com `w-full` encolhia
+                até virar um traço e não dava para clicar (relato do Luca, 26/11). */}
+            <div className="flex items-center gap-2">
+              <ColorField value={t.cor ?? ""} onChange={(v) => set({ cor: v || undefined })} allowEmpty className="h-9 w-12 shrink-0" label={`Cor — ${titulo}`} />
+              {t.cor
+                ? <button type="button" onClick={() => set({ cor: undefined })} className="text-[11px] text-neutral-500 underline">voltar ao padrão</button>
+                : <span className="text-[11px] text-neutral-400">padrão{padraoCor ? ` (${padraoCor})` : ""}</span>}
+            </div>
+          </Field>
+        ) : null}
       </div>
     </fieldset>
   );
@@ -274,9 +290,9 @@ function PopupEstiloFields({ s, p }: { s: RouletteStep; p: (patch: Partial<Roule
   return (
     <div className="space-y-3">
       <div className="grid gap-2">
-        <TipografiaFields titulo="Título do popup" valor={s.popupTitulo} padraoTamanho={20} onChange={(v) => p({ popupTitulo: v })} />
-        <TipografiaFields titulo="Texto do popup" valor={s.popupCorpo} padraoTamanho={14} onChange={(v) => p({ popupCorpo: v })} />
-        <TipografiaFields titulo="Texto do botão" valor={s.popupBotao} padraoTamanho={15} onChange={(v) => p({ popupBotao: v })} />
+        <TipografiaFields titulo="Título do popup" valor={s.popupTitulo} padraoTamanho={20} padraoCor={s.popupText ?? "#ffffff"} onChange={(v) => p({ popupTitulo: v })} />
+        <TipografiaFields titulo="Texto do popup" valor={s.popupCorpo} padraoTamanho={14} padraoCor={s.popupText ?? "#ffffff"} onChange={(v) => p({ popupCorpo: v })} />
+        <TipografiaFields titulo="Texto do botão" valor={s.popupBotao} padraoTamanho={15} comCor={false} onChange={(v) => p({ popupBotao: v })} />
       </div>
       <Grid>
         <Field label="Entrada do popup">
@@ -817,12 +833,23 @@ export default function StepEditor({ step, onChange, ultimaEtapa }: { step: Step
                 <Grid>
                   <Field label="Fundo do popup">
                     <div className="flex items-center gap-2">
-                      <ColorField value={s.popupBg ?? ""} onChange={(v) => p({ popupBg: v || undefined } as Partial<Step>)} label="Fundo do popup" />
+                      <ColorField value={s.popupBg ?? ""} onChange={(v) => p({ popupBg: v || undefined } as Partial<Step>)} allowEmpty className="h-9 w-12 shrink-0" label="Fundo do popup" />
                       {s.popupBg ? <button type="button" onClick={() => p({ popupBg: undefined } as Partial<Step>)} className="text-[11px] text-neutral-500 underline">cor do funil</button> : <span className="text-[11px] text-neutral-400">cor do funil</span>}
                     </div>
                   </Field>
                   <Field label="Cor do texto"><ColorField value={s.popupText ?? "#ffffff"} onChange={(v) => p({ popupText: v } as Partial<Step>)} label="Cor do texto" /></Field>
                   <Field label="Fundo do botão"><ColorField value={s.popupBtnBg ?? "#ffffff"} onChange={(v) => p({ popupBtnBg: v } as Partial<Step>)} label="Fundo do botão" /></Field>
+                  {/* Cor do texto do botão, ao lado do fundo dele. Antes ficava
+                      só em "Texto do botão", num seletor que não abria. */}
+                  <Field label="Texto do botão">
+                    <div className="flex items-center gap-2">
+                      <ColorField value={s.popupBotao?.cor ?? ""} allowEmpty className="h-9 w-12 shrink-0" label="Cor do texto do botão"
+                        onChange={(v) => p({ popupBotao: limparTipografia({ ...s.popupBotao, cor: v || undefined }) } as Partial<Step>)} />
+                      {s.popupBotao?.cor
+                        ? <button type="button" onClick={() => p({ popupBotao: limparTipografia({ ...s.popupBotao, cor: undefined }) } as Partial<Step>)} className="text-[11px] text-neutral-500 underline">voltar ao padrão</button>
+                        : <span className="text-[11px] text-neutral-400">padrão: a cor do fundo do popup</span>}
+                    </div>
+                  </Field>
                 </Grid>
 
                 <Field label="Imagem do popup (a capa do prêmio)">
