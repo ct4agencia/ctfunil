@@ -1,17 +1,20 @@
 import { unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { isReadOnlyWorkspace } from "@/lib/workspace-preview";
-import { normalizeUpbf1Settings, UPBF1_ROULETTE_DEFAULTS, UPBF1_ROULETTE_KEY, validUpbf1Seconds, type Upbf1RouletteSettings, type Upbf1SettingsStatus } from "@/lib/upbf1-roleta-config";
+import { funnelCacheTag } from "@/lib/quiz/funnels-db";
+import { rouletteAutoRedirectSeconds } from "@/lib/quiz/roleta-redirect";
+import type { RouletteStep } from "@/lib/quiz/types";
 
 /**
- * Configuração da roleta do /upbf1 no servidor. Só código de servidor importa
- * este arquivo, porque ele usa o cliente com service_role.
+ * Página fixa /upbf1/roleta no servidor. Só código de servidor importa este
+ * arquivo, porque ele usa o cliente com service_role.
  *
- * A tabela `ctfunil_settings` guarda configurações do painel em chave e valor.
- * Ela tem RLS ligado e nenhuma política: só o service_role lê e grava.
+ * O redirecionamento automático do popup é ligado no construtor, na roleta do
+ * funil `upbf1` ("Popup de prêmio" › "Redirecionar automaticamente"), pedido
+ * do Luca em 25/11. A página fixa lê dali o liga/desliga e os segundos. Os
+ * textos, as cores e o link dela continuam no código.
  */
-const TABLE = "ctfunil_settings";
-export const UPBF1_SETTINGS_TAG = "ctfunil-settings-upbf1-roleta";
+const FUNNEL_SLUG = "upbf1";
 
 const whatsappMessage = "Sônia, tirei o GUIA COMPLETO + 80% OFF 🔥 e quero desbloquear o meu presente!!!";
 
@@ -28,61 +31,44 @@ export function getUpbf1RedirectUrl() {
   } catch {}
 }
 
-type SettingsError = Error & { code?: string };
+type Layer = { content?: unknown };
+type StoredStep = { type?: unknown; layers?: unknown };
 
-function isMissingTable(error: unknown) {
-  const code = (error as SettingsError | null)?.code;
-  return code === "PGRST205" || code === "42P01";
+function isRoulette(value: unknown): value is RouletteStep {
+  return !!value && typeof value === "object" && (value as { type?: unknown }).type === "roulette";
 }
 
-async function fetchSettings(): Promise<Upbf1RouletteSettings> {
-  const { data, error } = await createAdminClient().from(TABLE).select("value")
-    .eq("key", UPBF1_ROULETTE_KEY).abortSignal(AbortSignal.timeout(2500)).maybeSingle();
-  if (error) throw Object.assign(new Error(error.message), { code: error.code });
-  return normalizeUpbf1Settings(data?.value);
+/** Primeira roleta do funil: bloco do motor layers ou etapa do motor tipado. */
+function findRoulette(steps: unknown): RouletteStep | undefined {
+  if (!Array.isArray(steps)) return;
+  for (const step of steps as StoredStep[]) {
+    if (isRoulette(step)) return step;
+    if (!Array.isArray(step?.layers)) continue;
+    const layer = (step.layers as Layer[]).find(item => isRoulette(item?.content));
+    if (layer) return layer.content as RouletteStep;
+  }
 }
 
-// A roleta recebe o tráfego da campanha: guarda a leitura por até 60 s, e o
-// salvamento no painel derruba o cache na hora (updateTag na server action).
+async function fetchAutoRedirectSeconds(): Promise<number | null> {
+  const { data, error } = await createAdminClient().from("funnels").select("steps")
+    .eq("slug", FUNNEL_SLUG).abortSignal(AbortSignal.timeout(2500)).maybeSingle();
+  if (error) throw new Error(error.message);
+  return rouletteAutoRedirectSeconds(findRoulette(data?.steps)) ?? null;
+}
+
+// A roleta recebe o tráfego da campanha: guarda a leitura por até 60 s, e
+// salvar o funil no construtor derruba o cache na hora (updateTag na action).
 // Uma falha lança e não fica guardada.
-const cachedSettings = unstable_cache(fetchSettings, [TABLE, UPBF1_ROULETTE_KEY], { revalidate: 60, tags: [UPBF1_SETTINGS_TAG] });
+const cachedAutoRedirectSeconds = unstable_cache(fetchAutoRedirectSeconds, ["upbf1-roleta-auto-redirect"], {
+  revalidate: 60, tags: [funnelCacheTag(FUNNEL_SLUG)],
+});
 
-/** Leitura da página pública. Em qualquer falha, a roleta segue sem redirecionar sozinha. */
-export async function readUpbf1RouletteSettings(): Promise<Upbf1RouletteSettings> {
-  if (isReadOnlyWorkspace()) return UPBF1_ROULETTE_DEFAULTS;
+/** Segundos do redirecionamento automático; `undefined` = desligado ou ilegível. */
+export async function readUpbf1AutoRedirectSeconds(): Promise<number | undefined> {
+  if (isReadOnlyWorkspace()) return;
   try {
-    return await cachedSettings();
+    return (await cachedAutoRedirectSeconds()) ?? undefined;
   } catch {
-    return UPBF1_ROULETTE_DEFAULTS;
-  }
-}
-
-/** Leitura do painel: sem cache e com o motivo quando não dá para ler. */
-export async function readUpbf1RouletteState(): Promise<{ settings: Upbf1RouletteSettings; status: Upbf1SettingsStatus }> {
-  if (isReadOnlyWorkspace()) return { settings: UPBF1_ROULETTE_DEFAULTS, status: "readonly" };
-  try {
-    return { settings: await fetchSettings(), status: "ok" };
-  } catch (error) {
-    return { settings: UPBF1_ROULETTE_DEFAULTS, status: isMissingTable(error) ? "missing" : "error" };
-  }
-}
-
-export async function saveUpbf1RouletteSettings(input: Upbf1RouletteSettings, updatedBy?: string):
-  Promise<{ ok: true; settings: Upbf1RouletteSettings } | { ok: false; error: string }> {
-  if (isReadOnlyWorkspace()) return { ok: false, error: "O preview está em modo de consulta: a configuração não pode ser alterada aqui." };
-  if (typeof input.autoRedirect !== "boolean" || !validUpbf1Seconds(input.seconds)) {
-    return { ok: false, error: "Informe um número inteiro de 1 a 60 segundos." };
-  }
-  const settings = { autoRedirect: input.autoRedirect, seconds: input.seconds };
-  try {
-    const { error } = await createAdminClient().from(TABLE).upsert({
-      key: UPBF1_ROULETTE_KEY, value: settings, updated_at: new Date().toISOString(), updated_by: updatedBy ?? null,
-    }, { onConflict: "key" }).abortSignal(AbortSignal.timeout(5000));
-    if (error) {
-      return { ok: false, error: isMissingTable(error) ? "A tabela de configurações ainda não existe no banco." : "Não foi possível salvar a configuração." };
-    }
-    return { ok: true, settings };
-  } catch {
-    return { ok: false, error: "Não foi possível salvar a configuração." };
+    return;
   }
 }

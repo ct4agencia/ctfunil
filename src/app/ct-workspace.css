@@ -50,7 +50,9 @@ html[data-ct-mode="light"] .ct-workspace { color-scheme: light; }
 .ct-canvas[data-dragging="true"] { outline: 2px dashed var(--ct-blue); outline-offset: -4px; }
 .ct-editor { display: flex; flex-direction: column; height: 100dvh; min-height: 480px; }
 .ct-editor > header { flex-shrink: 0; }
-.ct-editor-grid { display: grid; flex: 1; min-height: 0; grid-template-columns: 176px 204px minmax(280px, 1fr) minmax(280px, 360px); }
+/* Painel de ajustes (4ª coluna) cresce com a janela, de 360 a 680 px, avançando
+   sobre a prévia: os campos de texto ficavam estreitos demais (pedido do Luca, 26/11). */
+.ct-editor-grid { display: grid; flex: 1; min-height: 0; grid-template-columns: 176px 204px minmax(280px, 1fr) minmax(320px, clamp(360px, 34vw, 680px)); }
 .ct-editor-grid > * { min-width: 0; }
 @media (max-width: 1023px) {
   .ct-workspace .ct-compact-nav { display: flex; justify-content: center; background: var(--ct-surface); border-bottom: 1px solid var(--ct-line); }

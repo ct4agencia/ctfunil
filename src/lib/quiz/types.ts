@@ -271,6 +271,18 @@ export interface RouletteStep extends BaseStep {
    * duas pontas, e é aí que elas se desencontram.
    */
   popupOrdem?: ("imagem" | "texto")[];
+  /**
+   * Redirecionamento automático do popup (pedido do Luca, 25/11/2026). Ligado,
+   * depois de `popupAutoRedirectSeconds` segundos com o popup aberto, faz o
+   * mesmo que o botão do popup: abre o `winCtaUrl` ou, sem link, avança para a
+   * próxima etapa. AUSENTE = desligado. Só vale com `popupEnabled`.
+   *
+   * A página fixa `/upbf1/roleta` também lê estes dois campos da roleta do
+   * funil `upbf1`: é o construtor que liga e desliga o redirecionamento dela.
+   */
+  popupAutoRedirect?: boolean;
+  /** Segundos de espera, de 1 a 60. Sem valor, 5. */
+  popupAutoRedirectSeconds?: number;
 }
 
 /** Um card da grade de raspadinha. Espelha o painel de prêmios da roleta:

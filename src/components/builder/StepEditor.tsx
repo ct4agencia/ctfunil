@@ -17,6 +17,7 @@ import { ROULETTE_STYLES, ROULETTE_ENGINES } from "@/lib/quiz/types";
 import { PRESETS as PRESETS_ROLETA, PADRAO as PARAMS_PADRAO_ROLETA } from "@/lib/quiz/roleta-fisica";
 import { Field, Text, Area, HtmlField, ImageField, Num, Toggle, Select, StringList, OptionsList } from "./fields";
 import { playSpinTicks, playWin } from "@/lib/quiz/sound";
+import { clampRedirectSeconds, ROULETTE_REDIRECT_SECONDS_DEFAULT, ROULETTE_REDIRECT_SECONDS_MAX, ROULETTE_REDIRECT_SECONDS_MIN } from "@/lib/quiz/roleta-redirect";
 // Seletor único do painel. Substitui os <input type="color"> nativos, que aqui
 // apareciam em 4 tamanhos diferentes de swatch e sem campo hex.
 import ColorField from "@/components/ui/ColorField";
@@ -619,6 +620,35 @@ export default function StepEditor({ step, onChange }: { step: Step; onChange: (
                 <p className="text-[11px] text-neutral-500">
                   Exibido ao final do giro, com o conteúdo da vitória.
                 </p>
+
+                {/* REDIRECIONAMENTO AUTOMÁTICO — logo abaixo do liga/desliga do
+                    popup, onde o Luca pediu (25/11). Faz o mesmo que o botão do
+                    popup depois de N segundos; o popup mostra a contagem. */}
+                <div className="rounded-lg border border-neutral-200 bg-white p-3">
+                  <Toggle label="Redirecionar automaticamente" value={s.popupAutoRedirect ?? false}
+                    onChange={(v) => p({ popupAutoRedirect: v } as Partial<Step>)} />
+                  {s.popupAutoRedirect ? (
+                    <div className="mt-3 space-y-2">
+                      <Field label="Segundos até redirecionar">
+                        <input
+                          type="number" inputMode="numeric" step={1}
+                          min={ROULETTE_REDIRECT_SECONDS_MIN} max={ROULETTE_REDIRECT_SECONDS_MAX}
+                          placeholder={String(ROULETTE_REDIRECT_SECONDS_DEFAULT)}
+                          value={s.popupAutoRedirectSeconds ?? ""}
+                          onChange={(e) => p({ popupAutoRedirectSeconds: e.target.value === "" ? undefined : clampRedirectSeconds(Number(e.target.value)) } as Partial<Step>)}
+                          className="w-28 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                        />
+                      </Field>
+                      <p className="text-[11px] leading-snug text-neutral-500">
+                        De {ROULETTE_REDIRECT_SECONDS_MIN} a {ROULETTE_REDIRECT_SECONDS_MAX} (vazio = {ROULETTE_REDIRECT_SECONDS_DEFAULT}). A contagem começa quando o popup abre e aparece nele.{" "}
+                        {s.winCtaUrl
+                          ? <>Ao chegar a zero, a pessoa vai para <span className="break-all font-semibold text-neutral-700">{s.winCtaUrl}</span>, o link do botão do popup.</>
+                          : "Sem link no botão do popup, ao chegar a zero a pessoa avança para a próxima etapa."}
+                        {" "}Na prévia, a contagem roda, mas não sai da página.
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
                 <Grid>
                   <Field label="Fundo do popup"><ColorField value={s.popupBg ?? "#16a34a"} onChange={(v) => p({ popupBg: v } as Partial<Step>)} label="Fundo do popup" /></Field>
                   <Field label="Cor do texto"><ColorField value={s.popupText ?? "#ffffff"} onChange={(v) => p({ popupText: v } as Partial<Step>)} label="Cor do texto" /></Field>

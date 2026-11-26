@@ -16,6 +16,7 @@ import { interpEstado } from "@/lib/quiz/estado";
 import { playSpinTicks, playWin, playUrl } from "@/lib/quiz/sound";
 import { fireRouletteConfetti, RouletteCelebration } from "./RouletteCelebration";
 import { ajustarRotulo } from "@/lib/quiz/roleta-texto";
+import { rouletteAutoRedirectSeconds } from "@/lib/quiz/roleta-redirect";
 import dynamic from "next/dynamic";
 // Motor alternativo da roleta. `dynamic` de propósito: funil que usa a roleta
 // clássica (todos os de hoje) não baixa uma linha da simulação.
@@ -205,9 +206,16 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
   const reduzMovimento = useReducedMotion();
   const premio = step.segments[vencedor];
 
+  // Redirecionamento automático do popup: segundos que faltam; null = sem
+  // contagem. Começa quando o popup aparece e recomeça a cada aparição.
+  const autoRedirectSeconds = rouletteAutoRedirectSeconds(step);
+  const [redirectIn, setRedirectIn] = useState<number | null>(null);
+  const startRedirect = () => { if (popupOn && autoRedirectSeconds) setRedirectIn(autoRedirectSeconds); };
+
   /** Vitória: som, confete e liberação do botão. Um só lugar para os dois motores. */
   const celebrar = () => {
     setDone(true); setSpinning(false);
+    startRedirect();
     if (step.sound?.enabled) {
       if (step.sound.winUrl) playUrl(step.sound.winUrl);
       else playWin();
@@ -267,6 +275,28 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
     spinTimer.current = setTimeout(() => finalizarGiro(win), 4300);
   };
 
+  // Contagem do redirecionamento. Ao chegar a zero, faz o mesmo que o botão do
+  // popup: abre o link ou avança. No construtor, a prévia não sai da página.
+  useEffect(() => {
+    if (redirectIn === null) return;
+    if (redirectIn > 0) {
+      const t = setTimeout(() => setRedirectIn((v) => (v === null ? null : v - 1)), 1000);
+      return () => clearTimeout(t);
+    }
+    if (ctx.preview) return;
+    if (step.winCtaUrl) window.location.assign(step.winCtaUrl);
+    else ctx.advance();
+  }, [redirectIn]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Quem volta do link pelo botão Voltar reencontra a página guardada pelo
+  // navegador, com a contagem parada em zero: recomeça com o popup aberto.
+  useEffect(() => {
+    if (!done || !popupOn || !autoRedirectSeconds) return;
+    const restore = (event: PageTransitionEvent) => { if (event.persisted) setRedirectIn(autoRedirectSeconds); };
+    window.addEventListener("pageshow", restore);
+    return () => window.removeEventListener("pageshow", restore);
+  }, [done, popupOn, autoRedirectSeconds]);
+
   // após vencer, avança sozinho (sem 2º clique) quando autoAdvance.
   // Com o popup ligado o avanço automático NÃO roda: o popup existe para ser
   // lido e clicado, e um timer o arrancaria da tela no meio da leitura.
@@ -289,6 +319,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
           setInstant(true);
           setRotation(360 * 6 - w * seg);
           setDone(true);
+          startRedirect();
         }, 0);
       }
     } catch { /* noop */ }
@@ -515,6 +546,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
               {step.winCtaUrl ? (
                 <motion.a
                   href={step.winCtaUrl}
+                  onClick={() => setRedirectIn(null)}
                   className="fx-pulse fx-shine relative mt-5 block w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
                   style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
                   whileTap={{ scale: 0.97 }}
@@ -523,7 +555,7 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                 </motion.a>
               ) : (
                 <motion.button
-                  onClick={ctx.advance}
+                  onClick={() => { setRedirectIn(null); ctx.advance(); }}
                   className="fx-pulse fx-shine relative mt-5 w-full overflow-hidden rounded-2xl px-5 py-3.5 text-[15px] font-black uppercase leading-none tracking-tight shadow-lg transition active:scale-[.97]"
                   style={{ background: step.popupBtnBg || "#ffffff", color: step.popupBg || "var(--q-primary)" }}
                   whileTap={{ scale: 0.97 }}
@@ -531,6 +563,13 @@ export function RouletteStepView({ step, ctx }: { step: RouletteStep; ctx: StepC
                   {step.winCta ?? "Pegar meu prêmio"}
                 </motion.button>
               )}
+              {redirectIn !== null ? (
+                <p className="mt-3 text-xs font-semibold leading-snug opacity-90">
+                  {redirectIn > 0
+                    ? `${step.winCtaUrl ? "Redirecionando" : "Avançando"} em ${redirectIn} s…`
+                    : ctx.preview ? "Prévia: aqui a pessoa seria redirecionada." : "Redirecionando…"}
+                </p>
+              ) : null}
             </motion.div>
           </motion.div>
         ) : null}
