@@ -489,7 +489,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
           const seconds = Math.max(0, Math.trunc(event.currentTarget.valueAsNumber || 0));
           setC({ revealAt: seconds, revealClock: seconds > 0 ? "video" : undefined });
         }} />
-      <p id={`${releaseId}-clock`} className="text-xs text-ct-dim">Use 0 para exibir imediatamente. Teste o atraso pelo relógio em Visualizar página.</p>
+      <p id={`${releaseId}-clock`} className="text-xs text-ct-dim">Use 0 para exibir imediatamente. Teste o atraso abrindo o funil pelo botão do olho, com o vídeo tocando.</p>
     </div>
   );
 
@@ -709,7 +709,7 @@ function LayerFields({ layer, steps, onChange }: { layer: Layer; steps: InleadSt
             onChange={(e) => setC({ revealAt: Number(e.target.value) })} className={inp} />
           <p id={`${releaseId}-clock`} className="text-xs text-ct-dim">
             {c.revealClock === "video"
-              ? "O atraso acompanha a reprodução. Em Visualizar página, use o relógio da prévia."
+              ? "O atraso acompanha a reprodução. Confira abrindo o funil pelo botão do olho, com o vídeo tocando."
               : "O atraso começa quando a etapa abre."} Use 0 para exibir imediatamente.
           </p>
           {Number(c.revealAt) > 0 ? (<>
@@ -1774,10 +1774,26 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
       setSaving(false);
     }
   };
-  const publish=async()=>{
-    if(funnel.slug!==initial.slug){notify('Salve o novo endereço antes de publicar.', true);return;}
-    setSaving(true);const result=await publishFunnelAction(funnel);setSaving(false);
-    if(result.ok){setIsDraft(false);notify('Publicado');}else notify(result.error || 'Não foi possível concluir a ação.', true);
+  /**
+   * "Publicar funil" (pedido do Luca, 26/11): no lugar do antigo "Visualizar
+   * página". Rascunho passa a publicado; funil que já está no ar recebe a
+   * versão do editor. O botão do olho, ao lado, abre a página publicada.
+   */
+  const publicarFunil = async () => {
+    if (saving) return;
+    if (funnel.slug !== initial.slug) { notify("Salve o novo endereço antes de publicar.", true); return; }
+    setSaving(true);
+    try {
+      const result = isDraft ? await publishFunnelAction(funnel) : await saveFunnelAction(funnel);
+      if (!result.ok) { notify(result.error || "Não foi possível publicar o funil.", true); return; }
+      setIsDraft(false);
+      setNonce(n => n + 1);
+      notify(funnelDomain(funnel.domain) ? "Funil publicado. No domínio próprio, a página pode levar alguns minutos para atualizar." : "Funil publicado");
+    } catch {
+      notify("Não foi possível publicar o funil. Tente novamente.", true);
+    } finally {
+      setSaving(false);
+    }
   };
   const commit=async()=>{
     if(!localDraft?.commit)return;setSaving(true);const result=await localDraft.commit(funnel);setSaving(false);if(!result.ok)notify(result.error || 'Não foi possível concluir a ação.', true);
@@ -1895,12 +1911,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
           <Link href={localDraft?.dashboardHref ?? dashboardHref ?? "/dashboard"} className="rounded-md border border-ct-line px-2 py-1 text-xs font-semibold text-ct-dim hover:bg-ct-raised">← Dashboard</Link>
           <div className="min-w-0 break-words">
             <h1 className="text-sm font-bold">Construtor · {funnel.name}</h1>
-            <p className="text-xs text-ct-dim">/{funnel.slug} · {steps.length} lâminas{localDraft ? " · RASCUNHO LOCAL — não publicado" : ""}
-              {!localDraft && !isDraft && <> · <a href={funnelPublicUrl(funnel)} target="_blank" rel="noopener noreferrer"
-                className="font-semibold text-ct-blue underline"
-                title={`Abre a página que os visitantes veem. Salve antes de conferir.${funnelDomain(funnel.domain) ? " Em domínio próprio, a atualização pode levar alguns minutos." : ""}`}>
-                Ver publicado ↗<span className="sr-only"> (abre em nova aba)</span></a></>}
-            </p>
+            <p className="text-xs text-ct-dim">/{funnel.slug} · {steps.length} lâminas{localDraft ? " · RASCUNHO LOCAL — não publicado" : ""}</p>
           </div>
         </div>
         <nav aria-label="Seções do construtor" className="ct-segments">
@@ -1928,8 +1939,26 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
             Salvar
           </StatefulButton>
           {localDraft?.commit&&<button onClick={commit} disabled={saving} className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Salvar nos meus funis</button>}
-          {isDraft&&!localDraft&&<button onClick={publish} disabled={saving} className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Publicar</button>}
-          {localDraft?.previewHref ? <button type="button" disabled={saving}
+          {!localDraft ? <>
+            <button type="button" onClick={publicarFunil} disabled={saving}
+              className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
+              Publicar funil
+            </button>
+            {isDraft ? (
+              <button type="button" disabled aria-label="Abrir o funil em outra página: publique o funil primeiro"
+                title="Publique o funil para abrir a página"
+                className="inline-flex items-center rounded-lg border border-ct-line px-2.5 py-2 text-ct-ink opacity-50">
+                <Eye size={16} aria-hidden="true" />
+              </button>
+            ) : (
+              <a href={funnelPublicUrl(funnel)} target="_blank" rel="noopener noreferrer"
+                aria-label="Abrir o funil publicado em outra página"
+                title={`Abre a página que os visitantes veem, em outra aba.${funnelDomain(funnel.domain) ? " Em domínio próprio, a atualização pode levar alguns minutos." : ""}`}
+                className="inline-flex items-center rounded-lg border border-ct-line px-2.5 py-2 text-ct-ink hover:bg-ct-raised">
+                <Eye size={16} aria-hidden="true" />
+              </a>
+            )}
+          </> : localDraft.previewHref ? <button type="button" disabled={saving}
             className="ct-primary rounded-lg px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
             onClick={async () => {
               if (localDraft.previewHref && await prepareLocalPreview()) window.location.assign(localDraft.previewHref);
