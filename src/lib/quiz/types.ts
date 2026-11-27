@@ -762,7 +762,9 @@ export interface FunnelWebhook {
   token?: string;
   method: "POST" | "GET";
   content_type: "formData" | "json";
-  trigger_event: "lead_capture" | "click_component";
+  /** vsl_progress: % da VSL a cada 10%; vsl_pitch: chegou no pitch do VTurb
+   * (os dois só com `?telefone=` na URL; veja lib/quiz/vsl-datacrazy.ts). */
+  trigger_event: "lead_capture" | "click_component" | "vsl_progress" | "vsl_pitch";
   component_id?: string;
   enabled: boolean;
 }

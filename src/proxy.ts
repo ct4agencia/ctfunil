@@ -8,6 +8,12 @@ import { updateSession } from "@/lib/supabase/proxy";
  */
 /** Rotas de escrita do próprio painel (todas exigem o login do dono). */
 const OFFICIAL_WRITE_APIS = new Set(["/api/assistant", "/api/upload", "/api/reset-funnel-data"]);
+/**
+ * Repasses dos funis que o painel aceita mesmo sem registrar eventos: não
+ * gravam no banco, só encaminham ao webhook cadastrado no funil (27/11/2026,
+ * "Chegou no pitch" e "% da VSL" ao DataCrazy). Veja api/funnel-vsl-webhook.
+ */
+const OFFICIAL_FUNNEL_RELAYS = new Set(["/api/funnel-vsl-webhook"]);
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -20,7 +26,7 @@ export async function proxy(request: NextRequest) {
   }
   // Painel oficial: grava funis, mas não registra visitas, etapas nem leads.
   // Os funis públicos rodam nos domínios próprios (outro deploy do projeto).
-  if (official && pathname.startsWith("/api/") && mutating && !OFFICIAL_WRITE_APIS.has(pathname)) {
+  if (official && pathname.startsWith("/api/") && mutating && !OFFICIAL_WRITE_APIS.has(pathname) && !OFFICIAL_FUNNEL_RELAYS.has(pathname)) {
     return NextResponse.json({ error: "O painel não registra eventos de funil." }, {
       status: 403, headers: { "Cache-Control": "no-store" },
     });

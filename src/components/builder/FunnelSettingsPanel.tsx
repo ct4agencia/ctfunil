@@ -334,6 +334,7 @@ export default function FunnelSettingsPanel({
           {tab === "webhooks" && (
             <div className="space-y-3">
               <p className="text-xs text-neutral-500">Dispara no formato inlead (campos <b>nome</b>, <b>telefone</b>, <b>{"{componente}"}: clicked</b>) — casa com os mapeamentos do Datacrazy.</p>
+              <p className="text-xs text-neutral-500"><b>% da VSL assistida</b> (a cada 10%) e <b>Chegou no pitch</b> (uma vez, no tempo de pitch do VTurb) só disparam quando o link do funil tem <b>?telefone=</b>, como os links do DataCrazy.</p>
               {sourceSlug && <section className="space-y-2 rounded-xl border border-ct-line p-3" aria-label="Webhooks publicados">
                 <h3 className="font-semibold">Webhooks publicados</h3>
                 {published.error ? <div className="space-y-2">
@@ -352,7 +353,7 @@ export default function FunnelSettingsPanel({
                 </p>}
                 {published.rows?.map(webhook => <article key={webhook.id} className="rounded-lg bg-ct-raised p-3 text-sm">
                   <strong>{webhook.name || webhook.host || "Webhook"}</strong>
-                  <p className="break-words text-ct-dim">{[webhook.host, webhook.method, webhook.trigger_event === "lead_capture" ? "Captura de lead" : webhook.trigger_event === "click_component" ? "Clique em componente" : webhook.trigger_event === "vsl_progress" ? "Progresso da VSL" : "Disparo indisponível", webhook.component_id, webhook.enabled === undefined ? "Estado indisponível" : webhook.enabled ? "Ativo" : "Desativado"].filter(Boolean).join(" · ")}</p>
+                  <p className="break-words text-ct-dim">{[webhook.host, webhook.method, webhook.trigger_event === "lead_capture" ? "Captura de lead" : webhook.trigger_event === "click_component" ? "Clique em componente" : webhook.trigger_event === "vsl_progress" ? "% da VSL assistida" : webhook.trigger_event === "vsl_pitch" ? "Chegou no pitch" : "Disparo indisponível", webhook.component_id, webhook.enabled === undefined ? "Estado indisponível" : webhook.enabled ? "Ativo" : "Desativado"].filter(Boolean).join(" · ")}</p>
                 </article>)}
                 <p className="text-xs text-ct-dim">Consulta da configuração publicada. Endereço completo e token ficam protegidos.</p>
               </section>}
@@ -391,7 +392,7 @@ export default function FunnelSettingsPanel({
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     <WorkspaceSelect label="Método" value={w.method} onChange={value=>patchWh(i,{method:value as FunnelWebhook['method']})} options={[{value:'POST',label:'POST'},{value:'GET',label:'GET'}]}/>
                     <WorkspaceSelect label="Formato" value={w.content_type} onChange={value=>patchWh(i,{content_type:value as FunnelWebhook['content_type']})} options={[{value:'formData',label:'form-urlencoded'},{value:'json',label:'JSON'}]}/>
-                    <WorkspaceSelect label="Quando enviar" value={w.trigger_event} onChange={value=>patchWh(i,{trigger_event:value as FunnelWebhook['trigger_event']})} options={[{value:'lead_capture',label:'Captura de lead'},{value:'click_component',label:'Clique em componente'}]}/>
+                    <WorkspaceSelect label="Quando enviar" value={w.trigger_event} onChange={value=>patchWh(i,{trigger_event:value as FunnelWebhook['trigger_event']})} options={[{value:'lead_capture',label:'Captura de lead'},{value:'click_component',label:'Clique em componente'},{value:'vsl_progress',label:'% da VSL assistida'},{value:'vsl_pitch',label:'Chegou no pitch'}]}/>
                     <input className={inputCls} placeholder="component_id" value={w.component_id ?? ""} onChange={(e) => patchWh(i, { component_id: e.target.value || undefined })} />
                   </div>
                   <label className="ct-settings-token" onBlur={event => {

@@ -1,6 +1,10 @@
 "use client";
 
 import { getSessionId } from "@/lib/tracking";
+import {
+  ROTA_ENVIO_VSL, SEM_ENVIO, caminhoDoFunil, chegouNoPitch, faixaAssistida, nomeDaUrl, produtoDaUrl,
+  telefoneDaUrl, type ConfigEnvioVsl, type EventoVsl,
+} from "@/lib/quiz/vsl-datacrazy";
 
 /**
  * Rastreia quanto da VSL a sessão assistiu (REQ-1/REQ-4 da spec vturb).
@@ -72,9 +76,95 @@ export function smartInstances(): SmartInstance[] | undefined {
   return (window as unknown as { smartplayer?: { instances?: SmartInstance[] } }).smartplayer?.instances;
 }
 
+/**
+ * Envio da VSL para os webhooks do funil (DataCrazy): "% da VSL assistida" a
+ * cada 10% e "Chegou no pitch" uma vez, quando o vídeo passa do pitch do VTurb.
+ * Só liga com `?telefone=` válido na página pública do funil; o que enviar vem
+ * de GET /api/funnel-vsl-webhook (o navegador não vê o endereço do webhook).
+ * O que já foi enviado fica na aba (sessionStorage), para não repetir.
+ */
+function criarEnvioVsl(funnelSlug: string, playerId: string) {
+  let url: URL;
+  try { url = new URL(window.location.href); } catch { return null; }
+  if (url.searchParams.get("preview") === "1" || !caminhoDoFunil(url.pathname, funnelSlug)) return null;
+  const telefone = telefoneDaUrl(url);
+  if (!telefone || !window.crypto?.randomUUID) return null;
+  const nome = nomeDaUrl(url);
+  const produto = produtoDaUrl(url);
+
+  const chave = `ct-vsl-envio:${funnelSlug}:${playerId}`;
+  type Marca = { tel: string; pct: number; pitch: boolean };
+  const ler = (): Marca => {
+    try {
+      const m = JSON.parse(window.sessionStorage.getItem(chave) ?? "null") as Marca | null;
+      if (m && m.tel === telefone) return { tel: telefone, pct: Number(m.pct) || 0, pitch: m.pitch === true };
+    } catch { /* sem sessionStorage: vale só a memória desta página */ }
+    return { tel: telefone, pct: 0, pitch: false };
+  };
+  let marca = ler();
+  const gravar = () => { try { window.sessionStorage.setItem(chave, JSON.stringify(marca)); } catch { /* idem */ } };
+
+  let config: ConfigEnvioVsl | null = null;
+  fetch(`${ROTA_ENVIO_VSL}?slug=${encodeURIComponent(funnelSlug)}&player=${playerId}`, { credentials: "same-origin" })
+    .then(r => (r.ok ? r.json() : SEM_ENVIO))
+    .then((c: ConfigEnvioVsl) => { config = c && typeof c === "object" ? c : SEM_ENVIO; })
+    .catch(() => { config = SEM_ENVIO; });
+
+  const enviar = (evento: EventoVsl, extra: Record<string, string>) => {
+    const body = new URLSearchParams({
+      event: evento, funnel_slug: funnelSlug, video_id: playerId, telefone,
+      ...(nome ? { nome } : {}), ...(produto ? { product_id: produto } : {}),
+      ...extra, event_id: window.crypto.randomUUID(),
+    });
+    try {
+      return fetch(ROTA_ENVIO_VSL, {
+        method: "POST", body, keepalive: true, credentials: "same-origin", referrerPolicy: "same-origin",
+      }).then(r => r.ok).catch(() => false);
+    } catch { return Promise.resolve(false); }
+  };
+
+  let pitchEmCurso = false;
+  let ultimaTentativaPitch = 0;
+  let faixaPendente = 0;
+  let espera: ReturnType<typeof setTimeout> | null = null;
+
+  return {
+    observe(t: number, d: number) {
+      const c = config;
+      if (!c) return;
+      if (c.pitch && !marca.pitch && !pitchEmCurso && chegouNoPitch(t, c.pitch_time) && Date.now() - ultimaTentativaPitch > 10_000) {
+        pitchEmCurso = true;
+        ultimaTentativaPitch = Date.now();
+        void enviar("vsl_pitch_reached", { t: String(Math.round(t)) }).then(ok => {
+          pitchEmCurso = false;
+          if (ok) { marca = { ...ler(), pitch: true }; gravar(); }
+        });
+      }
+      if (c.progress) {
+        const faixa = faixaAssistida(t, d);
+        if (faixa >= 10 && faixa > marca.pct && faixa > faixaPendente) {
+          faixaPendente = faixa;
+          // junta avanços rápidos (arrastar o vídeo) num envio só
+          if (espera) clearTimeout(espera);
+          espera = setTimeout(() => {
+            espera = null;
+            const alvo = faixaPendente;
+            if (alvo <= ler().pct) return;
+            marca = { ...ler(), pct: alvo };
+            gravar();
+            void enviar("vsl_progress", { vsl_watch_pct: String(alvo) });
+          }, 1500);
+        }
+      }
+    },
+    dispose() { if (espera) clearTimeout(espera); },
+  };
+}
+
 export function attachVslWatch(opts: { funnelSlug: string; html?: string | null; disabled?: boolean }): () => void {
   const playerId = opts.disabled ? null : extractPlayerId(opts.html);
   if (!playerId || typeof window === "undefined") return () => {};
+  const envio = criarEnvioVsl(opts.funnelSlug, playerId);
 
   const session_id = `${getSessionId()}::${opts.funnelSlug}`;
   let maxT = 0;
@@ -118,6 +208,7 @@ export function attachVslWatch(opts: { funnelSlug: string; html?: string | null;
       const d = duracaoDoPlayer(player);
       if (d > 0) dur = d;
       if (t > maxT) { maxT = t; send(false); }
+      envio?.observe(maxT, dur);
     });
   };
 
@@ -130,6 +221,7 @@ export function attachVslWatch(opts: { funnelSlug: string; html?: string | null;
     if (poll) clearTimeout(poll);
     document.removeEventListener("visibilitychange", onVis);
     window.removeEventListener("pagehide", flush);
+    envio?.dispose();
     flush();
   };
 }

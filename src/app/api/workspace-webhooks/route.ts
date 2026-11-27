@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       name: typeof name === "string" ? name : undefined,
       enabled: typeof enabled === "boolean" ? enabled : undefined,
       method: method === "GET" || method === "POST" ? method : undefined,
-      trigger_event: trigger_event === "lead_capture" || trigger_event === "click_component" || trigger_event === "vsl_progress" ? trigger_event : undefined,
+      trigger_event: trigger_event === "lead_capture" || trigger_event === "click_component" || trigger_event === "vsl_progress" || trigger_event === "vsl_pitch" ? trigger_event : undefined,
       component_id: typeof component_id === "string" ? component_id : undefined,
     }];
   });

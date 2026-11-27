@@ -113,9 +113,21 @@ export const resolvePublicFunnel = cache(async (slug:string):Promise<Funnel|null
     const {data,error}=await createAdminClient().from('funnels').select('status').eq('slug',slug).maybeSingle();
     if(error)return null;
     if(data && data.status!=='published')return null;
-    return resolveFunnel(slug);
+    return semWebhooks(await resolveFunnel(slug));
   } catch { return null; }
 });
+
+/**
+ * A página pública vai inteira para o navegador: endereço e token dos
+ * webhooks não podem ir junto (27/11/2026: o HTML do funil mostrava o endereço
+ * do DataCrazy). Quem dispara webhook lê do banco no servidor.
+ */
+function semWebhooks(funnel: Funnel | null): Funnel | null {
+  if (!funnel) return null;
+  const { webhooks: _webhooks, ...resto } = funnel;
+  void _webhooks;
+  return resto;
+}
 
 /** Carrega o funil cujo DOMÍNIO próprio bate com o host (multi-domínio). */
 export async function resolveFunnelByDomain(host: string): Promise<Funnel | null> {
@@ -132,7 +144,7 @@ export async function resolveFunnelByDomain(host: string): Promise<Funnel | null
       .limit(1)
       .maybeSingle();
     if (isMissingColumn(error)) return null; // sem coluna domain → migração 0010 não rodou
-    if (data) return rowToFunnel(data as unknown as FunnelRow);
+    if (data) return semWebhooks(rowToFunnel(data as unknown as FunnelRow));
   } catch {
     /* sem dados */
   }
