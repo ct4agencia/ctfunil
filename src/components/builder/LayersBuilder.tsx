@@ -24,6 +24,10 @@ import { cloneStageWithRules } from "@/lib/quiz/layers/component-settings";
 import ViewCurrentPage from "./ViewCurrentPage";
 import { funnelUrlDominio, funnelUrlPadrao, funnelUrlPrevia } from "@/lib/quiz/public-url";
 import PublicarFunilDialog from "./PublicarFunilDialog";
+import { PainelEtapa } from "./painel/PainelEtapa";
+import { PopupVitoria } from "./painel/PopupVitoria";
+import { PopupDaVitoriaContext } from "./painel/contexto";
+import { textoPuro } from "./painel/modelo";
 import { FAIXA_LIMITES, FAIXA_PADRAO, faixaConfig } from "@/lib/quiz/layers/faixa";
 import LayersRunner from "@/components/quiz/layers/LayersRunner";
 import CanvasErrorBoundary from "@/components/builder/CanvasErrorBoundary";
@@ -32,7 +36,7 @@ import PerformanceView from "@/components/dashboard/PerformanceView";
 import FunnelDesignPanel from "./FunnelDesignPanel";
 import CatalogFields from './CatalogFields';
 import { catalogLayer, NEW_COMPONENTS } from '@/lib/quiz/layers/catalog';
-import { ComponentAppearance, ComponentDisplay, StageAppearance } from "./ComponentSettings";
+import { ComponentAppearance, ComponentDisplay } from "./ComponentSettings";
 import DevicePreview, { getDevice, DEFAULT_DEVICE, type Zoom } from "@/components/builder/DevicePreview";
 import { StepTemplatePicker, type StepTemplate } from "./StepTemplates";
 import { Copy, Ellipsis, Eye, FilePlus2, Trash2, X } from "lucide-react";
@@ -113,10 +117,6 @@ function rotuloDoTipo(t: string): string {
 const HERO_DO_TIPADO = new Set(["scratch", "measure", "gauge", "vsl", "confirm", "roulette", "slider"]);
 /** Todo hero editável passa pelo StepEditor. Não há mais lista paralela. */
 const HERO_EDITAVEL = HERO_DO_TIPADO;
-const ROTULO_HERO: Record<string, string> = {
-  scratch: "Raspadinha", measure: "Pedida (régua)", gauge: "Medidor",
-  vsl: "VSL", confirm: "Parabéns",
-};
 const BLOCK_ICONS: Record<string, LucideIcon> = {
   field: AlignLeft, email: Mail, phone: Phone, button: MousePointer2, number: Hash, textarea: FileText, date: Calendar, height: Ruler, weight: Gauge,
   options: ListFilter, multi: ListChecks, single: CircleDot, yesno: GitBranch, videoanswer: Play, text: Heading, image: ImageIcon, video: Play, audio: Volume2,
@@ -1707,6 +1707,10 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
   const stageRemoveButton = useRef<HTMLButtonElement>(null);
   const actionIndex = steps.findIndex(s => s.id === actionStepId);
   const [selLayer, setSelLayer] = useState<string | null>(null);
+  /** Roleta cujo "Popup da vitória" está aberto no painel (null = nenhuma). */
+  const [popupDe, setPopupDe] = useState<string | null>(null);
+  // Escolher outro bloco (ou trocar de lâmina) fecha o popup; voltar à roleta abre o editor dela.
+  if (popupDe && popupDe !== selLayer) setPopupDe(null);
   const [saving, setSaving] = useState(false);
   const [notices, setNotices] = useState<ReturnType<typeof recordWorkspaceNotice>[]>([]);
   function notify(message: string, error = false) {
@@ -1888,6 +1892,7 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
   };
 
   const sel = layers.find((l) => l.id === selLayer);
+  const popupAberto = !!sel && sel.type === "roulette" && popupDe === sel.id;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -2257,235 +2262,139 @@ export default function LayersBuilder({ initial, initialStepId, localDraft, init
 
         {/* 4 · PAINEL direito (Componente/Aparência/Exibição OU Etapa) */}
         <aside data-panel="properties" data-visible={compactPanel === "properties"} className="ct-controls overflow-y-auto border-l border-neutral-200 bg-white">
-            <div className="space-y-3 p-4">
-              <h2 ref={propertiesHeading} tabIndex={-1} className="text-sm font-bold text-neutral-700">Etapa</h2>
-              {/* LISTA DE BLOCOS — o caminho de edição quando a lâmina tem tela
-                  própria. Nessas, o celular desenha a tela pronta (para bater
-                  com o site) e não há bloco solto para clicar; sem esta lista,
-                  o conteúdo ficaria visível e inalcançável. */}
-              {(step?.layers || []).length ? (
-                <div className="rounded-xl border border-neutral-200 p-3">
-                  <p className="mb-2 text-sm font-bold text-neutral-700">Blocos desta lâmina</p>
-                  <div className="space-y-1">
-                    {/* Arrastar pelo punho ⠿, igual ao canvas — reaproveita o
-                        `SortableItem` e o `onReorder` que já movem blocos lá,
-                        então a lista e o preview reordenam pelo mesmo caminho. */}
-                    {/* `id` explícito: a página tem outro DndContext (o das
-                        etapas, "ll-steps"). Sem id, o dnd-kit gera um por
-                        contagem de montagem, os dois podem colidir e o arraste
-                        de um vira inerte. */}
-                    <DndContext
-                      id="ll-blocos" sensors={sensors} collisionDetection={closestCenter}
-                      onDragEnd={(e) => {
-                        const { active, over } = e;
-                        if (over && active.id !== over.id) onReorder(String(active.id), String(over.id));
-                      }}
-                    >
-                      <SortableContext items={(step?.layers || []).map((l) => l.id)} strategy={verticalListSortingStrategy}>
-                        {(step?.layers || []).map((l) => {
-                          const resumo = String(l.content?.label || l.content?.text || l.content?.title || "")
-                            .replace(/<(style|script)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
-                          const ativo = selLayer === l.id;
-                          const oculto = !!l.design?.hidden;
-                          return (
-                            <SortableItem key={l.id} id={l.id} onMove={delta => {
-                              const index = layers.findIndex(layer => layer.id === l.id);
-                              const target = layers[index + delta];
-                              if (target) onReorder(l.id, target.id);
-                            }}>
-                              {(handle) => (
-                                <div
-                                  className={`flex items-center gap-1 rounded-lg px-1.5 py-1 transition ${
-                                    ativo ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
-                                >
-                                  {handle}
-                                  <button onClick={() => setSelLayer(l.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left text-xs">
-                                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                                      ativo ? "bg-white/20" : "bg-neutral-200 text-neutral-500"}`}>
-                                      {l.title || rotuloDoTipo(l.type)}
-                                    </span>
-                                    <span className={`truncate ${oculto ? "line-through opacity-50" : ""}`}>{resumo || l.id}</span>
-                                  </button>
-                                  <span className={`flex shrink-0 items-center ${ativo ? "text-white/70" : "text-neutral-400"}`}>
-                                    {([
-                                      ["⧉", "Duplicar", () => onAction(l.id, "copy")],
-                                      [oculto ? "◻" : "◼", oculto ? "Mostrar" : "Ocultar", () => onAction(l.id, "hide")],
-                                      ["✕", "Excluir", () => onAction(l.id, "delete")],
-                                    ] as [string, string, () => void][]).map(([icone, titulo, acao]) => (
-                                      <button
-                                        key={titulo} title={titulo} aria-label={`${titulo} ${l.title || rotuloDoTipo(l.type)}`}
-                                        onClick={(e) => { e.stopPropagation(); acao(); }}
-                                        className={`grid h-5 w-5 place-items-center rounded text-[11px] leading-none transition ${
-                                          ativo ? "hover:bg-white/20" : "hover:bg-neutral-200 hover:text-neutral-900"}`}
-                                      >{icone}</button>
-                                    ))}
-                                  </span>
-                                </div>
-                              )}
-                            </SortableItem>
-                          );
-                        })}
-                      </SortableContext>
-                    </DndContext>
-                  </div>
+          {/* PAINEL DIREITO no padrão aprovado pelo Luca em 26/11 (vista C, no
+              jeito do Inlead). Nada selecionado: a ETAPA, com Fundo, Títulos e
+              Textos minimizados e os elementos da lâmina. Um bloco selecionado:
+              só o painel dele, com a trilha para voltar à etapa. A roleta tem o
+              "Popup da vitória" como componente próprio. */}
+          <PopupDaVitoriaContext.Provider value={sel?.type === "roulette" ? { abrir: () => setPopupDe(sel.id) } : null}>
+          {sel ? (
+            <div>
+              <nav aria-label="Onde você está" className="flex flex-wrap items-center gap-1.5 border-b border-neutral-200 px-4 py-2.5">
+                <button type="button" onClick={() => setSelLayer(null)}
+                  className="flex min-h-8 items-center gap-1 rounded-md px-1.5 text-xs font-semibold text-ct-ink ring-1 ring-ct-line hover:bg-neutral-50">
+                  <span aria-hidden="true">‹</span> Etapa · Lâmina {selStep + 1}
+                </button>
+                <span aria-hidden="true" className="text-xs text-neutral-400">›</span>
+                {popupAberto ? (
+                  <>
+                    <button type="button" onClick={() => setPopupDe(null)}
+                      className="flex min-h-8 items-center rounded-md px-1.5 text-xs font-semibold text-ct-ink ring-1 ring-ct-line hover:bg-neutral-50">{sel.title || rotuloDoTipo(sel.type)}</button>
+                    <span aria-hidden="true" className="text-xs text-neutral-400">›</span>
+                    <h2 ref={propertiesHeading} tabIndex={-1} aria-current="page" className="text-xs font-bold text-neutral-700">Popup da vitória</h2>
+                  </>
+                ) : (
+                  <h2 ref={propertiesHeading} tabIndex={-1} aria-current="page" className="text-xs font-bold text-neutral-700">{sel.title || rotuloDoTipo(sel.type)}</h2>
+                )}
+              </nav>
+              {popupAberto ? (
+                <PopupVitoria key={sel.id} layer={sel} onChange={(nl) => updateLayer(sel.id, nl)} ultimaEtapa={selStep === steps.length - 1} />
+              ) : (
+                <div className="space-y-3 p-4">
+                  <RightPanel key={sel.id} layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} conteudo={HERO_EDITAVEL.has(sel.type) ? <StepEditor step={{...sel.content,type:sel.type} as unknown as import('@/lib/quiz/types').Step} onChange={patch => updateLayer(sel.id,{...sel,content:{...sel.content,...(patch as Record<string, unknown>)}})} ultimaEtapa={selStep === steps.length - 1} /> : undefined} />
                 </div>
-              ) : null}
-              <label className="flex cursor-pointer items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-sm">
-                <span className="font-semibold text-neutral-700">{step?.disabled ? "Lâmina desativada" : "Lâmina ativa"}</span>
-                <input type="checkbox" checked={!step?.disabled} onChange={(e) => patchStep(selStep, { disabled: !e.target.checked })} className="h-4 w-4 accent-green-600" />
-              </label>
-              {step?.disabled ? <p className="-mt-1 text-[11px] text-amber-600">Esta lâmina é PULADA no funil publicado (continua aqui pra reativar).</p> : null}
-              {sel ? <RightPanel key={sel.id} layer={sel} steps={steps} onChange={(nl) => updateLayer(sel.id, nl)} conteudo={HERO_EDITAVEL.has(sel.type) ? <StepEditor step={{...sel.content,type:sel.type} as unknown as import('@/lib/quiz/types').Step} onChange={patch => updateLayer(sel.id,{...sel,content:{...sel.content,...(patch as Record<string, unknown>)}})} ultimaEtapa={selStep === steps.length - 1} /> : undefined} /> : <>
-              <div><Lbl>Título</Lbl><input aria-label="Nome da etapa" value={step?.title || ""} onChange={(e) => patchStep(selStep, { title: e.target.value })} className={inp} /></div>
-
-              {/* `key` obrigatório: este painel NÃO remonta ao trocar de lâmina
-                  (diferente do RightPanel, que tem key={sel.id}), então sem ele
-                  o campo continuaria mostrando o ID da lâmina anterior. */}
-              <CampoId
-                key={selStep}
-                valor={step?.webhookKey}
-                aoSalvar={(v) => patchStep(selStep, { webhookKey: v })}
-                automatico={step?.id || ""}
-                ajuda="Identifica esta etapa nos dados do funil."
-              />
-
-              {step && <StageAppearance step={step} onChange={design => patchStep(selStep, { design })} />}
-              {/* Imagem de fundo da lâmina (estilo inlead: ajuste + posição + opacidade) */}
-              {(() => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const sd: any = step?.design || {};
-                const patchDesign = (p: Record<string, unknown>) => patchStep(selStep, { design: { ...sd, ...p } });
-                const src = sd.backgroundImage?.src || "";
-                return (
-                  <div className="rounded-xl border border-neutral-200 p-3">
-                    <Lbl>Imagem de fundo</Lbl>
-                    <ImageField value={src} onChange={(v) => patchDesign({ backgroundImage: v ? { type: "image", src: v } : undefined })} />
-                    {src ? (
-                      <>
-                        <div className="mt-2 grid grid-cols-3 gap-2">
-                          <div>
-                            <Lbl>Ajuste</Lbl>
-                            <WorkspaceSelect label="Ajuste da imagem" value={sd.backgroundSize||'cover'} onChange={value=>patchDesign({backgroundSize:value})} options={[["cover","Tela inteira"],["auto","Original"],["contain","Adequar"],["fill","Esticar"]].map(([value,label])=>({value,label}))}/>
-                          </div>
-                          <div>
-                            <Lbl>Posição</Lbl>
-                            <WorkspaceSelect label="Posição da imagem" value={sd.backgroundPosition||'center'} onChange={value=>patchDesign({backgroundPosition:value})} options={[["center","Centro"],["top","Topo"],["bottom","Base"],["left","Esquerda"],["right","Direita"]].map(([value,label])=>({value,label}))}/>
-                          </div>
-                          <div>
-                            <Lbl>Opacidade</Lbl>
-                            <WorkspaceSelect label="Opacidade da imagem" value={String(sd.backgroundOpacity??100)} onChange={value=>patchDesign({backgroundOpacity:Number(value)})} options={[100,90,75,50,35,25,15,10].map(value=>({value:String(value),label:`${value}%`}))}/>
-                          </div>
-                        </div>
-                        <button onClick={() => patchDesign({ backgroundImage: undefined })} className="mt-2 text-xs font-semibold text-red-500 hover:text-red-700">Remover fundo</button>
-                      </>
-                    ) : null}
-                  </div>
-                );
-              })()}
-              {/* Editor dedicado de slider/roleta (hero especial — não tem blocos clicáveis) */}
-              {(() => {
-                const special = (step?.layers || []).find((l) => HERO_EDITAVEL.has(l.type));
-                if (!special) return null;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const sc: any = special.content || {};
-                const patchSpecial = (patch: Record<string, unknown>) => patchStep(selStep, { layers: (step!.layers || []).map((l) => l.id === special.id ? { ...l, content: { ...l.content, ...patch } } : l) });
-
-                // Blocos-hero herdados do motor tipado: reaproveitam o MESMO
-                // StepEditor de lá, que já edita raspadinha/pedida/medidor/VSL/
-                // parabéns campo a campo. Duplicar essa UI aqui seria manter dois
-                // editores do mesmo bloco — e um deles ficaria para trás.
-                if (HERO_DO_TIPADO.has(special.type)) {
-                  // O hero passa pelas MESMAS três abas dos outros blocos.
-                  // Antes o StepEditor entrava solto aqui, fora do RightPanel —
-                  // então os blocos-hero eram os únicos sem Aparência (largura,
-                  // alinhamento, opacidade) e sem Exibição (revelar após N
-                  // segundos, ocultar). Era o que faltava no slider.
-                  const trocaLayer = (l: Layer) =>
-                    patchStep(selStep, { layers: (step!.layers || []).map((x) => (x.id === special.id ? l : x)) });
-                  return (
-                    <div className="rounded-xl border border-ct-line bg-ct-raised">
-                      <p className="px-3 pt-3 text-sm font-bold text-neutral-700">
-                        <BlockIcon type={special.type}/> {ROTULO_HERO[special.type] || special.type} <span className="font-normal text-neutral-400">(ocupa a lâmina inteira)</span>
-                      </p>
-                      <RightPanel
-                        layer={special}
-                        steps={steps}
-                        onChange={trocaLayer}
-                        conteudo={
-                          <StepEditor
-                            step={sc}
-                            onChange={(patch) => patchSpecial(patch as Record<string, unknown>)}
-                            ultimaEtapa={selStep === steps.length - 1}
-                          />
-                        }
-                      />
-                    </div>
-                  );
-                }
-                // Aqui viviam DOIS editores paralelos — roleta e slider — hoje
-                // removidos. Os dois cobriam menos que o StepEditor: o da roleta
-                // não conhecia tipo, movimento, popup nem som; o do slider não
-                // tinha valor padrão, sufixo, escala nem botão. Todo hero passa
-                // pelo StepEditor agora, então este ramo é inalcançável.
-                return null;
-              })()}
-              {/* Header POR LÂMINA: cada toggle herda do global (Design) até você mexer */}
-              {(() => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const g = (((funnel.settings as any)?.header) || {}) as Record<string, boolean | undefined>;
-                const ov = (step?.headerOverride || {}) as Record<string, boolean | undefined>;
-                const keys = ["show_logo", "show_progress", "show_back", "go_to_top", "show_scroll_hint"] as const;
-                // A setinha é a ÚNICA que nasce LIGADA — daí o `!== false` em vez
-                // do `|| false` das outras. Sem essa distinção ela apareceria
-                // desmarcada em todo funil que nunca a tocou.
-                const eff = (k: string) => k === "show_scroll_hint"
-                  ? (ov[k] !== undefined ? !!ov[k] : g[k] !== false)
-                  : ((ov[k] !== undefined ? ov[k] : g[k]) || false);
-                const setOv = (k: string, v: boolean) => patchStep(selStep, { headerOverride: { ...ov, [k]: v } });
-                const touched = keys.some((k) => ov[k] !== undefined);
-                const reset = () => { const n = { ...ov }; keys.forEach((k) => delete n[k]); patchStep(selStep, { headerOverride: n }); };
-                const ROWS: [string, string][] = [["show_logo", "Mostrar logo"], ["show_progress", "Mostrar progresso"], ["show_back", "Mostrar botão voltar"], ["go_to_top", 'Ativar botão "Ir ao topo"'], ["show_scroll_hint", "Setinha “role para baixo”"]];
-                return (
-                  <div className="rounded-xl border border-neutral-200 p-3">
-                    <div className="mb-1 flex items-center justify-between">
-                      <p className="text-sm font-bold text-neutral-700">Header</p>
-                      {touched ? <button onClick={reset} className="text-[11px] font-semibold text-neutral-400 hover:text-neutral-700">↺ herdar do global</button> : null}
-                    </div>
-                    {ROWS.map(([k, label]) => (
-                      <label key={k} className="flex cursor-pointer items-center justify-between py-1.5 text-sm">
-                        <span className="text-neutral-600">{label}{ov[k] === undefined ? <span className="ml-1.5 text-[10px] text-neutral-400">global</span> : null}</span>
-                        <input type="checkbox" checked={eff(k)} onChange={(e) => setOv(k, e.target.checked)} className="h-4 w-4 accent-neutral-900" />
-                      </label>
-                    ))}
-                    <p className="mt-1 text-[11px] text-neutral-400">Personalize esta etapa ou restaure o padrão do funil.</p>
-                  </div>
-                );
-              })()}
-              {/* Só o FUNDO fica aqui: ele é da lâmina inteira, não de um bloco.
-                  A barra de vagas virou bloco Alerta (estilo "Barra de vagas")
-                  e a cor do checkout saiu para o próprio botão — antes as duas
-                  decisões viviam em dois painéis, e mudar num não refletia no
-                  outro. */}
-              {(step as { tela?: string })?.tela === "vsl" ? (
-                <div className="rounded-xl border border-neutral-200 p-3">
-                  <p className="mb-1 text-sm font-bold text-neutral-700">Fundo da lâmina (VSL)</p>
-                  <input
-                    value={(step as { fundo?: string })?.fundo || ""}
-                    onChange={(e) => patchStep(selStep, { fundo: e.target.value } as Partial<InleadStep>)}
-                    placeholder="URL de imagem, cor (#0b2033) ou gradiente CSS"
-                    className={inp}
-                  />
-                  <p className="mt-1.5 text-[11px] text-neutral-400">
-                    Vazio deriva da <b>Cor do tema</b>: trocar o tema repinta o fundo junto.
-                  </p>
-                  <p className="mt-2 text-[11px] text-neutral-400">
-                    A <b>barra de vagas</b> é um bloco Alerta com estilo “Barra de vagas”. A <b>cor do checkout</b> está no próprio botão.
-                  </p>
-                </div>
-              ) : null}
-              <p className="text-xs text-neutral-400">Selecione um bloco para editar.</p>
-              </>}
+              )}
             </div>
+          ) : step ? (
+            <>
+              <h2 ref={propertiesHeading} tabIndex={-1} className="px-4 pt-3 text-sm font-bold text-neutral-700">Etapa · Lâmina {selStep + 1}</h2>
+              <PainelEtapa
+                key={step.id}
+                step={step}
+                funnel={funnel}
+                indice={selStep}
+                onPatch={(patch) => patchStep(selStep, patch)}
+                campoId={
+                  /* `key`: o campo guarda o texto digitado; sem ela, mostraria o ID da lâmina anterior */
+                  <CampoId key={selStep} valor={step.webhookKey} aoSalvar={(v) => patchStep(selStep, { webhookKey: v })}
+                    automatico={step.id || ""} ajuda="Identifica esta etapa nos dados do funil." />
+                }
+                fundoVsl={(step as { tela?: string }).tela === "vsl" ? {
+                  valor: (step as { fundo?: string }).fundo,
+                  campo: (
+                    <>
+                      <input
+                        aria-label="Fundo da lâmina (VSL)"
+                        value={(step as { fundo?: string }).fundo || ""}
+                        onChange={(e) => patchStep(selStep, { fundo: e.target.value || undefined } as Partial<InleadStep>)}
+                        placeholder="URL de imagem (https://…), cor (#0b2033) ou gradiente CSS"
+                        className={inp}
+                      />
+                      <p className="text-[11px] text-neutral-500">Vazio deriva da <b>Cor do tema</b>: trocar o tema repinta o fundo junto.</p>
+                      <p className="text-[11px] text-neutral-500">A <b>barra de vagas</b> é um bloco Alerta com estilo “Barra de vagas”. A <b>cor do checkout</b> está no próprio botão.</p>
+                    </>
+                  ),
+                } : undefined}
+                elementos={(step.layers || []).length ? (
+          <DndContext
+            id="ll-blocos" sensors={sensors} collisionDetection={closestCenter}
+            onDragEnd={(e) => {
+              const { active, over } = e;
+              if (over && active.id !== over.id) onReorder(String(active.id), String(over.id));
+            }}
+          >
+            <SortableContext items={(step?.layers || []).map((l) => l.id)} strategy={verticalListSortingStrategy}>
+              {(step?.layers || []).map((l) => {
+                const resumo = String(l.content?.label || l.content?.text || l.content?.title || "")
+                  .replace(/<(style|script)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+                const ativo = selLayer === l.id;
+                const oculto = !!l.design?.hidden;
+                return (
+                  <SortableItem key={l.id} id={l.id} onMove={delta => {
+                    const index = layers.findIndex(layer => layer.id === l.id);
+                    const target = layers[index + delta];
+                    if (target) onReorder(l.id, target.id);
+                  }}>
+                    {(handle) => (
+                      <div>
+                      <div
+                        className={`flex items-center gap-1 rounded-lg px-1.5 py-1 transition ${
+                          ativo ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
+                      >
+                        {handle}
+                        <button onClick={() => setSelLayer(l.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left text-xs">
+                          <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                            ativo ? "bg-white/20" : "bg-neutral-200 text-neutral-500"}`}>
+                            {l.title || rotuloDoTipo(l.type)}
+                          </span>
+                          <span className={`truncate ${oculto ? "line-through opacity-50" : ""}`}>{resumo || l.id}</span>
+                        </button>
+                        <span className={`flex shrink-0 items-center ${ativo ? "text-white/70" : "text-neutral-400"}`}>
+                          {([
+                            ["⧉", "Duplicar", () => onAction(l.id, "copy")],
+                            [oculto ? "◻" : "◼", oculto ? "Mostrar" : "Ocultar", () => onAction(l.id, "hide")],
+                            ["✕", "Excluir", () => onAction(l.id, "delete")],
+                          ] as [string, string, () => void][]).map(([icone, titulo, acao]) => (
+                            <button
+                              key={titulo} title={titulo} aria-label={`${titulo} ${l.title || rotuloDoTipo(l.type)}`}
+                              onClick={(e) => { e.stopPropagation(); acao(); }}
+                              className={`grid h-7 w-7 place-items-center rounded text-[11px] leading-none transition ${
+                                ativo ? "hover:bg-white/20" : "hover:bg-neutral-200 hover:text-neutral-900"}`}
+                            >{icone}</button>
+                          ))}
+                        </span>
+                      </div>
+                      {/* O popup da vitória é um componente da roleta: fica logo abaixo dela. */}
+                      {l.type === "roulette" ? (
+                        <button type="button" onClick={() => { setSelLayer(l.id); setPopupDe(l.id); }}
+                          className="ml-7 mt-0.5 flex min-h-8 w-[calc(100%-1.75rem)] items-center gap-2 rounded-lg px-1.5 text-left text-xs text-neutral-600 hover:bg-neutral-100">
+                          <span aria-hidden="true" className="text-neutral-400">↳</span>
+                          <span className="shrink-0 rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500">Popup da vitória</span>
+                          <span className="truncate">{(l.content?.popupEnabled ? "ligado" : "desligado") + " · " + (textoPuro(l.content?.winTitle) || "Parabéns!")}</span>
+                        </button>
+                      ) : null}
+                      </div>
+                    )}
+                  </SortableItem>
+                );
+              })}
+            </SortableContext>
+          </DndContext>
+                ) : <p className="text-xs text-neutral-500">Esta etapa ainda não tem elementos. Arraste um bloco da coluna Blocos para o celular.</p>}
+              />
+            </>
+          ) : null}
+          </PopupDaVitoriaContext.Provider>
         </aside>
       </div>
       </>

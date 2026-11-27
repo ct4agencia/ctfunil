@@ -252,28 +252,42 @@ export function AudioField({ value, onChange, rotulo }: { value?: string; onChan
   );
 }
 
+/**
+ * Imagem só por anexo (pedido do Luca, 26/11): sem campo de URL, aceitando
+ * qualquer imagem. PNG e JPEG viram WebP; SVG entra como está; um formato que o
+ * navegador não abre (HEIC, por exemplo) ganha um aviso antes de subir.
+ */
 export function ImageField({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
   const localDraft = useContext(LocalDraftContext);
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const embedded = localDraft && value?.startsWith("data:image/");
-  const accept = localDraft ? "image/png,image/jpeg,image/webp,image/gif" : "image/*";
+  const accept = "image/*";
+  /** o navegador consegue desenhar este arquivo? (SVG não passa pelo createImageBitmap) */
+  const legivel = async (arquivo: File) => {
+    if (arquivo.type === "image/svg+xml") return true;
+    const bitmap = await createImageBitmap(arquivo).catch(() => null);
+    bitmap?.close();
+    return !!bitmap;
+  };
+  const avisoFormato = "Este navegador não consegue abrir esse formato. Salve a imagem como JPG ou PNG e tente de novo.";
   const up = async (file: File) => {
     setBusy(true);
     setErro(null);
     try {
+      if (!file.type.startsWith("image/")) {
+        setErro("Escolha um arquivo de imagem.");
+        return;
+      }
       if (localDraft) {
-        if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)) {
-          setErro("Escolha uma imagem PNG, JPEG, WebP ou GIF.");
-          return;
-        }
         const image = await paraWebp(file);
         if (image.size > 1024 * 1024) {
           setErro("A imagem do rascunho precisa ter até 1 MB após a otimização.");
           return;
         }
-        const bitmap = await createImageBitmap(image);
-        bitmap.close();
+        if (!(await legivel(image))) {
+          setErro(avisoFormato);
+          return;
+        }
         const src = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject();
@@ -281,6 +295,10 @@ export function ImageField({ value, onChange }: { value?: string; onChange: (v: 
           reader.readAsDataURL(image);
         });
         onChange(src);
+        return;
+      }
+      if (!(await legivel(file))) {
+        setErro(avisoFormato);
         return;
       }
       const fd = new FormData(); fd.append("file", await paraWebp(file));
@@ -298,19 +316,17 @@ export function ImageField({ value, onChange }: { value?: string; onChange: (v: 
   };
   return (
     <div className="space-y-1.5">
-      <input aria-label="URL da imagem" disabled={busy} value={embedded ? "" : value || ""} onChange={(e) => onChange(e.target.value)}
-        placeholder={embedded ? "Imagem local selecionada" : "https://…/imagem.jpg"} className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-xs" />
       <div className="flex flex-wrap items-center gap-2">
         <label className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ct-blue">
-          {busy ? (localDraft ? "Lendo imagem…" : "Enviando…") : localDraft ? "Escolher imagem local" : "⬆ Upload"}
+          {busy ? (localDraft ? "Lendo imagem…" : "Enviando…") : value ? "Trocar imagem" : "Anexar imagem"}
           <input type="file" accept={accept} disabled={busy} className="sr-only" onChange={(e) => {
             const file = e.target.files?.[0];
             e.target.value = "";
             if (file) void up(file);
           }} />
         </label>
-        {embedded && <button type="button" disabled={busy} onClick={() => { setErro(null); onChange(""); }}
-          className="text-xs text-ct-blue underline">Remover imagem local</button>}
+        {value ? <button type="button" disabled={busy} onClick={() => { setErro(null); onChange(""); }}
+          className="text-xs text-ct-blue underline">Remover imagem</button> : null}
       </div>
       {erro ? <p role="alert" className="rounded-md bg-red-50 px-2 py-1 text-[11px] leading-snug text-red-700">{erro}</p> : null}
       {value ? (

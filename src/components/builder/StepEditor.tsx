@@ -26,6 +26,8 @@ import { clampRedirectSeconds, ROULETTE_REDIRECT_SECONDS_DEFAULT, ROULETTE_REDIR
 // Seletor único do painel. Substitui os <input type="color"> nativos, que aqui
 // apareciam em 4 tamanhos diferentes de swatch e sem campo hex.
 import ColorField from "@/components/ui/ColorField";
+// Popup da vitória como componente próprio (painel/PopupVitoria.tsx): sem o provedor, nada muda aqui.
+import { PopupDaVitoriaContext } from "./painel/contexto";
 
 /**
  * Grade de 2 colunas. DEFINIDA NO MÓDULO (fora do componente) de propósito:
@@ -98,7 +100,7 @@ function BgField({ value, onChange, onImagem }: { value?: string; onChange: (v: 
    descreve a mesma coisa por negação e não mostra o resultado. Aqui a lista É a
    ordem que a tela percorre — o que se vê arrastando é o que o visitante vê. */
 
-type PecaPopup = "imagem" | "texto";
+export type PecaPopup = "imagem" | "texto";
 const NOME_PECA: Record<PecaPopup, string> = { imagem: "🖼 Imagem", texto: "📝 Título e texto" };
 
 function PecaArrastavel({ id }: { id: PecaPopup }) {
@@ -119,7 +121,7 @@ function PecaArrastavel({ id }: { id: PecaPopup }) {
   );
 }
 
-function OrdemPopup({ ordem, onChange }: { ordem: PecaPopup[]; onChange: (v: PecaPopup[]) => void }) {
+export function OrdemPopup({ ordem, onChange }: { ordem: PecaPopup[]; onChange: (v: PecaPopup[]) => void }) {
   // 6px antes de arrastar: sem isso o clique no punho já contaria como arraste
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const fim = (e: DragEndEvent) => {
@@ -148,15 +150,15 @@ function OrdemPopup({ ordem, onChange }: { ordem: PecaPopup[]; onChange: (v: Pec
    do render, cada tecla remontaria os campos e o foco se perderia. */
 const PESOS_POPUP = [{ value: "", label: "Padrão" }, ...[400, 500, 600, 700, 800, 900].map(peso => ({ value: String(peso), label: String(peso) }))];
 const FONTES_POPUP = [{ value: "", label: "Padrão do funil" }, ...FUNNEL_FONTS.map(fonte => ({ value: fonte, label: fonte }))];
-const ENTRADAS_POPUP: { value: NonNullable<RouletteStep["popupEntrada"]>; label: string }[] = [
+export const ENTRADAS_POPUP: { value: NonNullable<RouletteStep["popupEntrada"]>; label: string }[] = [
   { value: "mola", label: "Mola (padrão)" }, { value: "fade", label: "Aparecer" }, { value: "zoom", label: "Zoom" },
   { value: "subir", label: "Subir" }, { value: "nenhuma", label: "Sem animação" },
 ];
-const CartaoPremio = dynamic(() => import("@/components/quiz/steps").then(m => m.CartaoPremio), { ssr: false });
+export const CartaoPremio = dynamic(() => import("@/components/quiz/steps").then(m => m.CartaoPremio), { ssr: false });
 const campoNumero = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm";
 
 /** Texto, link e mensagem do WhatsApp do botão do resultado (popup ou lâmina). */
-function BotaoResultadoFields({ s, p }: { s: RouletteStep; p: (patch: Partial<RouletteStep>) => void }) {
+export function BotaoResultadoFields({ s, p }: { s: RouletteStep; p: (patch: Partial<RouletteStep>) => void }) {
   const link = checarLink(s.winCtaUrl);
   const whatsapp = link?.ok && ehLinkWhatsapp(link.url) && !link.url.searchParams.has("text");
   return (
@@ -187,7 +189,7 @@ function explicarCombinacao(popup: boolean, redirecionar: boolean, temLink: bool
   return "O resultado aparece na própria tela e espera o toque no botão.";
 }
 
-function RedirecionamentoFields({ s, p, ultimaEtapa }: { s: RouletteStep; p: (patch: Partial<RouletteStep>) => void; ultimaEtapa?: boolean }) {
+export function RedirecionamentoFields({ s, p, ultimaEtapa }: { s: RouletteStep; p: (patch: Partial<RouletteStep>) => void; ultimaEtapa?: boolean }) {
   const ligado = s.popupAutoRedirect === true;
   const temLink = Boolean(linkSeguro(s.winCtaUrl));
   return (
@@ -216,13 +218,13 @@ function RedirecionamentoFields({ s, p, ultimaEtapa }: { s: RouletteStep; p: (pa
 
 /** Fonte, tamanho, peso e cor de um texto do popup. Vazio mantém o padrão. */
 /** Tipografia sem chaves vazias; sem nenhuma, volta `undefined` (= padrão). */
-function limparTipografia(t: TipografiaPopup): TipografiaPopup | undefined {
+export function limparTipografia(t: TipografiaPopup): TipografiaPopup | undefined {
   const proximo: TipografiaPopup = { ...t };
   for (const chave of Object.keys(proximo) as (keyof TipografiaPopup)[]) if (proximo[chave] === undefined || proximo[chave] === "") delete proximo[chave];
   return Object.keys(proximo).length ? proximo : undefined;
 }
 
-function TipografiaFields({ titulo, valor, padraoTamanho, padraoCor, comCor = true, onChange }: {
+export function TipografiaFields({ titulo, valor, padraoTamanho, padraoCor, comCor = true, onChange }: {
   titulo: string; valor?: TipografiaPopup; padraoTamanho: number;
   /** cor que vale quando o campo está vazio, mostrada ao lado do seletor */
   padraoCor?: string;
@@ -260,7 +262,7 @@ function TipografiaFields({ titulo, valor, padraoTamanho, padraoCor, comCor = tr
 }
 
 /** Avisos de contraste (WCAG 2.x) do popup: orientam, não impedem salvar. */
-function avisosContraste(s: RouletteStep, fundoTema?: string | null) {
+export function avisosContraste(s: RouletteStep, fundoTema?: string | null) {
   const fundo = s.popupBg || fundoTema || undefined;
   const texto = s.popupText ?? "#ffffff";
   const botaoFundo = s.popupBtnBg ?? "#ffffff";
@@ -280,7 +282,7 @@ function avisosContraste(s: RouletteStep, fundoTema?: string | null) {
   return avisos;
 }
 
-const CTX_PREVIA = { name: "", setName: () => {}, advance: () => {}, funnelSlug: "previa", preview: true } as unknown as StepCtx;
+export const CTX_PREVIA = { name: "", setName: () => {}, advance: () => {}, funnelSlug: "previa", preview: true } as unknown as StepCtx;
 
 function PopupEstiloFields({ s, p }: { s: RouletteStep; p: (patch: Partial<RouletteStep>) => void }) {
   const fundoTema = useContext(TemaFunilContext);
@@ -324,7 +326,7 @@ function PopupEstiloFields({ s, p }: { s: RouletteStep; p: (patch: Partial<Roule
 }
 
 /** "Testar som": toca os arquivos escolhidos; sem arquivo, os sons padrão. */
-function testarSom(giro?: string, vitoria?: string) {
+export function testarSom(giro?: string, vitoria?: string) {
   const tocarVitoria = () => { if (vitoria) void new Audio(vitoria).play().catch(() => playWin()); else playWin(); };
   if (!giro) { playSpinTicks(1400, 12); setTimeout(tocarVitoria, 1500); return; }
   // com arquivo, a vitória toca quando o som do giro termina, como no funil
@@ -352,6 +354,10 @@ export default function StepEditor({ step, onChange, ultimaEtapa }: { step: Step
    */
   const [sugestaoCustom, setSugestaoCustom] = useState<typeof PARAMS_PADRAO_ROLETA | null>(null);
   const p = (patch: Partial<Step>) => onChange(patch);
+  // No construtor de lâminas, o que é do popup sai do editor da roleta e vai
+  // para o componente "Popup da vitória" (pedido do Luca, 26/11). Sem o
+  // provedor, `popupFora` é null e os campos do popup ficam aqui, como antes.
+  const popupFora = useContext(PopupDaVitoriaContext);
 
   const fields = ((): React.ReactNode => {
   switch (step.type) {
@@ -789,10 +795,24 @@ export default function StepEditor({ step, onChange, ultimaEtapa }: { step: Step
                 ) : null}
               </div>
             </Field>
-            <BotaoResultadoFields s={s} p={(patch) => p(patch as Partial<Step>)} />
-            <Field label="Título da vitória" full><HtmlField value={s.winTitle} onChange={(v) => p({ winTitle: v } as Partial<Step>)} /></Field>
-            <Field label="Texto da vitória" full><HtmlField value={s.winBody} onChange={(v) => p({ winBody: v } as Partial<Step>)} /></Field>
+            {popupFora ? null : (
+              <>
+                <BotaoResultadoFields s={s} p={(patch) => p(patch as Partial<Step>)} />
+                <Field label="Título da vitória" full><HtmlField value={s.winTitle} onChange={(v) => p({ winTitle: v } as Partial<Step>)} /></Field>
+                <Field label="Texto da vitória" full><HtmlField value={s.winBody} onChange={(v) => p({ winBody: v } as Partial<Step>)} /></Field>
+              </>
+            )}
           </Grid>
+          {popupFora ? (
+            <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-3">
+              <span className="min-w-0 flex-1">
+                <strong className="block text-sm text-neutral-800">Popup da vitória</strong>
+                <span className="block text-[11px] leading-snug text-neutral-500">Título, texto, emoji, confete, som, botão e redirecionamento.</span>
+              </span>
+              <button type="button" onClick={popupFora.abrir} className="shrink-0 rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold hover:bg-neutral-50">Editar</button>
+            </div>
+          ) : null}
+          {popupFora ? null : (<>
           <div className="rounded-xl bg-neutral-50 p-3">
             <Toggle label="Efeito sonoro" value={sound.enabled} onChange={(v) => p({ sound: { ...sound, enabled: v } } as Partial<Step>)} />
             {sound.enabled ? (
@@ -878,6 +898,7 @@ export default function StepEditor({ step, onChange, ultimaEtapa }: { step: Step
               </div>
             ) : null}
           </div>
+          </>)}
         </div>
       );
     }
