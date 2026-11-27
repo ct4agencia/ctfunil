@@ -766,6 +766,9 @@ export interface FunnelWebhook {
    * (os dois só com `?telefone=` na URL; veja lib/quiz/vsl-datacrazy.ts). */
   trigger_event: "lead_capture" | "click_component" | "vsl_progress" | "vsl_pitch";
   component_id?: string;
+  /** só em vsl_pitch: segundo do vídeo em que está o pitch (ex.: 294 = 04:54).
+   * Vale antes do pitch_time do VTurb, que não vem para todos os players. */
+  pitch_seconds?: number;
   enabled: boolean;
 }
 

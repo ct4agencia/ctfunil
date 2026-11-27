@@ -9,6 +9,7 @@ import DeleteConfirmationIcon from "@/components/ui/DeleteConfirmationIcon";
 import { Eye, EyeOff, X } from "lucide-react";
 import type { Funnel, FunnelPixels, FunnelSettings, FunnelWebhook, WeekAvailability } from "@/lib/quiz/types";
 import { checarLink, mensagemLinkInvalido } from "@/lib/quiz/link-seguro";
+import { segundosDoPitch } from "@/lib/quiz/vsl-datacrazy";
 
 /* ── Smart Install: detecta scripts colados e mapeia pros campos ── */
 type DetTarget = "utmify_fb" | "utmify_google" | "hotmart" | "ga" | "gtm" | "fb_pixel" | "site_verify" | "head_raw" | "info";
@@ -334,7 +335,7 @@ export default function FunnelSettingsPanel({
           {tab === "webhooks" && (
             <div className="space-y-3">
               <p className="text-xs text-neutral-500">Dispara no formato inlead (campos <b>nome</b>, <b>telefone</b>, <b>{"{componente}"}: clicked</b>) — casa com os mapeamentos do Datacrazy.</p>
-              <p className="text-xs text-neutral-500"><b>% da VSL assistida</b> (a cada 10%) e <b>Chegou no pitch</b> (uma vez, no tempo de pitch do VTurb) só disparam quando o link do funil tem <b>?telefone=</b>, como os links do DataCrazy.</p>
+              <p className="text-xs text-neutral-500"><b>% da VSL assistida</b> (a cada 10%) e <b>Chegou no pitch</b> (uma vez, no tempo de pitch digitado no webhook ou, sem ele, no do VTurb) só disparam quando o link do funil tem <b>?telefone=</b>, como os links do DataCrazy.</p>
               {sourceSlug && <section className="space-y-2 rounded-xl border border-ct-line p-3" aria-label="Webhooks publicados">
                 <h3 className="font-semibold">Webhooks publicados</h3>
                 {published.error ? <div className="space-y-2">
@@ -393,14 +394,19 @@ export default function FunnelSettingsPanel({
                     <WorkspaceSelect label="Método" value={w.method} onChange={value=>patchWh(i,{method:value as FunnelWebhook['method']})} options={[{value:'POST',label:'POST'},{value:'GET',label:'GET'}]}/>
                     <WorkspaceSelect label="Formato" value={w.content_type} onChange={value=>patchWh(i,{content_type:value as FunnelWebhook['content_type']})} options={[{value:'formData',label:'form-urlencoded'},{value:'json',label:'JSON'}]}/>
                     <WorkspaceSelect label="Quando enviar" value={w.trigger_event} onChange={value=>patchWh(i,{trigger_event:value as FunnelWebhook['trigger_event']})} options={[{value:'lead_capture',label:'Captura de lead'},{value:'click_component',label:'Clique em componente'},{value:'vsl_progress',label:'% da VSL assistida'},{value:'vsl_pitch',label:'Chegou no pitch'}]}/>
-                    <input className={inputCls} placeholder="component_id" value={w.component_id ?? ""} onChange={(e) => patchWh(i, { component_id: e.target.value || undefined })} />
+                    {w.trigger_event === "vsl_pitch"
+                      ? <input key={`pitch-${w.id}`} className={inputCls} inputMode="numeric" autoComplete="off" data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other"
+                          aria-label="Tempo do pitch no vídeo, em segundos ou minutos:segundos" title="Tempo do pitch no vídeo: 294 ou 04:54" placeholder="Pitch: 294 ou 04:54"
+                          defaultValue={w.pitch_seconds ? String(w.pitch_seconds) : ""}
+                          onBlur={(e) => { const s = segundosDoPitch(e.currentTarget.value); e.currentTarget.value = s ? String(s) : ""; patchWh(i, { pitch_seconds: s || undefined }); }} />
+                      : <input className={inputCls} autoComplete="off" data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other" placeholder="component_id" value={w.component_id ?? ""} onChange={(e) => patchWh(i, { component_id: e.target.value || undefined })} />}
                   </div>
                   <label className="ct-settings-token" onBlur={event => {
                     if (!event.currentTarget.contains(event.relatedTarget) && visibleTokens[w.id]) {
                       setVisibleTokens(tokens => ({ ...tokens, [w.id]: false }));
                     }
                   }}><span className="sr-only">Token do webhook</span>
-                    <input className={inputCls} type={visibleTokens[w.id] ? "text" : "password"} autoComplete="off" spellCheck={false} placeholder="Token (Bearer, opcional)" value={w.token ?? ""} onChange={e => patchWh(i, { token: e.target.value || undefined })} />
+                    <input className={inputCls} type={visibleTokens[w.id] ? "text" : "password"} autoComplete="new-password" data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other" spellCheck={false} placeholder="Token (Bearer, opcional)" value={w.token ?? ""} onChange={e => patchWh(i, { token: e.target.value || undefined })} />
                     <Button type="button" variant="ghost" size="icon" className="ct-icon-button" aria-pressed={!!visibleTokens[w.id]} aria-label={visibleTokens[w.id] ? "Ocultar token" : "Mostrar token"}
                       onClick={() => setVisibleTokens(tokens => ({ ...tokens, [w.id]: !tokens[w.id] }))}>
                       {visibleTokens[w.id] ? <EyeOff size={16} /> : <Eye size={16} />}

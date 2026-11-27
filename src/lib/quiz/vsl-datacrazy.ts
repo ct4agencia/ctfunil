@@ -92,6 +92,19 @@ export function chegouNoPitch(t: number, pitchTime: number): boolean {
   return Number.isFinite(t) && Number.isFinite(pitchTime) && pitchTime > 0 && t + 1 >= pitchTime;
 }
 
+/**
+ * Tempo do pitch digitado no webhook: segundos (`294`) ou minutos e segundos
+ * (`04:54`). Devolve 0 quando vazio ou inválido (até 6 h).
+ */
+export function segundosDoPitch(valor: unknown): number {
+  if (typeof valor === "number") return Number.isInteger(valor) && valor > 0 && valor <= 21600 ? valor : 0;
+  if (typeof valor !== "string") return 0;
+  const v = valor.trim();
+  const mmss = /^(\d{1,3}):([0-5]\d)$/.exec(v);
+  const n = mmss ? Number(mmss[1]) * 60 + Number(mmss[2]) : /^\d{1,5}$/.test(v) ? Number(v) : 0;
+  return n > 0 && n <= 21600 ? n : 0;
+}
+
 /** Resposta do GET da rota: o que este funil envia para este vídeo. */
 export interface ConfigEnvioVsl {
   progress: boolean;

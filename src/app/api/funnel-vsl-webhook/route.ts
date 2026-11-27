@@ -4,7 +4,7 @@ import { vturbListPlayers } from "@/lib/vturb";
 import type { FunnelWebhook } from "@/lib/quiz/types";
 import {
   GATILHO_DO_EVENTO, SEM_ENVIO, caminhoDoFunil, chegouNoPitch, normalizarTelefone,
-  playerValido, slugValido, type ConfigEnvioVsl, type EventoVsl, type GatilhoVsl,
+  playerValido, segundosDoPitch, slugValido, type ConfigEnvioVsl, type EventoVsl, type GatilhoVsl,
 } from "@/lib/quiz/vsl-datacrazy";
 
 /**
@@ -59,6 +59,15 @@ async function playerDoVturb(player: string) {
   return lista?.find(p => p.id === player) ?? null;
 }
 
+/**
+ * Tempo do pitch de cada webhook "Chegou no pitch": o digitado no webhook
+ * (pedido do Luca em 27/11: o VTurb não informa o pitch de todos os players)
+ * ou, sem ele, o `pitch_time` do VTurb. 0 = sem pitch, não envia.
+ */
+function tempoDoPitch(wh: FunnelWebhook, pitchVturb: number): number {
+  return segundosDoPitch(wh.pitch_seconds) || (pitchVturb > 0 ? pitchVturb : 0);
+}
+
 export async function GET(request: Request) {
   const q = new URL(request.url).searchParams;
   const slug = q.get("slug") ?? "";
@@ -70,14 +79,15 @@ export async function GET(request: Request) {
   const funil = await lerFunil(slug);
   if (!funil || !videoDoFunil(funil, player)) return json(SEM_ENVIO);
   const progress = webhooksDoGatilho(funil, "vsl_progress").length > 0;
-  let pitch = webhooksDoGatilho(funil, "vsl_pitch").length > 0;
+  const doPitch = webhooksDoGatilho(funil, "vsl_pitch");
   let pitchTime = 0;
-  if (pitch) {
-    const p = await playerDoVturb(player);
-    pitchTime = p && p.pitch_time > 0 ? p.pitch_time : 0;
-    if (!pitchTime) pitch = false; // sem pitch configurado no VTurb, não há o que avisar
+  if (doPitch.length) {
+    const faltaTempo = doPitch.some(wh => !segundosDoPitch(wh.pitch_seconds));
+    const vturb = faltaTempo ? (await playerDoVturb(player))?.pitch_time ?? 0 : 0;
+    const tempos = doPitch.map(wh => tempoDoPitch(wh, vturb)).filter(n => n > 0);
+    pitchTime = tempos.length ? Math.min(...tempos) : 0; // sem tempo de pitch, não há o que avisar
   }
-  return json({ progress, pitch, pitch_time: pitchTime });
+  return json({ progress, pitch: pitchTime > 0, pitch_time: pitchTime });
 }
 
 // Proteção por processo contra repetição e abuso (o navegador também guarda o
@@ -141,11 +151,16 @@ export async function POST(request: Request) {
 
   const funil = await lerFunil(slug);
   if (!funil || !videoDoFunil(funil, player)) return vazio(404);
-  const destinos = webhooksDoGatilho(funil, GATILHO_DO_EVENTO[evento]);
-  if (!destinos.length) return vazio();
+  const doGatilho = webhooksDoGatilho(funil, GATILHO_DO_EVENTO[evento]);
+  if (!doGatilho.length) return vazio();
 
   const vturb = await playerDoVturb(player);
-  if (evento === "vsl_pitch_reached" && !(vturb && chegouNoPitch(t, vturb.pitch_time))) return vazio(422);
+  const pitchVturb = vturb?.pitch_time ?? 0;
+  // pitch: só os webhooks cujo tempo de pitch já foi alcançado
+  const destinos = evento === "vsl_pitch_reached"
+    ? doGatilho.filter(wh => chegouNoPitch(t, tempoDoPitch(wh, pitchVturb)))
+    : doGatilho;
+  if (!destinos.length) return vazio(422);
 
   JA_ENVIADO.set(chave, agora);
   const produtoNome = typeof funil.settings?.produto_nome === "string" ? funil.settings.produto_nome.trim() : "";
@@ -158,10 +173,12 @@ export async function POST(request: Request) {
     ...(produtoNome ? { produto: produtoNome } : {}),
     telefone,
     ...(nome && !/[@{}<>]/.test(nome) ? { nome: nome.slice(0, 100) } : {}),
-    ...(evento === "vsl_progress" ? { vsl_watch_pct: String(faixa) } : { pitch_time: String(vturb?.pitch_time ?? "") }),
+    ...(evento === "vsl_progress" ? { vsl_watch_pct: String(faixa) } : {}),
     event_id: eventId,
     occurred_at: new Date(agora).toISOString(),
   };
-  await Promise.allSettled(destinos.map(wh => fireWebhook(wh, corpo)));
+  await Promise.allSettled(destinos.map(wh => fireWebhook(wh, evento === "vsl_pitch_reached"
+    ? { ...corpo, pitch_time: String(tempoDoPitch(wh, pitchVturb)) }
+    : corpo)));
   return vazio();
 }
