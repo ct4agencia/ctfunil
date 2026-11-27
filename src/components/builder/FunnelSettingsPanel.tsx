@@ -9,7 +9,7 @@ import DeleteConfirmationIcon from "@/components/ui/DeleteConfirmationIcon";
 import { Eye, EyeOff, X } from "lucide-react";
 import type { Funnel, FunnelPixels, FunnelSettings, FunnelWebhook, WeekAvailability } from "@/lib/quiz/types";
 import { checarLink, mensagemLinkInvalido } from "@/lib/quiz/link-seguro";
-import { segundosDoPitch } from "@/lib/quiz/vsl-datacrazy";
+import { pitchDoBotao, segundosDoPitch } from "@/lib/quiz/vsl-datacrazy";
 
 /* ── Smart Install: detecta scripts colados e mapeia pros campos ── */
 type DetTarget = "utmify_fb" | "utmify_google" | "hotmart" | "ga" | "gtm" | "fb_pixel" | "site_verify" | "head_raw" | "info";
@@ -152,6 +152,7 @@ export default function FunnelSettingsPanel({
   }, [tab, sourceSlug, webhookAttempt]);
   // Webhooks
   const webhooks = funnel.webhooks ?? [];
+  const pitchBotao = pitchDoBotao(funnel.steps);
   const [pendingWebhookDelete, setPendingWebhookDelete] = useState<string | null>(null);
   const webhookDeleteTrigger = useRef<HTMLButtonElement>(null);
   const webhookDeleteCancel = useRef<HTMLButtonElement>(null);
@@ -369,7 +370,7 @@ export default function FunnelSettingsPanel({
                     <input className={inputCls + " min-w-0 flex-1"} placeholder="Nome (ex: Datacrazy - Captura)" value={w.name ?? ""} onChange={(e) => patchWh(i, { name: e.target.value })} />
                     <label className="flex items-center gap-1 text-xs font-semibold text-neutral-600"><input type="checkbox" checked={w.enabled} onChange={(e) => patchWh(i, { enabled: e.target.checked })} className="accent-blue-600" /> Ativo</label>
                     <button type="button" aria-label="Remover webhook" aria-expanded={pendingWebhookDelete === w.id}
-                      aria-controls={`${webhookConfirmationId}-${i}`} className="ct-step-control shrink-0 text-red-600"
+                      aria-controls={`${webhookConfirmationId}-${i}`} className="ct-step-control shrink-0 text-red-600" style={{ width: "auto" }}
                       onClick={event => {
                         if (pendingWebhookDelete === w.id) {
                           resolveWebhookDelete(w.id, false);
@@ -396,11 +397,17 @@ export default function FunnelSettingsPanel({
                     <WorkspaceSelect label="Quando enviar" value={w.trigger_event} onChange={value=>patchWh(i,{trigger_event:value as FunnelWebhook['trigger_event']})} options={[{value:'lead_capture',label:'Captura de lead'},{value:'click_component',label:'Clique em componente'},{value:'vsl_progress',label:'% da VSL assistida'},{value:'vsl_pitch',label:'Chegou no pitch'}]}/>
                     {w.trigger_event === "vsl_pitch"
                       ? <input key={`pitch-${w.id}`} className={inputCls} inputMode="numeric" autoComplete="off" data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other"
-                          aria-label="Tempo do pitch no vídeo, em segundos ou minutos:segundos" title="Tempo do pitch no vídeo: 294 ou 04:54" placeholder="Pitch: 294 ou 04:54"
+                          aria-label="Tempo do pitch no vídeo, em segundos ou minutos:segundos; vazio usa o tempo em que o botão aparece" aria-describedby={`pitch-ajuda-${w.id}`} title="Tempo do pitch: 294 ou 04:54. Vazio = tempo do botão." placeholder="Pitch (vazio = botão)"
                           defaultValue={w.pitch_seconds ? String(w.pitch_seconds) : ""}
                           onBlur={(e) => { const s = segundosDoPitch(e.currentTarget.value); e.currentTarget.value = s ? String(s) : ""; patchWh(i, { pitch_seconds: s || undefined }); }} />
+                      : w.trigger_event === "vsl_progress" ? null
                       : <input className={inputCls} autoComplete="off" data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other" placeholder="component_id" value={w.component_id ?? ""} onChange={(e) => patchWh(i, { component_id: e.target.value || undefined })} />}
                   </div>
+                  {w.trigger_event === "vsl_pitch" && <p id={`pitch-ajuda-${w.id}`} className="text-xs text-neutral-500">
+                    <b>Tempo do pitch</b> (4º campo): {segundosDoPitch(w.pitch_seconds)
+                      ? `${segundosDoPitch(w.pitch_seconds)} s, digitado aqui.`
+                      : pitchBotao ? `vazio, então vale o tempo em que o botão aparece: ${pitchBotao} s.` : "vazio, e a etapa do vídeo não tem botão com tempo: o pitch só dispara se o VTurb informar o tempo."}
+                  </p>}
                   <label className="ct-settings-token" onBlur={event => {
                     if (!event.currentTarget.contains(event.relatedTarget) && visibleTokens[w.id]) {
                       setVisibleTokens(tokens => ({ ...tokens, [w.id]: false }));

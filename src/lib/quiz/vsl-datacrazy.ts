@@ -105,6 +105,35 @@ export function segundosDoPitch(valor: unknown): number {
   return n > 0 && n <= 21600 ? n : 0;
 }
 
+const PLAYER_NO_TEXTO = /players\/([0-9a-f]{24})/i;
+type CamadaSolta = { type?: unknown; content?: { revealAt?: unknown; revealClock?: unknown } | null } | null;
+
+/**
+ * Tempo em que o botão aparece na etapa do vídeo (`content.revealAt` da camada
+ * de botão). É o pitch que o Luca já configura no construtor (27/11: "o tempo
+ * do pitch está configurado no botão"); o webhook "Chegou no pitch" usa este
+ * tempo quando o campo próprio está vazio. Prefere botões no relógio do vídeo;
+ * com mais de um, vale o primeiro a aparecer. 0 = a etapa do vídeo não tem
+ * botão com tempo. Sem `player`, usa a primeira etapa que tem um vídeo do VTurb.
+ */
+export function pitchDoBotao(steps: unknown, player?: string): number {
+  if (!Array.isArray(steps)) return 0;
+  for (const step of steps as { layers?: unknown }[]) {
+    const camadas = (Array.isArray(step?.layers) ? step.layers : []) as CamadaSolta[];
+    let texto = "";
+    try { texto = JSON.stringify(camadas).toLowerCase(); } catch { continue; }
+    const id = player?.toLowerCase() ?? PLAYER_NO_TEXTO.exec(texto)?.[1];
+    if (!id || (!texto.includes(`players/${id}`) && !texto.includes(`vid-${id}`))) continue;
+    const tempos = camadas
+      .filter(c => c?.type === "button")
+      .map(c => ({ s: segundosDoPitch(Math.round(Number(c?.content?.revealAt))), video: c?.content?.revealClock === "video" }))
+      .filter(x => x.s > 0);
+    const lista = tempos.some(x => x.video) ? tempos.filter(x => x.video) : tempos;
+    if (lista.length) return Math.min(...lista.map(x => x.s));
+  }
+  return 0;
+}
+
 /** Resposta do GET da rota: o que este funil envia para este vídeo. */
 export interface ConfigEnvioVsl {
   progress: boolean;
