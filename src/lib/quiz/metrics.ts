@@ -12,7 +12,9 @@ export interface DashboardMetrics {
   totalConclusoes: number;
   taxaConclusao: number;
   daily: { day: string; sessoes: number }[];
-  porFunil: { slug: string; name: string; sessoes: number; pct: number; color: string }[];
+  /** Por funil. `respostas` (Interações), `leads` e `conclusoes` alimentam os
+   *  cartões de Meus funis; opcionais porque a captura de 24/11 não os tem. */
+  porFunil: { slug: string; name: string; sessoes: number; pct: number; color: string; respostas?: number; leads?: number; conclusoes?: number }[];
 }
 
 const DONUT_COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#06b6d4", "#ef4444"];
@@ -116,9 +118,10 @@ export async function dashboardMetrics(): Promise<DashboardMetrics> {
     const visitantes = ms.length;
     const respostas = ms.filter((x) => x >= idx.firstQ).length;
     const conclusoes = ms.filter((x) => x >= idx.lastI).length;
+    const leads = leadsByFunnel.get(f.slug) ?? 0;
     totalSessoes += visitantes; totalRespostas += respostas;
-    totalLeads += (leadsByFunnel.get(f.slug) ?? 0); totalConclusoes += conclusoes;
-    porFunil.push({ slug: f.slug, name: f.name, sessoes: visitantes, pct: 0, color: DONUT_COLORS[i % DONUT_COLORS.length] });
+    totalLeads += leads; totalConclusoes += conclusoes;
+    porFunil.push({ slug: f.slug, name: f.name, sessoes: visitantes, pct: 0, color: DONUT_COLORS[i % DONUT_COLORS.length], respostas, leads, conclusoes });
   });
   porFunil.forEach((p) => { p.pct = totalSessoes ? Math.round((p.sessoes / totalSessoes) * 1000) / 10 : 0; });
   porFunil.sort((a, b) => b.sessoes - a.sessoes);
